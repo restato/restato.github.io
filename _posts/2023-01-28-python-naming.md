@@ -6,11 +6,6 @@ mermaid: true
 math: true
 comments: true
 pin: false
-image:
-  src:
-  width:
-  height:
-  alt:
 ---
 
 private은 `_`(밑줄 한개)을 사용, name mangling을 방지하기 위해서는 `__`(밑줄 두개) 사용

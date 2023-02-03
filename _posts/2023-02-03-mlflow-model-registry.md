@@ -6,11 +6,6 @@ mermaid: true
 math: true
 comments: true
 pin: false
-image:
-  src:
-  width:
-  height:
-  alt:
 ---
 
 # Intro

@@ -6,11 +6,6 @@ mermaid: true
 math: true
 comments: true
 pin: false
-image:
-  src:
-  width:
-  height:
-  alt:
 ---
 
 가독성, 성능을 위해 문자열 붙일때는 `+`보다 `join`을 사용
