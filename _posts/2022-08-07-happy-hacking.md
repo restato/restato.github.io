@@ -1,7 +1,7 @@
 ---
 title: "해피해킹 멀티 디바이스 페어링 하는 방법"
 categories: [장비]
-tags: [happyhacking]
+tags: [키보드]
 comments: true
 toc: true
 toc_label: Table of Contents
