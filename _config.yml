@@ -93,6 +93,7 @@ defaults:
       path: ""
       type: posts
     values:
+      show_date: true
       layout: single
       author_profile: true
       read_time: true
@@ -141,3 +142,27 @@ tag_archive:
 #     mapping:           # optional, default to 'pathname'
 #     input_position:    # optional, default to 'bottom'
 #     lang:         
+
+# Extra 
+# https://mmistakes.github.io/minimal-mistakes/docs/navigation/
+# breadcrumbs: true  # disabled by default
+
+# logo: "/assets/images/logo.png"
+enable_copy_code_button: true
+repository: restato/blog-comments  # GitHub username/repo-name e.g. "mmistakes/minimal-mistakes"
+comments:
+  provider: "giscus"
+  giscus:
+    repo_id              : # Shown during giscus setup at https://giscus.app
+    category_name        : # Full text name of the category
+    category_id          : # Shown during giscus setup at https://giscus.app
+    discussion_term      : # "pathname" (default), "url", "title", "og:title"
+    reactions_enabled    : # '1' for enabled (default), '0' for disabled
+    theme                : # "light" (default), "dark", "dark_dimmed", "transparent_dark", "preferred_color_scheme"
+google:
+  search_engine_id: G-CJKYE91FQM
+google_site_verification: 0GLTtjarMTr8NsaJaP-z0tbHPycvu_rOoQykr81BL0o # fill in to your verification string
+
+# TODO: NAVER
+# <meta name="naver-site-verification" content="6BF5A01C0E650B479B612AC5A2184144">`
+# naver_site_verification: "6BF5A01C0E650B479B612AC5A2184144"
