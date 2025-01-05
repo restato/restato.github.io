@@ -13,15 +13,15 @@
 # you will see them accessed via {{ site.title }}, {{ site.email }}, and so on.
 # You can create any custom variable you would like, and they will be accessible
 # in the templates via {{ site.myvariable }}.
-title: MM
-email:
+title: restato's memo
+email: direcision@gmail.com
 description: >- # this means to ignore newlines until "baseurl:"
   Write an awesome description for your new site here. You can edit this
   line in _config.yml. It will appear in your document head meta (for
   Google search results) and in your feed.xml site description.
 twitter_username: username
-github_username: username
-minimal_mistakes_skin: default
+github_username: restato
+minimal_mistakes_skin: dark # neon
 search: true
 
 # Build settings
@@ -31,7 +31,7 @@ remote_theme: mmistakes/minimal-mistakes
 permalink: /:categories/:title/
 paginate: 5 # amount of posts to show
 paginate_path: /page:num/
-timezone: # https://en.wikipedia.org/wiki/List_of_tz_database_time_zones
+timezone: Asia/Seoul # https://en.wikipedia.org/wiki/List_of_tz_database_time_zones
 
 include:
   - _pages
@@ -58,31 +58,31 @@ plugins:
   - jekyll-include-cache
 
 author:
-  name   : "First Lastname"
+  name   : "restato"
   avatar : "/assets/images/bio-photo.jpg"
-  bio    : "My awesome biography constrained to a sentence or two goes here."
+  bio    : "just try your hardest."
   links:
-    - label: "Website"
-      icon: "fas fa-fw fa-link"
-      url: "https://"
-    - label: "Twitter"
-      icon: "fab fa-fw fa-twitter-square"
-      url: "https://twitter.com/"
+    # - label: "Website"
+    #   icon: "fas fa-fw fa-link"
+    #   url: "https://"
+    - label: "LinkedIn"
+      icon: "fab fa-fw fa-linkedin"
+      url: "https://www.linkedin.com/in/direcision?utm_source=share&utm_campaign=share_via&utm_content=profile&utm_medium=ios_app/"
     - label: "GitHub"
       icon: "fab fa-fw fa-github"
-      url: "https://github.com/"
+      url: "https://github.com/restato"
     - label: "Instagram"
       icon: "fab fa-fw fa-instagram"
       url: "https://instagram.com/"
 
 footer:
   links:
-    - label: "Twitter"
-      icon: "fab fa-fw fa-twitter-square"
-      url: "https://twitter.com/"
+    - label: "LinkedIn"
+      icon: "fab fa-fw fa-linkedin"
+      url: "https://www.linkedin.com/in/direcision?utm_source=share&utm_campaign=share_via&utm_content=profile&utm_medium=ios_app/"
     - label: "GitHub"
       icon: "fab fa-fw fa-github"
-      url: "https://github.com/"
+      url: "https://github.com/restato"
     - label: "Instagram"
       icon: "fab fa-fw fa-instagram"
       url: "https://instagram.com/"
@@ -113,3 +113,31 @@ category_archive:
 tag_archive:
   type: liquid
   path: /tags/
+
+# google_site_verification: 0GLTtjarMTr8NsaJaP-z0tbHPycvu_rOoQykr81BL0o # fill in to your verification string
+
+# google_analytics:
+#   id: G-CJKYE91FQM # fill in your Google Analytics ID
+#   # Google Analytics pageviews report settings
+#   pv:
+#     proxy_endpoint:   # fill in the Google Analytics superProxy endpoint of Google App Engine
+#     cache_path:   
+
+# comments:
+#   active: giscus         # The global switch for posts comments, e.g., 'disqus'.  Keep it empty means disable
+#   # The active options are as follows:
+#   disqus:
+#     shortname:    # fill with the Disqus shortname. › https://help.disqus.com/en/articles/1717111-what-s-a-shortname
+#   # utterances settings › https://utteranc.es/
+#   utterances:
+#     repo:         # <gh-username>/<repo>
+#     issue_term:   # < url | pathname | title | ...>
+#   # Giscus options › https://giscus.app
+#   giscus:
+#     repo: restato/blog-comments       # <gh-username>/<repo>
+#     repo_id:
+#     category:
+#     category_id:
+#     mapping:           # optional, default to 'pathname'
+#     input_position:    # optional, default to 'bottom'
+#     lang:         
