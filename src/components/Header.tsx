@@ -16,7 +16,7 @@ import { useLanguage } from './LanguageProvider';
 import { LanguageSelector } from './LanguageSelector';
 
 export function Header() {
-  const { t, isLoaded } = useLanguage();
+  const { t } = useLanguage();
 
   return (
     <Box as="header" bg="white" shadow="md" borderBottom="1px" borderColor="gray.200">

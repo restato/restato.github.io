@@ -9,7 +9,6 @@ import {
   Text,
   SimpleGrid,
   Card,
-  CardBody,
   useColorModeValue,
 } from '@chakra-ui/react';
 import { useLanguage } from '@/components/LanguageProvider';
@@ -74,7 +73,6 @@ const games = [
 export default function Home() {
   const { t, isLoaded } = useLanguage();
   const cardBg = useColorModeValue('white', 'gray.800');
-  const featureBg = useColorModeValue('white', 'gray.700');
 
   // 번역이 로딩 중일 때 로딩 표시
   if (!isLoaded) {
