@@ -1,0 +1,123 @@
+{
+  "title": "Jeux de Tirage au Sort",
+  "subtitle": "Jeux aléatoires amusants et équitables pour tous",
+  "games": {
+    "roulette": "Roulette",
+    "bingo": "Bingo",
+    "lottery": "Loterie",
+    "coinFlip": "Pile ou Face",
+    "dice": "Lancer de Dés",
+    "cards": "Tirage de Cartes",
+    "namePicker": "Tirage de Noms",
+    "numberRange": "Plage de Nombres",
+    "rockPaperScissors": "Pierre Papier Ciseaux",
+    "teamDivider": "Diviseur d'Équipes"
+  },
+  "gameDescriptions": {
+    "roulette": "Faites tourner la roue avec des entrées pondérées",
+    "bingo": "Générez des numéros de bingo aléatoires",
+    "lottery": "Choisissez des numéros de loterie chanceux",
+    "coinFlip": "Classique pile ou face",
+    "dice": "Lancez des dés virtuels",
+    "cards": "Tirez des cartes aléatoirement",
+    "namePicker": "Choisissez des noms au hasard dans une liste",
+    "numberRange": "Générez des nombres dans une plage",
+    "rockPaperScissors": "Jouez contre l'ordinateur",
+    "teamDivider": "Divisez les gens en équipes"
+  },
+  "common": {
+    "start": "Commencer",
+    "stop": "Arrêter",
+    "reset": "Réinitialiser",
+    "play": "Jouer",
+    "again": "Rejouer",
+    "winner": "Gagnant",
+    "result": "Résultat",
+    "results": "Résultats",
+    "history": "Historique",
+    "clear": "Effacer",
+    "add": "Ajouter",
+    "remove": "Supprimer",
+    "settings": "Paramètres",
+    "language": "Langue",
+    "home": "Accueil",
+    "back": "Retour",
+    "next": "Suivant",
+    "previous": "Précédent",
+    "loading": "Chargement...",
+    "error": "Une erreur s'est produite",
+    "success": "Succès !"
+  },
+  "roulette": {
+    "addEntry": "Ajouter une Entrée",
+    "entryName": "Nom de l'Entrée",
+    "weight": "Poids",
+    "enterName": "Entrez le nom (format nom*poids supporté)",
+    "spin": "Tourner",
+    "spinning": "En rotation...",
+    "winner": "Gagnant",
+    "previousWinners": "Gagnants Précédents",
+    "noEntries": "Veuillez d'abord ajouter des entrées",
+    "invalidEntry": "Format d'entrée invalide"
+  },
+  "dice": {
+    "rollDice": "Lancer les Dés",
+    "numberOfDice": "Nombre de Dés",
+    "sidesPerDie": "Faces par Dé",
+    "total": "Total"
+  },
+  "coinFlip": {
+    "heads": "Pile",
+    "tails": "Face",
+    "flip": "Lancer la Pièce",
+    "flipping": "Lancement..."
+  },
+  "cards": {
+    "drawCard": "Tirer une Carte",
+    "shuffleDeck": "Mélanger le Paquet",
+    "newDeck": "Nouveau Paquet",
+    "cardsLeft": "Cartes Restantes"
+  },
+  "lottery": {
+    "generateNumbers": "Générer les Numéros",
+    "numbersCount": "Nombre de numéros",
+    "maxNumber": "Numéro maximum",
+    "yourNumbers": "Vos Numéros Chanceux"
+  },
+  "namePicker": {
+    "addName": "Ajouter un Nom",
+    "enterNames": "Entrez les noms (un par ligne)",
+    "pickWinner": "Choisir le Gagnant",
+    "previousWinners": "Gagnants Précédents",
+    "noNames": "Veuillez d'abord ajouter des noms"
+  },
+  "teamDivider": {
+    "addPlayer": "Ajouter un Joueur",
+    "numberOfTeams": "Nombre d'Équipes",
+    "divideTeams": "Diviser en Équipes",
+    "team": "Équipe",
+    "players": "Joueurs",
+    "noPlayers": "Veuillez d'abord ajouter des joueurs"
+  },
+  "bingo": {
+    "generateCard": "Générer une Carte",
+    "callNumber": "Appeler un Numéro",
+    "lastCalled": "Dernier Appelé",
+    "calledNumbers": "Numéros Appelés",
+    "bingo": "BINGO !"
+  },
+  "rockPaperScissors": {
+    "rock": "Pierre",
+    "paper": "Papier",
+    "scissors": "Ciseaux",
+    "vsComputer": "vs Ordinateur",
+    "yourChoice": "Votre Choix",
+    "computerChoice": "Choix de l'Ordinateur",
+    "youWin": "Vous avez gagné !",
+    "youLose": "Vous avez perdu !",
+    "tie": "Égalité !",
+    "score": "Score",
+    "you": "Vous",
+    "computer": "Ordinateur"
+  }
+}

@@ -1,0 +1,123 @@
+{
+  "title": "Juegos de Sorteo",
+  "subtitle": "Juegos aleatorios divertidos y justos para todos",
+  "games": {
+    "roulette": "Ruleta",
+    "bingo": "Bingo",
+    "lottery": "Lotería",
+    "coinFlip": "Lanzar Moneda",
+    "dice": "Tirar Dados",
+    "cards": "Sacar Carta",
+    "namePicker": "Selector de Nombres",
+    "numberRange": "Rango de Números",
+    "rockPaperScissors": "Piedra Papel Tijera",
+    "teamDivider": "Dividir Equipos"
+  },
+  "gameDescriptions": {
+    "roulette": "Gira la rueda con entradas ponderadas",
+    "bingo": "Genera números de bingo aleatorios",
+    "lottery": "Elige números de lotería de la suerte",
+    "coinFlip": "Clásico cara o cruz",
+    "dice": "Lanza dados virtuales",
+    "cards": "Saca cartas aleatorias",
+    "namePicker": "Elige nombres aleatorios de una lista",
+    "numberRange": "Genera números en un rango",
+    "rockPaperScissors": "Juega contra la computadora",
+    "teamDivider": "Divide personas en equipos"
+  },
+  "common": {
+    "start": "Iniciar",
+    "stop": "Parar",
+    "reset": "Reiniciar",
+    "play": "Jugar",
+    "again": "Jugar de Nuevo",
+    "winner": "Ganador",
+    "result": "Resultado",
+    "results": "Resultados",
+    "history": "Historial",
+    "clear": "Limpiar",
+    "add": "Agregar",
+    "remove": "Quitar",
+    "settings": "Configuración",
+    "language": "Idioma",
+    "home": "Inicio",
+    "back": "Atrás",
+    "next": "Siguiente",
+    "previous": "Anterior",
+    "loading": "Cargando...",
+    "error": "Ocurrió un error",
+    "success": "¡Éxito!"
+  },
+  "roulette": {
+    "addEntry": "Agregar Entrada",
+    "entryName": "Nombre de Entrada",
+    "weight": "Peso",
+    "enterName": "Ingresa nombre (formato nombre*peso soportado)",
+    "spin": "Girar",
+    "spinning": "Girando...",
+    "winner": "Ganador",
+    "previousWinners": "Ganadores Anteriores",
+    "noEntries": "Por favor agrega entradas primero",
+    "invalidEntry": "Formato de entrada inválido"
+  },
+  "dice": {
+    "rollDice": "Tirar Dados",
+    "numberOfDice": "Número de Dados",
+    "sidesPerDie": "Caras por Dado",
+    "total": "Total"
+  },
+  "coinFlip": {
+    "heads": "Cara",
+    "tails": "Cruz",
+    "flip": "Lanzar Moneda",
+    "flipping": "Lanzando..."
+  },
+  "cards": {
+    "drawCard": "Sacar Carta",
+    "shuffleDeck": "Barajar Mazo",
+    "newDeck": "Nuevo Mazo",
+    "cardsLeft": "Cartas Restantes"
+  },
+  "lottery": {
+    "generateNumbers": "Generar Números",
+    "numbersCount": "Cantidad de números",
+    "maxNumber": "Número máximo",
+    "yourNumbers": "Tus Números de la Suerte"
+  },
+  "namePicker": {
+    "addName": "Agregar Nombre",
+    "enterNames": "Ingresa nombres (uno por línea)",
+    "pickWinner": "Elegir Ganador",
+    "previousWinners": "Ganadores Anteriores",
+    "noNames": "Por favor agrega nombres primero"
+  },
+  "teamDivider": {
+    "addPlayer": "Agregar Jugador",
+    "numberOfTeams": "Número de Equipos",
+    "divideTeams": "Dividir en Equipos",
+    "team": "Equipo",
+    "players": "Jugadores",
+    "noPlayers": "Por favor agrega jugadores primero"
+  },
+  "bingo": {
+    "generateCard": "Generar Carta",
+    "callNumber": "Cantar Número",
+    "lastCalled": "Último Cantado",
+    "calledNumbers": "Números Cantados",
+    "bingo": "¡BINGO!"
+  },
+  "rockPaperScissors": {
+    "rock": "Piedra",
+    "paper": "Papel",
+    "scissors": "Tijera",
+    "vsComputer": "vs Computadora",
+    "yourChoice": "Tu Elección",
+    "computerChoice": "Elección de Computadora",
+    "youWin": "¡Ganaste!",
+    "youLose": "¡Perdiste!",
+    "tie": "¡Empate!",
+    "score": "Puntuación",
+    "you": "Tú",
+    "computer": "Computadora"
+  }
+}

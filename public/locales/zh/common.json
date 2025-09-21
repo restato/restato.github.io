@@ -1,0 +1,123 @@
+{
+  "title": "抽奖游戏",
+  "subtitle": "为每个人提供有趣公平的随机游戏",
+  "games": {
+    "roulette": "轮盘",
+    "bingo": "宾果",
+    "lottery": "彩票",
+    "coinFlip": "抛硬币",
+    "dice": "掷骰子",
+    "cards": "抽卡",
+    "namePicker": "姓名抽签",
+    "numberRange": "数字范围",
+    "rockPaperScissors": "石头剪刀布",
+    "teamDivider": "分队器"
+  },
+  "gameDescriptions": {
+    "roulette": "用加权条目转动轮盘",
+    "bingo": "生成随机宾果号码",
+    "lottery": "选择幸运彩票号码",
+    "coinFlip": "经典正面或反面",
+    "dice": "投掷虚拟骰子",
+    "cards": "抽取随机纸牌",
+    "namePicker": "从列表中随机选择姓名",
+    "numberRange": "在范围内生成数字",
+    "rockPaperScissors": "与电脑对战",
+    "teamDivider": "将人员分成团队"
+  },
+  "common": {
+    "start": "开始",
+    "stop": "停止",
+    "reset": "重置",
+    "play": "玩",
+    "again": "再玩一次",
+    "winner": "获胜者",
+    "result": "结果",
+    "results": "结果",
+    "history": "历史",
+    "clear": "清除",
+    "add": "添加",
+    "remove": "移除",
+    "settings": "设置",
+    "language": "语言",
+    "home": "首页",
+    "back": "返回",
+    "next": "下一个",
+    "previous": "上一个",
+    "loading": "加载中...",
+    "error": "发生错误",
+    "success": "成功！"
+  },
+  "roulette": {
+    "addEntry": "添加条目",
+    "entryName": "条目名称",
+    "weight": "权重",
+    "enterName": "输入名称（支持名称*权重格式）",
+    "spin": "转动",
+    "spinning": "转动中...",
+    "winner": "获胜者",
+    "previousWinners": "之前的获胜者",
+    "noEntries": "请先添加条目",
+    "invalidEntry": "无效条目格式"
+  },
+  "dice": {
+    "rollDice": "掷骰子",
+    "numberOfDice": "骰子数量",
+    "sidesPerDie": "每个骰子的面数",
+    "total": "总计"
+  },
+  "coinFlip": {
+    "heads": "正面",
+    "tails": "反面",
+    "flip": "抛硬币",
+    "flipping": "抛掷中..."
+  },
+  "cards": {
+    "drawCard": "抽卡",
+    "shuffleDeck": "洗牌",
+    "newDeck": "新牌组",
+    "cardsLeft": "剩余卡牌"
+  },
+  "lottery": {
+    "generateNumbers": "生成号码",
+    "numbersCount": "号码数量",
+    "maxNumber": "最大号码",
+    "yourNumbers": "您的幸运号码"
+  },
+  "namePicker": {
+    "addName": "添加姓名",
+    "enterNames": "输入姓名（每行一个）",
+    "pickWinner": "选择获胜者",
+    "previousWinners": "之前的获胜者",
+    "noNames": "请先添加姓名"
+  },
+  "teamDivider": {
+    "addPlayer": "添加玩家",
+    "numberOfTeams": "队伍数量",
+    "divideTeams": "分队",
+    "team": "队伍",
+    "players": "玩家",
+    "noPlayers": "请先添加玩家"
+  },
+  "bingo": {
+    "generateCard": "生成卡片",
+    "callNumber": "叫号",
+    "lastCalled": "最后叫号",
+    "calledNumbers": "已叫号码",
+    "bingo": "宾果！"
+  },
+  "rockPaperScissors": {
+    "rock": "石头",
+    "paper": "布",
+    "scissors": "剪刀",
+    "vsComputer": "对战电脑",
+    "yourChoice": "您的选择",
+    "computerChoice": "电脑选择",
+    "youWin": "您赢了！",
+    "youLose": "您输了！",
+    "tie": "平局！",
+    "score": "得分",
+    "you": "您",
+    "computer": "电脑"
+  }
+}

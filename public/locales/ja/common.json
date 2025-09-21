@@ -1,0 +1,123 @@
+{
+  "title": "抽選ゲーム",
+  "subtitle": "みんなのための楽しくて公平なランダムゲーム",
+  "games": {
+    "roulette": "ルーレット",
+    "bingo": "ビンゴ",
+    "lottery": "宝くじ",
+    "coinFlip": "コイン投げ",
+    "dice": "サイコロ",
+    "cards": "カード引き",
+    "namePicker": "名前抽選",
+    "numberRange": "数字範囲",
+    "rockPaperScissors": "じゃんけん",
+    "teamDivider": "チーム分け"
+  },
+  "gameDescriptions": {
+    "roulette": "重み付きエントリーでルーレットを回す",
+    "bingo": "ランダムなビンゴ番号を生成",
+    "lottery": "幸運の宝くじ番号を選択",
+    "coinFlip": "伝統的な表か裏",
+    "dice": "バーチャルサイコロを振る",
+    "cards": "ランダムなカードを引く",
+    "namePicker": "リストからランダムな名前を選択",
+    "numberRange": "範囲内の数字を生成",
+    "rockPaperScissors": "コンピューターと対戦",
+    "teamDivider": "人をチームに分ける"
+  },
+  "common": {
+    "start": "開始",
+    "stop": "停止",
+    "reset": "リセット",
+    "play": "プレイ",
+    "again": "もう一度プレイ",
+    "winner": "当選者",
+    "result": "結果",
+    "results": "結果",
+    "history": "履歴",
+    "clear": "クリア",
+    "add": "追加",
+    "remove": "削除",
+    "settings": "設定",
+    "language": "言語",
+    "home": "ホーム",
+    "back": "戻る",
+    "next": "次へ",
+    "previous": "前へ",
+    "loading": "読み込み中...",
+    "error": "エラーが発生しました",
+    "success": "成功！"
+  },
+  "roulette": {
+    "addEntry": "エントリー追加",
+    "entryName": "エントリー名",
+    "weight": "重み",
+    "enterName": "名前を入力してください（名前*重み形式対応）",
+    "spin": "回す",
+    "spinning": "回転中...",
+    "winner": "当選者",
+    "previousWinners": "前回の当選者",
+    "noEntries": "まずエントリーを追加してください",
+    "invalidEntry": "無効なエントリー形式です"
+  },
+  "dice": {
+    "rollDice": "サイコロを振る",
+    "numberOfDice": "サイコロの数",
+    "sidesPerDie": "面の数",
+    "total": "合計"
+  },
+  "coinFlip": {
+    "heads": "表",
+    "tails": "裏",
+    "flip": "コイン投げ",
+    "flipping": "投げています..."
+  },
+  "cards": {
+    "drawCard": "カードを引く",
+    "shuffleDeck": "カードをシャッフル",
+    "newDeck": "新しいデッキ",
+    "cardsLeft": "残りカード"
+  },
+  "lottery": {
+    "generateNumbers": "番号生成",
+    "numbersCount": "番号の数",
+    "maxNumber": "最大番号",
+    "yourNumbers": "あなたの幸運番号"
+  },
+  "namePicker": {
+    "addName": "名前追加",
+    "enterNames": "名前を入力してください（1行に1つ）",
+    "pickWinner": "当選者選択",
+    "previousWinners": "前回の当選者",
+    "noNames": "まず名前を追加してください"
+  },
+  "teamDivider": {
+    "addPlayer": "プレイヤー追加",
+    "numberOfTeams": "チーム数",
+    "divideTeams": "チーム分け",
+    "team": "チーム",
+    "players": "プレイヤー",
+    "noPlayers": "まずプレイヤーを追加してください"
+  },
+  "bingo": {
+    "generateCard": "カード生成",
+    "callNumber": "番号コール",
+    "lastCalled": "最後のコール",
+    "calledNumbers": "コールされた番号",
+    "bingo": "ビンゴ！"
+  },
+  "rockPaperScissors": {
+    "rock": "グー",
+    "paper": "パー",
+    "scissors": "チョキ",
+    "vsComputer": "vs コンピューター",
+    "yourChoice": "あなたの選択",
+    "computerChoice": "コンピューターの選択",
+    "youWin": "あなたの勝ち！",
+    "youLose": "あなたの負け！",
+    "tie": "引き分け！",
+    "score": "スコア",
+    "you": "あなた",
+    "computer": "コンピューター"
+  }
+}
