@@ -1,123 +1,123 @@
 {
-  "title": "Lucky Draw Games",
-  "subtitle": "Fun and Fair Random Games for Everyone",
-  "games": {
-    "roulette": "Roulette",
-    "bingo": "Bingo",
-    "lottery": "Lottery",
-    "coinFlip": "Coin Flip",
-    "dice": "Dice Roll",
-    "cards": "Card Draw",
-    "namePicker": "Name Picker",
-    "numberRange": "Number Range",
-    "rockPaperScissors": "Rock Paper Scissors",
-    "teamDivider": "Team Divider"
-  },
-  "gameDescriptions": {
-    "roulette": "Spin the wheel with weighted entries",
-    "bingo": "Generate random bingo numbers",
-    "lottery": "Pick lucky lottery numbers",
-    "coinFlip": "Classic heads or tails",
-    "dice": "Roll virtual dice",
-    "cards": "Draw random playing cards",
-    "namePicker": "Pick random names from a list",
-    "numberRange": "Generate numbers in a range",
-    "rockPaperScissors": "Play against computer",
-    "teamDivider": "Divide people into teams"
-  },
-  "common": {
-    "start": "Start",
-    "stop": "Stop",
-    "reset": "Reset",
-    "play": "Play",
-    "again": "Play Again",
-    "winner": "Winner",
-    "result": "Result",
-    "results": "Results",
-    "history": "History",
-    "clear": "Clear",
-    "add": "Add",
-    "remove": "Remove",
-    "settings": "Settings",
-    "language": "Language",
-    "home": "Home",
-    "back": "Back",
-    "next": "Next",
-    "previous": "Previous",
-    "loading": "Loading...",
-    "error": "Error occurred",
-    "success": "Success!"
-  },
-  "roulette": {
-    "addEntry": "Add Entry",
-    "entryName": "Entry Name",
-    "weight": "Weight",
-    "enterName": "Enter name (name*weight format supported)",
-    "spin": "Spin",
-    "spinning": "Spinning...",
-    "winner": "Winner",
-    "previousWinners": "Previous Winners",
-    "noEntries": "Please add entries first",
-    "invalidEntry": "Invalid entry format"
-  },
-  "dice": {
-    "rollDice": "Roll Dice",
-    "numberOfDice": "Number of Dice",
-    "sidesPerDie": "Sides per Die",
-    "total": "Total"
-  },
-  "coinFlip": {
-    "heads": "Heads",
-    "tails": "Tails",
-    "flip": "Flip Coin",
-    "flipping": "Flipping..."
-  },
-  "cards": {
-    "drawCard": "Draw Card",
-    "shuffleDeck": "Shuffle Deck",
-    "newDeck": "New Deck",
-    "cardsLeft": "Cards Left"
-  },
-  "lottery": {
-    "generateNumbers": "Generate Numbers",
-    "numbersCount": "How many numbers",
-    "maxNumber": "Maximum number",
-    "yourNumbers": "Your Lucky Numbers"
-  },
-  "namePicker": {
-    "addName": "Add Name",
-    "enterNames": "Enter names (one per line)",
-    "pickWinner": "Pick Winner",
-    "previousWinners": "Previous Winners",
-    "noNames": "Please add names first"
-  },
-  "teamDivider": {
-    "addPlayer": "Add Player",
-    "numberOfTeams": "Number of Teams",
-    "divideTeams": "Divide into Teams",
-    "team": "Team",
-    "players": "Players",
-    "noPlayers": "Please add players first"
-  },
-  "bingo": {
-    "generateCard": "Generate Card",
-    "callNumber": "Call Number",
-    "lastCalled": "Last Called",
-    "calledNumbers": "Called Numbers",
-    "bingo": "BINGO!"
-  },
-  "rockPaperScissors": {
-    "rock": "Rock",
-    "paper": "Paper",
-    "scissors": "Scissors",
-    "vsComputer": "vs Computer",
-    "yourChoice": "Your Choice",
-    "computerChoice": "Computer Choice",
-    "youWin": "You Win!",
-    "youLose": "You Lose!",
-    "tie": "It's a Tie!",
-    "score": "Score",
-    "you": "You",
-    "computer": "Computer"
-  }
+    "title": "Lucky Draw Games",
+    "subtitle": "Fun and Fair Random Games for Everyone",
+    "games": {
+        "roulette": "Roulette",
+        "bingo": "Bingo",
+        "lottery": "Lottery",
+        "coinFlip": "Coin Flip",
+        "dice": "Dice Roll",
+        "cards": "Card Draw",
+        "namePicker": "Name Picker",
+        "numberRange": "Number Range",
+        "rockPaperScissors": "Rock Paper Scissors",
+        "teamDivider": "Team Divider"
+    },
+    "gameDescriptions": {
+        "roulette": "Spin the wheel with weighted entries",
+        "bingo": "Generate random bingo numbers",
+        "lottery": "Pick lucky lottery numbers",
+        "coinFlip": "Classic heads or tails",
+        "dice": "Roll virtual dice",
+        "cards": "Draw random playing cards",
+        "namePicker": "Pick random names from a list",
+        "numberRange": "Generate numbers in a range",
+        "rockPaperScissors": "Play against computer",
+        "teamDivider": "Divide people into teams"
+    },
+    "common": {
+        "start": "Start",
+        "stop": "Stop",
+        "reset": "Reset",
+        "play": "Play",
+        "again": "Play Again",
+        "winner": "Winner",
+        "result": "Result",
+        "results": "Results",
+        "history": "History",
+        "clear": "Clear",
+        "add": "Add",
+        "remove": "Remove",
+        "settings": "Settings",
+        "language": "Language",
+        "home": "Home",
+        "back": "Back",
+        "next": "Next",
+        "previous": "Previous",
+        "loading": "Loading...",
+        "error": "Error occurred",
+        "success": "Success!"
+    },
+    "roulette": {
+        "addEntry": "Add Entry",
+        "entryName": "Entry Name",
+        "weight": "Weight",
+        "enterName": "Enter name (name*weight format supported)",
+        "spin": "Spin",
+        "spinning": "Spinning...",
+        "winner": "Winner",
+        "previousWinners": "Previous Winners",
+        "noEntries": "Please add entries first",
+        "invalidEntry": "Invalid entry format"
+    },
+    "dice": {
+        "rollDice": "Roll Dice",
+        "numberOfDice": "Number of Dice",
+        "sidesPerDie": "Sides per Die",
+        "total": "Total"
+    },
+    "coinFlip": {
+        "heads": "Heads",
+        "tails": "Tails",
+        "flip": "Flip Coin",
+        "flipping": "Flipping..."
+    },
+    "cards": {
+        "drawCard": "Draw Card",
+        "shuffleDeck": "Shuffle Deck",
+        "newDeck": "New Deck",
+        "cardsLeft": "Cards Left"
+    },
+    "lottery": {
+        "generateNumbers": "Generate Numbers",
+        "numbersCount": "How many numbers",
+        "maxNumber": "Maximum number",
+        "yourNumbers": "Your Lucky Numbers"
+    },
+    "namePicker": {
+        "addName": "Add Name",
+        "enterNames": "Enter names (one per line)",
+        "pickWinner": "Pick Winner",
+        "previousWinners": "Previous Winners",
+        "noNames": "Please add names first"
+    },
+    "teamDivider": {
+        "addPlayer": "Add Player",
+        "numberOfTeams": "Number of Teams",
+        "divideTeams": "Divide into Teams",
+        "team": "Team",
+        "players": "Players",
+        "noPlayers": "Please add players first"
+    },
+    "bingo": {
+        "generateCard": "Generate Card",
+        "callNumber": "Call Number",
+        "lastCalled": "Last Called",
+        "calledNumbers": "Called Numbers",
+        "bingo": "BINGO!"
+    },
+    "rockPaperScissors": {
+        "rock": "Rock",
+        "paper": "Paper",
+        "scissors": "Scissors",
+        "vsComputer": "vs Computer",
+        "yourChoice": "Your Choice",
+        "computerChoice": "Computer Choice",
+        "youWin": "You Win!",
+        "youLose": "You Lose!",
+        "tie": "It's a Tie!",
+        "score": "Score",
+        "you": "You",
+        "computer": "Computer"
+    }
 }

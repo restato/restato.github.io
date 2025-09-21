@@ -39,7 +39,7 @@ async function loadTranslations() {
 }
 
 export function LanguageProvider({ children }: { children: React.ReactNode }) {
-  const [language, setLanguage] = useState<Language>('en');
+  const [language, setLanguage] = useState<Language>('ko');
   const [isLoaded, setIsLoaded] = useState(false);
 
   useEffect(() => {
@@ -55,6 +55,9 @@ export function LanguageProvider({ children }: { children: React.ReactNode }) {
       const browserLang = navigator.language.split('-')[0] as Language;
       if (['en', 'ko', 'ja', 'zh', 'es', 'fr', 'de', 'ru'].includes(browserLang)) {
         setLanguage(browserLang);
+      } else {
+        // Default to Korean if browser language is not supported
+        setLanguage('ko');
       }
     }
   }, []);

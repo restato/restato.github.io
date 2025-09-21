@@ -1,8 +1,8 @@
 /** @type {import('next-i18next').UserConfig} */
 module.exports = {
   i18n: {
-    defaultLocale: 'en',
-    locales: ['en', 'ko', 'ja', 'zh', 'es', 'fr', 'de', 'ru'],
+    defaultLocale: 'ko',
+    locales: ['ko', 'en', 'ja', 'zh', 'es', 'fr', 'de', 'ru'],
   },
   /** To avoid issues when deploying to some paas (vercel...) */
   localePath:

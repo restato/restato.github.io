@@ -1,123 +1,123 @@
 {
-  "title": "Losziehungs-Spiele",
-  "subtitle": "Spaßige und faire Zufallsspiele für alle",
-  "games": {
-    "roulette": "Roulette",
-    "bingo": "Bingo",
-    "lottery": "Lotterie",
-    "coinFlip": "Münzwurf",
-    "dice": "Würfeln",
-    "cards": "Karten ziehen",
-    "namePicker": "Namen-Auswahl",
-    "numberRange": "Zahlenbereich",
-    "rockPaperScissors": "Schere Stein Papier",
-    "teamDivider": "Team-Teiler"
-  },
-  "gameDescriptions": {
-    "roulette": "Drehen Sie das Rad mit gewichteten Einträgen",
-    "bingo": "Generieren Sie zufällige Bingo-Zahlen",
-    "lottery": "Wählen Sie Glückslotteriezahlen",
-    "coinFlip": "Klassisches Kopf oder Zahl",
-    "dice": "Werfen Sie virtuelle Würfel",
-    "cards": "Ziehen Sie zufällige Karten",
-    "namePicker": "Wählen Sie zufällige Namen aus einer Liste",
-    "numberRange": "Generieren Sie Zahlen in einem Bereich",
-    "rockPaperScissors": "Spielen Sie gegen den Computer",
-    "teamDivider": "Teilen Sie Personen in Teams auf"
-  },
-  "common": {
-    "start": "Start",
-    "stop": "Stopp",
-    "reset": "Zurücksetzen",
-    "play": "Spielen",
-    "again": "Nochmal spielen",
-    "winner": "Gewinner",
-    "result": "Ergebnis",
-    "results": "Ergebnisse",
-    "history": "Verlauf",
-    "clear": "Löschen",
-    "add": "Hinzufügen",
-    "remove": "Entfernen",
-    "settings": "Einstellungen",
-    "language": "Sprache",
-    "home": "Startseite",
-    "back": "Zurück",
-    "next": "Weiter",
-    "previous": "Vorherige",
-    "loading": "Lädt...",
-    "error": "Ein Fehler ist aufgetreten",
-    "success": "Erfolg!"
-  },
-  "roulette": {
-    "addEntry": "Eintrag hinzufügen",
-    "entryName": "Eintragsname",
-    "weight": "Gewichtung",
-    "enterName": "Namen eingeben (Name*Gewichtung Format unterstützt)",
-    "spin": "Drehen",
-    "spinning": "Dreht sich...",
-    "winner": "Gewinner",
-    "previousWinners": "Vorherige Gewinner",
-    "noEntries": "Bitte fügen Sie zuerst Einträge hinzu",
-    "invalidEntry": "Ungültiges Eintragsformat"
-  },
-  "dice": {
-    "rollDice": "Würfel werfen",
-    "numberOfDice": "Anzahl Würfel",
-    "sidesPerDie": "Seiten pro Würfel",
-    "total": "Gesamt"
-  },
-  "coinFlip": {
-    "heads": "Kopf",
-    "tails": "Zahl",
-    "flip": "Münze werfen",
-    "flipping": "Wirft..."
-  },
-  "cards": {
-    "drawCard": "Karte ziehen",
-    "shuffleDeck": "Deck mischen",
-    "newDeck": "Neues Deck",
-    "cardsLeft": "Karten übrig"
-  },
-  "lottery": {
-    "generateNumbers": "Zahlen generieren",
-    "numbersCount": "Anzahl Zahlen",
-    "maxNumber": "Höchste Zahl",
-    "yourNumbers": "Ihre Glückszahlen"
-  },
-  "namePicker": {
-    "addName": "Namen hinzufügen",
-    "enterNames": "Namen eingeben (einer pro Zeile)",
-    "pickWinner": "Gewinner wählen",
-    "previousWinners": "Vorherige Gewinner",
-    "noNames": "Bitte fügen Sie zuerst Namen hinzu"
-  },
-  "teamDivider": {
-    "addPlayer": "Spieler hinzufügen",
-    "numberOfTeams": "Anzahl Teams",
-    "divideTeams": "In Teams aufteilen",
-    "team": "Team",
-    "players": "Spieler",
-    "noPlayers": "Bitte fügen Sie zuerst Spieler hinzu"
-  },
-  "bingo": {
-    "generateCard": "Karte generieren",
-    "callNumber": "Zahl aufrufen",
-    "lastCalled": "Zuletzt aufgerufen",
-    "calledNumbers": "Aufgerufene Zahlen",
-    "bingo": "BINGO!"
-  },
-  "rockPaperScissors": {
-    "rock": "Stein",
-    "paper": "Papier",
-    "scissors": "Schere",
-    "vsComputer": "vs Computer",
-    "yourChoice": "Ihre Wahl",
-    "computerChoice": "Computer-Wahl",
-    "youWin": "Sie gewinnen!",
-    "youLose": "Sie verlieren!",
-    "tie": "Unentschieden!",
-    "score": "Punktestand",
-    "you": "Sie",
-    "computer": "Computer"
-  }
+    "title": "Losziehungs-Spiele",
+    "subtitle": "Spaßige und faire Zufallsspiele für alle",
+    "games": {
+        "roulette": "Roulette",
+        "bingo": "Bingo",
+        "lottery": "Lotterie",
+        "coinFlip": "Münzwurf",
+        "dice": "Würfeln",
+        "cards": "Karten ziehen",
+        "namePicker": "Namen-Auswahl",
+        "numberRange": "Zahlenbereich",
+        "rockPaperScissors": "Schere Stein Papier",
+        "teamDivider": "Team-Teiler"
+    },
+    "gameDescriptions": {
+        "roulette": "Drehen Sie das Rad mit gewichteten Einträgen",
+        "bingo": "Generieren Sie zufällige Bingo-Zahlen",
+        "lottery": "Wählen Sie Glückslotteriezahlen",
+        "coinFlip": "Klassisches Kopf oder Zahl",
+        "dice": "Werfen Sie virtuelle Würfel",
+        "cards": "Ziehen Sie zufällige Karten",
+        "namePicker": "Wählen Sie zufällige Namen aus einer Liste",
+        "numberRange": "Generieren Sie Zahlen in einem Bereich",
+        "rockPaperScissors": "Spielen Sie gegen den Computer",
+        "teamDivider": "Teilen Sie Personen in Teams auf"
+    },
+    "common": {
+        "start": "Start",
+        "stop": "Stopp",
+        "reset": "Zurücksetzen",
+        "play": "Spielen",
+        "again": "Nochmal spielen",
+        "winner": "Gewinner",
+        "result": "Ergebnis",
+        "results": "Ergebnisse",
+        "history": "Verlauf",
+        "clear": "Löschen",
+        "add": "Hinzufügen",
+        "remove": "Entfernen",
+        "settings": "Einstellungen",
+        "language": "Sprache",
+        "home": "Startseite",
+        "back": "Zurück",
+        "next": "Weiter",
+        "previous": "Vorherige",
+        "loading": "Lädt...",
+        "error": "Ein Fehler ist aufgetreten",
+        "success": "Erfolg!"
+    },
+    "roulette": {
+        "addEntry": "Eintrag hinzufügen",
+        "entryName": "Eintragsname",
+        "weight": "Gewichtung",
+        "enterName": "Namen eingeben (Name*Gewichtung Format unterstützt)",
+        "spin": "Drehen",
+        "spinning": "Dreht sich...",
+        "winner": "Gewinner",
+        "previousWinners": "Vorherige Gewinner",
+        "noEntries": "Bitte fügen Sie zuerst Einträge hinzu",
+        "invalidEntry": "Ungültiges Eintragsformat"
+    },
+    "dice": {
+        "rollDice": "Würfel werfen",
+        "numberOfDice": "Anzahl Würfel",
+        "sidesPerDie": "Seiten pro Würfel",
+        "total": "Gesamt"
+    },
+    "coinFlip": {
+        "heads": "Kopf",
+        "tails": "Zahl",
+        "flip": "Münze werfen",
+        "flipping": "Wirft..."
+    },
+    "cards": {
+        "drawCard": "Karte ziehen",
+        "shuffleDeck": "Deck mischen",
+        "newDeck": "Neues Deck",
+        "cardsLeft": "Karten übrig"
+    },
+    "lottery": {
+        "generateNumbers": "Zahlen generieren",
+        "numbersCount": "Anzahl Zahlen",
+        "maxNumber": "Höchste Zahl",
+        "yourNumbers": "Ihre Glückszahlen"
+    },
+    "namePicker": {
+        "addName": "Namen hinzufügen",
+        "enterNames": "Namen eingeben (einer pro Zeile)",
+        "pickWinner": "Gewinner wählen",
+        "previousWinners": "Vorherige Gewinner",
+        "noNames": "Bitte fügen Sie zuerst Namen hinzu"
+    },
+    "teamDivider": {
+        "addPlayer": "Spieler hinzufügen",
+        "numberOfTeams": "Anzahl Teams",
+        "divideTeams": "In Teams aufteilen",
+        "team": "Team",
+        "players": "Spieler",
+        "noPlayers": "Bitte fügen Sie zuerst Spieler hinzu"
+    },
+    "bingo": {
+        "generateCard": "Karte generieren",
+        "callNumber": "Zahl aufrufen",
+        "lastCalled": "Zuletzt aufgerufen",
+        "calledNumbers": "Aufgerufene Zahlen",
+        "bingo": "BINGO!"
+    },
+    "rockPaperScissors": {
+        "rock": "Stein",
+        "paper": "Papier",
+        "scissors": "Schere",
+        "vsComputer": "vs Computer",
+        "yourChoice": "Ihre Wahl",
+        "computerChoice": "Computer-Wahl",
+        "youWin": "Sie gewinnen!",
+        "youLose": "Sie verlieren!",
+        "tie": "Unentschieden!",
+        "score": "Punktestand",
+        "you": "Sie",
+        "computer": "Computer"
+    }
 }
