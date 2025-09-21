@@ -1,8 +1,7 @@
 {
     "title": "抽奖游戏",
-    "subtitle": "为每个人提供有趣公平的随机游戏",
+    "subtitle": "适合所有人的有趣公平随机游戏",
     "games": {
-        "roulette": "轮盘",
         "bingo": "宾果",
         "lottery": "彩票",
         "coinFlip": "抛硬币",
@@ -11,26 +10,27 @@
         "namePicker": "姓名抽签",
         "numberRange": "数字范围",
         "rockPaperScissors": "石头剪刀布",
-        "teamDivider": "分队器"
+        "teamDivider": "团队分组",
+        "wheelOfFortune": "幸运转盘"
     },
     "gameDescriptions": {
-        "roulette": "用加权条目转动轮盘",
         "bingo": "生成随机宾果号码",
         "lottery": "选择幸运彩票号码",
-        "coinFlip": "经典正面或反面",
-        "dice": "投掷虚拟骰子",
-        "cards": "抽取随机纸牌",
+        "coinFlip": "经典的正反面",
+        "dice": "掷虚拟骰子",
+        "cards": "抽取随机卡片",
         "namePicker": "从列表中随机选择姓名",
-        "numberRange": "在范围内生成数字",
+        "numberRange": "生成范围内的数字",
         "rockPaperScissors": "与电脑对战",
-        "teamDivider": "将人员分成团队"
+        "teamDivider": "将人员分成团队",
+        "wheelOfFortune": "添加物品并转动转盘获得随机结果！"
     },
     "common": {
         "start": "开始",
         "stop": "停止",
         "reset": "重置",
-        "play": "玩",
-        "again": "再玩一次",
+        "play": "游戏",
+        "again": "再次游戏",
         "winner": "获胜者",
         "result": "结果",
         "results": "结果",
@@ -46,24 +46,13 @@
         "previous": "上一个",
         "loading": "加载中...",
         "error": "发生错误",
-        "success": "成功！"
-    },
-    "roulette": {
-        "addEntry": "添加条目",
-        "entryName": "条目名称",
-        "weight": "权重",
-        "enterName": "输入名称（支持名称*权重格式）",
-        "spin": "转动",
-        "spinning": "转动中...",
-        "winner": "获胜者",
-        "previousWinners": "之前的获胜者",
-        "noEntries": "请先添加条目",
-        "invalidEntry": "无效条目格式"
+        "success": "成功！",
+        "backToHome": "返回首页"
     },
     "dice": {
         "rollDice": "掷骰子",
         "numberOfDice": "骰子数量",
-        "sidesPerDie": "每个骰子的面数",
+        "sidesPerDie": "每个骰子面数",
         "total": "总计"
     },
     "coinFlip": {
@@ -76,7 +65,7 @@
         "drawCard": "抽卡",
         "shuffleDeck": "洗牌",
         "newDeck": "新牌组",
-        "cardsLeft": "剩余卡牌"
+        "cardsLeft": "剩余卡片"
     },
     "lottery": {
         "generateNumbers": "生成号码",
@@ -88,14 +77,14 @@
         "addName": "添加姓名",
         "enterNames": "输入姓名（每行一个）",
         "pickWinner": "选择获胜者",
-        "previousWinners": "之前的获胜者",
+        "previousWinners": "以往获胜者",
         "noNames": "请先添加姓名"
     },
     "teamDivider": {
         "addPlayer": "添加玩家",
-        "numberOfTeams": "队伍数量",
-        "divideTeams": "分队",
-        "team": "队伍",
+        "numberOfTeams": "团队数量",
+        "divideTeams": "分成团队",
+        "team": "团队",
         "players": "玩家",
         "noPlayers": "请先添加玩家"
     },
@@ -112,12 +101,36 @@
         "scissors": "剪刀",
         "vsComputer": "对战电脑",
         "yourChoice": "您的选择",
-        "computerChoice": "电脑选择",
+        "computerChoice": "电脑的选择",
         "youWin": "您赢了！",
         "youLose": "您输了！",
         "tie": "平局！",
-        "score": "得分",
+        "score": "分数",
         "you": "您",
         "computer": "电脑"
+    },
+    "wheelOfFortune": {
+        "addNewItem": "添加新物品",
+        "itemPlaceholder": "输入物品...",
+        "itemInputLabel": "新物品输入",
+        "addItemButton": "添加物品",
+        "currentItems": "当前物品",
+        "resetToDefault": "重置为默认",
+        "deleteItem": "删除",
+        "noItems": "没有可用物品。请添加新物品。",
+        "needMoreItems": "至少需要2个物品",
+        "spinning": "转动中...",
+        "spinButton": "转动转盘",
+        "spinButtonAriaLabel": "转动转盘按钮",
+        "spinningAriaLabel": "转盘正在转动",
+        "resultAnnouncement": "结果公布！",
+        "winner": "获奖！",
+        "congratulations": "恭喜！这是选中的物品。",
+        "confirm": "确认",
+        "spinAgain": "再次转动",
+        "duplicateItem": "重复物品",
+        "duplicateItemDesc": "此物品已存在。",
+        "notEnoughItems": "物品不足",
+        "notEnoughItemsDesc": "至少需要2个物品。"
     }
 }

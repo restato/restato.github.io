@@ -1,29 +1,29 @@
 {
-    "title": "Jeux de Tirage au Sort",
+    "title": "Jeux de Tirage",
     "subtitle": "Jeux aléatoires amusants et équitables pour tous",
     "games": {
-        "roulette": "Roulette",
         "bingo": "Bingo",
         "lottery": "Loterie",
         "coinFlip": "Pile ou Face",
-        "dice": "Lancer de Dés",
-        "cards": "Tirage de Cartes",
-        "namePicker": "Tirage de Noms",
-        "numberRange": "Plage de Nombres",
+        "dice": "Dés",
+        "cards": "Cartes",
+        "namePicker": "Sélecteur de Noms",
+        "numberRange": "Plage Numérique",
         "rockPaperScissors": "Pierre Papier Ciseaux",
-        "teamDivider": "Diviseur d'Équipes"
+        "teamDivider": "Diviseur d'Équipes",
+        "wheelOfFortune": "Roue de la Fortune"
     },
     "gameDescriptions": {
-        "roulette": "Faites tourner la roue avec des entrées pondérées",
-        "bingo": "Générez des numéros de bingo aléatoires",
-        "lottery": "Choisissez des numéros de loterie chanceux",
+        "bingo": "Générer des numéros de bingo aléatoires",
+        "lottery": "Choisir des numéros de loterie chanceux",
         "coinFlip": "Classique pile ou face",
-        "dice": "Lancez des dés virtuels",
-        "cards": "Tirez des cartes aléatoirement",
-        "namePicker": "Choisissez des noms au hasard dans une liste",
-        "numberRange": "Générez des nombres dans une plage",
-        "rockPaperScissors": "Jouez contre l'ordinateur",
-        "teamDivider": "Divisez les gens en équipes"
+        "dice": "Lancer des dés virtuels",
+        "cards": "Tirer des cartes aléatoires",
+        "namePicker": "Choisir des noms aléatoires dans une liste",
+        "numberRange": "Générer des nombres dans une plage",
+        "rockPaperScissors": "Jouer contre l'ordinateur",
+        "teamDivider": "Diviser les personnes en équipes",
+        "wheelOfFortune": "Ajoutez des éléments et faites tourner la roue pour des résultats aléatoires!"
     },
     "common": {
         "start": "Commencer",
@@ -46,19 +46,8 @@
         "previous": "Précédent",
         "loading": "Chargement...",
         "error": "Une erreur s'est produite",
-        "success": "Succès !"
-    },
-    "roulette": {
-        "addEntry": "Ajouter une Entrée",
-        "entryName": "Nom de l'Entrée",
-        "weight": "Poids",
-        "enterName": "Entrez le nom (format nom*poids supporté)",
-        "spin": "Tourner",
-        "spinning": "En rotation...",
-        "winner": "Gagnant",
-        "previousWinners": "Gagnants Précédents",
-        "noEntries": "Veuillez d'abord ajouter des entrées",
-        "invalidEntry": "Format d'entrée invalide"
+        "success": "Succès!",
+        "backToHome": "Retour à l'Accueil"
     },
     "dice": {
         "rollDice": "Lancer les Dés",
@@ -67,19 +56,19 @@
         "total": "Total"
     },
     "coinFlip": {
-        "heads": "Pile",
-        "tails": "Face",
+        "heads": "Face",
+        "tails": "Pile",
         "flip": "Lancer la Pièce",
         "flipping": "Lancement..."
     },
     "cards": {
         "drawCard": "Tirer une Carte",
-        "shuffleDeck": "Mélanger le Paquet",
-        "newDeck": "Nouveau Paquet",
+        "shuffleDeck": "Mélanger",
+        "newDeck": "Nouveau Jeu",
         "cardsLeft": "Cartes Restantes"
     },
     "lottery": {
-        "generateNumbers": "Générer les Numéros",
+        "generateNumbers": "Générer des Numéros",
         "numbersCount": "Nombre de numéros",
         "maxNumber": "Numéro maximum",
         "yourNumbers": "Vos Numéros Chanceux"
@@ -104,7 +93,7 @@
         "callNumber": "Appeler un Numéro",
         "lastCalled": "Dernier Appelé",
         "calledNumbers": "Numéros Appelés",
-        "bingo": "BINGO !"
+        "bingo": "BINGO!"
     },
     "rockPaperScissors": {
         "rock": "Pierre",
@@ -113,11 +102,35 @@
         "vsComputer": "vs Ordinateur",
         "yourChoice": "Votre Choix",
         "computerChoice": "Choix de l'Ordinateur",
-        "youWin": "Vous avez gagné !",
-        "youLose": "Vous avez perdu !",
-        "tie": "Égalité !",
+        "youWin": "Vous Gagnez!",
+        "youLose": "Vous Perdez!",
+        "tie": "Égalité!",
         "score": "Score",
         "you": "Vous",
         "computer": "Ordinateur"
+    },
+    "wheelOfFortune": {
+        "addNewItem": "Ajouter un Nouvel Élément",
+        "itemPlaceholder": "Entrez un élément...",
+        "itemInputLabel": "Saisie d'un nouvel élément",
+        "addItemButton": "Ajouter un Élément",
+        "currentItems": "Éléments Actuels",
+        "resetToDefault": "Réinitialiser par Défaut",
+        "deleteItem": "Supprimer",
+        "noItems": "Aucun élément disponible. Veuillez ajouter de nouveaux éléments.",
+        "needMoreItems": "Au moins 2 éléments sont nécessaires",
+        "spinning": "Rotation...",
+        "spinButton": "Faire Tourner la Roue",
+        "spinButtonAriaLabel": "Bouton faire tourner la roue",
+        "spinningAriaLabel": "La roue tourne",
+        "resultAnnouncement": "Annonce du Résultat!",
+        "winner": "Gagnant!",
+        "congratulations": "Félicitations! C'est l'élément sélectionné.",
+        "confirm": "Confirmer",
+        "spinAgain": "Faire Tourner à Nouveau",
+        "duplicateItem": "Élément Dupliqué",
+        "duplicateItemDesc": "Cet élément existe déjà.",
+        "notEnoughItems": "Pas Assez d'Éléments",
+        "notEnoughItemsDesc": "Au moins 2 éléments sont requis."
     }
 }

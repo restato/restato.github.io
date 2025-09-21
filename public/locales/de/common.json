@@ -1,36 +1,36 @@
 {
-    "title": "Losziehungs-Spiele",
-    "subtitle": "Spaßige und faire Zufallsspiele für alle",
+    "title": "Ziehungsspiele",
+    "subtitle": "Lustige und faire Zufallsspiele für alle",
     "games": {
-        "roulette": "Roulette",
         "bingo": "Bingo",
         "lottery": "Lotterie",
         "coinFlip": "Münzwurf",
-        "dice": "Würfeln",
-        "cards": "Karten ziehen",
-        "namePicker": "Namen-Auswahl",
+        "dice": "Würfel",
+        "cards": "Karten",
+        "namePicker": "Namensauswahl",
         "numberRange": "Zahlenbereich",
         "rockPaperScissors": "Schere Stein Papier",
-        "teamDivider": "Team-Teiler"
+        "teamDivider": "Teamaufteilung",
+        "wheelOfFortune": "Glücksrad"
     },
     "gameDescriptions": {
-        "roulette": "Drehen Sie das Rad mit gewichteten Einträgen",
-        "bingo": "Generieren Sie zufällige Bingo-Zahlen",
-        "lottery": "Wählen Sie Glückslotteriezahlen",
+        "bingo": "Zufällige Bingo-Zahlen generieren",
+        "lottery": "Glückslotteriezahlen auswählen",
         "coinFlip": "Klassisches Kopf oder Zahl",
-        "dice": "Werfen Sie virtuelle Würfel",
-        "cards": "Ziehen Sie zufällige Karten",
-        "namePicker": "Wählen Sie zufällige Namen aus einer Liste",
-        "numberRange": "Generieren Sie Zahlen in einem Bereich",
-        "rockPaperScissors": "Spielen Sie gegen den Computer",
-        "teamDivider": "Teilen Sie Personen in Teams auf"
+        "dice": "Virtuelle Würfel werfen",
+        "cards": "Zufällige Karten ziehen",
+        "namePicker": "Zufällige Namen aus einer Liste auswählen",
+        "numberRange": "Zahlen in einem Bereich generieren",
+        "rockPaperScissors": "Gegen den Computer spielen",
+        "teamDivider": "Personen in Teams aufteilen",
+        "wheelOfFortune": "Fügen Sie Gegenstände hinzu und drehen Sie das Rad für zufällige Ergebnisse!"
     },
     "common": {
         "start": "Start",
         "stop": "Stopp",
         "reset": "Zurücksetzen",
         "play": "Spielen",
-        "again": "Nochmal spielen",
+        "again": "Nochmal Spielen",
         "winner": "Gewinner",
         "result": "Ergebnis",
         "results": "Ergebnisse",
@@ -46,22 +46,11 @@
         "previous": "Vorherige",
         "loading": "Lädt...",
         "error": "Ein Fehler ist aufgetreten",
-        "success": "Erfolg!"
-    },
-    "roulette": {
-        "addEntry": "Eintrag hinzufügen",
-        "entryName": "Eintragsname",
-        "weight": "Gewichtung",
-        "enterName": "Namen eingeben (Name*Gewichtung Format unterstützt)",
-        "spin": "Drehen",
-        "spinning": "Dreht sich...",
-        "winner": "Gewinner",
-        "previousWinners": "Vorherige Gewinner",
-        "noEntries": "Bitte fügen Sie zuerst Einträge hinzu",
-        "invalidEntry": "Ungültiges Eintragsformat"
+        "success": "Erfolg!",
+        "backToHome": "Zurück zur Startseite"
     },
     "dice": {
-        "rollDice": "Würfel werfen",
+        "rollDice": "Würfel Werfen",
         "numberOfDice": "Anzahl Würfel",
         "sidesPerDie": "Seiten pro Würfel",
         "total": "Gesamt"
@@ -69,40 +58,40 @@
     "coinFlip": {
         "heads": "Kopf",
         "tails": "Zahl",
-        "flip": "Münze werfen",
-        "flipping": "Wirft..."
+        "flip": "Münze Werfen",
+        "flipping": "Werfen..."
     },
     "cards": {
-        "drawCard": "Karte ziehen",
-        "shuffleDeck": "Deck mischen",
+        "drawCard": "Karte Ziehen",
+        "shuffleDeck": "Mischen",
         "newDeck": "Neues Deck",
-        "cardsLeft": "Karten übrig"
+        "cardsLeft": "Verbleibende Karten"
     },
     "lottery": {
-        "generateNumbers": "Zahlen generieren",
+        "generateNumbers": "Zahlen Generieren",
         "numbersCount": "Anzahl Zahlen",
-        "maxNumber": "Höchste Zahl",
+        "maxNumber": "Maximale Zahl",
         "yourNumbers": "Ihre Glückszahlen"
     },
     "namePicker": {
-        "addName": "Namen hinzufügen",
+        "addName": "Namen Hinzufügen",
         "enterNames": "Namen eingeben (einer pro Zeile)",
-        "pickWinner": "Gewinner wählen",
+        "pickWinner": "Gewinner Auswählen",
         "previousWinners": "Vorherige Gewinner",
-        "noNames": "Bitte fügen Sie zuerst Namen hinzu"
+        "noNames": "Bitte zuerst Namen hinzufügen"
     },
     "teamDivider": {
-        "addPlayer": "Spieler hinzufügen",
+        "addPlayer": "Spieler Hinzufügen",
         "numberOfTeams": "Anzahl Teams",
-        "divideTeams": "In Teams aufteilen",
+        "divideTeams": "In Teams Aufteilen",
         "team": "Team",
         "players": "Spieler",
-        "noPlayers": "Bitte fügen Sie zuerst Spieler hinzu"
+        "noPlayers": "Bitte zuerst Spieler hinzufügen"
     },
     "bingo": {
-        "generateCard": "Karte generieren",
-        "callNumber": "Zahl aufrufen",
-        "lastCalled": "Zuletzt aufgerufen",
+        "generateCard": "Karte Generieren",
+        "callNumber": "Zahl Aufrufen",
+        "lastCalled": "Zuletzt Aufgerufen",
         "calledNumbers": "Aufgerufene Zahlen",
         "bingo": "BINGO!"
     },
@@ -112,12 +101,36 @@
         "scissors": "Schere",
         "vsComputer": "vs Computer",
         "yourChoice": "Ihre Wahl",
-        "computerChoice": "Computer-Wahl",
-        "youWin": "Sie gewinnen!",
-        "youLose": "Sie verlieren!",
+        "computerChoice": "Computer Wahl",
+        "youWin": "Sie Gewinnen!",
+        "youLose": "Sie Verlieren!",
         "tie": "Unentschieden!",
-        "score": "Punktestand",
+        "score": "Punkte",
         "you": "Sie",
         "computer": "Computer"
+    },
+    "wheelOfFortune": {
+        "addNewItem": "Neuen Gegenstand Hinzufügen",
+        "itemPlaceholder": "Gegenstand eingeben...",
+        "itemInputLabel": "Neuer Gegenstand Eingabe",
+        "addItemButton": "Gegenstand Hinzufügen",
+        "currentItems": "Aktuelle Gegenstände",
+        "resetToDefault": "Auf Standard Zurücksetzen",
+        "deleteItem": "Löschen",
+        "noItems": "Keine Gegenstände verfügbar. Bitte neue Gegenstände hinzufügen.",
+        "needMoreItems": "Mindestens 2 Gegenstände erforderlich",
+        "spinning": "Dreht sich...",
+        "spinButton": "Rad Drehen",
+        "spinButtonAriaLabel": "Rad drehen Schaltfläche",
+        "spinningAriaLabel": "Das Rad dreht sich",
+        "resultAnnouncement": "Ergebnis Bekanntgabe!",
+        "winner": "Gewinner!",
+        "congratulations": "Herzlichen Glückwunsch! Das ist der ausgewählte Gegenstand.",
+        "confirm": "Bestätigen",
+        "spinAgain": "Nochmal Drehen",
+        "duplicateItem": "Doppelter Gegenstand",
+        "duplicateItemDesc": "Dieser Gegenstand existiert bereits.",
+        "notEnoughItems": "Nicht Genug Gegenstände",
+        "notEnoughItemsDesc": "Mindestens 2 Gegenstände sind erforderlich."
     }
 }

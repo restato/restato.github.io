@@ -2,7 +2,6 @@
     "title": "Lucky Draw Games",
     "subtitle": "Fun and Fair Random Games for Everyone",
     "games": {
-        "roulette": "Roulette",
         "bingo": "Bingo",
         "lottery": "Lottery",
         "coinFlip": "Coin Flip",
@@ -11,10 +10,10 @@
         "namePicker": "Name Picker",
         "numberRange": "Number Range",
         "rockPaperScissors": "Rock Paper Scissors",
-        "teamDivider": "Team Divider"
+        "teamDivider": "Team Divider",
+        "wheelOfFortune": "Wheel of Fortune"
     },
     "gameDescriptions": {
-        "roulette": "Spin the wheel with weighted entries",
         "bingo": "Generate random bingo numbers",
         "lottery": "Pick lucky lottery numbers",
         "coinFlip": "Classic heads or tails",
@@ -23,7 +22,8 @@
         "namePicker": "Pick random names from a list",
         "numberRange": "Generate numbers in a range",
         "rockPaperScissors": "Play against computer",
-        "teamDivider": "Divide people into teams"
+        "teamDivider": "Divide people into teams",
+        "wheelOfFortune": "Add items and spin the wheel for random results!"
     },
     "common": {
         "start": "Start",
@@ -46,19 +46,8 @@
         "previous": "Previous",
         "loading": "Loading...",
         "error": "Error occurred",
-        "success": "Success!"
-    },
-    "roulette": {
-        "addEntry": "Add Entry",
-        "entryName": "Entry Name",
-        "weight": "Weight",
-        "enterName": "Enter name (name*weight format supported)",
-        "spin": "Spin",
-        "spinning": "Spinning...",
-        "winner": "Winner",
-        "previousWinners": "Previous Winners",
-        "noEntries": "Please add entries first",
-        "invalidEntry": "Invalid entry format"
+        "success": "Success!",
+        "backToHome": "Back to Home"
     },
     "dice": {
         "rollDice": "Roll Dice",
@@ -119,5 +108,29 @@
         "score": "Score",
         "you": "You",
         "computer": "Computer"
+    },
+    "wheelOfFortune": {
+        "addNewItem": "Add New Item",
+        "itemPlaceholder": "Enter an item...",
+        "itemInputLabel": "New item input",
+        "addItemButton": "Add Item",
+        "currentItems": "Current Items",
+        "resetToDefault": "Reset to Default",
+        "deleteItem": "Delete",
+        "noItems": "No items available. Please add new items.",
+        "needMoreItems": "Need at least 2 items",
+        "spinning": "Spinning...",
+        "spinButton": "Spin Wheel",
+        "spinButtonAriaLabel": "Spin wheel button",
+        "spinningAriaLabel": "Wheel is spinning",
+        "resultAnnouncement": "Result Announcement!",
+        "winner": "Winner!",
+        "congratulations": "Congratulations! This is the selected item.",
+        "confirm": "Confirm",
+        "spinAgain": "Spin Again",
+        "duplicateItem": "Duplicate Item",
+        "duplicateItemDesc": "This item already exists.",
+        "notEnoughItems": "Not Enough Items",
+        "notEnoughItemsDesc": "At least 2 items are required."
     }
 }

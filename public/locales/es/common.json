@@ -2,41 +2,41 @@
     "title": "Juegos de Sorteo",
     "subtitle": "Juegos aleatorios divertidos y justos para todos",
     "games": {
-        "roulette": "Ruleta",
         "bingo": "Bingo",
         "lottery": "Lotería",
         "coinFlip": "Lanzar Moneda",
-        "dice": "Tirar Dados",
-        "cards": "Sacar Carta",
+        "dice": "Dados",
+        "cards": "Cartas",
         "namePicker": "Selector de Nombres",
-        "numberRange": "Rango de Números",
+        "numberRange": "Rango Numérico",
         "rockPaperScissors": "Piedra Papel Tijera",
-        "teamDivider": "Dividir Equipos"
+        "teamDivider": "Dividir Equipos",
+        "wheelOfFortune": "Rueda de la Fortuna"
     },
     "gameDescriptions": {
-        "roulette": "Gira la rueda con entradas ponderadas",
-        "bingo": "Genera números de bingo aleatorios",
-        "lottery": "Elige números de lotería de la suerte",
+        "bingo": "Generar números aleatorios de bingo",
+        "lottery": "Elegir números de lotería de la suerte",
         "coinFlip": "Clásico cara o cruz",
-        "dice": "Lanza dados virtuales",
-        "cards": "Saca cartas aleatorias",
-        "namePicker": "Elige nombres aleatorios de una lista",
-        "numberRange": "Genera números en un rango",
-        "rockPaperScissors": "Juega contra la computadora",
-        "teamDivider": "Divide personas en equipos"
+        "dice": "Lanzar dados virtuales",
+        "cards": "Sacar cartas aleatorias",
+        "namePicker": "Elegir nombres aleatorios de una lista",
+        "numberRange": "Generar números en un rango",
+        "rockPaperScissors": "Jugar contra la computadora",
+        "teamDivider": "Dividir personas en equipos",
+        "wheelOfFortune": "¡Añade elementos y gira la rueda para obtener resultados aleatorios!"
     },
     "common": {
         "start": "Iniciar",
         "stop": "Parar",
         "reset": "Reiniciar",
         "play": "Jugar",
-        "again": "Jugar de Nuevo",
+        "again": "Jugar Otra Vez",
         "winner": "Ganador",
         "result": "Resultado",
         "results": "Resultados",
         "history": "Historial",
         "clear": "Limpiar",
-        "add": "Agregar",
+        "add": "Añadir",
         "remove": "Quitar",
         "settings": "Configuración",
         "language": "Idioma",
@@ -46,22 +46,11 @@
         "previous": "Anterior",
         "loading": "Cargando...",
         "error": "Ocurrió un error",
-        "success": "¡Éxito!"
-    },
-    "roulette": {
-        "addEntry": "Agregar Entrada",
-        "entryName": "Nombre de Entrada",
-        "weight": "Peso",
-        "enterName": "Ingresa nombre (formato nombre*peso soportado)",
-        "spin": "Girar",
-        "spinning": "Girando...",
-        "winner": "Ganador",
-        "previousWinners": "Ganadores Anteriores",
-        "noEntries": "Por favor agrega entradas primero",
-        "invalidEntry": "Formato de entrada inválido"
+        "success": "¡Éxito!",
+        "backToHome": "Volver al Inicio"
     },
     "dice": {
-        "rollDice": "Tirar Dados",
+        "rollDice": "Lanzar Dados",
         "numberOfDice": "Número de Dados",
         "sidesPerDie": "Caras por Dado",
         "total": "Total"
@@ -74,8 +63,8 @@
     },
     "cards": {
         "drawCard": "Sacar Carta",
-        "shuffleDeck": "Barajar Mazo",
-        "newDeck": "Nuevo Mazo",
+        "shuffleDeck": "Barajar",
+        "newDeck": "Nueva Baraja",
         "cardsLeft": "Cartas Restantes"
     },
     "lottery": {
@@ -85,19 +74,19 @@
         "yourNumbers": "Tus Números de la Suerte"
     },
     "namePicker": {
-        "addName": "Agregar Nombre",
+        "addName": "Añadir Nombre",
         "enterNames": "Ingresa nombres (uno por línea)",
         "pickWinner": "Elegir Ganador",
         "previousWinners": "Ganadores Anteriores",
-        "noNames": "Por favor agrega nombres primero"
+        "noNames": "Por favor añade nombres primero"
     },
     "teamDivider": {
-        "addPlayer": "Agregar Jugador",
+        "addPlayer": "Añadir Jugador",
         "numberOfTeams": "Número de Equipos",
         "divideTeams": "Dividir en Equipos",
         "team": "Equipo",
         "players": "Jugadores",
-        "noPlayers": "Por favor agrega jugadores primero"
+        "noPlayers": "Por favor añade jugadores primero"
     },
     "bingo": {
         "generateCard": "Generar Carta",
@@ -112,12 +101,36 @@
         "scissors": "Tijera",
         "vsComputer": "vs Computadora",
         "yourChoice": "Tu Elección",
-        "computerChoice": "Elección de Computadora",
+        "computerChoice": "Elección de la Computadora",
         "youWin": "¡Ganaste!",
         "youLose": "¡Perdiste!",
         "tie": "¡Empate!",
         "score": "Puntuación",
         "you": "Tú",
         "computer": "Computadora"
+    },
+    "wheelOfFortune": {
+        "addNewItem": "Añadir Nuevo Elemento",
+        "itemPlaceholder": "Ingresa un elemento...",
+        "itemInputLabel": "Entrada de nuevo elemento",
+        "addItemButton": "Añadir Elemento",
+        "currentItems": "Elementos Actuales",
+        "resetToDefault": "Restablecer por Defecto",
+        "deleteItem": "Eliminar",
+        "noItems": "No hay elementos disponibles. Por favor añade nuevos elementos.",
+        "needMoreItems": "Se necesitan al menos 2 elementos",
+        "spinning": "Girando...",
+        "spinButton": "Girar Rueda",
+        "spinButtonAriaLabel": "Botón girar rueda",
+        "spinningAriaLabel": "La rueda está girando",
+        "resultAnnouncement": "¡Anuncio de Resultado!",
+        "winner": "¡Ganador!",
+        "congratulations": "¡Felicidades! Este es el elemento seleccionado.",
+        "confirm": "Confirmar",
+        "spinAgain": "Girar Otra Vez",
+        "duplicateItem": "Elemento Duplicado",
+        "duplicateItemDesc": "Este elemento ya existe.",
+        "notEnoughItems": "No Hay Suficientes Elementos",
+        "notEnoughItemsDesc": "Se requieren al menos 2 elementos."
     }
 }

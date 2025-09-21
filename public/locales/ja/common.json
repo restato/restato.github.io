@@ -2,28 +2,28 @@
     "title": "抽選ゲーム",
     "subtitle": "みんなのための楽しくて公平なランダムゲーム",
     "games": {
-        "roulette": "ルーレット",
         "bingo": "ビンゴ",
-        "lottery": "宝くじ",
-        "coinFlip": "コイン投げ",
-        "dice": "サイコロ",
-        "cards": "カード引き",
+        "lottery": "ロッテリー",
+        "coinFlip": "コイントス",
+        "dice": "ダイス",
+        "cards": "カード",
         "namePicker": "名前抽選",
         "numberRange": "数字範囲",
         "rockPaperScissors": "じゃんけん",
-        "teamDivider": "チーム分け"
+        "teamDivider": "チーム分け",
+        "wheelOfFortune": "ルーレット"
     },
     "gameDescriptions": {
-        "roulette": "重み付きエントリーでルーレットを回す",
-        "bingo": "ランダムなビンゴ番号を生成",
-        "lottery": "幸運の宝くじ番号を選択",
-        "coinFlip": "伝統的な表か裏",
-        "dice": "バーチャルサイコロを振る",
-        "cards": "ランダムなカードを引く",
-        "namePicker": "リストからランダムな名前を選択",
+        "bingo": "ランダムビンゴ番号を生成",
+        "lottery": "幸運のロッテリー番号を選択",
+        "coinFlip": "クラシックな表裏",
+        "dice": "バーチャルダイスを振る",
+        "cards": "ランダムカードを引く",
+        "namePicker": "リストからランダムに名前を選択",
         "numberRange": "範囲内の数字を生成",
         "rockPaperScissors": "コンピューターと対戦",
-        "teamDivider": "人をチームに分ける"
+        "teamDivider": "人をチームに分ける",
+        "wheelOfFortune": "アイテムを追加してルーレットを回し、ランダムな結果を得よう！"
     },
     "common": {
         "start": "開始",
@@ -31,7 +31,7 @@
         "reset": "リセット",
         "play": "プレイ",
         "again": "もう一度プレイ",
-        "winner": "当選者",
+        "winner": "勝者",
         "result": "結果",
         "results": "結果",
         "history": "履歴",
@@ -46,35 +46,24 @@
         "previous": "前へ",
         "loading": "読み込み中...",
         "error": "エラーが発生しました",
-        "success": "成功！"
-    },
-    "roulette": {
-        "addEntry": "エントリー追加",
-        "entryName": "エントリー名",
-        "weight": "重み",
-        "enterName": "名前を入力してください（名前*重み形式対応）",
-        "spin": "回す",
-        "spinning": "回転中...",
-        "winner": "当選者",
-        "previousWinners": "前回の当選者",
-        "noEntries": "まずエントリーを追加してください",
-        "invalidEntry": "無効なエントリー形式です"
+        "success": "成功！",
+        "backToHome": "ホームに戻る"
     },
     "dice": {
-        "rollDice": "サイコロを振る",
-        "numberOfDice": "サイコロの数",
-        "sidesPerDie": "面の数",
+        "rollDice": "ダイスを振る",
+        "numberOfDice": "ダイスの数",
+        "sidesPerDie": "ダイスの面数",
         "total": "合計"
     },
     "coinFlip": {
         "heads": "表",
         "tails": "裏",
-        "flip": "コイン投げ",
+        "flip": "コインを投げる",
         "flipping": "投げています..."
     },
     "cards": {
         "drawCard": "カードを引く",
-        "shuffleDeck": "カードをシャッフル",
+        "shuffleDeck": "デッキをシャッフル",
         "newDeck": "新しいデッキ",
         "cardsLeft": "残りカード"
     },
@@ -86,24 +75,24 @@
     },
     "namePicker": {
         "addName": "名前追加",
-        "enterNames": "名前を入力してください（1行に1つ）",
-        "pickWinner": "当選者選択",
-        "previousWinners": "前回の当選者",
+        "enterNames": "名前を入力（1行に1つ）",
+        "pickWinner": "勝者選択",
+        "previousWinners": "過去の勝者",
         "noNames": "まず名前を追加してください"
     },
     "teamDivider": {
         "addPlayer": "プレイヤー追加",
         "numberOfTeams": "チーム数",
-        "divideTeams": "チーム分け",
+        "divideTeams": "チームに分ける",
         "team": "チーム",
         "players": "プレイヤー",
         "noPlayers": "まずプレイヤーを追加してください"
     },
     "bingo": {
         "generateCard": "カード生成",
-        "callNumber": "番号コール",
-        "lastCalled": "最後のコール",
-        "calledNumbers": "コールされた番号",
+        "callNumber": "番号を呼ぶ",
+        "lastCalled": "最後の呼び出し",
+        "calledNumbers": "呼ばれた番号",
         "bingo": "ビンゴ！"
     },
     "rockPaperScissors": {
@@ -119,5 +108,29 @@
         "score": "スコア",
         "you": "あなた",
         "computer": "コンピューター"
+    },
+    "wheelOfFortune": {
+        "addNewItem": "新しいアイテム追加",
+        "itemPlaceholder": "アイテムを入力...",
+        "itemInputLabel": "新しいアイテム入力",
+        "addItemButton": "アイテム追加",
+        "currentItems": "現在のアイテム",
+        "resetToDefault": "デフォルトにリセット",
+        "deleteItem": "削除",
+        "noItems": "利用可能なアイテムがありません。新しいアイテムを追加してください。",
+        "needMoreItems": "最低2つのアイテムが必要です",
+        "spinning": "回転中...",
+        "spinButton": "ルーレットを回す",
+        "spinButtonAriaLabel": "ルーレットを回すボタン",
+        "spinningAriaLabel": "ルーレットが回っています",
+        "resultAnnouncement": "結果発表！",
+        "winner": "当選！",
+        "congratulations": "おめでとうございます！選択されたアイテムです。",
+        "confirm": "確認",
+        "spinAgain": "もう一度回す",
+        "duplicateItem": "重複アイテム",
+        "duplicateItemDesc": "このアイテムは既に存在します。",
+        "notEnoughItems": "アイテム不足",
+        "notEnoughItemsDesc": "最低2つのアイテムが必要です。"
     }
 }

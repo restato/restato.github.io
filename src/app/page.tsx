@@ -2,140 +2,150 @@
 
 import React from 'react';
 import Link from 'next/link';
+import {
+  Box,
+  Container,
+  Heading,
+  Text,
+  SimpleGrid,
+  Card,
+  CardBody,
+  useColorModeValue,
+} from '@chakra-ui/react';
 import { useLanguage } from '@/components/LanguageProvider';
 import { motion } from 'framer-motion';
 
+const MotionBox = motion(Box);
+const MotionCard = motion(Card);
+
 const games = [
   {
-    id: 'roulette',
-    icon: '🎲',
-    gradient: 'from-red-500 to-pink-500',
-  },
-  {
-    id: 'bingo',
+    id: 'wheelOfFortune',
     icon: '🎯',
-    gradient: 'from-blue-500 to-cyan-500',
+    gradient: 'linear(to-br, purple.500, blue.500)',
   },
-  {
-    id: 'lottery',
-    icon: '🎫',
-    gradient: 'from-green-500 to-emerald-500',
-  },
-  {
-    id: 'coinFlip',
-    icon: '🪙',
-    gradient: 'from-yellow-500 to-orange-500',
-  },
-  {
-    id: 'dice',
-    icon: '⚀',
-    gradient: 'from-purple-500 to-violet-500',
-  },
-  {
-    id: 'cards',
-    icon: '🃏',
-    gradient: 'from-indigo-500 to-blue-500',
-  },
-  {
-    id: 'namePicker',
-    icon: '📝',
-    gradient: 'from-teal-500 to-cyan-500',
-  },
-  {
-    id: 'numberRange',
-    icon: '🔢',
-    gradient: 'from-pink-500 to-rose-500',
-  },
-  {
-    id: 'rockPaperScissors',
-    icon: '✂️',
-    gradient: 'from-gray-500 to-slate-500',
-  },
-  {
-    id: 'teamDivider',
-    icon: '👥',
-    gradient: 'from-orange-500 to-red-500',
-  },
+  // {
+  //   id: 'bingo',
+  //   icon: '🎯',
+  //   gradient: 'linear(to-br, blue.500, cyan.500)',
+  // },
+  // {
+  //   id: 'lottery',
+  //   icon: '🎫',
+  //   gradient: 'linear(to-br, green.500, teal.500)',
+  // },
+  // {
+  //   id: 'coinFlip',
+  //   icon: '🪙',
+  //   gradient: 'linear(to-br, yellow.500, orange.500)',
+  // },
+  // {
+  //   id: 'dice',
+  //   icon: '⚀',
+  //   gradient: 'linear(to-br, purple.500, violet.500)',
+  // },
+  // {
+  //   id: 'cards',
+  //   icon: '🃏',
+  //   gradient: 'linear(to-br, indigo.500, blue.500)',
+  // },
+  // {
+  //   id: 'namePicker',
+  //   icon: '📝',
+  //   gradient: 'linear(to-br, teal.500, cyan.500)',
+  // },
+  // {
+  //   id: 'numberRange',
+  //   icon: '🔢',
+  //   gradient: 'linear(to-br, pink.500, rose.500)',
+  // },
+  // {
+  //   id: 'rockPaperScissors',
+  //   icon: '✂️',
+  //   gradient: 'linear(to-br, gray.500, slate.500)',
+  // },
+  // {
+  //   id: 'teamDivider',
+  //   icon: '👥',
+  //   gradient: 'linear(to-br, orange.500, red.500)',
+  // },
 ];
 
 export default function Home() {
-  const { t } = useLanguage();
+  const { t, isLoaded } = useLanguage();
+  const cardBg = useColorModeValue('white', 'gray.800');
+  const featureBg = useColorModeValue('white', 'gray.700');
+
+  // 번역이 로딩 중일 때 로딩 표시
+  if (!isLoaded) {
+    return (
+      <Container maxW="7xl" py={8}>
+        <Box textAlign="center">
+          <Text>로딩 중...</Text>
+        </Box>
+      </Container>
+    );
+  }
 
   return (
-    <div className="max-w-6xl mx-auto">
+    <Container maxW="7xl" py={8}>
       {/* Hero Section */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.6 }}
-        className="text-center mb-12"
-      >
-        <h1 className="text-5xl font-bold text-gray-900 mb-4">
-          {t('title')}
-        </h1>
-        <p className="text-xl text-gray-600 mb-8">
-          {t('subtitle')}
-        </p>
-      </motion.div>
+
 
       {/* Games Grid */}
-      <motion.div
+      <MotionBox
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ duration: 0.8, delay: 0.2 }}
-        className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6"
+        mb={16}
       >
-        {games.map((game, index) => (
-          <motion.div
-            key={game.id}
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, delay: index * 0.1 }}
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-          >
-            <Link href={`/games/${game.id}`}>
-              <div className={`bg-gradient-to-br ${game.gradient} rounded-xl p-6 text-white shadow-lg hover:shadow-xl transition-all duration-300 cursor-pointer group`}>
-                <div className="text-4xl mb-4 group-hover:scale-110 transition-transform duration-300">
-                  {game.icon}
-                </div>
-                <h3 className="text-xl font-bold mb-2">
-                  {t(`games.${game.id}`)}
-                </h3>
-                <p className="text-sm opacity-90">
-                  {t(`gameDescriptions.${game.id}`)}
-                </p>
-              </div>
-            </Link>
-          </motion.div>
-        ))}
-      </motion.div>
-
-      {/* Features Section */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.6, delay: 0.4 }}
-        className="mt-16 text-center"
-      >
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-          <div className="bg-white rounded-lg p-6 shadow-md">
-            <div className="text-3xl mb-4">🌍</div>
-            <h3 className="text-lg font-semibold mb-2">Multi-Language</h3>
-            <p className="text-gray-600">Available in 8 languages for global use</p>
-          </div>
-          <div className="bg-white rounded-lg p-6 shadow-md">
-            <div className="text-3xl mb-4">📱</div>
-            <h3 className="text-lg font-semibold mb-2">Responsive Design</h3>
-            <p className="text-gray-600">Works perfectly on all devices</p>
-          </div>
-          <div className="bg-white rounded-lg p-6 shadow-md">
-            <div className="text-3xl mb-4">🎯</div>
-            <h3 className="text-lg font-semibold mb-2">Fair & Random</h3>
-            <p className="text-gray-600">Truly random results every time</p>
-          </div>
-        </div>
-      </motion.div>
-    </div>
+        <SimpleGrid 
+          columns={{ base: 1, md: 2, lg: 3, xl: 4 }} 
+          spacing={6}
+        >
+          {games.map((game, index) => (
+            <MotionCard
+              key={game.id}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, delay: index * 0.1 }}
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              bg={cardBg}
+              shadow="lg"
+              borderRadius="xl"
+              overflow="hidden"
+              cursor="pointer"
+              _hover={{
+                shadow: 'xl',
+                transform: 'translateY(-4px)',
+              }}
+              sx={{
+                transition: 'all 0.3s ease',
+              }}
+            >
+              <Link href={`/games/${game.id === 'wheelOfFortune' ? 'wheel-of-fortune' : game.id}`}>
+                <Box
+                  bgGradient={game.gradient}
+                  p={6}
+                  color="white"
+                  textAlign="center"
+                >
+                  <Text fontSize="4xl" mb={4}>
+                    {game.icon}
+                  </Text>
+                  <Heading size="md" mb={2} fontFamily="heading">
+                    {t(`games.${game.id}`)}
+                  </Heading>
+                  <Text fontSize="sm" opacity={0.9}>
+                    {t(`gameDescriptions.${game.id}`)}
+                  </Text>
+                </Box>
+              </Link>
+            </MotionCard>
+          ))}
+        </SimpleGrid>
+      </MotionBox>
+    </Container>
   );
 }

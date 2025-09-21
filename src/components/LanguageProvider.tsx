@@ -2,17 +2,18 @@
 
 import React, { createContext, useContext, useState, useEffect } from 'react';
 
-type Language = 'en' | 'ko' | 'ja' | 'zh' | 'es' | 'fr' | 'de' | 'ru';
+type Language = 'en' | 'ko' | 'ja' | 'zh' | 'es' | 'fr' | 'de' | 'ru' | 'hi';
 
 interface LanguageContextType {
   language: Language;
   setLanguage: (lang: Language) => void;
   t: (key: string) => string;
+  isLoaded: boolean;
 }
 
 const LanguageContext = createContext<LanguageContextType | undefined>(undefined);
 
-const translations: Record<Language, Record<string, string | Record<string, string>>> = {
+const translations: Record<Language, any> = {
   en: {},
   ko: {},
   ja: {},
@@ -21,56 +22,77 @@ const translations: Record<Language, Record<string, string | Record<string, stri
   fr: {},
   de: {},
   ru: {},
+  hi: {},
 };
 
 // Load translations
 async function loadTranslations() {
-  const languages: Language[] = ['en', 'ko', 'ja', 'zh', 'es', 'fr', 'de', 'ru'];
+  const languages: Language[] = ['en', 'ko', 'ja', 'zh', 'es', 'fr', 'de', 'ru', 'hi'];
   
   for (const lang of languages) {
     try {
+      console.log(`Loading translations for ${lang}...`);
       const response = await fetch(`/locales/${lang}/common.json`);
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+      }
       const data = await response.json();
       translations[lang] = data;
+      console.log(`Successfully loaded ${lang} translations:`, Object.keys(data));
     } catch (error) {
       console.error(`Failed to load translations for ${lang}:`, error);
+      // 기본값으로 빈 객체 설정
+      translations[lang] = {};
     }
   }
+  console.log('All translations loaded:', Object.keys(translations));
 }
 
 export function LanguageProvider({ children }: { children: React.ReactNode }) {
   const [language, setLanguage] = useState<Language>('ko');
   const [isLoaded, setIsLoaded] = useState(false);
+  const [isClient, setIsClient] = useState(false);
+
+  // 클라이언트 사이드에서만 실행되도록 보장
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
 
   useEffect(() => {
+    if (!isClient) return;
+
+    // 번역 파일 로드
     loadTranslations().then(() => {
       setIsLoaded(true);
     });
     
-    // Get language from localStorage or browser language
-    const savedLanguage = localStorage.getItem('language') as Language;
-    if (savedLanguage) {
-      setLanguage(savedLanguage);
-    } else {
-      const browserLang = navigator.language.split('-')[0] as Language;
-      if (['en', 'ko', 'ja', 'zh', 'es', 'fr', 'de', 'ru'].includes(browserLang)) {
-        setLanguage(browserLang);
-      } else {
-        // Default to Korean if browser language is not supported
-        setLanguage('ko');
+    // localStorage에서 언어 설정 가져오기
+    try {
+      const savedLanguage = localStorage.getItem('language') as Language;
+      if (savedLanguage && ['en', 'ko', 'ja', 'zh', 'es', 'fr', 'de', 'ru', 'hi'].includes(savedLanguage)) {
+        setLanguage(savedLanguage);
       }
+    } catch (error) {
+      console.error('Failed to access localStorage:', error);
     }
-  }, []);
+  }, [isClient]);
 
   useEffect(() => {
-    localStorage.setItem('language', language);
-  }, [language]);
+    if (!isClient) return;
+    
+    try {
+      localStorage.setItem('language', language);
+    } catch (error) {
+      console.error('Failed to save language to localStorage:', error);
+    }
+  }, [language, isClient]);
 
   const t = (key: string): string => {
-    if (!isLoaded) return key;
+    if (!isLoaded || !translations[language]) {
+      return key;
+    }
     
     const keys = key.split('.');
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     let value: any = translations[language];
     
     for (const k of keys) {
@@ -81,7 +103,7 @@ export function LanguageProvider({ children }: { children: React.ReactNode }) {
   };
 
   return (
-    <LanguageContext.Provider value={{ language, setLanguage, t }}>
+    <LanguageContext.Provider value={{ language, setLanguage, t, isLoaded }}>
       {children}
     </LanguageContext.Provider>
   );

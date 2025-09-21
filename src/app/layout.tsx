@@ -1,17 +1,18 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { Inter, Fredoka } from "next/font/google";
 import "./globals.css";
+import { Providers } from '@/components/Providers';
 import { LanguageProvider } from "@/components/LanguageProvider";
 import { Header } from "@/components/Header";
 import { Toaster } from "react-hot-toast";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
+const inter = Inter({
+  variable: "--font-inter",
   subsets: ["latin"],
 });
 
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
+const fredoka = Fredoka({
+  variable: "--font-fredoka",
   subsets: ["latin"],
 });
 
@@ -29,15 +30,17 @@ export default function RootLayout({
   return (
     <html lang="ko">
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100`}
+        className={`${inter.variable} ${fredoka.variable} antialiased`}
       >
-        <LanguageProvider>
-          <Header />
-          <main className="container mx-auto px-4 py-8">
-            {children}
-          </main>
-          <Toaster position="top-center" />
-        </LanguageProvider>
+        <Providers>
+          <LanguageProvider>
+            <Header />
+            <main style={{ minHeight: 'calc(100vh - 80px)' }}>
+              {children}
+            </main>
+            <Toaster position="top-center" />
+          </LanguageProvider>
+        </Providers>
       </body>
     </html>
   );
