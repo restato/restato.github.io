@@ -14,12 +14,13 @@ import {
 } from '@chakra-ui/react';
 import { useLanguage } from './LanguageProvider';
 import { LanguageSelector } from './LanguageSelector';
+import { ColorModeButton } from './ui/color-mode';
 
 export function Header() {
   const { t } = useLanguage();
 
   return (
-    <Box as="header" bg="white" shadow="md" borderBottom="1px" borderColor="gray.200">
+    <Box as="header" bg="bg.canvas" shadow="md" borderBottom="1px" borderColor="border">
       <Container maxW="7xl" py={4}>
         <Flex align="center" justify="space-between">
           <Link href="/" style={{ textDecoration: 'none' }}>
@@ -34,13 +35,13 @@ export function Header() {
               <VStack align="start" spacing={0}>
                 <Heading 
                   size="lg" 
-                  color="gray.900" 
+                  color="text" 
                   fontFamily="heading"
                   fontWeight="bold"
                 >
                   {t('title')}
                 </Heading>
-                <Text fontSize="sm" color="gray.600">
+                <Text fontSize="sm" color="text.muted">
                   {t('subtitle')}
                 </Text>
               </VStack>
@@ -48,6 +49,7 @@ export function Header() {
           </Link>
           
           <HStack spacing={4}>
+            <ColorModeButton />
             <LanguageSelector />
           </HStack>
         </Flex>

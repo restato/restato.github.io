@@ -3,6 +3,10 @@
 import { extendTheme } from '@chakra-ui/react'
 
 export const theme = extendTheme({
+  config: {
+    initialColorMode: 'light',
+    useSystemColorMode: true,
+  },
   fonts: {
     heading: `var(--font-fredoka), cursive`,
     body: `var(--font-inter), -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif`,
@@ -34,14 +38,50 @@ export const theme = extendTheme({
     }
   },
   styles: {
-    global: {
+    global: (props: any) => ({
       body: {
-        bg: 'gray.50',
-        color: 'gray.800',
+        bg: props.colorMode === 'dark' ? 'gray.900' : 'gray.50',
+        color: props.colorMode === 'dark' ? 'white' : 'gray.800',
         lineHeight: 'base',
       },
       '*': {
         boxSizing: 'border-box',
+      },
+    }),
+  },
+  semanticTokens: {
+    colors: {
+      'bg.canvas': {
+        default: 'white',
+        _dark: 'gray.900',
+      },
+      'bg.subtle': {
+        default: 'gray.50',
+        _dark: 'gray.800',
+      },
+      'bg.muted': {
+        default: 'gray.100',
+        _dark: 'gray.700',
+      },
+      text: {
+        default: 'gray.900',
+        _dark: 'gray.100',
+      },
+      'text.muted': {
+        default: 'gray.600',
+        _dark: 'gray.400',
+      },
+      'text.subtle': {
+        default: 'gray.500',
+        _dark: 'gray.500',
+      },
+      border: {
+        default: 'gray.200',
+        _dark: 'gray.600',
+      },
+      'border.muted': {
+        default: 'gray.100',
+        _dark: 'gray.700',
       },
     },
   },
@@ -92,7 +132,7 @@ export const theme = extendTheme({
       variants: {
         elevated: {
           container: {
-            bg: 'white',
+            bg: { base: 'white', _dark: 'gray.800' },
             boxShadow: 'md',
             _hover: {
               boxShadow: 'xl',
@@ -103,9 +143,9 @@ export const theme = extendTheme({
         outline: {
           container: {
             border: '1px solid',
-            borderColor: 'gray.200',
+            borderColor: { base: 'gray.200', _dark: 'gray.600' },
             _hover: {
-              borderColor: 'brand.200',
+              borderColor: { base: 'brand.200', _dark: 'brand.400' },
               boxShadow: 'md',
             },
           },
@@ -139,7 +179,7 @@ export const theme = extendTheme({
       variants: {
         subtitle: {
           fontSize: { base: 'lg', md: 'xl' },
-          color: 'gray.600',
+          color: { base: 'gray.600', _dark: 'gray.400' },
           lineHeight: 'tall',
         },
       },

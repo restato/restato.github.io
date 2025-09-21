@@ -5,6 +5,8 @@ import { Providers } from '@/components/Providers';
 import { LanguageProvider } from "@/components/LanguageProvider";
 import { Header } from "@/components/Header";
 import { Toaster } from "react-hot-toast";
+import { ColorModeScript } from '@chakra-ui/react';
+import { theme } from '@/lib/theme';
 
 const inter = Inter({
   variable: "--font-inter",
@@ -32,6 +34,7 @@ export default function RootLayout({
       <body
         className={`${inter.variable} ${fredoka.variable} antialiased`}
       >
+        <ColorModeScript initialColorMode={theme.config?.initialColorMode || 'light'} />
         <Providers>
           <LanguageProvider>
             <Header />
