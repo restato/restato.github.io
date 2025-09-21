@@ -12,7 +12,6 @@ import {
   useColorModeValue,
 } from '@chakra-ui/react';
 import { useLanguage } from '@/components/LanguageProvider';
-import { ColorModeTest } from '@/components/ColorModeTest';
 import { motion } from 'framer-motion';
 
 const MotionBox = motion(Box);
