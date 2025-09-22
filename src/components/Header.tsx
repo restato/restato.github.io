@@ -14,7 +14,6 @@ import {
 } from '@chakra-ui/react';
 import { useLanguage } from './LanguageProvider';
 import { LanguageSelector } from './LanguageSelector';
-import { ColorModeButton } from './ui/color-mode';
 
 export function Header() {
   const { t } = useLanguage();

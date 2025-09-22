@@ -7,6 +7,9 @@ import { Header } from "@/components/Header";
 import { Toaster } from "react-hot-toast";
 import { ColorModeScript } from '@chakra-ui/react';
 import { theme } from '@/lib/theme';
+import { GoogleAnalytics } from '@/components/GoogleAnalytics';
+import { GA_TRACKING_ID } from '@/lib/gtag';
+import Script from 'next/script';
 
 const inter = Inter({
   variable: "--font-inter",
@@ -31,12 +34,34 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="ko">
+      <head>
+        {/* Google Analytics */}
+        {GA_TRACKING_ID && (
+          <>
+            <Script
+              src={`https://www.googletagmanager.com/gtag/js?id=${GA_TRACKING_ID}`}
+              strategy="afterInteractive"
+            />
+            <Script id="google-analytics" strategy="afterInteractive">
+              {`
+                window.dataLayer = window.dataLayer || [];
+                function gtag(){dataLayer.push(arguments);}
+                gtag('js', new Date());
+                gtag('config', '${GA_TRACKING_ID}', {
+                  page_path: window.location.pathname,
+                });
+              `}
+            </Script>
+          </>
+        )}
+      </head>
       <body
         className={`${inter.variable} ${fredoka.variable} antialiased`}
       >
         <ColorModeScript initialColorMode={theme.config?.initialColorMode || 'light'} />
         <Providers>
           <LanguageProvider>
+            <GoogleAnalytics />
             <Header />
             <main style={{ minHeight: 'calc(100vh - 80px)' }}>
               {children}
