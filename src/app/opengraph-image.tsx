@@ -1,6 +1,7 @@
 import { ImageResponse } from 'next/og';
 
 export const runtime = 'edge';
+export const dynamic = 'force-static';
 
 export const alt = '럭키 드로우 게임 - 재미있는 랜덤 게임';
 export const size = {

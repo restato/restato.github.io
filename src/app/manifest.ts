@@ -1,5 +1,7 @@
 import { MetadataRoute } from 'next';
 
+export const dynamic = 'force-static';
+
 export default function manifest(): MetadataRoute.Manifest {
   return {
     name: '럭키 드로우 게임 - 재미있는 랜덤 게임',
@@ -33,7 +35,7 @@ export default function manifest(): MetadataRoute.Manifest {
         src: '/apple-touch-icon.png',
         sizes: '180x180',
         type: 'image/png',
-        purpose: 'apple-touch-icon',
+        purpose: 'any',
       },
     ],
     screenshots: [

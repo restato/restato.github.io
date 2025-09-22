@@ -1,6 +1,7 @@
 import { ImageResponse } from 'next/og';
 
 export const runtime = 'edge';
+export const dynamic = 'force-static';
 
 export const alt = '운명의 룰렛 - 온라인 룰렛 게임';
 export const size = {
