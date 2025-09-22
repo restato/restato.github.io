@@ -8,7 +8,9 @@ import { Toaster } from "react-hot-toast";
 import { ColorModeScript } from '@chakra-ui/react';
 import { theme } from '@/lib/theme';
 import { GoogleAnalytics } from '@/components/GoogleAnalytics';
+import { WebVitals } from '@/components/WebVitals';
 import { GA_TRACKING_ID } from '@/lib/gtag';
+import { generateMetadata, defaultSEO } from '@/lib/metadata';
 import Script from 'next/script';
 
 const inter = Inter({
@@ -21,17 +23,7 @@ const fredoka = Fredoka({
   subsets: ["latin"],
 });
 
-export const metadata: Metadata = {
-  title: "Lucky Draw Games - Fun Random Games",
-  description: "Fun and fair random games for everyone. Roulette, Bingo, Lottery, Dice, Cards and more!",
-  keywords: "roulette, bingo, lottery, dice, random games, lucky draw, raffle",
-  verification: {
-    google: "0fZMxYcAOJmZ7jR9XHUZcwKhYUI6EMYHOknVEOpAC-Q",
-    other: {
-      "naver-site-verification": "8d89472cc05500529db6e589eb04fb89456800e4",
-    },
-  },
-};
+export const metadata: Metadata = generateMetadata(defaultSEO, 'ko');
 
 export default function RootLayout({
   children,
@@ -41,6 +33,21 @@ export default function RootLayout({
   return (
     <html lang="ko">
       <head>
+        {/* SEO Meta Tags */}
+        <meta name="format-detection" content="telephone=no" />
+        <meta name="mobile-web-app-capable" content="yes" />
+        <meta name="apple-mobile-web-app-capable" content="yes" />
+        <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+        
+        {/* Preconnect to external domains for performance */}
+        <link rel="preconnect" href="https://www.googletagmanager.com" />
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="" />
+        
+        {/* Favicon and App Icons */}
+        <link rel="icon" href="/favicon.ico" sizes="any" />
+        <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+        
         {/* Google Analytics */}
         {GA_TRACKING_ID && (
           <>
@@ -60,6 +67,34 @@ export default function RootLayout({
             </Script>
           </>
         )}
+        
+        {/* Structured Data */}
+        <Script id="structured-data" type="application/ld+json">
+          {`
+            {
+              "@context": "https://schema.org",
+              "@type": "WebSite",
+              "name": "럭키 드로우 게임",
+              "alternateName": "Lucky Draw Games",
+              "url": "https://restato.github.io",
+              "description": "온라인에서 즐기는 재미있고 공정한 랜덤 게임들! 룰렛, 빙고, 복권, 주사위, 카드 게임 등 다양한 게임을 무료로 플레이하세요.",
+              "inLanguage": ["ko", "en", "ja", "zh", "es", "fr", "de", "ru", "hi"],
+              "potentialAction": {
+                "@type": "SearchAction",
+                "target": {
+                  "@type": "EntryPoint",
+                  "urlTemplate": "https://restato.github.io/games/{search_term_string}"
+                },
+                "query-input": "required name=search_term_string"
+              },
+              "publisher": {
+                "@type": "Organization",
+                "name": "Restato Games",
+                "url": "https://restato.github.io"
+              }
+            }
+          `}
+        </Script>
       </head>
       <body
         className={`${inter.variable} ${fredoka.variable} antialiased`}
@@ -68,6 +103,7 @@ export default function RootLayout({
         <Providers>
           <LanguageProvider>
             <GoogleAnalytics />
+            <WebVitals />
             <Header />
             <main style={{ minHeight: 'calc(100vh - 80px)' }}>
               {children}
