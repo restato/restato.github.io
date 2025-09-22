@@ -13,34 +13,58 @@ export const theme = extendTheme({
   },
   colors: {
     brand: {
-      50: '#e3f2fd',
-      100: '#bbdefb',
-      200: '#90caf9',
-      300: '#64b5f6',
-      400: '#42a5f5',
-      500: '#2196f3',
-      600: '#1e88e5',
-      700: '#1976d2',
-      800: '#1565c0',
-      900: '#0d47a1',
+      50: '#f0f9ff',
+      100: '#e0f2fe',
+      200: '#bae6fd',
+      300: '#7dd3fc',
+      400: '#38bdf8',
+      500: '#1db954', // Spotify Green
+      600: '#1ed760',
+      700: '#1aa34a',
+      800: '#168f3a',
+      900: '#0f7a2e',
     },
     accent: {
-      50: '#fff3e0',
-      100: '#ffe0b2',
-      200: '#ffcc80',
-      300: '#ffb74d',
-      400: '#ffa726',
-      500: '#ff9800',
-      600: '#fb8c00',
-      700: '#f57c00',
-      800: '#ef6c00',
-      900: '#e65100',
+      50: '#fef7ff',
+      100: '#fdf2ff',
+      200: '#fce7ff',
+      300: '#f8d4fe',
+      400: '#f0abfc',
+      500: '#e879f9', // Vibrant Purple
+      600: '#d946ef',
+      700: '#c026d3',
+      800: '#a21caf',
+      900: '#86198f',
+    },
+    spotify: {
+      50: '#f0fdf4',
+      100: '#dcfce7',
+      200: '#bbf7d0',
+      300: '#86efac',
+      400: '#4ade80',
+      500: '#1db954', // Main Spotify Green
+      600: '#16a34a',
+      700: '#15803d',
+      800: '#166534',
+      900: '#14532d',
+    },
+    neon: {
+      50: '#fdf4ff',
+      100: '#fae8ff',
+      200: '#f5d0fe',
+      300: '#f0abfc',
+      400: '#e879f9',
+      500: '#d946ef', // Neon Pink
+      600: '#c026d3',
+      700: '#a21caf',
+      800: '#86198f',
+      900: '#701a75',
     }
   },
   styles: {
     global: (props: { colorMode: string }) => ({
       body: {
-        bg: props.colorMode === 'dark' ? 'gray.900' : 'gray.50',
+        bg: props.colorMode === 'dark' ? '#0a0a0a' : 'gray.50', // Spotify-like dark background
         color: props.colorMode === 'dark' ? 'white' : 'gray.800',
         lineHeight: 'base',
       },
@@ -53,35 +77,35 @@ export const theme = extendTheme({
     colors: {
       'bg.canvas': {
         default: 'white',
-        _dark: 'gray.900',
+        _dark: '#0a0a0a', // Deep Spotify black
       },
       'bg.subtle': {
         default: 'gray.50',
-        _dark: 'gray.800',
+        _dark: '#121212', // Spotify card background
       },
       'bg.muted': {
         default: 'gray.100',
-        _dark: 'gray.700',
+        _dark: '#1a1a1a', // Slightly lighter than canvas
       },
       text: {
         default: 'gray.900',
-        _dark: 'gray.100',
+        _dark: '#ffffff',
       },
       'text.muted': {
         default: 'gray.600',
-        _dark: 'gray.400',
+        _dark: '#b3b3b3', // Spotify muted text
       },
       'text.subtle': {
         default: 'gray.500',
-        _dark: 'gray.500',
+        _dark: '#6a6a6a',
       },
       border: {
         default: 'gray.200',
-        _dark: 'gray.600',
+        _dark: '#2a2a2a', // Subtle borders in dark mode
       },
       'border.muted': {
         default: 'gray.100',
-        _dark: 'gray.700',
+        _dark: '#1a1a1a',
       },
     },
   },

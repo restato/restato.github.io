@@ -1,0 +1,522 @@
+'use client';
+
+import React, { useState, useCallback, useEffect } from 'react';
+import dynamic from 'next/dynamic';
+import Link from 'next/link';
+import { 
+  Box, 
+  Container, 
+  Heading, 
+  Text, 
+  VStack,
+  HStack,
+  Input,
+  Button,
+  FormControl,
+  FormLabel,
+  IconButton,
+  Flex,
+  Tag,
+  Wrap,
+  WrapItem,
+  useToast,
+  Icon,
+  Breadcrumb,
+  BreadcrumbItem,
+  BreadcrumbLink,
+} from '@chakra-ui/react';
+import { AddIcon, DeleteIcon, RepeatIcon, ArrowBackIcon, ChevronRightIcon } from '@chakra-ui/icons';
+import { Play, RotateCcw, Loader2 } from 'lucide-react';
+import { useLanguage } from '@/components/LanguageProvider';
+import { motion } from 'framer-motion';
+import confetti from 'canvas-confetti';
+
+// Dynamic import for react-custom-roulette (client-side only)
+const Wheel = dynamic(
+  () => import('react-custom-roulette').then((mod) => mod.Wheel),
+  { ssr: false }
+);
+
+const MotionBox = motion(Box);
+
+interface WheelItem {
+  option: string;
+  style?: {
+    backgroundColor?: string;
+    textColor?: string;
+  };
+}
+
+const DEFAULT_ITEMS = ['치킨', '피자', '라면', '김밥'];
+
+const backgroundColors = [
+  '#FF6B6B', '#4ECDC4', '#45B7D1', '#96CEB4', 
+  '#FFEAA7', '#DDA0DD', '#98D8C8', '#F7DC6F',
+  '#BB8FCE', '#85C1E9', '#F8C471', '#82E0AA',
+  '#F1948A', '#85C1E9', '#D7BDE2', '#AED6F1'
+];
+
+export default function WheelOfFortunePage() {
+  const { t } = useLanguage();
+  const toast = useToast();
+  
+  const [items, setItems] = useState<string[]>(DEFAULT_ITEMS);
+  const [newItem, setNewItem] = useState('');
+  const [mustSpin, setMustSpin] = useState(false);
+  const [prizeNumber, setPrizeNumber] = useState(0);
+  const [winner, setWinner] = useState<string>('');
+  const [isSpinning, setIsSpinning] = useState(false);
+  const [showWinner, setShowWinner] = useState(false);
+
+  // URL에서 초기 items 파싱
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const urlParams = new URLSearchParams(window.location.search);
+      const urlItems = urlParams.get('items');
+      if (urlItems) {
+        const parsedItems = urlItems.split(',').map(item => item.trim()).filter(Boolean);
+        if (parsedItems.length > 0) {
+          setItems(parsedItems);
+        }
+      }
+    }
+  }, []);
+
+  // Wheel 데이터 변환
+  const wheelData: WheelItem[] = items.map((item, index) => ({
+    option: item,
+    style: {
+      backgroundColor: backgroundColors[index % backgroundColors.length],
+      textColor: '#ffffff'
+    }
+  }));
+
+  const addItem = useCallback(() => {
+    if (!newItem.trim()) return;
+    
+    if (items.includes(newItem.trim())) {
+      toast({
+        title: t('wheelOfFortune.duplicateItem'),
+        description: t('wheelOfFortune.duplicateItemDesc'),
+        status: 'warning',
+        duration: 2000,
+        isClosable: true,
+      });
+      return;
+    }
+
+    setItems(prev => [...prev, newItem.trim()]);
+    setNewItem('');
+  }, [newItem, items, toast, t]);
+
+  const removeItem = useCallback((index: number) => {
+    setItems(prev => prev.filter((_, i) => i !== index));
+  }, []);
+
+  const handleSpin = useCallback(() => {
+    if (items.length < 2) {
+      toast({
+        title: t('wheelOfFortune.notEnoughItems'),
+        description: t('wheelOfFortune.notEnoughItemsDesc'),
+        status: 'error',
+        duration: 3000,
+        isClosable: true,
+      });
+      return;
+    }
+
+    if (isSpinning) return;
+
+    setIsSpinning(true);
+    const newPrizeNumber = Math.floor(Math.random() * items.length);
+    setPrizeNumber(newPrizeNumber);
+    setMustSpin(true);
+  }, [items, isSpinning, toast, t]);
+
+  const handleSpinStop = useCallback(() => {
+    setMustSpin(false);
+    setIsSpinning(false);
+    const winnerItem = items[prizeNumber];
+    setWinner(winnerItem);
+    
+    // 컨페티 효과 - 더 화려하게
+    const duration = 3000;
+    const end = Date.now() + duration;
+
+    (function frame() {
+      confetti({
+        particleCount: 7,
+        angle: 60,
+        spread: 55,
+        origin: { x: 0 }
+      });
+      confetti({
+        particleCount: 7,
+        angle: 120,
+        spread: 55,
+        origin: { x: 1 }
+      });
+
+      if (Date.now() < end) {
+        requestAnimationFrame(frame);
+      }
+    }());
+
+    // 사운드 효과 (선택사항)
+    try {
+      const audio = new Audio('/sounds/win.mp3');
+      audio.volume = 0.3;
+      audio.play().catch(() => {
+        // 사운드 재생 실패 시 무시
+      });
+    } catch {
+      // 사운드 파일이 없어도 무시
+    }
+
+    // 당첨자 표시
+    setShowWinner(true);
+  }, [items, prizeNumber]);
+
+  const resetItems = useCallback(() => {
+    setItems(DEFAULT_ITEMS);
+    setNewItem('');
+    setWinner('');
+    setShowWinner(false);
+  }, []);
+
+  const handleSpinAgain = useCallback(() => {
+    setShowWinner(false);
+    setWinner('');
+    // 0.3초 후 새로운 스핀 시작
+    setTimeout(() => {
+      handleSpin();
+    }, 300);
+  }, [handleSpin]);
+
+  return (
+    <Container maxW="6xl" py={8}>
+      {/* Breadcrumb */}
+      <Breadcrumb spacing="8px" separator={<ChevronRightIcon color="gray.500" />} mb={6}>
+        <BreadcrumbItem>
+          <BreadcrumbLink as={Link} href="/">
+            {t('home')}
+          </BreadcrumbLink>
+        </BreadcrumbItem>
+        <BreadcrumbItem isCurrentPage>
+          <BreadcrumbLink>
+            {t('games.wheelOfFortune')}
+          </BreadcrumbLink>
+        </BreadcrumbItem>
+      </Breadcrumb>
+
+      {/* Back Button */}
+      <HStack mb={6}>
+        <Button 
+          as={Link} 
+          href="/" 
+          leftIcon={<ArrowBackIcon />} 
+          variant="ghost" 
+          size="sm"
+        >
+          {t('backToHome')}
+        </Button>
+      </HStack>
+
+      <MotionBox
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.6 }}
+        textAlign="center"
+        mb={8}
+      >
+        <Heading 
+          as="h1" 
+          size="2xl" 
+          color="gray.900" 
+          mb={4}
+          fontFamily="heading"
+          fontWeight="bold"
+        >
+          🎯 {t('games.wheelOfFortune')}
+        </Heading>
+        <Text fontSize="lg" color="gray.600" mb={6}>
+          {t('gameDescriptions.wheelOfFortune')}
+        </Text>
+      </MotionBox>
+
+      <Flex 
+        direction={{ base: 'column', lg: 'row' }} 
+        gap={8} 
+        align="start"
+      >
+        {/* 항목 관리 패널 */}
+        <VStack flex={1} spacing={6} align="stretch">
+          {/* 항목 추가 */}
+          <Box bg="white" p={6} borderRadius="lg" shadow="sm" border="1px" borderColor="gray.200">
+            <FormControl>
+              <FormLabel fontWeight="bold" color="gray.700">
+                {t('wheelOfFortune.addNewItem')}
+              </FormLabel>
+              <HStack>
+                <Input
+                  value={newItem}
+                  onChange={(e) => setNewItem(e.target.value)}
+                  placeholder={t('wheelOfFortune.itemPlaceholder')}
+                  onKeyPress={(e) => e.key === 'Enter' && addItem()}
+                  bg="gray.50"
+                  aria-label={t('wheelOfFortune.itemInputLabel')}
+                  _focus={{
+                    borderColor: 'blue.500',
+                    boxShadow: '0 0 0 1px #3182ce'
+                  }}
+                />
+                <IconButton
+                  aria-label={t('wheelOfFortune.addItemButton')}
+                  icon={<AddIcon />}
+                  onClick={addItem}
+                  colorScheme="blue"
+                  isDisabled={!newItem.trim()}
+                />
+              </HStack>
+            </FormControl>
+          </Box>
+
+          {/* 현재 항목 목록 */}
+          <Box bg="white" p={6} borderRadius="lg" shadow="sm" border="1px" borderColor="gray.200">
+            <HStack justify="space-between" mb={4}>
+              <Heading size="md" color="gray.700">
+                {t('wheelOfFortune.currentItems')} ({items.length}개)
+              </Heading>
+              <IconButton
+                aria-label={t('wheelOfFortune.resetToDefault')}
+                icon={<RepeatIcon />}
+                onClick={resetItems}
+                size="sm"
+                variant="ghost"
+              />
+            </HStack>
+            
+            <Wrap spacing={2}>
+              {items.map((item, index) => (
+                <WrapItem key={index}>
+                  <Tag
+                    size="lg"
+                    borderRadius="full"
+                    variant="solid"
+                    bg={backgroundColors[index % backgroundColors.length]}
+                    color="white"
+                  >
+                    <Text mr={2}>{item}</Text>
+                    <IconButton
+                      aria-label={`${item} ${t('wheelOfFortune.deleteItem')}`}
+                      icon={<DeleteIcon />}
+                      size="xs"
+                      variant="ghost"
+                      color="white"
+                      onClick={() => removeItem(index)}
+                      _hover={{ bg: 'whiteAlpha.300' }}
+                    />
+                  </Tag>
+                </WrapItem>
+              ))}
+            </Wrap>
+
+            {items.length === 0 && (
+              <Text color="gray.500" textAlign="center" py={4}>
+                {t('wheelOfFortune.noItems')}
+              </Text>
+            )}
+          </Box>
+
+        </VStack>
+
+        {/* 휠 */}
+        <VStack flex={1} spacing={6}>
+          {/* 당첨자 표시 영역 */}
+          {showWinner && (
+            <MotionBox
+              initial={{ opacity: 0, y: -50, scale: 0.8 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              transition={{ 
+                type: "spring",
+                stiffness: 300,
+                damping: 25,
+                delay: 0.2
+              }}
+              w="full"
+              maxW="400px"
+            >
+              <Box
+                bg="gradient"
+                bgGradient="linear(to-r, purple.500, pink.500, orange.400)"
+                color="white"
+                p={6}
+                borderRadius="2xl"
+                textAlign="center"
+                shadow="xl"
+                border="3px solid white"
+                position="relative"
+                _before={{
+                  content: '""',
+                  position: 'absolute',
+                  top: '-3px',
+                  left: '-3px',
+                  right: '-3px',
+                  bottom: '-3px',
+                  background: 'linear-gradient(45deg, #ff6b6b, #4ecdc4, #45b7d1, #96ceb4, #ffeaa7)',
+                  borderRadius: '2xl',
+                  zIndex: -1,
+                  animation: 'pulse 2s ease-in-out infinite',
+                }}
+              >
+                <VStack spacing={2}>
+                  <Text fontSize="lg" fontWeight="medium" opacity={0.9}>
+                    🎉 {t('wheelOfFortune.winner')} 🎉
+                  </Text>
+                  <Text 
+                    fontSize="3xl" 
+                    fontWeight="bold" 
+                    textShadow="2px 2px 4px rgba(0,0,0,0.3)"
+                    role="region" 
+                    aria-live="polite"
+                  >
+                    {winner}
+                  </Text>
+                  <Text fontSize="sm" opacity={0.8}>
+                    {t('wheelOfFortune.congratulations')}
+                  </Text>
+                </VStack>
+              </Box>
+            </MotionBox>
+          )}
+
+          <Box 
+            display="flex" 
+            justifyContent="center" 
+            alignItems="center"
+            minH={{ base: "300px", md: "400px" }}
+            position="relative"
+          >
+          <MotionBox
+            initial={{ scale: 0.8, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            transition={{ duration: 0.5, delay: 0.2 }}
+            w={{ base: "280px", sm: "320px", md: "360px" }}
+            h={{ base: "280px", sm: "320px", md: "360px" }}
+            maxW="360px"
+            maxH="360px"
+            position="relative"
+          >
+            {wheelData.length > 0 && (
+              <Box
+                w="100%"
+                h="100%"
+                sx={{
+                  '& > div': {
+                    width: '100% !important',
+                    height: '100% !important',
+                  },
+                  '& canvas': {
+                    width: '100% !important',
+                    height: '100% !important',
+                    maxWidth: '360px !important',
+                    maxHeight: '360px !important',
+                  }
+                }}
+              >
+                <Wheel
+                  mustStartSpinning={mustSpin}
+                  prizeNumber={prizeNumber}
+                  data={wheelData}
+                  onStopSpinning={handleSpinStop}
+                  outerBorderColor="#E2E8F0"
+                  outerBorderWidth={4}
+                  innerBorderColor="#CBD5E0"
+                  innerBorderWidth={2}
+                  radiusLineColor="#A0AEC0"
+                  radiusLineWidth={1}
+                  fontSize={14}
+                  textDistance={60}
+                  spinDuration={0.8}
+                />
+              </Box>
+            )}
+            
+            {/* 휠 중앙 플레이/다시 돌리기 버튼 */}
+            <Button
+              position="absolute"
+              top="50%"
+              left="50%"
+              transform="translate(-50%, -50%)"
+              size="lg"
+              colorScheme={showWinner ? "green" : "red"}
+              onClick={showWinner ? handleSpinAgain : handleSpin}
+              isDisabled={items.length < 2 || isSpinning}
+              _hover={{ 
+                transform: 'translate(-50%, -50%) scale(1.05)',
+                boxShadow: 'xl' 
+              }}
+              _active={{
+                transform: 'translate(-50%, -50%) scale(0.95)'
+              }}
+              _focus={{ 
+                outline: '3px solid',
+                outlineColor: showWinner ? 'green.300' : 'red.300',
+                outlineOffset: '2px'
+              }}
+              transition="all 0.2s"
+              w={{ base: "80px", sm: "90px", md: "100px" }}
+              h={{ base: "80px", sm: "90px", md: "100px" }}
+              borderRadius="full"
+              fontSize={{ base: "sm", sm: "md" }}
+              fontWeight="bold"
+              color="white"
+              shadow="lg"
+              border="4px solid white"
+              zIndex={10}
+              aria-label={
+                items.length < 2 
+                  ? t('wheelOfFortune.needMoreItems')
+                  : isSpinning 
+                    ? t('wheelOfFortune.spinningAriaLabel')
+                    : showWinner
+                      ? t('wheelOfFortune.spinAgain')
+                      : t('wheelOfFortune.spinButtonAriaLabel')
+              }
+              role="button"
+              tabIndex={0}
+              onKeyDown={(e) => {
+                if ((e.key === 'Enter' || e.key === ' ') && items.length >= 2 && !isSpinning) {
+                  e.preventDefault();
+                  if (showWinner) {
+                    handleSpinAgain();
+                  } else {
+                    handleSpin();
+                  }
+                }
+              }}
+            >
+              {items.length < 2 
+                ? '❌'
+                : isSpinning 
+                  ? <Icon as={Loader2} boxSize={6} sx={{ 
+                      animation: 'spin 1s linear infinite',
+                      '@keyframes spin': {
+                        '0%': { transform: 'rotate(0deg)' },
+                        '100%': { transform: 'rotate(360deg)' }
+                      }
+                    }} />
+                  : showWinner
+                    ? <Icon as={RotateCcw} boxSize={6} />
+                    : <Icon as={Play} boxSize={6} />
+              }
+            </Button>
+          </MotionBox>
+        </Box>
+          
+        </VStack>
+      </Flex>
+
+    </Container>
+  );
+}

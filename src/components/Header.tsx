@@ -49,7 +49,7 @@ export function Header() {
           </Link>
           
           <HStack spacing={4}>
-            <ColorModeButton />
+            {/* <ColorModeButton /> */}
             <LanguageSelector />
           </HStack>
         </Flex>
