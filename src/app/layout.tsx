@@ -26,7 +26,7 @@ export const metadata: Metadata = {
   description: "Fun and fair random games for everyone. Roulette, Bingo, Lottery, Dice, Cards and more!",
   keywords: "roulette, bingo, lottery, dice, random games, lucky draw, raffle",
   verification: {
-    google: "0GLTtjarMTr8NsaJaP-z0tbHPycvu_rOoQykr81BL0o",
+    google: "0fZMxYcAOJmZ7jR9XHUZcwKhYUI6EMYHOknVEOpAC-Q",
     other: {
       "naver-site-verification": "8d89472cc05500529db6e589eb04fb89456800e4",
     },
