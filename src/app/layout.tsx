@@ -25,6 +25,12 @@ export const metadata: Metadata = {
   title: "Lucky Draw Games - Fun Random Games",
   description: "Fun and fair random games for everyone. Roulette, Bingo, Lottery, Dice, Cards and more!",
   keywords: "roulette, bingo, lottery, dice, random games, lucky draw, raffle",
+  verification: {
+    google: "0GLTtjarMTr8NsaJaP-z0tbHPycvu_rOoQykr81BL0o",
+    other: {
+      "naver-site-verification": "8d89472cc05500529db6e589eb04fb89456800e4",
+    },
+  },
 };
 
 export default function RootLayout({
