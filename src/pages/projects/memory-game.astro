@@ -1,0 +1,37 @@
+---
+import MainLayout from '../../layouts/MainLayout.astro';
+import MemoryGame from '../../components/MemoryGame';
+---
+
+<MainLayout title="기억력 게임 | Restato" description="카드 짝 맞추기 두뇌 게임">
+  <section class="py-8 px-4">
+    <div class="max-w-4xl mx-auto">
+      <!-- Header -->
+      <div class="mb-8">
+        <div class="flex items-center gap-2 text-sm text-[var(--color-text-muted)] mb-2">
+          <a href="/projects/games" class="hover:text-primary-500">게임센터</a>
+          <span>/</span>
+          <span>기억력 게임</span>
+        </div>
+        <h1 class="text-3xl font-bold mb-2">🧠 기억력 게임</h1>
+        <p class="text-[var(--color-text-muted)]">
+          카드를 뒤집어 같은 짝을 찾아보세요! 두뇌 훈련에 좋아요!
+        </p>
+      </div>
+
+      <!-- Game Component -->
+      <MemoryGame client:load />
+
+      <!-- Info -->
+      <div class="mt-12 p-6 bg-[var(--color-card)] rounded-xl border border-[var(--color-border)]">
+        <h2 class="text-lg font-bold mb-4">💡 게임 방법</h2>
+        <ul class="space-y-2 text-[var(--color-text-muted)]">
+          <li>• 카드를 클릭하면 뒤집힙니다</li>
+          <li>• 같은 이모지 카드 2장을 연속으로 찾으면 매치!</li>
+          <li>• 모든 카드를 매치하면 게임 클리어</li>
+          <li>• 적은 시도 횟수와 빠른 시간에 도전해보세요</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+</MainLayout>

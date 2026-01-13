@@ -1,0 +1,37 @@
+---
+import MainLayout from '../../layouts/MainLayout.astro';
+import NumberGuess from '../../components/NumberGuess';
+---
+
+<MainLayout title="숫자 맞추기 | Restato" description="1-100 사이 숫자를 맞춰보세요">
+  <section class="py-8 px-4">
+    <div class="max-w-4xl mx-auto">
+      <!-- Header -->
+      <div class="mb-8">
+        <div class="flex items-center gap-2 text-sm text-[var(--color-text-muted)] mb-2">
+          <a href="/projects/games" class="hover:text-primary-500">게임센터</a>
+          <span>/</span>
+          <span>숫자 맞추기</span>
+        </div>
+        <h1 class="text-3xl font-bold mb-2">🔢 숫자 맞추기</h1>
+        <p class="text-[var(--color-text-muted)]">
+          Up & Down 게임! 힌트를 보고 숫자를 맞춰보세요!
+        </p>
+      </div>
+
+      <!-- Game Component -->
+      <NumberGuess client:load />
+
+      <!-- Info -->
+      <div class="mt-12 p-6 bg-[var(--color-card)] rounded-xl border border-[var(--color-border)]">
+        <h2 class="text-lg font-bold mb-4">💡 게임 방법</h2>
+        <ul class="space-y-2 text-[var(--color-text-muted)]">
+          <li>• 난이도를 선택하세요 (쉬움/보통/어려움)</li>
+          <li>• 숫자를 입력하면 UP/DOWN 힌트가 표시됩니다</li>
+          <li>• 제한된 횟수 안에 정답을 맞춰야 해요</li>
+          <li>• 정답에 가까울수록 초록색으로 표시됩니다</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+</MainLayout>
