@@ -15,19 +15,10 @@ export default function Chat() {
   const [currentRoomId, setCurrentRoomId] = useState<string | null>(null);
   const [remainingTime, setRemainingTime] = useState<number>(0);
   const [copied, setCopied] = useState(false);
-  const [initialRoomId, setInitialRoomId] = useState<string | null>(null);
-  const [isInitialized, setIsInitialized] = useState(false);
 
   const chatServiceRef = useRef<ChatService | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
-
-  // 클라이언트에서 hash 읽기
-  useEffect(() => {
-    const roomId = getRoomIdFromHash();
-    setInitialRoomId(roomId);
-    setCurrentRoomId(roomId);
-    setIsInitialized(true);
-  }, []);
+  const isStartedRef = useRef(false); // 중복 초기화 방지
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -37,67 +28,82 @@ export default function Chat() {
     scrollToBottom();
   }, [messages]);
 
-  const handleMessage = useCallback((message: ChatMessage) => {
-    setMessages(prev => [...prev, message]);
-  }, []);
-
-  const handleStatusChange = useCallback((newStatus: ConnectionStatus) => {
-    setStatus(newStatus);
-  }, []);
-
-  const handlePeerConnected = useCallback(() => {
-    setMessages(prev => [...prev, {
-      id: `system-${Date.now()}`,
-      sender: 'peer',
-      text: '상대방이 연결되었습니다!',
-      timestamp: Date.now()
-    } as ChatMessage]);
-  }, []);
-
-  const handlePeerDisconnected = useCallback(() => {
-    setMessages(prev => [...prev, {
-      id: `system-${Date.now()}`,
-      sender: 'peer',
-      text: '상대방과의 연결이 끊어졌습니다.',
-      timestamp: Date.now()
-    } as ChatMessage]);
-  }, []);
-
-  const handleRoomCreated = useCallback((roomId: string) => {
-    setCurrentRoomId(roomId);
-  }, []);
-
-  const handleTimeUpdate = useCallback((remainingMs: number) => {
-    setRemainingTime(remainingMs);
-  }, []);
-
+  // 채팅 서비스 초기화 (한 번만 실행)
   useEffect(() => {
-    if (!isInitialized) return;
+    // 이미 시작했으면 무시 (React Strict Mode 대응)
+    if (isStartedRef.current) {
+      console.log('[Chat UI] Already started, skipping...');
+      return;
+    }
+    isStartedRef.current = true;
+
+    const initialRoomId = getRoomIdFromHash();
+    if (initialRoomId) {
+      setCurrentRoomId(initialRoomId);
+    }
+
+    console.log('[Chat UI] Starting chat service, roomId:', initialRoomId);
 
     const service = new ChatService({
-      onMessage: handleMessage,
-      onStatusChange: handleStatusChange,
-      onPeerConnected: handlePeerConnected,
-      onPeerDisconnected: handlePeerDisconnected,
-      onRoomCreated: handleRoomCreated,
-      onTimeUpdate: handleTimeUpdate
+      onMessage: (message) => {
+        setMessages(prev => [...prev, message]);
+      },
+      onStatusChange: (newStatus) => {
+        console.log('[Chat UI] Status changed:', newStatus);
+        setStatus(newStatus);
+      },
+      onPeerConnected: () => {
+        setMessages(prev => [...prev, {
+          id: `system-${Date.now()}`,
+          sender: 'peer' as const,
+          text: '상대방이 연결되었습니다!',
+          timestamp: Date.now()
+        }]);
+      },
+      onPeerDisconnected: () => {
+        setMessages(prev => [...prev, {
+          id: `system-${Date.now()}`,
+          sender: 'peer' as const,
+          text: '상대방과의 연결이 끊어졌습니다.',
+          timestamp: Date.now()
+        }]);
+      },
+      onRoomCreated: (roomId) => {
+        console.log('[Chat UI] Room created/joined:', roomId);
+        setCurrentRoomId(roomId);
+      },
+      onTimeUpdate: (remainingMs) => {
+        setRemainingTime(remainingMs);
+      }
     });
 
     chatServiceRef.current = service;
 
     // 초기화
     if (initialRoomId) {
-      // 특정 방에 참가
       service.joinExistingRoom(initialRoomId);
     } else {
-      // 랜덤 매칭
       service.findRandomMatch();
     }
 
-    return () => {
+    // 페이지 종료 시 정리
+    const handleBeforeUnload = () => {
       service.disconnect();
     };
-  }, [isInitialized, initialRoomId]);
+    window.addEventListener('beforeunload', handleBeforeUnload);
+
+    return () => {
+      window.removeEventListener('beforeunload', handleBeforeUnload);
+      // React Strict Mode에서는 cleanup이 호출되지만,
+      // isStartedRef 덕분에 다시 초기화되지 않음
+      // 실제 언마운트 시에만 disconnect
+      if (!document.hidden) {
+        // 페이지가 보이는 상태에서 언마운트 = 실제 컴포넌트 제거
+        service.disconnect();
+        isStartedRef.current = false;
+      }
+    };
+  }, []); // 빈 의존성 - 마운트 시 한 번만 실행
 
   const handleSendMessage = (e: React.FormEvent) => {
     e.preventDefault();
@@ -128,12 +134,36 @@ export default function Chat() {
     setStatus('initializing');
 
     const service = new ChatService({
-      onMessage: handleMessage,
-      onStatusChange: handleStatusChange,
-      onPeerConnected: handlePeerConnected,
-      onPeerDisconnected: handlePeerDisconnected,
-      onRoomCreated: handleRoomCreated,
-      onTimeUpdate: handleTimeUpdate
+      onMessage: (message) => {
+        setMessages(prev => [...prev, message]);
+      },
+      onStatusChange: (newStatus) => {
+        console.log('[Chat UI] Status changed:', newStatus);
+        setStatus(newStatus);
+      },
+      onPeerConnected: () => {
+        setMessages(prev => [...prev, {
+          id: `system-${Date.now()}`,
+          sender: 'peer' as const,
+          text: '상대방이 연결되었습니다!',
+          timestamp: Date.now()
+        }]);
+      },
+      onPeerDisconnected: () => {
+        setMessages(prev => [...prev, {
+          id: `system-${Date.now()}`,
+          sender: 'peer' as const,
+          text: '상대방과의 연결이 끊어졌습니다.',
+          timestamp: Date.now()
+        }]);
+      },
+      onRoomCreated: (roomId) => {
+        console.log('[Chat UI] Room created/joined:', roomId);
+        setCurrentRoomId(roomId);
+      },
+      onTimeUpdate: (remainingMs) => {
+        setRemainingTime(remainingMs);
+      }
     });
 
     chatServiceRef.current = service;

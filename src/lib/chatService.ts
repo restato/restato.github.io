@@ -44,6 +44,8 @@ export class ChatService {
   private unsubscribeRoom: (() => void) | null = null;
   private timerInterval: number | null = null;
   private expiresAt: number = 0;
+  private isDestroyed: boolean = false;
+  private connectionTimeout: number | null = null;
 
   constructor(callbacks: ChatCallbacks) {
     this.callbacks = callbacks;
@@ -52,97 +54,151 @@ export class ChatService {
   // PeerJS 초기화
   private initPeer(): Promise<string> {
     return new Promise((resolve, reject) => {
+      if (this.isDestroyed) {
+        reject(new Error('Service is destroyed'));
+        return;
+      }
+
       // 고유 ID 생성
       const peerId = `restato-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
 
       this.peer = new Peer(peerId, {
-        debug: 1, // 디버깅용 로그 레벨
+        debug: 2, // 더 상세한 디버깅
         config: {
           iceServers: [
             { urls: 'stun:stun.l.google.com:19302' },
             { urls: 'stun:stun1.l.google.com:19302' },
             { urls: 'stun:stun2.l.google.com:19302' },
-            { urls: 'stun:stun3.l.google.com:19302' },
-            { urls: 'stun:stun4.l.google.com:19302' },
           ]
         }
       });
 
       this.peer.on('open', (id) => {
-        console.log('PeerJS connected with ID:', id);
+        console.log('[Chat] PeerJS connected with ID:', id);
         resolve(id);
       });
 
       this.peer.on('error', (err) => {
-        console.error('PeerJS error:', err);
-        this.callbacks.onStatusChange('error');
+        console.error('[Chat] PeerJS error:', err);
+        if (!this.isDestroyed) {
+          this.callbacks.onStatusChange('error');
+        }
         reject(err);
       });
 
       this.peer.on('connection', (conn) => {
-        console.log('Incoming connection from:', conn.peer);
-        this.setupConnection(conn);
+        console.log('[Chat] Incoming connection from:', conn.peer);
+        if (!this.connection) {
+          this.setupConnection(conn);
+        }
       });
 
       this.peer.on('disconnected', () => {
-        console.log('PeerJS signaling server disconnected, attempting to reconnect...');
-        // 시그널링 서버 연결 끊김 - 재연결 시도
-        // peer 연결은 여전히 유지될 수 있으므로 바로 disconnected로 변경하지 않음
-        if (this.peer && !this.peer.destroyed) {
-          this.peer.reconnect();
+        console.log('[Chat] PeerJS signaling disconnected');
+        // P2P 연결은 유지될 수 있으므로 재연결 시도만
+        if (this.peer && !this.peer.destroyed && !this.isDestroyed) {
+          setTimeout(() => {
+            if (this.peer && !this.peer.destroyed) {
+              console.log('[Chat] Attempting to reconnect...');
+              this.peer.reconnect();
+            }
+          }, 1000);
         }
+      });
+
+      this.peer.on('close', () => {
+        console.log('[Chat] PeerJS closed');
       });
     });
   }
 
   // 연결 설정
   private setupConnection(conn: DataConnection) {
+    // 이미 연결이 있으면 무시
+    if (this.connection && this.connection.open) {
+      console.log('[Chat] Already have an open connection, ignoring new one');
+      return;
+    }
+
     this.connection = conn;
+    console.log('[Chat] Setting up connection with:', conn.peer);
+
+    // 이전 타임아웃 정리
+    if (this.connectionTimeout) {
+      clearTimeout(this.connectionTimeout);
+    }
 
     // 연결 타임아웃 설정 (30초)
-    const connectionTimeout = window.setTimeout(() => {
-      if (!conn.open) {
-        console.log('Connection timeout');
-        conn.close();
+    this.connectionTimeout = window.setTimeout(() => {
+      if (this.connection && !this.connection.open && !this.isDestroyed) {
+        console.log('[Chat] Connection timeout');
+        this.connection.close();
         this.callbacks.onStatusChange('error');
       }
     }, 30000);
 
     conn.on('open', () => {
-      clearTimeout(connectionTimeout);
-      console.log('Data connection open');
-      this.callbacks.onStatusChange('connected');
-      this.callbacks.onPeerConnected();
+      if (this.connectionTimeout) {
+        clearTimeout(this.connectionTimeout);
+        this.connectionTimeout = null;
+      }
+      console.log('[Chat] Data connection OPEN');
+      if (!this.isDestroyed) {
+        this.callbacks.onStatusChange('connected');
+        this.callbacks.onPeerConnected();
+      }
     });
 
     conn.on('data', (data) => {
-      const message = data as ChatMessage;
-      message.sender = 'peer';
+      if (this.isDestroyed) return;
+      // 메시지 복사해서 수정 (원본 변경 방지)
+      const message: ChatMessage = {
+        ...(data as ChatMessage),
+        sender: 'peer'
+      };
       this.callbacks.onMessage(message);
     });
 
     conn.on('close', () => {
-      clearTimeout(connectionTimeout);
-      console.log('Connection closed');
-      this.callbacks.onPeerDisconnected();
-      this.callbacks.onStatusChange('disconnected');
+      console.log('[Chat] Connection CLOSED');
+      if (this.connectionTimeout) {
+        clearTimeout(this.connectionTimeout);
+        this.connectionTimeout = null;
+      }
       this.connection = null;
+      if (!this.isDestroyed) {
+        this.callbacks.onPeerDisconnected();
+        this.callbacks.onStatusChange('disconnected');
+      }
     });
 
     conn.on('error', (err) => {
-      clearTimeout(connectionTimeout);
-      console.error('Connection error:', err);
-      this.callbacks.onStatusChange('error');
+      console.error('[Chat] Connection error:', err);
+      if (this.connectionTimeout) {
+        clearTimeout(this.connectionTimeout);
+        this.connectionTimeout = null;
+      }
+      if (!this.isDestroyed) {
+        this.callbacks.onStatusChange('error');
+      }
     });
   }
 
   // 타이머 시작
   private startTimer() {
     if (this.timerInterval) {
-      clearInterval(this.timerInterval);
+      return; // 이미 실행 중이면 무시
     }
 
     this.timerInterval = window.setInterval(() => {
+      if (this.isDestroyed) {
+        if (this.timerInterval) {
+          clearInterval(this.timerInterval);
+          this.timerInterval = null;
+        }
+        return;
+      }
+
       const remaining = this.expiresAt - Date.now();
 
       if (remaining <= 0) {
@@ -157,6 +213,8 @@ export class ChatService {
 
   // 새 방 만들기 (링크 공유용)
   async createNewRoom(): Promise<string> {
+    if (this.isDestroyed) throw new Error('Service is destroyed');
+
     this.callbacks.onStatusChange('initializing');
 
     try {
@@ -168,16 +226,26 @@ export class ChatService {
 
       // 방 구독 (게스트 입장 감지)
       this.unsubscribeRoom = subscribeToRoom(roomId, (room) => {
+        if (this.isDestroyed) return;
+
         if (room && room.guestPeerId && !this.connection) {
           // 게스트가 들어옴 - 연결 시도
-          console.log('Guest joined, connecting to:', room.guestPeerId);
+          console.log('[Chat] Guest joined, connecting to:', room.guestPeerId);
           this.callbacks.onStatusChange('connecting');
-          const conn = this.peer!.connect(room.guestPeerId, { reliable: true });
-          this.setupConnection(conn);
+
+          // 약간의 딜레이 후 연결 (게스트 PeerJS 준비 대기)
+          setTimeout(() => {
+            if (this.peer && !this.peer.destroyed && !this.connection) {
+              const conn = this.peer.connect(room.guestPeerId!, {
+                reliable: true,
+                serialization: 'json'
+              });
+              this.setupConnection(conn);
+            }
+          }, 500);
         }
 
         if (room && this.expiresAt === 0) {
-          // 타이머는 한 번만 시작
           this.expiresAt = room.expiresAt;
           this.startTimer();
         }
@@ -188,14 +256,18 @@ export class ChatService {
 
       return roomId;
     } catch (error) {
-      console.error('Failed to create room:', error);
-      this.callbacks.onStatusChange('error');
+      console.error('[Chat] Failed to create room:', error);
+      if (!this.isDestroyed) {
+        this.callbacks.onStatusChange('error');
+      }
       throw error;
     }
   }
 
   // 특정 방에 참가
   async joinExistingRoom(roomId: string): Promise<boolean> {
+    if (this.isDestroyed) return false;
+
     this.callbacks.onStatusChange('initializing');
 
     try {
@@ -203,6 +275,7 @@ export class ChatService {
       const room = await joinRoom(roomId, peerId);
 
       if (!room) {
+        console.log('[Chat] Room not found or expired');
         this.callbacks.onStatusChange('error');
         return false;
       }
@@ -212,19 +285,24 @@ export class ChatService {
       this.expiresAt = room.expiresAt;
       this.startTimer();
 
-      // 호스트가 연결해올 때까지 대기
+      console.log('[Chat] Joined room, waiting for host to connect...');
       this.callbacks.onStatusChange('connecting');
+      this.callbacks.onRoomCreated(roomId);
 
       return true;
     } catch (error) {
-      console.error('Failed to join room:', error);
-      this.callbacks.onStatusChange('error');
+      console.error('[Chat] Failed to join room:', error);
+      if (!this.isDestroyed) {
+        this.callbacks.onStatusChange('error');
+      }
       throw error;
     }
   }
 
   // 랜덤 매칭
   async findRandomMatch(): Promise<string | null> {
+    if (this.isDestroyed) return null;
+
     this.callbacks.onStatusChange('initializing');
 
     try {
@@ -236,26 +314,33 @@ export class ChatService {
 
       if (waitingRoom) {
         // 대기 중인 방 발견 - 참가
-        console.log('Found waiting room:', waitingRoom.id);
+        console.log('[Chat] Found waiting room:', waitingRoom.id);
         const success = await this.joinExistingRoom(waitingRoom.id);
         return success ? waitingRoom.id : null;
       } else {
         // 대기 중인 방 없음 - 새로 만들고 대기
-        console.log('No waiting room, creating new one');
+        console.log('[Chat] No waiting room, creating new one');
         const roomId = await this.createNewRoom();
         return roomId;
       }
     } catch (error) {
-      console.error('Failed to find match:', error);
-      this.callbacks.onStatusChange('error');
+      console.error('[Chat] Failed to find match:', error);
+      if (!this.isDestroyed) {
+        this.callbacks.onStatusChange('error');
+      }
       throw error;
     }
   }
 
   // 메시지 전송
   sendMessage(text: string): ChatMessage | null {
-    if (!this.connection || this.connection.open === false) {
-      console.error('No active connection');
+    if (!this.connection) {
+      console.error('[Chat] No connection');
+      return null;
+    }
+
+    if (!this.connection.open) {
+      console.error('[Chat] Connection not open');
       return null;
     }
 
@@ -266,12 +351,26 @@ export class ChatService {
       timestamp: Date.now()
     };
 
-    this.connection.send(message);
-    return message;
+    try {
+      this.connection.send(message);
+      console.log('[Chat] Message sent');
+      return message;
+    } catch (error) {
+      console.error('[Chat] Failed to send message:', error);
+      return null;
+    }
   }
 
   // 연결 해제
   disconnect() {
+    console.log('[Chat] Disconnecting...');
+    this.isDestroyed = true;
+
+    if (this.connectionTimeout) {
+      clearTimeout(this.connectionTimeout);
+      this.connectionTimeout = null;
+    }
+
     if (this.timerInterval) {
       clearInterval(this.timerInterval);
       this.timerInterval = null;
@@ -283,21 +382,31 @@ export class ChatService {
     }
 
     if (this.connection) {
-      this.connection.close();
+      try {
+        this.connection.close();
+      } catch (e) {
+        console.error('[Chat] Error closing connection:', e);
+      }
       this.connection = null;
     }
 
     if (this.peer) {
-      this.peer.destroy();
+      try {
+        this.peer.destroy();
+      } catch (e) {
+        console.error('[Chat] Error destroying peer:', e);
+      }
       this.peer = null;
     }
 
+    // 호스트만 방 삭제
     if (this.roomId && this.isHost) {
       deleteRoom(this.roomId).catch(console.error);
     }
 
     this.roomId = null;
     this.isHost = false;
+    this.expiresAt = 0;
   }
 
   // 상태 확인
