@@ -122,6 +122,15 @@ const articleSchema = type === 'article' ? {
       <script type="application/ld+json" set:html={JSON.stringify(articleSchema)} />
     )}
 
+    <!-- Google Analytics -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-CJKYE91FQM"></script>
+    <script is:inline>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+      gtag('config', 'G-CJKYE91FQM');
+    </script>
+
     <!-- Fonts -->
     <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin />
     <link

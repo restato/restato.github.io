@@ -1,0 +1,180 @@
+---
+import MainLayout from './MainLayout.astro';
+import RelatedTools from '../components/tools/RelatedTools.astro';
+import ShareButton from '../components/tools/ShareButton';
+import FavoriteButton from '../components/tools/FavoriteButton';
+import BookmarkPrompt from '../components/tools/BookmarkPrompt';
+
+interface Props {
+  title: string;
+  description: string;
+  slug: string;
+  icon: string;
+  category: string;
+  keywords?: string[];
+}
+
+const { title, description, slug, icon, category, keywords = [] } = Astro.props;
+const pageTitle = `${title} | Restato`;
+const canonicalUrl = `https://restato.github.io/tools/${slug}`;
+
+// FAQ Schema
+const faqSchema = {
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {
+      "@type": "Question",
+      "name": `${title}은(는) 무료인가요?`,
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "네, 완전히 무료이며 회원가입도 필요없습니다. 모든 처리는 브라우저에서 이루어지므로 데이터가 서버로 전송되지 않습니다."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "모바일에서도 사용할 수 있나요?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "네, 모든 기기에서 사용 가능합니다. 반응형 디자인으로 모바일, 태블릿, 데스크톱 모두 지원합니다."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "데이터가 서버로 전송되나요?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "아니요, 모든 처리는 사용자의 브라우저에서 이루어집니다. 개인정보가 서버로 전송되지 않아 안전합니다."
+      }
+    }
+  ]
+};
+
+// WebApplication Schema
+const appSchema = {
+  "@context": "https://schema.org",
+  "@type": "WebApplication",
+  "name": title,
+  "description": description,
+  "url": canonicalUrl,
+  "applicationCategory": "UtilityApplication",
+  "operatingSystem": "All",
+  "offers": {
+    "@type": "Offer",
+    "price": "0",
+    "priceCurrency": "KRW"
+  },
+  "author": {
+    "@type": "Person",
+    "name": "Restato"
+  }
+};
+---
+
+<MainLayout
+  title={pageTitle}
+  description={description}
+>
+  <script type="application/ld+json" set:html={JSON.stringify(faqSchema)} />
+  <script type="application/ld+json" set:html={JSON.stringify(appSchema)} />
+
+  <div class="max-w-4xl mx-auto px-4 py-8">
+    <!-- Breadcrumb -->
+    <nav class="text-sm mb-6">
+      <ol class="flex items-center gap-2">
+        <li><a href="/" class="text-[var(--color-text-muted)] hover:text-primary-500">홈</a></li>
+        <li class="text-[var(--color-text-muted)]">/</li>
+        <li><a href="/tools" class="text-[var(--color-text-muted)] hover:text-primary-500">도구</a></li>
+        <li class="text-[var(--color-text-muted)]">/</li>
+        <li class="text-[var(--color-text)]">{title}</li>
+      </ol>
+    </nav>
+
+    <!-- Header -->
+    <header class="mb-8">
+      <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+        <div>
+          <h1 class="text-3xl font-bold text-[var(--color-text)] mb-2">
+            {icon} {title}
+          </h1>
+          <p class="text-[var(--color-text-muted)]">
+            {description}
+          </p>
+        </div>
+        <div class="flex items-center gap-2">
+          <FavoriteButton client:load slug={slug} title={title} icon={icon} />
+          <ShareButton client:load title={pageTitle} description={description} />
+        </div>
+      </div>
+    </header>
+
+    <!-- Tool Content -->
+    <div class="p-6 rounded-xl bg-[var(--color-card)] border border-[var(--color-border)]">
+      <slot />
+    </div>
+
+    <!-- Related Tools -->
+    <RelatedTools currentSlug={slug} currentCategory={category} />
+
+    <!-- Info Section -->
+    <section class="mt-8 p-6 rounded-xl bg-[var(--color-card)] border border-[var(--color-border)]">
+      <h2 class="text-lg font-semibold text-[var(--color-text)] mb-4">ℹ️ {title} 사용 안내</h2>
+      <ul class="space-y-2 text-sm text-[var(--color-text-muted)]">
+        <li class="flex items-start gap-2">
+          <span class="text-green-500">✓</span>
+          <span>완전 무료, 회원가입 불필요</span>
+        </li>
+        <li class="flex items-start gap-2">
+          <span class="text-green-500">✓</span>
+          <span>모든 처리는 브라우저에서 실행 (데이터 서버 전송 없음)</span>
+        </li>
+        <li class="flex items-start gap-2">
+          <span class="text-green-500">✓</span>
+          <span>모바일, 태블릿, 데스크톱 모두 지원</span>
+        </li>
+        <li class="flex items-start gap-2">
+          <span class="text-green-500">✓</span>
+          <span>한국어, 영어, 일본어 지원</span>
+        </li>
+      </ul>
+    </section>
+  </div>
+
+  <!-- Bookmark Prompt -->
+  <BookmarkPrompt client:idle />
+
+  <!-- Track tool visit -->
+  <script define:vars={{ slug, title, icon }}>
+    // Track recent tool visit
+    const STORAGE_KEY = 'restato_recent_tools';
+    const MAX_RECENT = 5;
+
+    try {
+      const stored = localStorage.getItem(STORAGE_KEY);
+      let tools = stored ? JSON.parse(stored) : [];
+      tools = tools.filter(t => t.slug !== slug);
+      tools.unshift({ slug, title, icon, visitedAt: Date.now() });
+      tools = tools.slice(0, MAX_RECENT);
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(tools));
+    } catch (err) {
+      console.error('Failed to track tool visit:', err);
+    }
+  </script>
+</MainLayout>
+
+<style>
+  @keyframes slide-up {
+    from {
+      opacity: 0;
+      transform: translateY(20px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  :global(.animate-slide-up) {
+    animation: slide-up 0.3s ease-out;
+  }
+</style>

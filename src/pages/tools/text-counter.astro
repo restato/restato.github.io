@@ -1,34 +1,14 @@
 ---
-import MainLayout from '../../layouts/MainLayout.astro';
+import ToolLayout from '../../layouts/ToolLayout.astro';
 import TextCounter from '../../components/tools/TextCounter';
 ---
 
-<MainLayout
-  title="텍스트 카운터 | Restato"
+<ToolLayout
+  title="텍스트 카운터"
   description="글자수, 단어수, 줄수, 문장수, 문단수를 실시간으로 세어줍니다."
+  slug="text-counter"
+  icon="🔢"
+  category="text"
 >
-  <div class="max-w-2xl mx-auto px-4 py-8">
-    <nav class="text-sm mb-6">
-      <ol class="flex items-center gap-2">
-        <li><a href="/" class="text-[var(--color-text-muted)] hover:text-primary-500">홈</a></li>
-        <li class="text-[var(--color-text-muted)]">/</li>
-        <li><a href="/tools" class="text-[var(--color-text-muted)] hover:text-primary-500">도구</a></li>
-        <li class="text-[var(--color-text-muted)]">/</li>
-        <li class="text-[var(--color-text)]">텍스트 카운터</li>
-      </ol>
-    </nav>
-
-    <header class="mb-8">
-      <h1 class="text-3xl font-bold text-[var(--color-text)] mb-2">
-        🔢 텍스트 카운터
-      </h1>
-      <p class="text-[var(--color-text-muted)]">
-        글자수, 단어수, 줄수, 문장수, 문단수를 실시간으로 세어줍니다.
-      </p>
-    </header>
-
-    <div class="p-6 rounded-xl bg-[var(--color-card)] border border-[var(--color-border)]">
-      <TextCounter client:load />
-    </div>
-  </div>
-</MainLayout>
+  <TextCounter client:load />
+</ToolLayout>

@@ -1,42 +1,14 @@
 ---
-import MainLayout from '../../layouts/MainLayout.astro';
+import ToolLayout from '../../layouts/ToolLayout.astro';
 import WorldClock from '../../components/tools/WorldClock';
 ---
 
-<MainLayout
-  title="세계 시계 및 시간 변환기 | Restato"
+<ToolLayout
+  title="세계 시계"
   description="전 세계 시간대의 현재 시간을 확인하고, 시간을 다른 시간대로 변환합니다."
+  slug="world-clock"
+  icon="🌍"
+  category="productivity"
 >
-  <div class="max-w-4xl mx-auto px-4 py-8">
-    <!-- Breadcrumb -->
-    <nav class="text-sm mb-6">
-      <ol class="flex items-center gap-2">
-        <li><a href="/" class="text-[var(--color-text-muted)] hover:text-primary-500">홈</a></li>
-        <li class="text-[var(--color-text-muted)]">/</li>
-        <li><a href="/tools" class="text-[var(--color-text-muted)] hover:text-primary-500">도구</a></li>
-        <li class="text-[var(--color-text-muted)]">/</li>
-        <li class="text-[var(--color-text)]">세계 시계</li>
-      </ol>
-    </nav>
-
-    <!-- Header -->
-    <header class="mb-8">
-      <h1 class="text-3xl font-bold text-[var(--color-text)] mb-4">
-        🌍 세계 시계 및 시간 변환기
-      </h1>
-      <p class="text-[var(--color-text-muted)]">
-        전 세계 시간대의 현재 시간을 확인하고, 시간을 변환합니다. 글로벌 미팅 조율에 유용합니다.
-      </p>
-    </header>
-
-    <!-- Tool -->
-    <div class="p-6 rounded-xl bg-[var(--color-card)] border border-[var(--color-border)]">
-      <WorldClock client:load />
-    </div>
-
-    <!-- Back Link -->
-    <div class="mt-8">
-      <a href="/tools" class="text-primary-500 hover:underline">← 도구 목록으로 돌아가기</a>
-    </div>
-  </div>
-</MainLayout>
+  <WorldClock client:load />
+</ToolLayout>

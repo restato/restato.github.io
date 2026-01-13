@@ -1,34 +1,14 @@
 ---
-import MainLayout from '../../layouts/MainLayout.astro';
+import ToolLayout from '../../layouts/ToolLayout.astro';
 import RegexTester from '../../components/tools/RegexTester';
 ---
 
-<MainLayout
-  title="정규식 테스터 | Restato"
+<ToolLayout
+  title="정규식 테스터"
   description="정규식을 테스트하고 매치 결과를 확인합니다. 하이라이팅과 그룹 추출을 지원합니다."
+  slug="regex"
+  icon="🔍"
+  category="developer"
 >
-  <div class="max-w-3xl mx-auto px-4 py-8">
-    <nav class="text-sm mb-6">
-      <ol class="flex items-center gap-2">
-        <li><a href="/" class="text-[var(--color-text-muted)] hover:text-primary-500">홈</a></li>
-        <li class="text-[var(--color-text-muted)]">/</li>
-        <li><a href="/tools" class="text-[var(--color-text-muted)] hover:text-primary-500">도구</a></li>
-        <li class="text-[var(--color-text-muted)]">/</li>
-        <li class="text-[var(--color-text)]">정규식 테스터</li>
-      </ol>
-    </nav>
-
-    <header class="mb-8">
-      <h1 class="text-3xl font-bold text-[var(--color-text)] mb-2">
-        🔍 정규식 테스터
-      </h1>
-      <p class="text-[var(--color-text-muted)]">
-        정규식을 테스트하고 매치 결과를 확인합니다.
-      </p>
-    </header>
-
-    <div class="p-6 rounded-xl bg-[var(--color-card)] border border-[var(--color-border)]">
-      <RegexTester client:load />
-    </div>
-  </div>
-</MainLayout>
+  <RegexTester client:load />
+</ToolLayout>
