@@ -106,6 +106,71 @@ const featuredProjects = projects
     </div>
   </section>
 
+  <!-- Popular Tools Section -->
+  <section class="py-16 px-6 border-t border-[var(--color-border)]">
+    <div class="max-w-4xl mx-auto">
+      <div class="flex items-end justify-between mb-8">
+        <div>
+          <p class="text-sm font-medium text-primary-600 dark:text-primary-400 mb-2">Web Tools</p>
+          <h2 class="text-3xl font-bold">인기 도구</h2>
+        </div>
+        <a
+          href="/tools"
+          class="text-sm font-medium text-[var(--color-text-muted)] hover:text-primary-600 dark:hover:text-primary-400 transition-colors flex items-center gap-1"
+        >
+          전체 보기
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" />
+          </svg>
+        </a>
+      </div>
+
+      <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <a href="/tools/json" class="group p-4 rounded-xl bg-[var(--color-card)] border border-[var(--color-border)] hover:border-primary-500 hover:shadow-lg transition-all text-center">
+          <span class="text-3xl mb-2 block">{ }</span>
+          <span class="font-medium group-hover:text-primary-500 transition-colors">JSON 포매터</span>
+        </a>
+        <a href="/tools/qr-code" class="group p-4 rounded-xl bg-[var(--color-card)] border border-[var(--color-border)] hover:border-primary-500 hover:shadow-lg transition-all text-center">
+          <span class="text-3xl mb-2 block">📱</span>
+          <span class="font-medium group-hover:text-primary-500 transition-colors">QR 코드</span>
+        </a>
+        <a href="/tools/color" class="group p-4 rounded-xl bg-[var(--color-card)] border border-[var(--color-border)] hover:border-primary-500 hover:shadow-lg transition-all text-center">
+          <span class="text-3xl mb-2 block">🌈</span>
+          <span class="font-medium group-hover:text-primary-500 transition-colors">색상 변환</span>
+        </a>
+        <a href="/tools/image-resizer" class="group p-4 rounded-xl bg-[var(--color-card)] border border-[var(--color-border)] hover:border-primary-500 hover:shadow-lg transition-all text-center">
+          <span class="text-3xl mb-2 block">📐</span>
+          <span class="font-medium group-hover:text-primary-500 transition-colors">이미지 리사이저</span>
+        </a>
+        <a href="/tools/base64" class="group p-4 rounded-xl bg-[var(--color-card)] border border-[var(--color-border)] hover:border-primary-500 hover:shadow-lg transition-all text-center">
+          <span class="text-3xl mb-2 block">🔄</span>
+          <span class="font-medium group-hover:text-primary-500 transition-colors">Base64</span>
+        </a>
+        <a href="/tools/utm" class="group p-4 rounded-xl bg-[var(--color-card)] border border-[var(--color-border)] hover:border-primary-500 hover:shadow-lg transition-all text-center">
+          <span class="text-3xl mb-2 block">📊</span>
+          <span class="font-medium group-hover:text-primary-500 transition-colors">UTM 빌더</span>
+        </a>
+        <a href="/tools/regex" class="group p-4 rounded-xl bg-[var(--color-card)] border border-[var(--color-border)] hover:border-primary-500 hover:shadow-lg transition-all text-center">
+          <span class="text-3xl mb-2 block">🔍</span>
+          <span class="font-medium group-hover:text-primary-500 transition-colors">정규식 테스터</span>
+        </a>
+        <a href="/tools/password" class="group p-4 rounded-xl bg-[var(--color-card)] border border-[var(--color-border)] hover:border-primary-500 hover:shadow-lg transition-all text-center">
+          <span class="text-3xl mb-2 block">🔐</span>
+          <span class="font-medium group-hover:text-primary-500 transition-colors">비밀번호 생성</span>
+        </a>
+      </div>
+
+      <div class="mt-6 text-center">
+        <a href="/tools" class="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-primary-500 text-white font-medium hover:bg-primary-600 transition-colors">
+          26개 도구 모두 보기
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" />
+          </svg>
+        </a>
+      </div>
+    </div>
+  </section>
+
   <!-- Game Center Banner -->
   <section class="py-16 px-6 bg-gradient-to-r from-purple-500/10 via-pink-500/10 to-orange-500/10 border-t border-[var(--color-border)]">
     <div class="max-w-4xl mx-auto">

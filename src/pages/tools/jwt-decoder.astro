@@ -1,42 +1,14 @@
 ---
-import MainLayout from '../../layouts/MainLayout.astro';
+import ToolLayout from '../../layouts/ToolLayout.astro';
 import JwtDecoder from '../../components/tools/JwtDecoder';
 ---
 
-<MainLayout
-  title="JWT 디코더 | Restato"
+<ToolLayout
+  title="JWT 디코더"
   description="JWT(JSON Web Token)를 디코딩하여 헤더와 페이로드를 확인합니다."
+  slug="jwt-decoder"
+  icon="🎫"
+  category="developer"
 >
-  <div class="max-w-4xl mx-auto px-4 py-8">
-    <!-- Breadcrumb -->
-    <nav class="text-sm mb-6">
-      <ol class="flex items-center gap-2">
-        <li><a href="/" class="text-[var(--color-text-muted)] hover:text-primary-500">홈</a></li>
-        <li class="text-[var(--color-text-muted)]">/</li>
-        <li><a href="/tools" class="text-[var(--color-text-muted)] hover:text-primary-500">도구</a></li>
-        <li class="text-[var(--color-text-muted)]">/</li>
-        <li class="text-[var(--color-text)]">JWT 디코더</li>
-      </ol>
-    </nav>
-
-    <!-- Header -->
-    <header class="mb-8">
-      <h1 class="text-3xl font-bold text-[var(--color-text)] mb-4">
-        🎫 JWT 디코더
-      </h1>
-      <p class="text-[var(--color-text-muted)]">
-        JWT 토큰을 디코딩하여 헤더와 페이로드 정보를 확인합니다.
-      </p>
-    </header>
-
-    <!-- Tool -->
-    <div class="p-6 rounded-xl bg-[var(--color-card)] border border-[var(--color-border)]">
-      <JwtDecoder client:load />
-    </div>
-
-    <!-- Back Link -->
-    <div class="mt-8">
-      <a href="/tools" class="text-primary-500 hover:underline">← 도구 목록으로 돌아가기</a>
-    </div>
-  </div>
-</MainLayout>
+  <JwtDecoder client:load />
+</ToolLayout>

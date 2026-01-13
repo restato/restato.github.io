@@ -1,34 +1,14 @@
 ---
-import MainLayout from '../../layouts/MainLayout.astro';
+import ToolLayout from '../../layouts/ToolLayout.astro';
 import ColorPalette from '../../components/tools/ColorPalette';
 ---
 
-<MainLayout
-  title="색상 팔레트 생성기 | Restato"
+<ToolLayout
+  title="색상 팔레트 생성기"
   description="조화로운 색상 팔레트를 생성합니다. 보색, 삼각배색, 유사색 등 다양한 배색 기법을 지원합니다."
+  slug="color-palette"
+  icon="🎨"
+  category="generators"
 >
-  <div class="max-w-4xl mx-auto px-4 py-8">
-    <nav class="text-sm mb-6">
-      <ol class="flex items-center gap-2">
-        <li><a href="/" class="text-[var(--color-text-muted)] hover:text-primary-500">홈</a></li>
-        <li class="text-[var(--color-text-muted)]">/</li>
-        <li><a href="/tools" class="text-[var(--color-text-muted)] hover:text-primary-500">도구</a></li>
-        <li class="text-[var(--color-text-muted)]">/</li>
-        <li class="text-[var(--color-text)]">색상 팔레트 생성기</li>
-      </ol>
-    </nav>
-
-    <header class="mb-8">
-      <h1 class="text-3xl font-bold text-[var(--color-text)] mb-2">
-        🎨 색상 팔레트 생성기
-      </h1>
-      <p class="text-[var(--color-text-muted)]">
-        조화로운 색상 팔레트를 생성합니다.
-      </p>
-    </header>
-
-    <div class="p-6 rounded-xl bg-[var(--color-card)] border border-[var(--color-border)]">
-      <ColorPalette client:load />
-    </div>
-  </div>
-</MainLayout>
+  <ColorPalette client:load />
+</ToolLayout>

@@ -1,34 +1,14 @@
 ---
-import MainLayout from '../../layouts/MainLayout.astro';
+import ToolLayout from '../../layouts/ToolLayout.astro';
 import Base64Tool from '../../components/tools/Base64Tool';
 ---
 
-<MainLayout
-  title="Base64 인코더/디코더 | Restato"
+<ToolLayout
+  title="Base64 인코더/디코더"
   description="텍스트를 Base64로 인코딩하거나 디코딩합니다."
+  slug="base64"
+  icon="🔄"
+  category="converters"
 >
-  <div class="max-w-2xl mx-auto px-4 py-8">
-    <nav class="text-sm mb-6">
-      <ol class="flex items-center gap-2">
-        <li><a href="/" class="text-[var(--color-text-muted)] hover:text-primary-500">홈</a></li>
-        <li class="text-[var(--color-text-muted)]">/</li>
-        <li><a href="/tools" class="text-[var(--color-text-muted)] hover:text-primary-500">도구</a></li>
-        <li class="text-[var(--color-text-muted)]">/</li>
-        <li class="text-[var(--color-text)]">Base64</li>
-      </ol>
-    </nav>
-
-    <header class="mb-8">
-      <h1 class="text-3xl font-bold text-[var(--color-text)] mb-2">
-        🔄 Base64 인코더/디코더
-      </h1>
-      <p class="text-[var(--color-text-muted)]">
-        텍스트를 Base64로 인코딩하거나 디코딩합니다.
-      </p>
-    </header>
-
-    <div class="p-6 rounded-xl bg-[var(--color-card)] border border-[var(--color-border)]">
-      <Base64Tool client:load />
-    </div>
-  </div>
-</MainLayout>
+  <Base64Tool client:load />
+</ToolLayout>

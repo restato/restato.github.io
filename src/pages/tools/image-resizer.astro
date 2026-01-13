@@ -1,34 +1,14 @@
 ---
-import MainLayout from '../../layouts/MainLayout.astro';
+import ToolLayout from '../../layouts/ToolLayout.astro';
 import ImageResizer from '../../components/tools/ImageResizer';
 ---
 
-<MainLayout
-  title="이미지 리사이저 | Restato"
+<ToolLayout
+  title="이미지 리사이저"
   description="이미지 크기를 조절하고 압축합니다. JPEG, PNG, WebP 포맷을 지원합니다."
+  slug="image-resizer"
+  icon="📐"
+  category="image"
 >
-  <div class="max-w-3xl mx-auto px-4 py-8">
-    <nav class="text-sm mb-6">
-      <ol class="flex items-center gap-2">
-        <li><a href="/" class="text-[var(--color-text-muted)] hover:text-primary-500">홈</a></li>
-        <li class="text-[var(--color-text-muted)]">/</li>
-        <li><a href="/tools" class="text-[var(--color-text-muted)] hover:text-primary-500">도구</a></li>
-        <li class="text-[var(--color-text-muted)]">/</li>
-        <li class="text-[var(--color-text)]">이미지 리사이저</li>
-      </ol>
-    </nav>
-
-    <header class="mb-8">
-      <h1 class="text-3xl font-bold text-[var(--color-text)] mb-2">
-        🖼️ 이미지 리사이저
-      </h1>
-      <p class="text-[var(--color-text-muted)]">
-        이미지 크기를 조절하고 압축합니다.
-      </p>
-    </header>
-
-    <div class="p-6 rounded-xl bg-[var(--color-card)] border border-[var(--color-border)]">
-      <ImageResizer client:load />
-    </div>
-  </div>
-</MainLayout>
+  <ImageResizer client:load />
+</ToolLayout>
