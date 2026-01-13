@@ -1,0 +1,159 @@
+---
+import MainLayout from '../../layouts/MainLayout.astro';
+
+// Placeholder images - replace with actual images later
+const images = [
+  { src: 'https://picsum.photos/seed/1/800/600', alt: 'Sample 1', title: 'Sample Image 1' },
+  { src: 'https://picsum.photos/seed/2/800/600', alt: 'Sample 2', title: 'Sample Image 2' },
+  { src: 'https://picsum.photos/seed/3/800/600', alt: 'Sample 3', title: 'Sample Image 3' },
+  { src: 'https://picsum.photos/seed/4/800/600', alt: 'Sample 4', title: 'Sample Image 4' },
+  { src: 'https://picsum.photos/seed/5/800/600', alt: 'Sample 5', title: 'Sample Image 5' },
+  { src: 'https://picsum.photos/seed/6/800/600', alt: 'Sample 6', title: 'Sample Image 6' },
+];
+---
+
+<MainLayout title="갤러리 | Restato" description="사진 갤러리">
+  <section class="py-8 px-4">
+    <div class="max-w-6xl mx-auto">
+      <!-- Header -->
+      <div class="mb-8">
+        <div class="flex items-center gap-2 text-sm text-[var(--color-text-muted)] mb-2">
+          <a href="/projects" class="hover:text-primary-500">프로젝트</a>
+          <span>/</span>
+          <span>갤러리</span>
+        </div>
+        <h1 class="text-3xl font-bold mb-2">📷 갤러리</h1>
+        <p class="text-[var(--color-text-muted)]">
+          사진 모음
+        </p>
+      </div>
+
+      <!-- Gallery Grid -->
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+        {images.map((image, index) => (
+          <div
+            class="group relative aspect-[4/3] overflow-hidden rounded-xl cursor-pointer"
+            data-index={index}
+          >
+            <img
+              src={image.src}
+              alt={image.alt}
+              class="w-full h-full object-cover transition-transform duration-300 group-hover:scale-110"
+              loading="lazy"
+            />
+            <div class="absolute inset-0 bg-black/0 group-hover:bg-black/40 transition-colors duration-300 flex items-end">
+              <div class="p-4 text-white opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                <p class="font-medium">{image.title}</p>
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      <!-- Empty State for when you add your own images -->
+      {images.length === 0 && (
+        <div class="text-center py-20">
+          <div class="text-6xl mb-4">📷</div>
+          <h2 class="text-2xl font-bold mb-2">아직 사진이 없습니다</h2>
+          <p class="text-[var(--color-text-muted)]">
+            public/images 폴더에 사진을 추가하세요
+          </p>
+        </div>
+      )}
+
+      <!-- Info -->
+      <div class="mt-12 p-6 bg-[var(--color-card)] rounded-xl border border-[var(--color-border)]">
+        <h2 class="text-lg font-bold mb-4">💡 사진 추가하기</h2>
+        <p class="text-[var(--color-text-muted)]">
+          <code class="bg-gray-800 text-green-400 px-2 py-1 rounded">public/images/gallery/</code> 폴더에 사진을 추가하고,
+          이 페이지의 images 배열을 업데이트하세요.
+        </p>
+      </div>
+    </div>
+  </section>
+</MainLayout>
+
+<!-- Lightbox Modal -->
+<div id="lightbox" class="fixed inset-0 z-50 hidden bg-black/90 items-center justify-center">
+  <button
+    id="lightbox-close"
+    class="absolute top-4 right-4 text-white text-4xl hover:text-gray-300 transition-colors"
+  >
+    &times;
+  </button>
+  <button
+    id="lightbox-prev"
+    class="absolute left-4 top-1/2 -translate-y-1/2 text-white text-4xl hover:text-gray-300 transition-colors"
+  >
+    &#8249;
+  </button>
+  <button
+    id="lightbox-next"
+    class="absolute right-4 top-1/2 -translate-y-1/2 text-white text-4xl hover:text-gray-300 transition-colors"
+  >
+    &#8250;
+  </button>
+  <img id="lightbox-img" src="" alt="" class="max-w-[90vw] max-h-[90vh] object-contain" />
+</div>
+
+<script define:vars={{ images }}>
+  const lightbox = document.getElementById('lightbox');
+  const lightboxImg = document.getElementById('lightbox-img');
+  const closeBtn = document.getElementById('lightbox-close');
+  const prevBtn = document.getElementById('lightbox-prev');
+  const nextBtn = document.getElementById('lightbox-next');
+  let currentIndex = 0;
+
+  // Open lightbox
+  document.querySelectorAll('[data-index]').forEach((el) => {
+    el.addEventListener('click', () => {
+      currentIndex = parseInt(el.dataset.index);
+      showImage(currentIndex);
+      lightbox.classList.remove('hidden');
+      lightbox.classList.add('flex');
+    });
+  });
+
+  // Close lightbox
+  closeBtn?.addEventListener('click', closeLightbox);
+  lightbox?.addEventListener('click', (e) => {
+    if (e.target === lightbox) closeLightbox();
+  });
+
+  // Navigation
+  prevBtn?.addEventListener('click', () => {
+    currentIndex = (currentIndex - 1 + images.length) % images.length;
+    showImage(currentIndex);
+  });
+
+  nextBtn?.addEventListener('click', () => {
+    currentIndex = (currentIndex + 1) % images.length;
+    showImage(currentIndex);
+  });
+
+  // Keyboard navigation
+  document.addEventListener('keydown', (e) => {
+    if (lightbox?.classList.contains('hidden')) return;
+    if (e.key === 'Escape') closeLightbox();
+    if (e.key === 'ArrowLeft') {
+      currentIndex = (currentIndex - 1 + images.length) % images.length;
+      showImage(currentIndex);
+    }
+    if (e.key === 'ArrowRight') {
+      currentIndex = (currentIndex + 1) % images.length;
+      showImage(currentIndex);
+    }
+  });
+
+  function showImage(index) {
+    if (lightboxImg) {
+      lightboxImg.src = images[index].src;
+      lightboxImg.alt = images[index].alt;
+    }
+  }
+
+  function closeLightbox() {
+    lightbox?.classList.add('hidden');
+    lightbox?.classList.remove('flex');
+  }
+</script>

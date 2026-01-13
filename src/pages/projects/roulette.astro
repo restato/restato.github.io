@@ -1,0 +1,37 @@
+---
+import MainLayout from '../../layouts/MainLayout.astro';
+import Roulette from '../../components/Roulette';
+---
+
+<MainLayout title="룰렛 | Restato" description="커스텀 항목으로 돌리는 랜덤 룰렛 게임">
+  <section class="py-8 px-4">
+    <div class="max-w-6xl mx-auto">
+      <!-- Header -->
+      <div class="mb-8">
+        <div class="flex items-center gap-2 text-sm text-[var(--color-text-muted)] mb-2">
+          <a href="/projects" class="hover:text-primary-500">프로젝트</a>
+          <span>/</span>
+          <span>룰렛</span>
+        </div>
+        <h1 class="text-3xl font-bold mb-2">🎡 룰렛</h1>
+        <p class="text-[var(--color-text-muted)]">
+          커스텀 항목을 추가하고 랜덤으로 선택하세요!
+        </p>
+      </div>
+
+      <!-- Roulette Component -->
+      <Roulette client:load />
+
+      <!-- Info -->
+      <div class="mt-12 p-6 bg-[var(--color-card)] rounded-xl border border-[var(--color-border)]">
+        <h2 class="text-lg font-bold mb-4">💡 사용법</h2>
+        <ul class="space-y-2 text-[var(--color-text-muted)]">
+          <li>• 오른쪽 패널에서 항목을 추가/삭제할 수 있어요</li>
+          <li>• 최소 2개, 최대 12개의 항목을 추가할 수 있어요</li>
+          <li>• "돌리기" 버튼을 클릭하면 룰렛이 돌아가요</li>
+          <li>• 당첨 결과는 애니메이션과 함께 표시됩니다</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+</MainLayout>
