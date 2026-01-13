@@ -1,0 +1,42 @@
+---
+import MainLayout from '../../layouts/MainLayout.astro';
+import ExifViewer from '../../components/tools/ExifViewer';
+---
+
+<MainLayout
+  title="EXIF 정보 뷰어 | Restato"
+  description="JPEG 이미지의 EXIF 메타데이터를 확인합니다. 카메라 정보, 촬영 설정 등을 볼 수 있습니다."
+>
+  <div class="max-w-4xl mx-auto px-4 py-8">
+    <!-- Breadcrumb -->
+    <nav class="text-sm mb-6">
+      <ol class="flex items-center gap-2">
+        <li><a href="/" class="text-[var(--color-text-muted)] hover:text-primary-500">홈</a></li>
+        <li class="text-[var(--color-text-muted)]">/</li>
+        <li><a href="/tools" class="text-[var(--color-text-muted)] hover:text-primary-500">도구</a></li>
+        <li class="text-[var(--color-text-muted)]">/</li>
+        <li class="text-[var(--color-text)]">EXIF 뷰어</li>
+      </ol>
+    </nav>
+
+    <!-- Header -->
+    <header class="mb-8">
+      <h1 class="text-3xl font-bold text-[var(--color-text)] mb-4">
+        📷 EXIF 정보 뷰어
+      </h1>
+      <p class="text-[var(--color-text-muted)]">
+        JPEG 이미지의 EXIF 메타데이터를 확인합니다. 카메라, 촬영 설정, 날짜 정보를 볼 수 있습니다.
+      </p>
+    </header>
+
+    <!-- Tool -->
+    <div class="p-6 rounded-xl bg-[var(--color-card)] border border-[var(--color-border)]">
+      <ExifViewer client:load />
+    </div>
+
+    <!-- Back Link -->
+    <div class="mt-8">
+      <a href="/tools" class="text-primary-500 hover:underline">← 도구 목록으로 돌아가기</a>
+    </div>
+  </div>
+</MainLayout>

@@ -1,0 +1,42 @@
+---
+import MainLayout from '../../layouts/MainLayout.astro';
+import DiffTool from '../../components/tools/DiffTool';
+---
+
+<MainLayout
+  title="텍스트 비교기 (Diff) | Restato"
+  description="두 텍스트의 차이점을 비교합니다. 코드 리뷰나 문서 비교에 유용합니다."
+>
+  <div class="max-w-6xl mx-auto px-4 py-8">
+    <!-- Breadcrumb -->
+    <nav class="text-sm mb-6">
+      <ol class="flex items-center gap-2">
+        <li><a href="/" class="text-[var(--color-text-muted)] hover:text-primary-500">홈</a></li>
+        <li class="text-[var(--color-text-muted)]">/</li>
+        <li><a href="/tools" class="text-[var(--color-text-muted)] hover:text-primary-500">도구</a></li>
+        <li class="text-[var(--color-text-muted)]">/</li>
+        <li class="text-[var(--color-text)]">텍스트 비교기</li>
+      </ol>
+    </nav>
+
+    <!-- Header -->
+    <header class="mb-8">
+      <h1 class="text-3xl font-bold text-[var(--color-text)] mb-4">
+        📊 텍스트 비교기 (Diff)
+      </h1>
+      <p class="text-[var(--color-text-muted)]">
+        두 텍스트의 차이점을 비교합니다. 추가/삭제된 내용을 시각적으로 확인합니다.
+      </p>
+    </header>
+
+    <!-- Tool -->
+    <div class="p-6 rounded-xl bg-[var(--color-card)] border border-[var(--color-border)]">
+      <DiffTool client:load />
+    </div>
+
+    <!-- Back Link -->
+    <div class="mt-8">
+      <a href="/tools" class="text-primary-500 hover:underline">← 도구 목록으로 돌아가기</a>
+    </div>
+  </div>
+</MainLayout>

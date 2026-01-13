@@ -1,0 +1,379 @@
+import { useState, useRef } from 'react';
+import { useTranslation } from '../../i18n/useTranslation';
+
+interface ExifData {
+  [key: string]: string | number | undefined;
+}
+
+// Simple EXIF parser (handles common JPEG EXIF data)
+async function parseExif(file: File): Promise<ExifData> {
+  return new Promise((resolve) => {
+    const reader = new FileReader();
+
+    reader.onload = (e) => {
+      const data = new DataView(e.target?.result as ArrayBuffer);
+      const exif: ExifData = {};
+
+      // Check for JPEG
+      if (data.getUint16(0) !== 0xffd8) {
+        resolve({ error: 'Not a JPEG file' });
+        return;
+      }
+
+      let offset = 2;
+      const length = data.byteLength;
+
+      while (offset < length) {
+        if (data.getUint8(offset) !== 0xff) {
+          resolve({ error: 'Invalid JPEG marker' });
+          return;
+        }
+
+        const marker = data.getUint8(offset + 1);
+
+        // APP1 marker (EXIF)
+        if (marker === 0xe1) {
+          const exifOffset = offset + 4;
+
+          // Check for "Exif\0\0"
+          const exifHeader = String.fromCharCode(
+            data.getUint8(exifOffset),
+            data.getUint8(exifOffset + 1),
+            data.getUint8(exifOffset + 2),
+            data.getUint8(exifOffset + 3)
+          );
+
+          if (exifHeader !== 'Exif') {
+            resolve({ error: 'No EXIF data found' });
+            return;
+          }
+
+          const tiffOffset = exifOffset + 6;
+          const littleEndian = data.getUint16(tiffOffset) === 0x4949;
+
+          const getUint16 = (offset: number) =>
+            littleEndian ? data.getUint16(offset, true) : data.getUint16(offset);
+          const getUint32 = (offset: number) =>
+            littleEndian ? data.getUint32(offset, true) : data.getUint32(offset);
+
+          const ifdOffset = getUint32(tiffOffset + 4);
+          const entries = getUint16(tiffOffset + ifdOffset);
+
+          const tags: { [key: number]: string } = {
+            0x010f: 'Make',
+            0x0110: 'Model',
+            0x0112: 'Orientation',
+            0x011a: 'XResolution',
+            0x011b: 'YResolution',
+            0x0128: 'ResolutionUnit',
+            0x0131: 'Software',
+            0x0132: 'DateTime',
+            0x829a: 'ExposureTime',
+            0x829d: 'FNumber',
+            0x8827: 'ISO',
+            0x9003: 'DateTimeOriginal',
+            0x920a: 'FocalLength',
+            0xa002: 'ImageWidth',
+            0xa003: 'ImageHeight',
+            0xa405: 'FocalLengthIn35mmFilm',
+          };
+
+          for (let i = 0; i < entries; i++) {
+            const entryOffset = tiffOffset + ifdOffset + 2 + i * 12;
+            const tag = getUint16(entryOffset);
+            const type = getUint16(entryOffset + 2);
+            const count = getUint32(entryOffset + 4);
+            const valueOffset = entryOffset + 8;
+
+            if (tags[tag]) {
+              const tagName = tags[tag];
+
+              // Type 2 = ASCII
+              if (type === 2) {
+                let dataOffset = valueOffset;
+                if (count > 4) {
+                  dataOffset = tiffOffset + getUint32(valueOffset);
+                }
+                let str = '';
+                for (let j = 0; j < count - 1; j++) {
+                  str += String.fromCharCode(data.getUint8(dataOffset + j));
+                }
+                exif[tagName] = str;
+              }
+              // Type 3 = SHORT (16-bit)
+              else if (type === 3) {
+                exif[tagName] = getUint16(valueOffset);
+              }
+              // Type 4 = LONG (32-bit)
+              else if (type === 4) {
+                exif[tagName] = getUint32(valueOffset);
+              }
+              // Type 5 = RATIONAL
+              else if (type === 5) {
+                const dataOffset = tiffOffset + getUint32(valueOffset);
+                const numerator = getUint32(dataOffset);
+                const denominator = getUint32(dataOffset + 4);
+                if (denominator !== 0) {
+                  exif[tagName] = numerator / denominator;
+                }
+              }
+            }
+          }
+
+          resolve(exif);
+          return;
+        }
+
+        // Move to next marker
+        if (marker === 0xd8 || marker === 0xd9 || (marker >= 0xd0 && marker <= 0xd7)) {
+          offset += 2;
+        } else {
+          const segmentLength = data.getUint16(offset + 2);
+          offset += 2 + segmentLength;
+        }
+      }
+
+      resolve({ error: 'No EXIF data found' });
+    };
+
+    reader.readAsArrayBuffer(file);
+  });
+}
+
+export default function ExifViewer() {
+  const { t } = useTranslation();
+
+  const [imageUrl, setImageUrl] = useState<string | null>(null);
+  const [imageName, setImageName] = useState<string>('');
+  const [exifData, setExifData] = useState<ExifData | null>(null);
+  const [isDragging, setIsDragging] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const handleFile = async (file: File) => {
+    setIsLoading(true);
+    setImageName(file.name);
+
+    // Create preview URL
+    const url = URL.createObjectURL(file);
+    setImageUrl(url);
+
+    // Parse EXIF
+    const exif = await parseExif(file);
+    setExifData(exif);
+    setIsLoading(false);
+  };
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) handleFile(file);
+  };
+
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragging(false);
+    const file = e.dataTransfer.files[0];
+    if (file) handleFile(file);
+  };
+
+  const formatValue = (key: string, value: string | number | undefined): string => {
+    if (value === undefined) return '-';
+
+    switch (key) {
+      case 'ExposureTime':
+        return typeof value === 'number' ? `1/${Math.round(1 / value)}s` : String(value);
+      case 'FNumber':
+        return `f/${value}`;
+      case 'FocalLength':
+      case 'FocalLengthIn35mmFilm':
+        return `${value}mm`;
+      case 'ISO':
+        return `ISO ${value}`;
+      case 'Orientation':
+        const orientations: { [key: number]: string } = {
+          1: 'Normal',
+          2: 'Flipped horizontal',
+          3: 'Rotated 180°',
+          4: 'Flipped vertical',
+          5: 'Rotated 90° CW, flipped',
+          6: 'Rotated 90° CCW',
+          7: 'Rotated 90° CCW, flipped',
+          8: 'Rotated 90° CW',
+        };
+        return orientations[value as number] || String(value);
+      case 'ResolutionUnit':
+        return value === 2 ? 'inches' : value === 3 ? 'centimeters' : String(value);
+      case 'XResolution':
+      case 'YResolution':
+        return `${value} dpi`;
+      default:
+        return String(value);
+    }
+  };
+
+  const exifCategories = [
+    {
+      name: t({ ko: '카메라 정보', en: 'Camera Info', ja: 'カメラ情報' }),
+      fields: ['Make', 'Model', 'Software'],
+    },
+    {
+      name: t({ ko: '촬영 설정', en: 'Capture Settings', ja: '撮影設定' }),
+      fields: ['ExposureTime', 'FNumber', 'ISO', 'FocalLength', 'FocalLengthIn35mmFilm'],
+    },
+    {
+      name: t({ ko: '이미지 정보', en: 'Image Info', ja: '画像情報' }),
+      fields: ['ImageWidth', 'ImageHeight', 'Orientation', 'XResolution', 'YResolution', 'ResolutionUnit'],
+    },
+    {
+      name: t({ ko: '날짜/시간', en: 'Date/Time', ja: '日時' }),
+      fields: ['DateTime', 'DateTimeOriginal'],
+    },
+  ];
+
+  const fieldLabels: { [key: string]: { ko: string; en: string; ja: string } } = {
+    Make: { ko: '제조사', en: 'Make', ja: 'メーカー' },
+    Model: { ko: '모델', en: 'Model', ja: 'モデル' },
+    Software: { ko: '소프트웨어', en: 'Software', ja: 'ソフトウェア' },
+    ExposureTime: { ko: '노출 시간', en: 'Exposure Time', ja: '露出時間' },
+    FNumber: { ko: '조리개', en: 'Aperture', ja: '絞り値' },
+    ISO: { ko: 'ISO', en: 'ISO', ja: 'ISO' },
+    FocalLength: { ko: '초점 거리', en: 'Focal Length', ja: '焦点距離' },
+    FocalLengthIn35mmFilm: { ko: '35mm 환산', en: '35mm Equivalent', ja: '35mm換算' },
+    ImageWidth: { ko: '너비', en: 'Width', ja: '幅' },
+    ImageHeight: { ko: '높이', en: 'Height', ja: '高さ' },
+    Orientation: { ko: '방향', en: 'Orientation', ja: '向き' },
+    XResolution: { ko: '수평 해상도', en: 'X Resolution', ja: '水平解像度' },
+    YResolution: { ko: '수직 해상도', en: 'Y Resolution', ja: '垂直解像度' },
+    ResolutionUnit: { ko: '해상도 단위', en: 'Resolution Unit', ja: '解像度単位' },
+    DateTime: { ko: '수정 날짜', en: 'Modified', ja: '更新日時' },
+    DateTimeOriginal: { ko: '촬영 날짜', en: 'Date Taken', ja: '撮影日時' },
+  };
+
+  return (
+    <div className="flex flex-col gap-6">
+      {/* File input */}
+      <input
+        ref={fileInputRef}
+        type="file"
+        accept="image/jpeg,image/jpg"
+        onChange={handleFileChange}
+        className="hidden"
+      />
+
+      {/* Drop Zone */}
+      {!imageUrl && (
+        <div
+          onClick={() => fileInputRef.current?.click()}
+          onDrop={handleDrop}
+          onDragOver={(e) => { e.preventDefault(); setIsDragging(true); }}
+          onDragLeave={() => setIsDragging(false)}
+          className={`flex flex-col items-center justify-center gap-4 p-12 border-2 border-dashed
+            rounded-xl cursor-pointer transition-colors
+            ${isDragging
+              ? 'border-primary-500 bg-primary-50 dark:bg-primary-900/20'
+              : 'border-[var(--color-border)] hover:border-primary-500 hover:bg-[var(--color-card)]'
+            }`}
+        >
+          <svg className="w-12 h-12 text-[var(--color-text-muted)]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
+              d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+          </svg>
+          <div className="text-center">
+            <p className="text-[var(--color-text)]">
+              {t({ ko: 'JPEG 이미지를 드래그하거나 클릭하여 업로드', en: 'Drag JPEG image or click to upload', ja: 'JPEG画像をドラッグまたはクリックしてアップロード' })}
+            </p>
+            <p className="text-sm text-[var(--color-text-muted)] mt-1">
+              {t({ ko: 'EXIF 데이터는 JPEG 파일에서만 추출됩니다', en: 'EXIF data is only extracted from JPEG files', ja: 'EXIFデータはJPEGファイルからのみ抽出されます' })}
+            </p>
+          </div>
+        </div>
+      )}
+
+      {/* Loading */}
+      {isLoading && (
+        <div className="flex items-center justify-center gap-2 p-8">
+          <div className="w-5 h-5 border-2 border-primary-500 border-t-transparent rounded-full animate-spin" />
+          <span className="text-[var(--color-text)]">
+            {t({ ko: '분석 중...', en: 'Analyzing...', ja: '分析中...' })}
+          </span>
+        </div>
+      )}
+
+      {/* Results */}
+      {imageUrl && exifData && !isLoading && (
+        <div className="space-y-6">
+          {/* Image Preview */}
+          <div className="flex flex-col md:flex-row gap-6">
+            <div className="md:w-1/3">
+              <div className="rounded-lg overflow-hidden bg-[var(--color-bg)] border border-[var(--color-border)]">
+                <img src={imageUrl} alt={imageName} className="w-full h-auto" />
+              </div>
+              <p className="text-sm text-[var(--color-text-muted)] mt-2 text-center truncate">{imageName}</p>
+              <button
+                onClick={() => {
+                  setImageUrl(null);
+                  setExifData(null);
+                }}
+                className="w-full mt-2 px-4 py-2 bg-[var(--color-card)] hover:bg-[var(--color-card-hover)]
+                  border border-[var(--color-border)] rounded-lg transition-colors text-sm"
+              >
+                {t({ ko: '다른 이미지 선택', en: 'Choose Another', ja: '別の画像を選択' })}
+              </button>
+            </div>
+
+            {/* EXIF Data */}
+            <div className="md:w-2/3 space-y-4">
+              {exifData.error ? (
+                <div className="p-4 rounded-lg bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800">
+                  <p className="text-yellow-800 dark:text-yellow-200">
+                    {t({ ko: 'EXIF 데이터를 찾을 수 없습니다', en: 'No EXIF data found', ja: 'EXIFデータが見つかりません' })}
+                  </p>
+                </div>
+              ) : (
+                exifCategories.map((category) => {
+                  const hasData = category.fields.some((field) => exifData[field] !== undefined);
+                  if (!hasData) return null;
+
+                  return (
+                    <div key={category.name} className="rounded-lg border border-[var(--color-border)] overflow-hidden">
+                      <div className="px-4 py-2 bg-[var(--color-card)] border-b border-[var(--color-border)]">
+                        <h3 className="font-medium text-[var(--color-text)]">{category.name}</h3>
+                      </div>
+                      <div className="divide-y divide-[var(--color-border)]">
+                        {category.fields.map((field) => {
+                          if (exifData[field] === undefined) return null;
+                          return (
+                            <div key={field} className="flex justify-between px-4 py-2">
+                              <span className="text-[var(--color-text-muted)]">
+                                {t(fieldLabels[field])}
+                              </span>
+                              <span className="font-mono text-[var(--color-text)]">
+                                {formatValue(field, exifData[field])}
+                              </span>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  );
+                })
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Info */}
+      <div className="p-4 rounded-lg bg-[var(--color-card)] border border-[var(--color-border)]">
+        <p className="text-sm text-[var(--color-text-muted)]">
+          {t({
+            ko: 'EXIF(Exchangeable Image File Format)는 디지털 카메라가 이미지에 저장하는 메타데이터입니다. 카메라 모델, 촬영 설정, 날짜 등의 정보를 포함합니다.',
+            en: 'EXIF (Exchangeable Image File Format) is metadata stored in images by digital cameras. It includes camera model, capture settings, date, and more.',
+            ja: 'EXIF（Exchangeable Image File Format）はデジタルカメラが画像に保存するメタデータです。カメラモデル、撮影設定、日付などの情報が含まれます。',
+          })}
+        </p>
+      </div>
+    </div>
+  );
+}

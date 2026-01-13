@@ -1,0 +1,42 @@
+---
+import MainLayout from '../../layouts/MainLayout.astro';
+import UtmBuilder from '../../components/tools/UtmBuilder';
+---
+
+<MainLayout
+  title="UTM 링크 생성기 | Restato"
+  description="마케팅 캠페인 추적을 위한 UTM 파라미터가 포함된 링크를 생성합니다."
+>
+  <div class="max-w-4xl mx-auto px-4 py-8">
+    <!-- Breadcrumb -->
+    <nav class="text-sm mb-6">
+      <ol class="flex items-center gap-2">
+        <li><a href="/" class="text-[var(--color-text-muted)] hover:text-primary-500">홈</a></li>
+        <li class="text-[var(--color-text-muted)]">/</li>
+        <li><a href="/tools" class="text-[var(--color-text-muted)] hover:text-primary-500">도구</a></li>
+        <li class="text-[var(--color-text-muted)]">/</li>
+        <li class="text-[var(--color-text)]">UTM 생성기</li>
+      </ol>
+    </nav>
+
+    <!-- Header -->
+    <header class="mb-8">
+      <h1 class="text-3xl font-bold text-[var(--color-text)] mb-4">
+        📊 UTM 링크 생성기
+      </h1>
+      <p class="text-[var(--color-text-muted)]">
+        마케팅 캠페인 추적을 위한 UTM 파라미터 링크를 생성합니다. Google Analytics에서 트래픽을 분석할 수 있습니다.
+      </p>
+    </header>
+
+    <!-- Tool -->
+    <div class="p-6 rounded-xl bg-[var(--color-card)] border border-[var(--color-border)]">
+      <UtmBuilder client:load />
+    </div>
+
+    <!-- Back Link -->
+    <div class="mt-8">
+      <a href="/tools" class="text-primary-500 hover:underline">← 도구 목록으로 돌아가기</a>
+    </div>
+  </div>
+</MainLayout>

@@ -67,6 +67,13 @@ const tools = [
     icon: '🔄',
     category: 'converters',
   },
+  {
+    slug: 'image-converter',
+    title: { ko: '이미지 포맷 변환기', en: 'Image Format Converter', ja: '画像フォーマット変換器' },
+    description: { ko: 'JPEG, PNG, WebP 포맷 간 변환', en: 'Convert between JPEG, PNG, WebP', ja: 'JPEG, PNG, WebP間の変換' },
+    icon: '🖼️',
+    category: 'image',
+  },
   // Text
   {
     slug: 'text-counter',
@@ -81,6 +88,13 @@ const tools = [
     description: { ko: '마크다운 실시간 미리보기', en: 'Live markdown preview', ja: 'マークダウンのリアルタイムプレビュー' },
     icon: '📄',
     category: 'text',
+  },
+  {
+    slug: 'diff',
+    title: { ko: '텍스트 비교기 (Diff)', en: 'Text Diff Tool', ja: 'テキスト比較ツール' },
+    description: { ko: '두 텍스트의 차이점 비교', en: 'Compare differences between texts', ja: '2つのテキストの違いを比較' },
+    icon: '📊',
+    category: 'developer',
   },
   // Developer
   {
@@ -97,20 +111,86 @@ const tools = [
     icon: '🔍',
     category: 'developer',
   },
-  // Utilities
+  {
+    slug: 'url-encoder',
+    title: { ko: 'URL 인코더/디코더', en: 'URL Encoder/Decoder', ja: 'URLエンコーダー/デコーダー' },
+    description: { ko: 'URL 문자열 인코딩/디코딩', en: 'Encode/decode URL strings', ja: 'URL文字列のエンコード/デコード' },
+    icon: '🔗',
+    category: 'developer',
+  },
+  {
+    slug: 'jwt-decoder',
+    title: { ko: 'JWT 디코더', en: 'JWT Decoder', ja: 'JWTデコーダー' },
+    description: { ko: 'JWT 토큰 디코딩 및 분석', en: 'Decode and analyze JWT tokens', ja: 'JWTトークンのデコードと分析' },
+    icon: '🎫',
+    category: 'developer',
+  },
+  {
+    slug: 'cron',
+    title: { ko: 'Cron 표현식 생성기', en: 'Cron Expression Generator', ja: 'Cron式ジェネレーター' },
+    description: { ko: 'Cron 표현식 생성 및 설명', en: 'Generate and explain cron expressions', ja: 'Cron式の生成と説明' },
+    icon: '⏰',
+    category: 'developer',
+  },
+  // Designer
+  {
+    slug: 'gradient',
+    title: { ko: 'CSS 그라데이션 생성기', en: 'CSS Gradient Generator', ja: 'CSSグラデーション生成器' },
+    description: { ko: 'CSS 그라데이션 시각적 생성', en: 'Visually create CSS gradients', ja: 'CSSグラデーションを視覚的に作成' },
+    icon: '🌈',
+    category: 'designer',
+  },
+  {
+    slug: 'box-shadow',
+    title: { ko: 'CSS Box Shadow 생성기', en: 'CSS Box Shadow Generator', ja: 'CSSボックスシャドウ生成器' },
+    description: { ko: 'CSS box-shadow 시각적 생성', en: 'Visually create CSS box-shadow', ja: 'CSSボックスシャドウを視覚的に作成' },
+    icon: '🎭',
+    category: 'designer',
+  },
+  // Photographer
+  {
+    slug: 'image-resizer',
+    title: { ko: '이미지 리사이저', en: 'Image Resizer', ja: '画像リサイザー' },
+    description: { ko: '이미지 크기 조절 및 압축', en: 'Resize and compress images', ja: '画像のサイズ変更と圧縮' },
+    icon: '📐',
+    category: 'image',
+  },
+  {
+    slug: 'exif',
+    title: { ko: 'EXIF 정보 뷰어', en: 'EXIF Viewer', ja: 'EXIF情報ビューアー' },
+    description: { ko: '사진 EXIF 메타데이터 확인', en: 'View photo EXIF metadata', ja: '写真のEXIFメタデータを表示' },
+    icon: '📷',
+    category: 'image',
+  },
+  // Marketer
+  {
+    slug: 'utm',
+    title: { ko: 'UTM 링크 생성기', en: 'UTM Link Builder', ja: 'UTMリンクビルダー' },
+    description: { ko: '캠페인 추적용 UTM 링크 생성', en: 'Build UTM links for campaign tracking', ja: 'キャンペーン追跡用UTMリンク作成' },
+    icon: '📊',
+    category: 'marketer',
+  },
+  // Productivity
   {
     slug: 'timer',
     title: { ko: '타이머 / 스톱워치', en: 'Timer / Stopwatch', ja: 'タイマー / ストップウォッチ' },
     description: { ko: '타이머와 스톱워치', en: 'Timer and Stopwatch', ja: 'タイマーとストップウォッチ' },
     icon: '⏱️',
-    category: 'utilities',
+    category: 'productivity',
   },
   {
-    slug: 'image-resizer',
-    title: { ko: '이미지 리사이저', en: 'Image Resizer', ja: '画像リサイザー' },
-    description: { ko: '이미지 크기 조절 및 압축', en: 'Resize and compress images', ja: '画像のサイズ変更と圧縮' },
-    icon: '🖼️',
-    category: 'image',
+    slug: 'pomodoro',
+    title: { ko: '포모도로 타이머', en: 'Pomodoro Timer', ja: 'ポモドーロタイマー' },
+    description: { ko: '포모도로 기법으로 생산성 향상', en: 'Boost productivity with Pomodoro technique', ja: 'ポモドーロ・テクニックで生産性向上' },
+    icon: '🍅',
+    category: 'productivity',
+  },
+  {
+    slug: 'world-clock',
+    title: { ko: '세계 시계', en: 'World Clock', ja: 'ワールドクロック' },
+    description: { ko: '전 세계 시간대 확인 및 변환', en: 'Check and convert world time zones', ja: '世界のタイムゾーン確認と変換' },
+    icon: '🌍',
+    category: 'productivity',
   },
 ];
 
@@ -120,14 +200,16 @@ const categories = [
   { id: 'converters', label: { ko: '변환기', en: 'Converters', ja: '変換ツール' } },
   { id: 'text', label: { ko: '텍스트', en: 'Text', ja: 'テキスト' } },
   { id: 'developer', label: { ko: '개발자', en: 'Developer', ja: '開発者' } },
-  { id: 'utilities', label: { ko: '유틸리티', en: 'Utilities', ja: 'ユーティリティ' } },
-  { id: 'image', label: { ko: '이미지', en: 'Image', ja: '画像' } },
+  { id: 'designer', label: { ko: '디자이너', en: 'Designer', ja: 'デザイナー' } },
+  { id: 'image', label: { ko: '이미지/사진', en: 'Image/Photo', ja: '画像/写真' } },
+  { id: 'marketer', label: { ko: '마케터', en: 'Marketer', ja: 'マーケター' } },
+  { id: 'productivity', label: { ko: '생산성', en: 'Productivity', ja: '生産性' } },
 ];
 ---
 
 <MainLayout
   title="온라인 도구 | Restato"
-  description="유용한 웹 도구 모음 - QR 코드 생성기, 비밀번호 생성기, 색상 변환기, 단위 변환기 등"
+  description="유용한 웹 도구 모음 - QR 코드 생성기, 비밀번호 생성기, 색상 변환기, 단위 변환기, 개발자 도구, 디자이너 도구, 마케터 도구 등"
 >
   <div class="max-w-6xl mx-auto px-4 py-8">
     <!-- Breadcrumb -->
@@ -145,7 +227,7 @@ const categories = [
         🛠️ 온라인 도구
       </h1>
       <p class="text-[var(--color-text-muted)] text-lg">
-        유용한 웹 도구 모음입니다. 무료로 사용할 수 있습니다.
+        개발자, 디자이너, 마케터, PM을 위한 유용한 웹 도구 모음입니다. 무료로 사용할 수 있습니다.
       </p>
     </header>
 
@@ -192,13 +274,19 @@ const categories = [
       ))}
     </div>
 
+    <!-- Tool Count -->
+    <div class="mt-8 text-center text-[var(--color-text-muted)]">
+      총 <span class="font-bold text-[var(--color-text)]">{tools.length}개</span>의 도구가 있습니다.
+    </div>
+
     <!-- Info -->
-    <div class="mt-12 p-6 rounded-xl bg-[var(--color-card)] border border-[var(--color-border)]">
+    <div class="mt-8 p-6 rounded-xl bg-[var(--color-card)] border border-[var(--color-border)]">
       <h2 class="text-xl font-semibold text-[var(--color-text)] mb-4">ℹ️ 정보</h2>
       <ul class="space-y-2 text-[var(--color-text-muted)]">
         <li>• 모든 도구는 브라우저에서 실행되며, 데이터가 서버로 전송되지 않습니다.</li>
         <li>• 무료로 사용 가능하며, 회원가입이 필요없습니다.</li>
         <li>• 모바일과 데스크톱 모두에서 사용할 수 있습니다.</li>
+        <li>• 한국어, 영어, 일본어를 지원합니다.</li>
       </ul>
     </div>
   </div>
