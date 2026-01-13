@@ -1,19 +1,33 @@
-import { initializeApp } from "firebase/app";
-import { getDatabase, ref, set, get, push, onValue, remove } from "firebase/database";
+import { initializeApp, type FirebaseApp } from "firebase/app";
+import { getDatabase, ref, set, get, push, onValue, remove, type Database } from "firebase/database";
 
-const firebaseConfig = {
-  apiKey: import.meta.env.PUBLIC_FIREBASE_API_KEY,
-  authDomain: import.meta.env.PUBLIC_FIREBASE_AUTH_DOMAIN,
-  databaseURL: import.meta.env.PUBLIC_FIREBASE_DATABASE_URL,
-  projectId: import.meta.env.PUBLIC_FIREBASE_PROJECT_ID,
-  storageBucket: import.meta.env.PUBLIC_FIREBASE_STORAGE_BUCKET,
-  messagingSenderId: import.meta.env.PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
-  appId: import.meta.env.PUBLIC_FIREBASE_APP_ID,
-  measurementId: import.meta.env.PUBLIC_FIREBASE_MEASUREMENT_ID
-};
+// Lazy initialization for Firebase (avoids build-time errors)
+let app: FirebaseApp | null = null;
+let db: Database | null = null;
 
-const app = initializeApp(firebaseConfig);
-const db = getDatabase(app);
+function getFirebaseApp(): FirebaseApp {
+  if (!app) {
+    const firebaseConfig = {
+      apiKey: import.meta.env.PUBLIC_FIREBASE_API_KEY,
+      authDomain: import.meta.env.PUBLIC_FIREBASE_AUTH_DOMAIN,
+      databaseURL: import.meta.env.PUBLIC_FIREBASE_DATABASE_URL,
+      projectId: import.meta.env.PUBLIC_FIREBASE_PROJECT_ID,
+      storageBucket: import.meta.env.PUBLIC_FIREBASE_STORAGE_BUCKET,
+      messagingSenderId: import.meta.env.PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
+      appId: import.meta.env.PUBLIC_FIREBASE_APP_ID,
+      measurementId: import.meta.env.PUBLIC_FIREBASE_MEASUREMENT_ID
+    };
+    app = initializeApp(firebaseConfig);
+  }
+  return app;
+}
+
+function getDb(): Database {
+  if (!db) {
+    db = getDatabase(getFirebaseApp());
+  }
+  return db;
+}
 
 // 1시간 = 3600000ms
 const SESSION_TIMEOUT = 60 * 60 * 1000;
@@ -28,7 +42,7 @@ export interface Room {
 
 // 방 생성
 export async function createRoom(peerId: string): Promise<string> {
-  const roomsRef = ref(db, 'rooms');
+  const roomsRef = ref(getDb(), 'rooms');
   const newRoomRef = push(roomsRef);
   const roomId = newRoomRef.key!;
 
@@ -51,7 +65,7 @@ export async function createRoom(peerId: string): Promise<string> {
 
 // 방 참가
 export async function joinRoom(roomId: string, peerId: string): Promise<Room | null> {
-  const roomRef = ref(db, `rooms/${roomId}`);
+  const roomRef = ref(getDb(), `rooms/${roomId}`);
   const snapshot = await get(roomRef);
 
   if (!snapshot.exists()) {
@@ -67,14 +81,14 @@ export async function joinRoom(roomId: string, peerId: string): Promise<Room | n
   }
 
   // 게스트로 참가
-  await set(ref(db, `rooms/${roomId}/guestPeerId`), peerId);
+  await set(ref(getDb(), `rooms/${roomId}/guestPeerId`), peerId);
 
   return room;
 }
 
 // 방 정보 조회
 export async function getRoom(roomId: string): Promise<Room | null> {
-  const roomRef = ref(db, `rooms/${roomId}`);
+  const roomRef = ref(getDb(), `rooms/${roomId}`);
   const snapshot = await get(roomRef);
 
   if (!snapshot.exists()) {
@@ -86,7 +100,7 @@ export async function getRoom(roomId: string): Promise<Room | null> {
 
 // 방 실시간 구독
 export function subscribeToRoom(roomId: string, callback: (room: Room | null) => void): () => void {
-  const roomRef = ref(db, `rooms/${roomId}`);
+  const roomRef = ref(getDb(), `rooms/${roomId}`);
 
   const unsubscribe = onValue(roomRef, (snapshot) => {
     if (snapshot.exists()) {
@@ -101,7 +115,7 @@ export function subscribeToRoom(roomId: string, callback: (room: Room | null) =>
 
 // 대기 중인 방 찾기 (랜덤 매칭)
 export async function findWaitingRoom(): Promise<Room | null> {
-  const roomsRef = ref(db, 'rooms');
+  const roomsRef = ref(getDb(), 'rooms');
   const snapshot = await get(roomsRef);
 
   if (!snapshot.exists()) {
@@ -127,13 +141,13 @@ export async function findWaitingRoom(): Promise<Room | null> {
 
 // 방 삭제
 export async function deleteRoom(roomId: string): Promise<void> {
-  const roomRef = ref(db, `rooms/${roomId}`);
+  const roomRef = ref(getDb(), `rooms/${roomId}`);
   await remove(roomRef);
 }
 
 // 만료된 방 정리 (클라이언트에서 주기적 호출)
 export async function cleanupExpiredRooms(): Promise<void> {
-  const roomsRef = ref(db, 'rooms');
+  const roomsRef = ref(getDb(), 'rooms');
   const snapshot = await get(roomsRef);
 
   if (!snapshot.exists()) {
@@ -145,9 +159,9 @@ export async function cleanupExpiredRooms(): Promise<void> {
 
   for (const [id, room] of Object.entries(rooms)) {
     if (room.expiresAt < now) {
-      await remove(ref(db, `rooms/${id}`));
+      await remove(ref(getDb(), `rooms/${id}`));
     }
   }
 }
 
-export { db };
+export { getDb };
