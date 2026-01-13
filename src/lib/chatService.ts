@@ -9,6 +9,7 @@ import {
   cleanupExpiredRooms,
   type Room
 } from './firebase';
+import { PeerConnectionError, SessionExpiredError, RoomNotFoundError } from './errors';
 
 export interface ChatMessage {
   id: string;
@@ -46,16 +47,23 @@ export class ChatService {
   private expiresAt: number = 0;
   private isDestroyed: boolean = false;
   private connectionTimeout: number | null = null;
+  private reconnectAttempts: number = 0;
+  private maxReconnectAttempts: number = 5;
 
   constructor(callbacks: ChatCallbacks) {
     this.callbacks = callbacks;
+  }
+
+  // Exponential backoff 계산
+  private getReconnectDelay(): number {
+    return Math.min(1000 * Math.pow(2, this.reconnectAttempts), 8000);
   }
 
   // PeerJS 초기화
   private initPeer(): Promise<string> {
     return new Promise((resolve, reject) => {
       if (this.isDestroyed) {
-        reject(new Error('Service is destroyed'));
+        reject(new PeerConnectionError('Service is destroyed'));
         return;
       }
 
@@ -75,6 +83,7 @@ export class ChatService {
 
       this.peer.on('open', (id) => {
         console.log('[Chat] PeerJS connected with ID:', id);
+        this.reconnectAttempts = 0; // 연결 성공 시 재시도 카운터 리셋
         resolve(id);
       });
 
@@ -95,14 +104,22 @@ export class ChatService {
 
       this.peer.on('disconnected', () => {
         console.log('[Chat] PeerJS signaling disconnected');
-        // P2P 연결은 유지될 수 있으므로 재연결 시도만
-        if (this.peer && !this.peer.destroyed && !this.isDestroyed) {
+        // Exponential backoff으로 재연결 시도
+        if (this.peer && !this.peer.destroyed && !this.isDestroyed && this.reconnectAttempts < this.maxReconnectAttempts) {
+          const delay = this.getReconnectDelay();
+          console.log(`[Chat] Attempting to reconnect in ${delay}ms (attempt ${this.reconnectAttempts + 1}/${this.maxReconnectAttempts})...`);
+
           setTimeout(() => {
-            if (this.peer && !this.peer.destroyed) {
-              console.log('[Chat] Attempting to reconnect...');
+            if (this.peer && !this.peer.destroyed && !this.isDestroyed) {
+              this.reconnectAttempts++;
               this.peer.reconnect();
             }
-          }, 1000);
+          }, delay);
+        } else if (this.reconnectAttempts >= this.maxReconnectAttempts) {
+          console.error('[Chat] Max reconnection attempts reached');
+          if (!this.isDestroyed) {
+            this.callbacks.onStatusChange('error');
+          }
         }
       });
 
@@ -277,7 +294,7 @@ export class ChatService {
       if (!room) {
         console.log('[Chat] Room not found or expired');
         this.callbacks.onStatusChange('error');
-        return false;
+        throw new RoomNotFoundError(`Room ${roomId} not found or expired`);
       }
 
       this.roomId = roomId;
