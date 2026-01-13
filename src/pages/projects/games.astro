@@ -1,6 +1,134 @@
 ---
 import MainLayout from '../../layouts/MainLayout.astro';
 
+// SEO optimized description
+const pageDescription = "무료 온라인 미니게임 모음 - 룰렛, 슬롯머신, 가위바위보, 숫자 맞추기, 기억력 게임, 반응속도 테스트. 설치 없이 브라우저에서 바로 플레이!";
+
+// JSON-LD for Game Application
+// FAQ for AI reference
+const faqs = [
+  {
+    question: "게임센터의 게임들은 무료인가요?",
+    answer: "네, 모든 게임은 100% 무료입니다. 별도의 결제나 가입 없이 바로 플레이할 수 있습니다."
+  },
+  {
+    question: "모바일에서도 게임을 할 수 있나요?",
+    answer: "네, 모든 게임은 반응형으로 제작되어 스마트폰, 태블릿, PC 등 모든 기기에서 플레이 가능합니다."
+  },
+  {
+    question: "게임 기록이 저장되나요?",
+    answer: "게임 기록은 브라우저 세션 동안만 유지되며, 개인정보는 수집하지 않습니다. 페이지를 새로고침하면 기록이 초기화됩니다."
+  },
+  {
+    question: "룰렛 게임은 어떻게 사용하나요?",
+    answer: "룰렛 게임에서는 직접 항목을 추가하고, 룰렛을 돌려 무작위로 하나를 선택할 수 있습니다. 점심 메뉴 정하기, 당첨자 추첨 등에 활용하세요."
+  },
+  {
+    question: "반응속도 테스트의 평균 기록은 얼마인가요?",
+    answer: "인간의 평균 반응속도는 200-250ms입니다. 150ms 이하면 매우 빠른 편이고, 300ms 이상이면 느린 편입니다."
+  },
+  {
+    question: "기억력 게임의 난이도는 어떻게 되나요?",
+    answer: "기억력 게임은 쉬움(4x3, 12장), 보통(4x4, 16장), 어려움(5x4, 20장) 세 가지 난이도를 제공합니다."
+  }
+];
+
+// JSON-LD for FAQ
+const faqSchema = {
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": faqs.map(faq => ({
+    "@type": "Question",
+    "name": faq.question,
+    "acceptedAnswer": {
+      "@type": "Answer",
+      "text": faq.answer
+    }
+  }))
+};
+
+const gameCollectionSchema = {
+  "@context": "https://schema.org",
+  "@type": "ItemList",
+  "name": "Restato 게임센터",
+  "description": pageDescription,
+  "numberOfItems": 6,
+  "itemListElement": [
+    {
+      "@type": "ListItem",
+      "position": 1,
+      "item": {
+        "@type": "WebApplication",
+        "name": "룰렛 게임",
+        "description": "커스텀 항목으로 돌리는 랜덤 룰렛",
+        "applicationCategory": "Game",
+        "operatingSystem": "Web Browser",
+        "offers": { "@type": "Offer", "price": "0", "priceCurrency": "KRW" }
+      }
+    },
+    {
+      "@type": "ListItem",
+      "position": 2,
+      "item": {
+        "@type": "WebApplication",
+        "name": "슬롯머신 게임",
+        "description": "행운의 777을 노려보세요",
+        "applicationCategory": "Game",
+        "operatingSystem": "Web Browser",
+        "offers": { "@type": "Offer", "price": "0", "priceCurrency": "KRW" }
+      }
+    },
+    {
+      "@type": "ListItem",
+      "position": 3,
+      "item": {
+        "@type": "WebApplication",
+        "name": "가위바위보 게임",
+        "description": "AI와 대결하는 가위바위보",
+        "applicationCategory": "Game",
+        "operatingSystem": "Web Browser",
+        "offers": { "@type": "Offer", "price": "0", "priceCurrency": "KRW" }
+      }
+    },
+    {
+      "@type": "ListItem",
+      "position": 4,
+      "item": {
+        "@type": "WebApplication",
+        "name": "숫자 맞추기 게임",
+        "description": "1-100 사이 숫자를 맞춰보세요",
+        "applicationCategory": "Game",
+        "operatingSystem": "Web Browser",
+        "offers": { "@type": "Offer", "price": "0", "priceCurrency": "KRW" }
+      }
+    },
+    {
+      "@type": "ListItem",
+      "position": 5,
+      "item": {
+        "@type": "WebApplication",
+        "name": "기억력 게임",
+        "description": "카드 짝 맞추기 두뇌 게임",
+        "applicationCategory": "Game",
+        "operatingSystem": "Web Browser",
+        "offers": { "@type": "Offer", "price": "0", "priceCurrency": "KRW" }
+      }
+    },
+    {
+      "@type": "ListItem",
+      "position": 6,
+      "item": {
+        "@type": "WebApplication",
+        "name": "반응속도 테스트",
+        "description": "당신의 반응속도를 측정하세요",
+        "applicationCategory": "Game",
+        "operatingSystem": "Web Browser",
+        "offers": { "@type": "Offer", "price": "0", "priceCurrency": "KRW" }
+      }
+    }
+  ]
+};
+
 const games = [
   {
     slug: 'roulette',
@@ -47,7 +175,12 @@ const games = [
 ];
 ---
 
-<MainLayout title="게임센터 | Restato" description="재미있는 미니게임들을 즐겨보세요">
+<MainLayout title="무료 온라인 미니게임 | 게임센터 - Restato" description={pageDescription}>
+  <!-- JSON-LD for Games -->
+  <script type="application/ld+json" set:html={JSON.stringify(gameCollectionSchema)} />
+  <!-- JSON-LD for FAQ -->
+  <script type="application/ld+json" set:html={JSON.stringify(faqSchema)} />
+
   <section class="py-16 px-4">
     <div class="max-w-5xl mx-auto">
       <!-- Header -->
@@ -98,6 +231,45 @@ const games = [
               친구들과 함께 점수를 비교해보세요!
             </p>
           </div>
+        </div>
+      </div>
+
+      <!-- FAQ Section -->
+      <div class="mt-16">
+        <h2 class="text-2xl font-bold mb-8 text-center">자주 묻는 질문</h2>
+        <div class="space-y-4">
+          {faqs.map((faq, index) => (
+            <details class="group bg-[var(--color-card)] rounded-xl border border-[var(--color-border)] overflow-hidden">
+              <summary class="flex items-center justify-between p-5 cursor-pointer hover:bg-[var(--color-card-hover)] transition-colors">
+                <span class="font-medium pr-4">{faq.question}</span>
+                <svg class="w-5 h-5 text-[var(--color-text-muted)] transform group-open:rotate-180 transition-transform flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                </svg>
+              </summary>
+              <div class="px-5 pb-5 text-[var(--color-text-muted)]">
+                {faq.answer}
+              </div>
+            </details>
+          ))}
+        </div>
+      </div>
+
+      <!-- Game Features -->
+      <div class="mt-16 grid md:grid-cols-3 gap-6">
+        <div class="text-center p-6 bg-[var(--color-card)] rounded-xl border border-[var(--color-border)]">
+          <div class="text-4xl mb-4">🆓</div>
+          <h3 class="font-bold mb-2">100% 무료</h3>
+          <p class="text-sm text-[var(--color-text-muted)]">모든 게임 무료, 광고 없음</p>
+        </div>
+        <div class="text-center p-6 bg-[var(--color-card)] rounded-xl border border-[var(--color-border)]">
+          <div class="text-4xl mb-4">📱</div>
+          <h3 class="font-bold mb-2">모든 기기 지원</h3>
+          <p class="text-sm text-[var(--color-text-muted)]">PC, 태블릿, 모바일 호환</p>
+        </div>
+        <div class="text-center p-6 bg-[var(--color-card)] rounded-xl border border-[var(--color-border)]">
+          <div class="text-4xl mb-4">🔒</div>
+          <h3 class="font-bold mb-2">개인정보 보호</h3>
+          <p class="text-sm text-[var(--color-text-muted)]">데이터 수집 없음</p>
         </div>
       </div>
     </div>

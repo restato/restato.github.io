@@ -119,6 +119,66 @@ tags: ["태그1", "태그2"]
 포스트 내용...
 ```
 
+## SEO 최적화
+
+### 구현된 SEO 기능
+- **메타태그**: title, description, canonical URL
+- **Open Graph**: og:type, og:title, og:description, og:image, og:site_name
+- **Twitter Card**: summary_large_image 형식
+- **JSON-LD Schema**: WebSite, BlogPosting, ItemList (게임)
+- **Sitemap**: 자동 생성 (`/sitemap-index.xml`)
+- **RSS Feed**: `/rss.xml`
+- **robots.txt**: AI 크롤러 허용 설정
+
+### 블로그 포스트 SEO
+```astro
+<MainLayout
+  title="포스트 제목 | Restato"
+  description="설명"
+  type="article"
+  publishedTime={date}
+/>
+```
+
+### JSON-LD 추가 방법
+```astro
+<script type="application/ld+json" set:html={JSON.stringify(schema)} />
+```
+
+## Analytics 설정 가이드
+
+### Google Analytics 4 (권장)
+1. Google Analytics에서 GA4 속성 생성
+2. 측정 ID 복사 (G-XXXXXXXXXX)
+3. `src/layouts/BaseLayout.astro`의 `<head>`에 추가:
+
+```html
+<!-- Google Analytics -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-XXXXXXXXXX"></script>
+<script is:inline>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'G-XXXXXXXXXX');
+</script>
+```
+
+### Google Search Console
+1. [Search Console](https://search.google.com/search-console) 접속
+2. URL 접두어로 `https://restato.github.io` 추가
+3. HTML 태그 인증 선택 후 메타태그 추가:
+
+```html
+<meta name="google-site-verification" content="인증코드" />
+```
+
+4. sitemap 제출: `https://restato.github.io/sitemap-index.xml`
+
+### Naver Search Advisor
+1. [Naver Search Advisor](https://searchadvisor.naver.com/) 접속
+2. 사이트 등록 후 HTML 태그 인증
+3. RSS 피드 제출: `https://restato.github.io/rss.xml`
+
 ## 주의사항
 
 - 새 의존성 추가 시 `npm install` 후 빌드 테스트
