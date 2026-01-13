@@ -17,6 +17,7 @@
     "@astrojs/rss": "^4.0.14",
     "@astrojs/sitemap": "^3.2.0",
     "@astrojs/tailwind": "^6.0.0",
+    "@imgly/background-removal": "^1.7.0",
     "astro": "^5.0.0",
     "firebase": "^12.7.0",
     "peerjs": "^1.5.5",

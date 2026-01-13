@@ -1,0 +1,14 @@
+---
+import ToolLayout from '../../layouts/ToolLayout.astro';
+import BackgroundRemover from '../../components/tools/BackgroundRemover';
+---
+
+<ToolLayout
+  title="배경 제거기 (누끼)"
+  description="이미지에서 배경을 자동으로 제거합니다. AI 기반으로 누끼를 따고 투명 배경 PNG로 저장할 수 있습니다. 모든 처리는 브라우저에서 로컬로 수행됩니다."
+  slug="background-remover"
+  icon="✂️"
+  category="image"
+>
+  <BackgroundRemover client:load />
+</ToolLayout>
