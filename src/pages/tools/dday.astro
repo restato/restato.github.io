@@ -1,0 +1,14 @@
+---
+import ToolLayout from '../../layouts/ToolLayout.astro';
+import DdayCalculator from '../../components/tools/DdayCalculator';
+---
+
+<ToolLayout
+  title="D-Day 계산기"
+  description="특정 날짜까지 남은 일수를 계산합니다. 기념일, 시험일, 여행일 등의 D-Day를 저장하고 관리할 수 있습니다."
+  slug="dday"
+  icon="📅"
+  category="calculator"
+>
+  <DdayCalculator client:load />
+</ToolLayout>

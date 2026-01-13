@@ -1,0 +1,14 @@
+---
+import ToolLayout from '../../layouts/ToolLayout.astro';
+import KorEngConverter from '../../components/tools/KorEngConverter';
+---
+
+<ToolLayout
+  title="한영 타자 변환기"
+  description="영어 자판으로 입력한 한글, 한글 자판으로 입력한 영어를 변환합니다. 오타 수정에 유용합니다."
+  slug="kor-eng"
+  icon="⌨️"
+  category="text"
+>
+  <KorEngConverter client:load />
+</ToolLayout>

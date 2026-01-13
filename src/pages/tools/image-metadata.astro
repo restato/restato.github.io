@@ -1,0 +1,14 @@
+---
+import ToolLayout from '../../layouts/ToolLayout.astro';
+import ImageMetadataViewer from '../../components/tools/ImageMetadataViewer';
+---
+
+<ToolLayout
+  title="이미지 메타데이터 분석기"
+  description="사진에서 촬영 기기(iPhone, Galaxy 등), GPS 위치, 카메라 설정 등 상세 메타데이터를 추출합니다. 개인정보 확인에 유용합니다."
+  slug="image-metadata"
+  icon="🔍"
+  category="image"
+>
+  <ImageMetadataViewer client:load />
+</ToolLayout>

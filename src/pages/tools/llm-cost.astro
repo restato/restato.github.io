@@ -1,0 +1,14 @@
+---
+import ToolLayout from '../../layouts/ToolLayout.astro';
+import LlmCostCalculator from '../../components/tools/LlmCostCalculator';
+---
+
+<ToolLayout
+  title="LLM 비용 계산기"
+  description="ChatGPT, Claude, Gemini 등 AI 모델별 API 비용을 계산합니다. 토큰 수 추정 및 모델 비교 기능을 제공합니다."
+  slug="llm-cost"
+  icon="🤖"
+  category="developer"
+>
+  <LlmCostCalculator client:load />
+</ToolLayout>

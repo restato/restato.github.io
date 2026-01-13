@@ -1,0 +1,14 @@
+---
+import ToolLayout from '../../layouts/ToolLayout.astro';
+import TimestampConverter from '../../components/tools/TimestampConverter';
+---
+
+<ToolLayout
+  title="Unix Timestamp 변환기"
+  description="Unix Timestamp와 날짜를 상호 변환합니다. 초/밀리초 지원, 현재 시간 표시."
+  slug="timestamp"
+  icon="⏱️"
+  category="developer"
+>
+  <TimestampConverter client:load />
+</ToolLayout>
