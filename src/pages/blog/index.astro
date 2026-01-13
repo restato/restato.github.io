@@ -1,0 +1,64 @@
+---
+import MainLayout from '../../layouts/MainLayout.astro';
+import BlogCard from '../../components/BlogCard.astro';
+import { getCollection } from 'astro:content';
+
+const posts = (await getCollection('blog', ({ data }) => !data.draft))
+  .sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf());
+
+// Get all unique tags
+const allTags = [...new Set(posts.flatMap(post => post.data.tags))];
+---
+
+<MainLayout title="블로그 | Restato" description="Claude와 함께하는 개발 일지, 배움과 성장의 기록">
+  <section class="py-16 px-4">
+    <div class="max-w-5xl mx-auto">
+      <!-- Header -->
+      <div class="mb-12">
+        <h1 class="text-4xl font-bold mb-4">블로그</h1>
+        <p class="text-xl text-[var(--color-text-muted)]">
+          개발 일지, 배운 것들, 그리고 생각들을 기록합니다.
+        </p>
+      </div>
+
+      <!-- Tags Filter -->
+      {allTags.length > 0 && (
+        <div class="mb-8 flex flex-wrap gap-2">
+          <span class="text-sm text-[var(--color-text-muted)] mr-2">태그:</span>
+          {allTags.map(tag => (
+            <a
+              href={`/blog/tag/${tag}`}
+              class="text-sm px-3 py-1 rounded-full bg-[var(--color-card)] border border-[var(--color-border)] hover:border-primary-500 hover:text-primary-500 transition-colors"
+            >
+              #{tag}
+            </a>
+          ))}
+        </div>
+      )}
+
+      <!-- Posts Grid -->
+      {posts.length > 0 ? (
+        <div class="grid md:grid-cols-2 gap-6">
+          {posts.map((post) => (
+            <BlogCard
+              title={post.data.title}
+              description={post.data.description}
+              date={post.data.date}
+              slug={post.slug}
+              tags={post.data.tags}
+              image={post.data.image}
+            />
+          ))}
+        </div>
+      ) : (
+        <div class="text-center py-20">
+          <div class="text-6xl mb-4">📝</div>
+          <h2 class="text-2xl font-bold mb-2">아직 작성된 글이 없습니다</h2>
+          <p class="text-[var(--color-text-muted)]">
+            곧 첫 번째 글이 올라올 거예요!
+          </p>
+        </div>
+      )}
+    </div>
+  </section>
+</MainLayout>
