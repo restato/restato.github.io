@@ -1,0 +1,167 @@
+---
+title: "Building an Auto Dev Blog Generator"
+description: "Built a tool that turns my coding sessions into blog posts automatically. No more manual writing."
+date: 2026-01-13
+tags: ["automation", "claude-code", "blogging"]
+---
+
+Wanted a way to document my dev work without spending hours writing blog posts. Ended up building an automated generator using Claude Code skills.
+
+## The problem
+
+After coding sessions, I'd have useful knowledge to share but writing it up felt like a chore. Plus when I did write, it either sounded too robotic (AI-generated vibes) or took forever to make it natural.
+
+Needed something that could:
+- Turn conversations into posts automatically
+- Sound like I actually wrote it
+- Work for study groups and helping others learn
+- Be in English for wider reach
+
+## What I built
+
+Created a Claude Code skill that analyzes conversations and generates blog posts. It's a slash command that does everything:
+
+```bash
+/post
+```
+
+That's it. It reads the conversation, extracts what matters, writes a post, and pushes to GitHub.
+
+## How it works
+
+The skill lives in my dotfiles:
+
+```
+~/.claude/skills/write-devlog/
+├── SKILL.md       # Main logic
+└── config.json    # Blog repo settings
+```
+
+### Config setup
+
+Points to my Astro blog repo:
+
+```json
+{
+  "blog": {
+    "repo_path": "/Users/direcision/Workspace/ww/restato.github.io",
+    "posts_dir": "src/content/blog",
+    "remote": "origin",
+    "branch": "main"
+  },
+  "defaults": {
+    "language": "en",
+    "writing_style": "casual_personal",
+    "hide_ai_traces": true
+  }
+}
+```
+
+### The skill logic
+
+SKILL.md tells Claude how to:
+
+1. **Analyze conversations** - Pull out code snippets, problems solved, concepts learned
+2. **Generate natural text** - Use phrases like "I tried", "turns out", "spent 2 hours on this"
+3. **Variable structure** - Not every post needs the same sections
+4. **Remove AI hints** - No "Co-Authored-By", no perfect formatting
+5. **Auto-publish** - Create MDX, commit, push to GitHub
+
+Key part was making it sound human. The skill uses casual language and includes struggle:
+
+```markdown
+# Good examples from the skill:
+- "Ran into this error..."
+- "Spent 2 hours debugging before realizing..."
+- "Got frustrated with X"
+- "Here's what worked"
+```
+
+## Things to know
+
+You'll need:
+- Astro blog (or adapt for other static sites)
+- Claude Code CLI
+- Blog repo locally cloned
+- Git configured
+
+The skill generates MDX with frontmatter:
+
+```yaml
+---
+title: "Generated Title"
+description: "One sentence summary"
+date: 2026-01-13
+tags: ["tech", "tags"]
+---
+```
+
+## Gotchas
+
+**AI detection was the big one.** First version sounded too perfect. Had to explicitly tell the skill to:
+- Vary post structure
+- Use conversational transitions
+- Show personality and struggle
+- Allow minor imperfections
+- Never add "Co-Authored-By" or similar
+
+Also realized every post having the exact same sections screams AI. Now it picks sections based on content - sometimes includes "Prerequisites", sometimes "Gotchas", sometimes neither.
+
+**File naming** - Convert titles to kebab-case, handle collisions with timestamps:
+
+```javascript
+"Building Auto Generator" → "building-auto-generator.mdx"
+// If exists: "building-auto-generator-1432.mdx"
+```
+
+## What it generates
+
+Posts include:
+- Natural intro (what you did and why)
+- Core "What I did" section
+- Optional sections: Quick summary, Prerequisites, Gotchas, Links
+- Casual outro when it makes sense
+
+All in English, all sounding like a person wrote it while coding.
+
+## The workflow
+
+```bash
+# Work on something
+# Have conversation with Claude
+# When done:
+/post
+
+# Output:
+# - Analyzes conversation
+# - Generates post
+# - Commits: "Building Auto Generator"
+# - Pushes to main
+# - Shows GitHub + live URLs
+```
+
+Takes about 30 seconds, then it's live.
+
+## Why this approach
+
+Tried a few things before this:
+
+1. **Manual writing** - Too slow, often didn't do it
+2. **AI with heavy editing** - Still took forever to make it natural
+3. **Templates** - Everything looked the same (AI vibes)
+
+This works because it generates variable content that adapts to each conversation. No two posts are identical in structure.
+
+## Links
+
+- [Claude Code Skills docs](https://code.claude.com/docs/en/skills)
+- [My blog repo](https://github.com/restato/restato.github.io)
+
+## Next steps
+
+Might add:
+- Preview mode before publishing
+- Series support (Part 1/2/3)
+- Difficulty tags (beginner/advanced)
+
+But keeping it simple for now. It works, posts get published, people can learn from them.
