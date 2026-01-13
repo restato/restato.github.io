@@ -4,19 +4,21 @@
 
 @layer base {
   :root {
-    --color-bg: #ffffff;
-    --color-text: #1f2937;
-    --color-text-muted: #6b7280;
-    --color-border: #e5e7eb;
-    --color-card: #f9fafb;
+    --color-bg: #fafafa;
+    --color-text: #18181b;
+    --color-text-muted: #71717a;
+    --color-border: #e4e4e7;
+    --color-card: #ffffff;
+    --color-card-hover: #f4f4f5;
   }
 
   .dark {
-    --color-bg: #0f172a;
-    --color-text: #f1f5f9;
-    --color-text-muted: #94a3b8;
-    --color-border: #334155;
-    --color-card: #1e293b;
+    --color-bg: #09090b;
+    --color-text: #fafafa;
+    --color-text-muted: #a1a1aa;
+    --color-border: #27272a;
+    --color-card: #18181b;
+    --color-card-hover: #27272a;
   }
 
   html {
@@ -24,7 +26,8 @@
   }
 
   body {
-    @apply bg-[var(--color-bg)] text-[var(--color-text)] transition-colors duration-300;
+    @apply bg-[var(--color-bg)] text-[var(--color-text)] transition-colors duration-200;
+    font-feature-settings: "ss01", "ss02", "cv01";
   }
 }
 
@@ -34,55 +37,113 @@
   }
 
   .prose pre {
-    @apply bg-gray-900 rounded-lg p-4 overflow-x-auto;
+    @apply bg-[#1e1e2e] rounded-xl p-5 overflow-x-auto border border-[var(--color-border)];
   }
 
   .prose code {
-    @apply bg-gray-800 text-green-400 px-1.5 py-0.5 rounded text-sm;
+    @apply bg-primary-500/10 text-primary-600 dark:text-primary-400 px-2 py-0.5 rounded-md text-sm font-medium;
   }
 
   .prose pre code {
-    @apply bg-transparent p-0;
+    @apply bg-transparent p-0 text-[#cdd6f4];
   }
 
   .prose h1, .prose h2, .prose h3, .prose h4 {
-    @apply font-bold text-[var(--color-text)];
+    @apply font-bold text-[var(--color-text)] scroll-mt-20;
+  }
+
+  .prose h2 {
+    @apply text-2xl mt-12 mb-4 pb-2 border-b border-[var(--color-border)];
+  }
+
+  .prose h3 {
+    @apply text-xl mt-8 mb-3;
   }
 
   .prose a {
-    @apply text-primary-500 hover:text-primary-600 underline;
+    @apply text-primary-600 dark:text-primary-400 hover:text-primary-700 dark:hover:text-primary-300
+           underline decoration-primary-500/30 hover:decoration-primary-500
+           underline-offset-2 transition-colors;
   }
 
   .prose img {
-    @apply rounded-lg shadow-lg;
+    @apply rounded-xl shadow-lg ring-1 ring-[var(--color-border)];
   }
 
   .prose blockquote {
-    @apply border-l-4 border-primary-500 pl-4 italic text-[var(--color-text-muted)];
+    @apply border-l-4 border-primary-500 pl-6 py-1 my-6
+           bg-primary-500/5 rounded-r-lg
+           text-[var(--color-text-muted)];
+  }
+
+  .prose blockquote p {
+    @apply my-2;
+  }
+
+  .prose ul, .prose ol {
+    @apply my-4 pl-6;
+  }
+
+  .prose li {
+    @apply my-1;
+  }
+
+  .prose table {
+    @apply w-full my-6 text-sm;
+  }
+
+  .prose th {
+    @apply bg-[var(--color-card)] px-4 py-3 text-left font-semibold border-b-2 border-[var(--color-border)];
+  }
+
+  .prose td {
+    @apply px-4 py-3 border-b border-[var(--color-border)];
+  }
+
+  .prose hr {
+    @apply my-12 border-[var(--color-border)];
   }
 
   .card {
-    @apply bg-[var(--color-card)] border border-[var(--color-border)] rounded-xl p-6
-           hover:shadow-lg transition-all duration-300;
+    @apply bg-[var(--color-card)] border border-[var(--color-border)] rounded-2xl p-6
+           hover:shadow-xl hover:shadow-primary-500/5 hover:-translate-y-1
+           transition-all duration-300 ease-out;
   }
 
   .btn {
-    @apply px-4 py-2 rounded-lg font-medium transition-all duration-200;
+    @apply px-5 py-2.5 rounded-xl font-medium transition-all duration-200
+           inline-flex items-center justify-center gap-2;
   }
 
   .btn-primary {
-    @apply bg-primary-500 text-white hover:bg-primary-600;
+    @apply bg-primary-600 text-white hover:bg-primary-700
+           shadow-lg shadow-primary-500/25 hover:shadow-primary-500/40;
   }
 
   .btn-outline {
-    @apply border border-[var(--color-border)] hover:bg-[var(--color-card)];
+    @apply border border-[var(--color-border)] hover:bg-[var(--color-card-hover)]
+           hover:border-primary-500/50;
+  }
+
+  .btn-ghost {
+    @apply hover:bg-[var(--color-card-hover)];
+  }
+
+  .gradient-text {
+    @apply bg-gradient-to-r from-primary-500 via-primary-600 to-accent-500
+           bg-clip-text text-transparent;
+  }
+
+  .gradient-bg {
+    @apply bg-gradient-to-br from-primary-500 via-primary-600 to-accent-500;
+    background-size: 200% 200%;
   }
 }
 
 /* Scrollbar */
 ::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
+  width: 6px;
+  height: 6px;
 }
 
 ::-webkit-scrollbar-track {
@@ -90,14 +151,19 @@
 }
 
 ::-webkit-scrollbar-thumb {
-  @apply bg-gray-400 dark:bg-gray-600 rounded-full;
+  @apply bg-zinc-300 dark:bg-zinc-700 rounded-full;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  @apply bg-gray-500 dark:bg-gray-500;
+  @apply bg-zinc-400 dark:bg-zinc-600;
 }
 
 /* Selection */
 ::selection {
-  @apply bg-primary-500/30;
+  @apply bg-primary-500/20 text-primary-900 dark:text-primary-100;
+}
+
+/* Focus styles */
+*:focus-visible {
+  @apply outline-none ring-2 ring-primary-500 ring-offset-2 ring-offset-[var(--color-bg)];
 }
