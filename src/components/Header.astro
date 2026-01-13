@@ -1,4 +1,6 @@
 ---
+import LanguageSelector from './LanguageSelector';
+
 const navItems = [
   { href: '/', label: 'Home' },
   { href: '/blog', label: 'Blog' },
@@ -39,6 +41,11 @@ const currentPath = Astro.url.pathname;
           </li>
         ))}
       </ul>
+
+      <!-- Language Selector -->
+      <div class="hidden sm:block ml-2">
+        <LanguageSelector client:load />
+      </div>
 
       <!-- Theme Toggle -->
       <button
@@ -89,6 +96,10 @@ const currentPath = Astro.url.pathname;
         </li>
       ))}
     </ul>
+    <!-- Mobile Language Selector -->
+    <div class="px-4 pb-3 pt-2 border-t border-[var(--color-border)]">
+      <LanguageSelector client:load />
+    </div>
   </div>
 </header>
 
