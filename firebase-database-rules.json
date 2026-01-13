@@ -1,0 +1,26 @@
+{
+  "rules": {
+    "rooms": {
+      ".read": true,
+      ".write": true,
+      "$roomId": {
+        ".validate": "newData.hasChildren(['id', 'createdAt', 'hostPeerId', 'expiresAt'])",
+        "id": {
+          ".validate": "newData.isString()"
+        },
+        "createdAt": {
+          ".validate": "newData.isNumber()"
+        },
+        "hostPeerId": {
+          ".validate": "newData.isString()"
+        },
+        "guestPeerId": {
+          ".validate": "newData.isString()"
+        },
+        "expiresAt": {
+          ".validate": "newData.isNumber() && newData.val() > now"
+        }
+      }
+    }
+  }
+}
