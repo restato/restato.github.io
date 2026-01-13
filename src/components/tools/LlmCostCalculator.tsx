@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 
 interface ModelPrice {
   name: string;
@@ -113,6 +113,41 @@ export default function LlmCostCalculator() {
     CURRENCIES.forEach(c => { rates[c.code] = c.defaultRate; });
     return rates;
   });
+  const [isLoadingRates, setIsLoadingRates] = useState(false);
+  const [ratesLastUpdated, setRatesLastUpdated] = useState<string | null>(null);
+  const [ratesError, setRatesError] = useState<string | null>(null);
+
+  // Fetch real-time exchange rates from ExchangeRate-API (free, no API key required)
+  const fetchExchangeRates = async () => {
+    setIsLoadingRates(true);
+    setRatesError(null);
+    try {
+      const response = await fetch('https://open.er-api.com/v6/latest/USD');
+      const data = await response.json();
+
+      if (data.result === 'success' && data.rates) {
+        const newRates: Record<string, number> = { USD: 1 };
+        CURRENCIES.forEach(c => {
+          if (c.code !== 'USD' && data.rates[c.code]) {
+            newRates[c.code] = data.rates[c.code];
+          }
+        });
+        setExchangeRates(newRates);
+        setRatesLastUpdated(new Date().toLocaleString('ko-KR'));
+      } else {
+        setRatesError('환율 데이터를 가져올 수 없습니다.');
+      }
+    } catch {
+      setRatesError('네트워크 오류가 발생했습니다.');
+    } finally {
+      setIsLoadingRates(false);
+    }
+  };
+
+  // Auto-fetch exchange rates on mount
+  useEffect(() => {
+    fetchExchangeRates();
+  }, []);
 
   const inputTokens = useManualTokens
     ? parseInt(inputTokensManual) || 0
@@ -455,8 +490,22 @@ export default function LlmCostCalculator() {
 
         {showExchangeRates && (
           <div className="p-4 rounded-lg bg-[var(--color-card)] border border-[var(--color-border)] mt-2">
-            <p className="text-sm text-[var(--color-text-muted)] mb-3">$1 USD 기준 환율 입력</p>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+            <div className="flex items-center justify-between mb-3">
+              <p className="text-sm text-[var(--color-text-muted)]">$1 USD 기준 환율</p>
+              <button
+                onClick={fetchExchangeRates}
+                disabled={isLoadingRates}
+                className="px-3 py-1 text-sm rounded-lg bg-primary-500 text-white hover:bg-primary-600 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {isLoadingRates ? '가져오는 중...' : '실시간 환율 가져오기'}
+              </button>
+            </div>
+
+            {ratesError && (
+              <p className="text-sm text-red-500 mb-3">{ratesError}</p>
+            )}
+
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
               {CURRENCIES.filter(c => c.code !== 'USD').map((currency) => (
                 <div key={currency.code} className="space-y-1">
                   <label className="block text-xs text-[var(--color-text-muted)]">
@@ -469,12 +518,35 @@ export default function LlmCostCalculator() {
                       ...exchangeRates,
                       [currency.code]: parseFloat(e.target.value) || 0
                     })}
+                    step="0.01"
                     className="w-full px-3 py-2 text-sm rounded-lg border border-[var(--color-border)]
                       bg-[var(--color-bg)] text-[var(--color-text)]
                       focus:outline-none focus:ring-2 focus:ring-primary-500"
                   />
                 </div>
               ))}
+            </div>
+
+            <div className="mt-3 pt-3 border-t border-[var(--color-border)]">
+              <p className="text-xs text-[var(--color-text-muted)]">
+                {ratesLastUpdated ? (
+                  <>마지막 업데이트: {ratesLastUpdated}</>
+                ) : (
+                  <>기본 환율 사용 중</>
+                )}
+              </p>
+              <p className="text-xs text-[var(--color-text-muted)] mt-1">
+                출처:{' '}
+                <a
+                  href="https://www.exchangerate-api.com"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-primary-500 hover:underline"
+                >
+                  ExchangeRate-API
+                </a>
+                {' '}(Open Exchange Rates)
+              </p>
             </div>
           </div>
         )}
@@ -637,7 +709,7 @@ export default function LlmCostCalculator() {
           <li>• 가격은 2025년 1월 기준이며 실제 가격은 공식 사이트에서 확인하세요.</li>
           <li>• 토큰 수 추정은 GPT 토크나이저 기준 대략적인 값입니다.</li>
           <li>• 한국어는 영어보다 토큰을 더 많이 사용합니다 (~1.5-2배).</li>
-          <li>• 기본 환율: $1 = ₩{CURRENCIES.find(c => c.code === 'KRW')?.defaultRate.toLocaleString()}, ¥{CURRENCIES.find(c => c.code === 'JPY')?.defaultRate}, €{CURRENCIES.find(c => c.code === 'EUR')?.defaultRate}</li>
+          <li>• 환율은 페이지 로드 시 자동으로 <a href="https://www.exchangerate-api.com" target="_blank" rel="noopener noreferrer" className="text-primary-500 hover:underline">ExchangeRate-API</a>에서 가져옵니다.</li>
         </ul>
       </div>
     </div>
