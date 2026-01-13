@@ -1,5 +1,5 @@
 import { initializeApp } from "firebase/app";
-import { getDatabase, ref, set, get, push, onValue, remove, onDisconnect } from "firebase/database";
+import { getDatabase, ref, set, get, push, onValue, remove } from "firebase/database";
 
 const firebaseConfig = {
   apiKey: "AIzaSyD9cO6TJFoUIFkM4qsPm7v2AiCV-_Oyzls",
@@ -42,8 +42,9 @@ export async function createRoom(peerId: string): Promise<string> {
 
   await set(newRoomRef, room);
 
-  // 연결 끊기면 방 삭제
-  onDisconnect(newRoomRef).remove();
+  // 연결 끊기면 방 삭제 - 5분 후 삭제되도록 설정 (일시적 끊김 대응)
+  // onDisconnect는 너무 민감하므로 제거하고 expiresAt으로만 관리
+  // onDisconnect(newRoomRef).remove();
 
   return roomId;
 }

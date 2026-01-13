@@ -56,7 +56,16 @@ export class ChatService {
       const peerId = `restato-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
 
       this.peer = new Peer(peerId, {
-        debug: 0,
+        debug: 1, // 디버깅용 로그 레벨
+        config: {
+          iceServers: [
+            { urls: 'stun:stun.l.google.com:19302' },
+            { urls: 'stun:stun1.l.google.com:19302' },
+            { urls: 'stun:stun2.l.google.com:19302' },
+            { urls: 'stun:stun3.l.google.com:19302' },
+            { urls: 'stun:stun4.l.google.com:19302' },
+          ]
+        }
       });
 
       this.peer.on('open', (id) => {
@@ -76,8 +85,12 @@ export class ChatService {
       });
 
       this.peer.on('disconnected', () => {
-        console.log('PeerJS disconnected');
-        this.callbacks.onStatusChange('disconnected');
+        console.log('PeerJS signaling server disconnected, attempting to reconnect...');
+        // 시그널링 서버 연결 끊김 - 재연결 시도
+        // peer 연결은 여전히 유지될 수 있으므로 바로 disconnected로 변경하지 않음
+        if (this.peer && !this.peer.destroyed) {
+          this.peer.reconnect();
+        }
       });
     });
   }
@@ -86,7 +99,17 @@ export class ChatService {
   private setupConnection(conn: DataConnection) {
     this.connection = conn;
 
+    // 연결 타임아웃 설정 (30초)
+    const connectionTimeout = window.setTimeout(() => {
+      if (!conn.open) {
+        console.log('Connection timeout');
+        conn.close();
+        this.callbacks.onStatusChange('error');
+      }
+    }, 30000);
+
     conn.on('open', () => {
+      clearTimeout(connectionTimeout);
       console.log('Data connection open');
       this.callbacks.onStatusChange('connected');
       this.callbacks.onPeerConnected();
@@ -99,6 +122,7 @@ export class ChatService {
     });
 
     conn.on('close', () => {
+      clearTimeout(connectionTimeout);
       console.log('Connection closed');
       this.callbacks.onPeerDisconnected();
       this.callbacks.onStatusChange('disconnected');
@@ -106,6 +130,7 @@ export class ChatService {
     });
 
     conn.on('error', (err) => {
+      clearTimeout(connectionTimeout);
       console.error('Connection error:', err);
       this.callbacks.onStatusChange('error');
     });
@@ -151,7 +176,8 @@ export class ChatService {
           this.setupConnection(conn);
         }
 
-        if (room) {
+        if (room && this.expiresAt === 0) {
+          // 타이머는 한 번만 시작
           this.expiresAt = room.expiresAt;
           this.startTimer();
         }
