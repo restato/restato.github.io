@@ -1,0 +1,42 @@
+---
+import MainLayout from '../../layouts/MainLayout.astro';
+import PomodoroTimer from '../../components/tools/PomodoroTimer';
+---
+
+<MainLayout
+  title="포모도로 타이머 | Restato"
+  description="포모도로 기법을 활용한 생산성 타이머입니다. 25분 집중 후 5분 휴식 패턴으로 효율을 높입니다."
+>
+  <div class="max-w-4xl mx-auto px-4 py-8">
+    <!-- Breadcrumb -->
+    <nav class="text-sm mb-6">
+      <ol class="flex items-center gap-2">
+        <li><a href="/" class="text-[var(--color-text-muted)] hover:text-primary-500">홈</a></li>
+        <li class="text-[var(--color-text-muted)]">/</li>
+        <li><a href="/tools" class="text-[var(--color-text-muted)] hover:text-primary-500">도구</a></li>
+        <li class="text-[var(--color-text-muted)]">/</li>
+        <li class="text-[var(--color-text)]">포모도로 타이머</li>
+      </ol>
+    </nav>
+
+    <!-- Header -->
+    <header class="mb-8">
+      <h1 class="text-3xl font-bold text-[var(--color-text)] mb-4">
+        🍅 포모도로 타이머
+      </h1>
+      <p class="text-[var(--color-text-muted)]">
+        포모도로 기법을 활용한 생산성 타이머입니다. 집중과 휴식을 번갈아가며 효율을 높입니다.
+      </p>
+    </header>
+
+    <!-- Tool -->
+    <div class="p-6 rounded-xl bg-[var(--color-card)] border border-[var(--color-border)]">
+      <PomodoroTimer client:load />
+    </div>
+
+    <!-- Back Link -->
+    <div class="mt-8">
+      <a href="/tools" class="text-primary-500 hover:underline">← 도구 목록으로 돌아가기</a>
+    </div>
+  </div>
+</MainLayout>

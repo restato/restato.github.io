@@ -1,0 +1,325 @@
+---
+import MainLayout from '../../layouts/MainLayout.astro';
+
+const tools = [
+  // Generators
+  {
+    slug: 'qr-code',
+    title: { ko: 'QR 코드 생성기', en: 'QR Code Generator', ja: 'QRコード生成器' },
+    description: { ko: 'URL이나 텍스트를 QR 코드로 변환', en: 'Convert URL or text to QR code', ja: 'URLやテキストをQRコードに変換' },
+    icon: '📱',
+    category: 'generators',
+  },
+  {
+    slug: 'password',
+    title: { ko: '비밀번호 생성기', en: 'Password Generator', ja: 'パスワード生成器' },
+    description: { ko: '안전한 비밀번호 생성', en: 'Generate secure passwords', ja: '安全なパスワードを生成' },
+    icon: '🔐',
+    category: 'generators',
+  },
+  {
+    slug: 'uuid',
+    title: { ko: 'UUID 생성기', en: 'UUID Generator', ja: 'UUID生成器' },
+    description: { ko: 'UUID v4 생성', en: 'Generate UUID v4', ja: 'UUID v4を生成' },
+    icon: '🔑',
+    category: 'generators',
+  },
+  {
+    slug: 'lorem-ipsum',
+    title: { ko: 'Lorem Ipsum 생성기', en: 'Lorem Ipsum Generator', ja: 'Lorem Ipsum生成器' },
+    description: { ko: '더미 텍스트 생성', en: 'Generate dummy text', ja: 'ダミーテキストを生成' },
+    icon: '📝',
+    category: 'generators',
+  },
+  {
+    slug: 'color-palette',
+    title: { ko: '색상 팔레트 생성기', en: 'Color Palette Generator', ja: 'カラーパレット生成器' },
+    description: { ko: '조화로운 색상 팔레트 생성', en: 'Generate harmonious color palettes', ja: '調和のとれたカラーパレットを生成' },
+    icon: '🎨',
+    category: 'generators',
+  },
+  {
+    slug: 'hash',
+    title: { ko: '해시 생성기', en: 'Hash Generator', ja: 'ハッシュ生成器' },
+    description: { ko: 'MD5, SHA-1, SHA-256 해시 생성', en: 'Generate MD5, SHA-1, SHA-256 hash', ja: 'MD5, SHA-1, SHA-256ハッシュを生成' },
+    icon: '#️⃣',
+    category: 'generators',
+  },
+  // Converters
+  {
+    slug: 'color',
+    title: { ko: '색상 변환기', en: 'Color Converter', ja: 'カラー変換器' },
+    description: { ko: 'HEX, RGB, HSL 색상 변환', en: 'Convert HEX, RGB, HSL colors', ja: 'HEX, RGB, HSLカラー変換' },
+    icon: '🌈',
+    category: 'converters',
+  },
+  {
+    slug: 'unit',
+    title: { ko: '단위 변환기', en: 'Unit Converter', ja: '単位変換器' },
+    description: { ko: '길이, 무게, 온도 단위 변환', en: 'Convert length, weight, temperature', ja: '長さ、重さ、温度の単位変換' },
+    icon: '📏',
+    category: 'converters',
+  },
+  {
+    slug: 'base64',
+    title: { ko: 'Base64 인코더/디코더', en: 'Base64 Encoder/Decoder', ja: 'Base64エンコーダー/デコーダー' },
+    description: { ko: '텍스트를 Base64로 인코딩/디코딩', en: 'Encode/decode text to Base64', ja: 'テキストをBase64でエンコード/デコード' },
+    icon: '🔄',
+    category: 'converters',
+  },
+  {
+    slug: 'image-converter',
+    title: { ko: '이미지 포맷 변환기', en: 'Image Format Converter', ja: '画像フォーマット変換器' },
+    description: { ko: 'JPEG, PNG, WebP 포맷 간 변환', en: 'Convert between JPEG, PNG, WebP', ja: 'JPEG, PNG, WebP間の変換' },
+    icon: '🖼️',
+    category: 'image',
+  },
+  // Text
+  {
+    slug: 'text-counter',
+    title: { ko: '텍스트 카운터', en: 'Text Counter', ja: 'テキストカウンター' },
+    description: { ko: '글자수, 단어수, 줄수 세기', en: 'Count characters, words, lines', ja: '文字数、単語数、行数をカウント' },
+    icon: '🔢',
+    category: 'text',
+  },
+  {
+    slug: 'markdown',
+    title: { ko: '마크다운 미리보기', en: 'Markdown Preview', ja: 'マークダウンプレビュー' },
+    description: { ko: '마크다운 실시간 미리보기', en: 'Live markdown preview', ja: 'マークダウンのリアルタイムプレビュー' },
+    icon: '📄',
+    category: 'text',
+  },
+  {
+    slug: 'diff',
+    title: { ko: '텍스트 비교기 (Diff)', en: 'Text Diff Tool', ja: 'テキスト比較ツール' },
+    description: { ko: '두 텍스트의 차이점 비교', en: 'Compare differences between texts', ja: '2つのテキストの違いを比較' },
+    icon: '📊',
+    category: 'developer',
+  },
+  // Developer
+  {
+    slug: 'json',
+    title: { ko: 'JSON 포매터', en: 'JSON Formatter', ja: 'JSONフォーマッター' },
+    description: { ko: 'JSON 포매팅 및 검증', en: 'Format and validate JSON', ja: 'JSONのフォーマットと検証' },
+    icon: '{ }',
+    category: 'developer',
+  },
+  {
+    slug: 'regex',
+    title: { ko: '정규식 테스터', en: 'Regex Tester', ja: '正規表現テスター' },
+    description: { ko: '정규식 테스트 및 매치 확인', en: 'Test regex and check matches', ja: '正規表現のテストとマッチ確認' },
+    icon: '🔍',
+    category: 'developer',
+  },
+  {
+    slug: 'url-encoder',
+    title: { ko: 'URL 인코더/디코더', en: 'URL Encoder/Decoder', ja: 'URLエンコーダー/デコーダー' },
+    description: { ko: 'URL 문자열 인코딩/디코딩', en: 'Encode/decode URL strings', ja: 'URL文字列のエンコード/デコード' },
+    icon: '🔗',
+    category: 'developer',
+  },
+  {
+    slug: 'jwt-decoder',
+    title: { ko: 'JWT 디코더', en: 'JWT Decoder', ja: 'JWTデコーダー' },
+    description: { ko: 'JWT 토큰 디코딩 및 분석', en: 'Decode and analyze JWT tokens', ja: 'JWTトークンのデコードと分析' },
+    icon: '🎫',
+    category: 'developer',
+  },
+  {
+    slug: 'cron',
+    title: { ko: 'Cron 표현식 생성기', en: 'Cron Expression Generator', ja: 'Cron式ジェネレーター' },
+    description: { ko: 'Cron 표현식 생성 및 설명', en: 'Generate and explain cron expressions', ja: 'Cron式の生成と説明' },
+    icon: '⏰',
+    category: 'developer',
+  },
+  // Designer
+  {
+    slug: 'gradient',
+    title: { ko: 'CSS 그라데이션 생성기', en: 'CSS Gradient Generator', ja: 'CSSグラデーション生成器' },
+    description: { ko: 'CSS 그라데이션 시각적 생성', en: 'Visually create CSS gradients', ja: 'CSSグラデーションを視覚的に作成' },
+    icon: '🌈',
+    category: 'designer',
+  },
+  {
+    slug: 'box-shadow',
+    title: { ko: 'CSS Box Shadow 생성기', en: 'CSS Box Shadow Generator', ja: 'CSSボックスシャドウ生成器' },
+    description: { ko: 'CSS box-shadow 시각적 생성', en: 'Visually create CSS box-shadow', ja: 'CSSボックスシャドウを視覚的に作成' },
+    icon: '🎭',
+    category: 'designer',
+  },
+  // Photographer
+  {
+    slug: 'image-resizer',
+    title: { ko: '이미지 리사이저', en: 'Image Resizer', ja: '画像リサイザー' },
+    description: { ko: '이미지 크기 조절 및 압축', en: 'Resize and compress images', ja: '画像のサイズ変更と圧縮' },
+    icon: '📐',
+    category: 'image',
+  },
+  {
+    slug: 'exif',
+    title: { ko: 'EXIF 정보 뷰어', en: 'EXIF Viewer', ja: 'EXIF情報ビューアー' },
+    description: { ko: '사진 EXIF 메타데이터 확인', en: 'View photo EXIF metadata', ja: '写真のEXIFメタデータを表示' },
+    icon: '📷',
+    category: 'image',
+  },
+  // Marketer
+  {
+    slug: 'utm',
+    title: { ko: 'UTM 링크 생성기', en: 'UTM Link Builder', ja: 'UTMリンクビルダー' },
+    description: { ko: '캠페인 추적용 UTM 링크 생성', en: 'Build UTM links for campaign tracking', ja: 'キャンペーン追跡用UTMリンク作成' },
+    icon: '📊',
+    category: 'marketer',
+  },
+  // Productivity
+  {
+    slug: 'timer',
+    title: { ko: '타이머 / 스톱워치', en: 'Timer / Stopwatch', ja: 'タイマー / ストップウォッチ' },
+    description: { ko: '타이머와 스톱워치', en: 'Timer and Stopwatch', ja: 'タイマーとストップウォッチ' },
+    icon: '⏱️',
+    category: 'productivity',
+  },
+  {
+    slug: 'pomodoro',
+    title: { ko: '포모도로 타이머', en: 'Pomodoro Timer', ja: 'ポモドーロタイマー' },
+    description: { ko: '포모도로 기법으로 생산성 향상', en: 'Boost productivity with Pomodoro technique', ja: 'ポモドーロ・テクニックで生産性向上' },
+    icon: '🍅',
+    category: 'productivity',
+  },
+  {
+    slug: 'world-clock',
+    title: { ko: '세계 시계', en: 'World Clock', ja: 'ワールドクロック' },
+    description: { ko: '전 세계 시간대 확인 및 변환', en: 'Check and convert world time zones', ja: '世界のタイムゾーン確認と変換' },
+    icon: '🌍',
+    category: 'productivity',
+  },
+];
+
+const categories = [
+  { id: 'all', label: { ko: '전체', en: 'All', ja: 'すべて' } },
+  { id: 'generators', label: { ko: '생성기', en: 'Generators', ja: '生成ツール' } },
+  { id: 'converters', label: { ko: '변환기', en: 'Converters', ja: '変換ツール' } },
+  { id: 'text', label: { ko: '텍스트', en: 'Text', ja: 'テキスト' } },
+  { id: 'developer', label: { ko: '개발자', en: 'Developer', ja: '開発者' } },
+  { id: 'designer', label: { ko: '디자이너', en: 'Designer', ja: 'デザイナー' } },
+  { id: 'image', label: { ko: '이미지/사진', en: 'Image/Photo', ja: '画像/写真' } },
+  { id: 'marketer', label: { ko: '마케터', en: 'Marketer', ja: 'マーケター' } },
+  { id: 'productivity', label: { ko: '생산성', en: 'Productivity', ja: '生産性' } },
+];
+---
+
+<MainLayout
+  title="온라인 도구 | Restato"
+  description="유용한 웹 도구 모음 - QR 코드 생성기, 비밀번호 생성기, 색상 변환기, 단위 변환기, 개발자 도구, 디자이너 도구, 마케터 도구 등"
+>
+  <div class="max-w-6xl mx-auto px-4 py-8">
+    <!-- Breadcrumb -->
+    <nav class="text-sm mb-6">
+      <ol class="flex items-center gap-2">
+        <li><a href="/" class="text-[var(--color-text-muted)] hover:text-primary-500">홈</a></li>
+        <li class="text-[var(--color-text-muted)]">/</li>
+        <li class="text-[var(--color-text)]">도구</li>
+      </ol>
+    </nav>
+
+    <!-- Header -->
+    <header class="mb-8">
+      <h1 class="text-3xl md:text-4xl font-bold text-[var(--color-text)] mb-4">
+        🛠️ 온라인 도구
+      </h1>
+      <p class="text-[var(--color-text-muted)] text-lg">
+        개발자, 디자이너, 마케터, PM을 위한 유용한 웹 도구 모음입니다. 무료로 사용할 수 있습니다.
+      </p>
+    </header>
+
+    <!-- Category Filters -->
+    <div class="flex flex-wrap gap-2 mb-8" id="category-filters">
+      {categories.map((category) => (
+        <button
+          data-category={category.id}
+          class={`px-4 py-2 rounded-lg text-sm font-medium transition-colors
+            ${category.id === 'all'
+              ? 'bg-primary-500 text-white'
+              : 'bg-[var(--color-card)] hover:bg-[var(--color-card-hover)] text-[var(--color-text)] border border-[var(--color-border)]'
+            }`}
+        >
+          {category.label.ko}
+        </button>
+      ))}
+    </div>
+
+    <!-- Tools Grid -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4" id="tools-grid">
+      {tools.map((tool) => (
+        <a
+          href={`/tools/${tool.slug}`}
+          data-category={tool.category}
+          class="group p-6 rounded-xl bg-[var(--color-card)] border border-[var(--color-border)]
+            hover:border-primary-500 hover:shadow-lg transition-all"
+        >
+          <div class="flex items-start gap-4">
+            <span class="text-3xl">{tool.icon}</span>
+            <div class="flex-1 min-w-0">
+              <h3 class="text-lg font-semibold text-[var(--color-text)] group-hover:text-primary-500 transition-colors">
+                {tool.title.ko}
+              </h3>
+              <p class="text-sm text-[var(--color-text-muted)] mt-1">
+                {tool.description.ko}
+              </p>
+            </div>
+            <svg class="w-5 h-5 text-[var(--color-text-muted)] group-hover:text-primary-500 transition-colors flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+            </svg>
+          </div>
+        </a>
+      ))}
+    </div>
+
+    <!-- Tool Count -->
+    <div class="mt-8 text-center text-[var(--color-text-muted)]">
+      총 <span class="font-bold text-[var(--color-text)]">{tools.length}개</span>의 도구가 있습니다.
+    </div>
+
+    <!-- Info -->
+    <div class="mt-8 p-6 rounded-xl bg-[var(--color-card)] border border-[var(--color-border)]">
+      <h2 class="text-xl font-semibold text-[var(--color-text)] mb-4">ℹ️ 정보</h2>
+      <ul class="space-y-2 text-[var(--color-text-muted)]">
+        <li>• 모든 도구는 브라우저에서 실행되며, 데이터가 서버로 전송되지 않습니다.</li>
+        <li>• 무료로 사용 가능하며, 회원가입이 필요없습니다.</li>
+        <li>• 모바일과 데스크톱 모두에서 사용할 수 있습니다.</li>
+        <li>• 한국어, 영어, 일본어를 지원합니다.</li>
+      </ul>
+    </div>
+  </div>
+</MainLayout>
+
+<script>
+  const filters = document.getElementById('category-filters');
+  const grid = document.getElementById('tools-grid');
+
+  if (filters && grid) {
+    filters.addEventListener('click', (e) => {
+      const target = e.target as HTMLElement;
+      if (target.tagName !== 'BUTTON') return;
+
+      const category = target.dataset.category;
+
+      // Update button styles
+      filters.querySelectorAll('button').forEach((btn) => {
+        btn.classList.remove('bg-primary-500', 'text-white');
+        btn.classList.add('bg-[var(--color-card)]', 'text-[var(--color-text)]', 'border', 'border-[var(--color-border)]');
+      });
+      target.classList.remove('bg-[var(--color-card)]', 'text-[var(--color-text)]', 'border', 'border-[var(--color-border)]');
+      target.classList.add('bg-primary-500', 'text-white');
+
+      // Filter tools
+      grid.querySelectorAll('a').forEach((card) => {
+        const cardCategory = card.dataset.category;
+        if (category === 'all' || cardCategory === category) {
+          card.classList.remove('hidden');
+        } else {
+          card.classList.add('hidden');
+        }
+      });
+    });
+  }
+</script>
