@@ -5,7 +5,7 @@ import { getCollection } from 'astro:content';
 
 const posts = (await getCollection('blog', ({ data }) => !data.draft))
   .sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf())
-  .slice(0, 3);
+  .slice(0, 6);
 
 const projects = await getCollection('projects');
 const featuredProjects = projects
@@ -14,49 +14,73 @@ const featuredProjects = projects
   .slice(0, 3);
 ---
 
-<MainLayout title="Restato | 개발 일지">
+<MainLayout title="Restato | Developer Blog">
   <!-- Hero Section -->
-  <section class="py-16 px-4">
-    <div class="max-w-5xl mx-auto">
-      <div class="flex flex-col md:flex-row items-center gap-8">
-        <div class="flex-1">
-          <h1 class="text-4xl md:text-5xl font-bold mb-4">
-            <span class="text-primary-500">Vibe Coding</span>으로<br />
-            만들어가는 개발 일지
-          </h1>
-          <p class="text-xl text-[var(--color-text-muted)] mb-6">
-            Claude와 함께 배우고, 만들고, 성장하는 과정을 기록합니다.
+  <section class="py-20 md:py-32 px-6">
+    <div class="max-w-4xl mx-auto">
+      <div class="space-y-8">
+        <div class="space-y-4">
+          <p class="text-sm font-medium text-primary-600 dark:text-primary-400 tracking-wide uppercase">
+            Welcome to my blog
           </p>
-          <div class="flex gap-4">
-            <a href="/blog" class="btn btn-primary">
-              블로그 보기
-            </a>
-            <a href="/projects" class="btn btn-outline">
-              프로젝트
-            </a>
-          </div>
+          <h1 class="text-4xl md:text-6xl font-bold leading-tight">
+            Hi, I'm <span class="gradient-text">Restato</span>
+          </h1>
+          <p class="text-xl md:text-2xl text-[var(--color-text-muted)] leading-relaxed max-w-2xl">
+            개발하며 배운 것들을 기록하고, 작은 프로젝트들을 만들어가는 공간입니다.
+          </p>
         </div>
-        <div class="flex-shrink-0">
-          <div class="w-48 h-48 rounded-full bg-gradient-to-br from-primary-400 to-primary-600 flex items-center justify-center text-7xl shadow-2xl shadow-primary-500/25">
-            🚀
-          </div>
+
+        <div class="flex flex-wrap gap-4">
+          <a href="/blog" class="btn btn-primary">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+            </svg>
+            블로그 읽기
+          </a>
+          <a href="/projects" class="btn btn-outline">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+            </svg>
+            프로젝트
+          </a>
+          <a
+            href="https://github.com/restato"
+            target="_blank"
+            rel="noopener noreferrer"
+            class="btn btn-ghost text-[var(--color-text-muted)]"
+          >
+            <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+              <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/>
+            </svg>
+            GitHub
+          </a>
         </div>
       </div>
     </div>
   </section>
 
   <!-- Recent Posts -->
-  <section class="py-16 px-4 bg-[var(--color-card)]">
-    <div class="max-w-5xl mx-auto">
-      <div class="flex items-center justify-between mb-8">
-        <h2 class="text-2xl font-bold">최근 글</h2>
-        <a href="/blog" class="text-primary-500 hover:underline">
-          모든 글 보기 →
+  <section class="py-20 px-6 border-t border-[var(--color-border)]">
+    <div class="max-w-4xl mx-auto">
+      <div class="flex items-end justify-between mb-10">
+        <div>
+          <p class="text-sm font-medium text-primary-600 dark:text-primary-400 mb-2">Latest Posts</p>
+          <h2 class="text-3xl font-bold">최근 글</h2>
+        </div>
+        <a
+          href="/blog"
+          class="text-sm font-medium text-[var(--color-text-muted)] hover:text-primary-600 dark:hover:text-primary-400 transition-colors flex items-center gap-1"
+        >
+          전체 보기
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" />
+          </svg>
         </a>
       </div>
 
       {posts.length > 0 ? (
-        <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div class="grid md:grid-cols-2 gap-6">
           {posts.map((post) => (
             <BlogCard
               title={post.data.title}
@@ -69,99 +93,78 @@ const featuredProjects = projects
           ))}
         </div>
       ) : (
-        <div class="text-center py-12 text-[var(--color-text-muted)]">
-          <p class="text-6xl mb-4">📝</p>
-          <p>아직 작성된 글이 없습니다.</p>
-          <p class="text-sm">곧 첫 번째 글이 올라올 거예요!</p>
+        <div class="text-center py-16 px-6 rounded-2xl border border-dashed border-[var(--color-border)]">
+          <div class="w-16 h-16 mx-auto mb-4 rounded-2xl bg-primary-500/10 flex items-center justify-center">
+            <svg class="w-8 h-8 text-primary-500" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0115.75 21H5.25A2.25 2.25 0 013 18.75V8.25A2.25 2.25 0 015.25 6H10" />
+            </svg>
+          </div>
+          <p class="text-lg font-medium mb-1">아직 작성된 글이 없습니다</p>
+          <p class="text-sm text-[var(--color-text-muted)]">곧 첫 번째 글이 올라올 거예요!</p>
         </div>
       )}
     </div>
   </section>
 
-  <!-- Featured Projects -->
-  <section class="py-16 px-4">
-    <div class="max-w-5xl mx-auto">
-      <div class="flex items-center justify-between mb-8">
-        <h2 class="text-2xl font-bold">프로젝트</h2>
-        <a href="/projects" class="text-primary-500 hover:underline">
-          모든 프로젝트 →
+  <!-- Projects Section -->
+  <section class="py-20 px-6 bg-[var(--color-card)] border-t border-[var(--color-border)]">
+    <div class="max-w-4xl mx-auto">
+      <div class="flex items-end justify-between mb-10">
+        <div>
+          <p class="text-sm font-medium text-primary-600 dark:text-primary-400 mb-2">Side Projects</p>
+          <h2 class="text-3xl font-bold">프로젝트</h2>
+        </div>
+        <a
+          href="/projects"
+          class="text-sm font-medium text-[var(--color-text-muted)] hover:text-primary-600 dark:hover:text-primary-400 transition-colors flex items-center gap-1"
+        >
+          전체 보기
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" />
+          </svg>
         </a>
       </div>
 
-      {featuredProjects.length > 0 ? (
-        <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {featuredProjects.map((project) => (
-            <a
-              href={project.data.url || `/projects/${project.slug}`}
-              class="card group hover:border-primary-500/50"
-            >
-              {project.data.image && (
-                <img
-                  src={project.data.image}
-                  alt={project.data.title}
-                  class="w-full h-40 object-cover rounded-lg mb-4 -mt-2"
-                />
-              )}
-              <h3 class="text-lg font-bold mb-2 group-hover:text-primary-500 transition-colors">
-                {project.data.title}
-              </h3>
-              <p class="text-[var(--color-text-muted)] text-sm">
-                {project.data.description}
-              </p>
-            </a>
-          ))}
-        </div>
-      ) : (
-        <div class="grid md:grid-cols-3 gap-6">
-          <a href="/projects/roulette" class="card group hover:border-primary-500/50">
-            <div class="text-4xl mb-4">🎡</div>
-            <h3 class="text-lg font-bold mb-2 group-hover:text-primary-500 transition-colors">
-              룰렛
-            </h3>
-            <p class="text-[var(--color-text-muted)] text-sm">
-              커스텀 항목으로 돌리는 랜덤 룰렛
-            </p>
-          </a>
-          <a href="/projects/gallery" class="card group hover:border-primary-500/50">
-            <div class="text-4xl mb-4">📷</div>
-            <h3 class="text-lg font-bold mb-2 group-hover:text-primary-500 transition-colors">
-              갤러리
-            </h3>
-            <p class="text-[var(--color-text-muted)] text-sm">
-              사진 갤러리
-            </p>
-          </a>
-          <a href="/projects" class="card group hover:border-primary-500/50 flex flex-col items-center justify-center">
-            <div class="text-4xl mb-4">➕</div>
-            <h3 class="text-lg font-bold group-hover:text-primary-500 transition-colors">
-              더 보기
-            </h3>
-          </a>
-        </div>
-      )}
-    </div>
-  </section>
+      <div class="grid md:grid-cols-3 gap-6">
+        <a href="/projects/roulette" class="card group">
+          <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-rose-500 to-orange-500 flex items-center justify-center text-2xl mb-4 shadow-lg">
+            <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+            </svg>
+          </div>
+          <h3 class="text-lg font-bold mb-2 group-hover:text-primary-600 dark:group-hover:text-primary-400 transition-colors">
+            룰렛
+          </h3>
+          <p class="text-sm text-[var(--color-text-muted)]">
+            커스텀 항목으로 돌리는 랜덤 룰렛 게임
+          </p>
+        </a>
 
-  <!-- CTA Section -->
-  <section class="py-16 px-4 bg-gradient-to-r from-primary-500 to-primary-600 text-white">
-    <div class="max-w-5xl mx-auto text-center">
-      <h2 class="text-3xl font-bold mb-4">
-        함께 성장해요 🌱
-      </h2>
-      <p class="text-xl opacity-90 mb-6">
-        개발 여정을 공유하고, 서로 배워가는 커뮤니티
-      </p>
-      <a
-        href="https://github.com/restato"
-        target="_blank"
-        rel="noopener noreferrer"
-        class="inline-flex items-center gap-2 bg-white text-primary-600 px-6 py-3 rounded-lg font-medium hover:bg-gray-100 transition-colors"
-      >
-        <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
-          <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/>
-        </svg>
-        GitHub에서 팔로우
-      </a>
+        <a href="/projects/gallery" class="card group">
+          <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-blue-500 to-cyan-500 flex items-center justify-center text-2xl mb-4 shadow-lg">
+            <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 15.75l5.159-5.159a2.25 2.25 0 013.182 0l5.159 5.159m-1.5-1.5l1.409-1.409a2.25 2.25 0 013.182 0l2.909 2.909m-18 3.75h16.5a1.5 1.5 0 001.5-1.5V6a1.5 1.5 0 00-1.5-1.5H3.75A1.5 1.5 0 002.25 6v12a1.5 1.5 0 001.5 1.5zm10.5-11.25h.008v.008h-.008V8.25zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0z" />
+            </svg>
+          </div>
+          <h3 class="text-lg font-bold mb-2 group-hover:text-primary-600 dark:group-hover:text-primary-400 transition-colors">
+            갤러리
+          </h3>
+          <p class="text-sm text-[var(--color-text-muted)]">
+            사진과 이미지를 모아보는 갤러리
+          </p>
+        </a>
+
+        <a href="/projects" class="card group border-dashed flex flex-col items-center justify-center text-center min-h-[180px]">
+          <div class="w-12 h-12 rounded-xl bg-[var(--color-card-hover)] flex items-center justify-center mb-4 group-hover:bg-primary-500/10 transition-colors">
+            <svg class="w-6 h-6 text-[var(--color-text-muted)] group-hover:text-primary-500 transition-colors" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+            </svg>
+          </div>
+          <h3 class="text-lg font-bold group-hover:text-primary-600 dark:group-hover:text-primary-400 transition-colors">
+            더 보기
+          </h3>
+        </a>
+      </div>
     </div>
   </section>
 </MainLayout>

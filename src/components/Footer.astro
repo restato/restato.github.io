@@ -2,20 +2,24 @@
 const currentYear = new Date().getFullYear();
 ---
 
-<footer class="mt-auto border-t border-[var(--color-border)] bg-[var(--color-card)]">
-  <div class="max-w-5xl mx-auto px-4 py-8">
-    <div class="flex flex-col sm:flex-row items-center justify-between gap-4">
-      <div class="flex items-center gap-2 text-[var(--color-text-muted)]">
-        <span class="text-xl">🚀</span>
-        <span>&copy; {currentYear} Restato. Built with Claude.</span>
-      </div>
+<footer class="mt-auto border-t border-[var(--color-border)]">
+  <div class="max-w-4xl mx-auto px-6 py-12">
+    <div class="flex flex-col items-center gap-6">
+      <!-- Logo -->
+      <a href="/" class="flex items-center gap-3 font-bold text-lg group">
+        <span class="w-8 h-8 rounded-lg gradient-bg flex items-center justify-center text-white text-sm shadow-lg shadow-primary-500/20">
+          R
+        </span>
+        <span>Restato</span>
+      </a>
 
-      <div class="flex items-center gap-4">
+      <!-- Social Links -->
+      <div class="flex items-center gap-2">
         <a
           href="https://github.com/restato"
           target="_blank"
           rel="noopener noreferrer"
-          class="text-[var(--color-text-muted)] hover:text-[var(--color-text)] transition-colors"
+          class="p-2.5 rounded-lg text-[var(--color-text-muted)] hover:text-[var(--color-text)] hover:bg-[var(--color-card-hover)] transition-colors"
           aria-label="GitHub"
         >
           <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
@@ -24,7 +28,7 @@ const currentYear = new Date().getFullYear();
         </a>
         <a
           href="/rss.xml"
-          class="text-[var(--color-text-muted)] hover:text-[var(--color-text)] transition-colors"
+          class="p-2.5 rounded-lg text-[var(--color-text-muted)] hover:text-[var(--color-text)] hover:bg-[var(--color-card-hover)] transition-colors"
           aria-label="RSS Feed"
         >
           <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
@@ -32,6 +36,11 @@ const currentYear = new Date().getFullYear();
           </svg>
         </a>
       </div>
+
+      <!-- Copyright -->
+      <p class="text-sm text-[var(--color-text-muted)]">
+        &copy; {currentYear} Restato. Built with Astro & Claude.
+      </p>
     </div>
   </div>
 </footer>
