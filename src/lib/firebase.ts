@@ -2,14 +2,14 @@ import { initializeApp } from "firebase/app";
 import { getDatabase, ref, set, get, push, onValue, remove } from "firebase/database";
 
 const firebaseConfig = {
-  apiKey: "AIzaSyD9cO6TJFoUIFkM4qsPm7v2AiCV-_Oyzls",
-  authDomain: "restato-52824.firebaseapp.com",
-  databaseURL: "https://restato-52824-default-rtdb.firebaseio.com",
-  projectId: "restato-52824",
-  storageBucket: "restato-52824.firebasestorage.app",
-  messagingSenderId: "713753016756",
-  appId: "1:713753016756:web:1a1d7012539b5cf4d55ae1",
-  measurementId: "G-S32724KQVZ"
+  apiKey: import.meta.env.PUBLIC_FIREBASE_API_KEY,
+  authDomain: import.meta.env.PUBLIC_FIREBASE_AUTH_DOMAIN,
+  databaseURL: import.meta.env.PUBLIC_FIREBASE_DATABASE_URL,
+  projectId: import.meta.env.PUBLIC_FIREBASE_PROJECT_ID,
+  storageBucket: import.meta.env.PUBLIC_FIREBASE_STORAGE_BUCKET,
+  messagingSenderId: import.meta.env.PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
+  appId: import.meta.env.PUBLIC_FIREBASE_APP_ID,
+  measurementId: import.meta.env.PUBLIC_FIREBASE_MEASUREMENT_ID
 };
 
 const app = initializeApp(firebaseConfig);

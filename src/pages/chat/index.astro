@@ -1,32 +1,37 @@
 ---
 import MainLayout from '../../layouts/MainLayout.astro';
 import Chat from '../../components/Chat.tsx';
+import { getLanguage } from '../../i18n/index';
+import { chatTranslations } from '../../i18n/translations/chat';
+
+const lang = getLanguage();
+const tt = chatTranslations;
 ---
 
 <MainLayout
-  title="익명 채팅 | Restato"
-  description="1:1 익명 채팅 서비스. 링크를 공유하거나 랜덤 매칭으로 대화를 시작하세요."
+  title={`${tt.pageTitle[lang]} | Restato`}
+  description={tt.pageDescription[lang]}
 >
   <div class="container mx-auto px-4 py-8">
     <div class="max-w-2xl mx-auto">
       <div class="text-center mb-8">
-        <h1 class="text-3xl font-bold mb-4">익명 채팅</h1>
+        <h1 class="text-3xl font-bold mb-4">{tt.pageTitle[lang]}</h1>
         <p class="text-[var(--color-text-muted)]">
-          서버 없이 브라우저 간 직접 연결되는 P2P 채팅입니다.<br />
-          대화 내용은 저장되지 않으며, 세션은 최대 1시간 유지됩니다.
+          {tt.description.p2p[lang]}<br />
+          {tt.description.privacy[lang]}
         </p>
       </div>
 
       <Chat client:load />
 
       <div class="mt-8 p-4 rounded-lg bg-[var(--color-card)] border border-[var(--color-border)]">
-        <h2 class="font-semibold mb-3">사용 방법</h2>
+        <h2 class="font-semibold mb-3">{tt.howToUse.title[lang]}</h2>
         <ul class="space-y-2 text-sm text-[var(--color-text-muted)]">
-          <li>• 페이지 접속 시 자동으로 대기 중인 사람과 매칭됩니다</li>
-          <li>• 대기 중인 사람이 없으면 새 채팅방이 생성됩니다</li>
-          <li>• 생성된 링크를 공유하면 특정 사람과 대화할 수 있습니다</li>
-          <li>• 모든 대화는 P2P로 이루어지며 서버에 저장되지 않습니다</li>
-          <li>• 세션은 최대 1시간 후 자동 종료됩니다</li>
+          <li>• {tt.howToUse.step1[lang]}</li>
+          <li>• {tt.howToUse.step2[lang]}</li>
+          <li>• {tt.howToUse.step3[lang]}</li>
+          <li>• {tt.howToUse.step4[lang]}</li>
+          <li>• {tt.howToUse.step5[lang]}</li>
         </ul>
       </div>
     </div>

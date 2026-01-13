@@ -4,12 +4,14 @@ import { getLanguage, setLanguage, type Language } from './index';
 import { toolTranslations } from './translations/tools';
 import { gameTranslations } from './translations/games';
 import { commonTranslations } from './translations/common';
+import { chatTranslations } from './translations/chat';
 
 // Merged translations
 const translations = {
   tools: toolTranslations,
   games: gameTranslations,
   common: commonTranslations,
+  chat: chatTranslations,
 } as const;
 
 type TranslationCategory = keyof typeof translations;

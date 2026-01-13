@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { ChatService, type ChatMessage, type ConnectionStatus } from '../lib/chatService';
+import { useTranslation } from '../i18n/useTranslation';
 
 // URL hash에서 roomId 추출
 function getRoomIdFromHash(): string | null {
@@ -9,6 +10,9 @@ function getRoomIdFromHash(): string | null {
 }
 
 export default function Chat() {
+  const { t, translations } = useTranslation();
+  const tt = translations.chat;
+
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [inputText, setInputText] = useState('');
   const [status, setStatus] = useState<ConnectionStatus>('initializing');
@@ -178,24 +182,7 @@ export default function Chat() {
   };
 
   const getStatusText = () => {
-    switch (status) {
-      case 'initializing':
-        return '초기화 중...';
-      case 'waiting':
-        return '상대방을 기다리는 중...';
-      case 'connecting':
-        return '연결 중...';
-      case 'connected':
-        return '연결됨';
-      case 'disconnected':
-        return '연결 끊김';
-      case 'expired':
-        return '세션 만료';
-      case 'error':
-        return '오류 발생';
-      default:
-        return status;
-    }
+    return t(tt.status[status] || tt.status.error);
   };
 
   const getStatusColor = () => {
@@ -245,7 +232,7 @@ export default function Chat() {
               onClick={handleCopyLink}
               className="px-4 py-2 text-sm rounded bg-blue-500 text-white hover:bg-blue-600 transition-colors"
             >
-              {copied ? '복사됨!' : '복사'}
+              {copied ? t(tt.ui.copied) : t(tt.ui.copy)}
             </button>
           </div>
         </div>
@@ -255,7 +242,7 @@ export default function Chat() {
       <div className="flex-1 overflow-y-auto p-4 space-y-3">
         {messages.length === 0 && status === 'connected' && (
           <p className="text-center text-[var(--color-text-muted)] text-sm">
-            메시지를 입력하여 대화를 시작하세요!
+            {t(tt.messages.emptyChat)}
           </p>
         )}
         {messages.map((msg) => (
@@ -284,13 +271,13 @@ export default function Chat() {
       {(status === 'expired' || status === 'error' || status === 'disconnected') && (
         <div className="px-4 py-3 bg-red-500/10 border-t border-[var(--color-border)]">
           <p className="text-sm text-center mb-2 text-[var(--color-text)]">
-            {status === 'expired' ? '세션이 만료되었습니다.' : '연결이 끊어졌습니다.'}
+            {status === 'expired' ? t(tt.messages.sessionExpired) : t(tt.messages.connectionLost)}
           </p>
           <button
             onClick={handleNewChat}
             className="w-full py-2 text-sm rounded bg-blue-500 text-white hover:bg-blue-600 transition-colors"
           >
-            새 대화 시작
+            {t(tt.ui.newChat)}
           </button>
         </div>
       )}
@@ -303,7 +290,7 @@ export default function Chat() {
               type="text"
               value={inputText}
               onChange={(e) => setInputText(e.target.value)}
-              placeholder="메시지를 입력하세요..."
+              placeholder={t(tt.ui.inputPlaceholder)}
               className="flex-1 px-4 py-2 rounded-lg border border-[var(--color-border)] bg-[var(--color-bg)] text-[var(--color-text)] placeholder:text-[var(--color-text-muted)] focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
             <button
@@ -311,7 +298,7 @@ export default function Chat() {
               disabled={!inputText.trim()}
               className="px-6 py-2 rounded-lg bg-blue-500 text-white hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
             >
-              전송
+              {t(tt.ui.send)}
             </button>
           </div>
         </form>
@@ -326,7 +313,7 @@ export default function Chat() {
               <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
             </svg>
             <span className="text-sm">
-              {status === 'waiting' ? '상대방이 접속하기를 기다리는 중...' : '연결 준비 중...'}
+              {status === 'waiting' ? t(tt.messages.waitingMessage) : t(tt.messages.connectingMessage)}
             </span>
           </div>
         </div>
