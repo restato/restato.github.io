@@ -194,6 +194,25 @@ export const toolTranslations = {
     resized: { ko: '리사이즈됨', en: 'Resized', ja: 'リサイズ済み' },
   },
 
+  // Background Remover
+  backgroundRemover: {
+    title: { ko: '배경 제거기 (누끼)', en: 'Background Remover', ja: '背景除去ツール' },
+    description: { ko: '이미지에서 배경을 자동으로 제거', en: 'Automatically remove background from images', ja: '画像から背景を自動的に削除' },
+    dropzone: { ko: '이미지를 드래그하거나 클릭하여 업로드', en: 'Drag or click to upload image', ja: '画像をドラッグまたはクリックしてアップロード' },
+    removeButton: { ko: '배경 제거하기', en: 'Remove Background', ja: '背景を削除' },
+    processing: { ko: '처리 중', en: 'Processing', ja: '処理中' },
+    original: { ko: '원본', en: 'Original', ja: 'オリジナル' },
+    result: { ko: '결과', en: 'Result', ja: '結果' },
+    clickRemove: { ko: '배경 제거 버튼을 클릭하세요', en: 'Click remove background button', ja: '背景削除ボタンをクリック' },
+    backgroundColor: { ko: '배경색 선택', en: 'Background Color', ja: '背景色を選択' },
+    transparent: { ko: '투명', en: 'Transparent', ja: '透明' },
+    white: { ko: '흰색', en: 'White', ja: '白' },
+    black: { ko: '검정색', en: 'Black', ja: '黒' },
+    customColor: { ko: '사용자 정의', en: 'Custom', ja: 'カスタム' },
+    errorMessage: { ko: '배경 제거 중 오류가 발생했습니다. 다시 시도해주세요.', en: 'Error occurred while removing background. Please try again.', ja: '背景削除中にエラーが発生しました。もう一度お試しください。' },
+    infoNote: { ko: '모든 이미지 처리는 브라우저에서 로컬로 수행됩니다. 이미지는 서버로 전송되지 않습니다.', en: 'All image processing is done locally in your browser. Images are not sent to any server.', ja: 'すべての画像処理はブラウザでローカルに行われます。画像はサーバーに送信されません。' },
+  },
+
   // Tools page
   toolsPage: {
     title: { ko: '온라인 도구', en: 'Online Tools', ja: 'オンラインツール' },
