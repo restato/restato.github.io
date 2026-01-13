@@ -8,11 +8,54 @@ const projects = (await getCollection('projects'))
 // Hardcoded projects for now (can be moved to content collection later)
 const builtInProjects = [
   {
+    slug: 'games',
+    title: '게임센터',
+    description: '재미있는 미니게임 모음',
+    icon: '🎮',
+    tags: ['Games', 'Interactive', 'Fun'],
+    featured: true,
+  },
+  {
     slug: 'roulette',
     title: '룰렛',
     description: '커스텀 항목으로 돌리는 랜덤 룰렛 게임',
     icon: '🎡',
-    tags: ['React', 'Canvas', 'Animation'],
+    tags: ['React', 'Animation'],
+  },
+  {
+    slug: 'slot-machine',
+    title: '슬롯머신',
+    description: '행운의 777을 노려보세요!',
+    icon: '🎰',
+    tags: ['React', 'Game'],
+  },
+  {
+    slug: 'rock-paper-scissors',
+    title: '가위바위보',
+    description: 'AI와 대결하는 가위바위보',
+    icon: '✊',
+    tags: ['React', 'AI'],
+  },
+  {
+    slug: 'number-guess',
+    title: '숫자 맞추기',
+    description: 'Up & Down 숫자 맞추기 게임',
+    icon: '🔢',
+    tags: ['React', 'Puzzle'],
+  },
+  {
+    slug: 'memory-game',
+    title: '기억력 게임',
+    description: '카드 짝 맞추기 두뇌 게임',
+    icon: '🧠',
+    tags: ['React', 'Brain'],
+  },
+  {
+    slug: 'reaction-test',
+    title: '반응속도',
+    description: '당신의 반응속도를 측정하세요',
+    icon: '⚡',
+    tags: ['React', 'Test'],
   },
   {
     slug: 'gallery',

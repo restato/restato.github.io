@@ -1,0 +1,105 @@
+---
+import MainLayout from '../../layouts/MainLayout.astro';
+
+const games = [
+  {
+    slug: 'roulette',
+    title: '룰렛',
+    description: '커스텀 항목으로 돌리는 랜덤 룰렛',
+    icon: '🎡',
+    color: 'from-purple-500 to-pink-500',
+  },
+  {
+    slug: 'slot-machine',
+    title: '슬롯머신',
+    description: '행운의 777을 노려보세요!',
+    icon: '🎰',
+    color: 'from-yellow-500 to-red-500',
+  },
+  {
+    slug: 'rock-paper-scissors',
+    title: '가위바위보',
+    description: 'AI와 대결하는 가위바위보',
+    icon: '✊',
+    color: 'from-blue-500 to-cyan-500',
+  },
+  {
+    slug: 'number-guess',
+    title: '숫자 맞추기',
+    description: '1-100 사이 숫자를 맞춰보세요',
+    icon: '🔢',
+    color: 'from-green-500 to-teal-500',
+  },
+  {
+    slug: 'memory-game',
+    title: '기억력 게임',
+    description: '카드 짝 맞추기 두뇌 게임',
+    icon: '🧠',
+    color: 'from-indigo-500 to-purple-500',
+  },
+  {
+    slug: 'reaction-test',
+    title: '반응속도',
+    description: '당신의 반응속도를 측정하세요',
+    icon: '⚡',
+    color: 'from-orange-500 to-yellow-500',
+  },
+];
+---
+
+<MainLayout title="게임센터 | Restato" description="재미있는 미니게임들을 즐겨보세요">
+  <section class="py-16 px-4">
+    <div class="max-w-5xl mx-auto">
+      <!-- Header -->
+      <div class="text-center mb-12">
+        <h1 class="text-4xl font-bold mb-4">🎮 게임센터</h1>
+        <p class="text-xl text-[var(--color-text-muted)]">
+          재미있는 미니게임들을 즐겨보세요!
+        </p>
+      </div>
+
+      <!-- Games Grid -->
+      <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {games.map((game) => (
+          <a
+            href={`/projects/${game.slug}`}
+            class="group relative overflow-hidden rounded-2xl bg-[var(--color-card)] border border-[var(--color-border)] hover:border-transparent transition-all duration-300 hover:shadow-2xl hover:-translate-y-1"
+          >
+            <div class={`absolute inset-0 bg-gradient-to-br ${game.color} opacity-0 group-hover:opacity-10 transition-opacity`} />
+            <div class="p-6">
+              <div class="text-5xl mb-4 transform group-hover:scale-110 transition-transform duration-300">
+                {game.icon}
+              </div>
+              <h3 class="text-xl font-bold mb-2 group-hover:text-primary-500 transition-colors">
+                {game.title}
+              </h3>
+              <p class="text-[var(--color-text-muted)]">
+                {game.description}
+              </p>
+              <div class="mt-4 flex items-center text-sm text-primary-500 opacity-0 group-hover:opacity-100 transition-opacity">
+                <span>플레이하기</span>
+                <svg class="w-4 h-4 ml-1 transform group-hover:translate-x-1 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                </svg>
+              </div>
+            </div>
+          </a>
+        ))}
+      </div>
+
+      <!-- Info Card -->
+      <div class="mt-12 p-6 bg-gradient-to-r from-primary-500/10 to-purple-500/10 rounded-xl border border-[var(--color-border)]">
+        <div class="flex items-start gap-4">
+          <span class="text-3xl">💡</span>
+          <div>
+            <h3 class="font-bold mb-2">게임 팁</h3>
+            <p class="text-[var(--color-text-muted)]">
+              모든 게임은 무료이며 데이터가 저장되지 않습니다.
+              친구들과 함께 점수를 비교해보세요!
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+</MainLayout>

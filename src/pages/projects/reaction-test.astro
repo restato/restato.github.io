@@ -1,0 +1,38 @@
+---
+import MainLayout from '../../layouts/MainLayout.astro';
+import ReactionTest from '../../components/ReactionTest';
+---
+
+<MainLayout title="반응속도 테스트 | Restato" description="당신의 반응속도를 측정하세요">
+  <section class="py-8 px-4">
+    <div class="max-w-4xl mx-auto">
+      <!-- Header -->
+      <div class="mb-8">
+        <div class="flex items-center gap-2 text-sm text-[var(--color-text-muted)] mb-2">
+          <a href="/projects/games" class="hover:text-primary-500">게임센터</a>
+          <span>/</span>
+          <span>반응속도</span>
+        </div>
+        <h1 class="text-3xl font-bold mb-2">⚡ 반응속도 테스트</h1>
+        <p class="text-[var(--color-text-muted)]">
+          초록색이 되면 최대한 빨리 클릭! 당신의 반응속도는?
+        </p>
+      </div>
+
+      <!-- Game Component -->
+      <ReactionTest client:load />
+
+      <!-- Info -->
+      <div class="mt-12 p-6 bg-[var(--color-card)] rounded-xl border border-[var(--color-border)]">
+        <h2 class="text-lg font-bold mb-4">💡 게임 방법</h2>
+        <ul class="space-y-2 text-[var(--color-text-muted)]">
+          <li>• 화면을 클릭하여 게임을 시작하세요</li>
+          <li>• 빨간색 화면에서 기다리세요</li>
+          <li>• 화면이 초록색으로 바뀌면 최대한 빨리 클릭!</li>
+          <li>• 너무 빨리 클릭하면 실패에요</li>
+          <li>• 평균 인간 반응속도는 200-250ms입니다</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+</MainLayout>
