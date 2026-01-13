@@ -106,6 +106,36 @@ const featuredProjects = projects
     </div>
   </section>
 
+  <!-- Game Center Banner -->
+  <section class="py-16 px-6 bg-gradient-to-r from-purple-500/10 via-pink-500/10 to-orange-500/10 border-t border-[var(--color-border)]">
+    <div class="max-w-4xl mx-auto">
+      <a href="/projects/games" class="block group">
+        <div class="flex flex-col md:flex-row items-center gap-8 p-8 bg-[var(--color-card)] rounded-2xl border border-[var(--color-border)] hover:border-primary-500/50 transition-all hover:shadow-xl">
+          <div class="flex gap-2 text-5xl">
+            <span class="animate-bounce" style="animation-delay: 0s;">🎮</span>
+            <span class="animate-bounce" style="animation-delay: 0.1s;">🎰</span>
+            <span class="animate-bounce" style="animation-delay: 0.2s;">🎡</span>
+          </div>
+          <div class="flex-1 text-center md:text-left">
+            <h2 class="text-2xl font-bold mb-2 group-hover:text-primary-500 transition-colors">
+              게임센터 오픈!
+            </h2>
+            <p class="text-[var(--color-text-muted)] mb-4">
+              룰렛, 슬롯머신, 가위바위보, 숫자 맞추기, 기억력 게임, 반응속도 테스트까지!
+              무료로 즐기는 6가지 미니게임
+            </p>
+            <span class="inline-flex items-center gap-2 text-primary-500 font-medium">
+              지금 플레이하기
+              <svg class="w-4 h-4 group-hover:translate-x-1 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+              </svg>
+            </span>
+          </div>
+        </div>
+      </a>
+    </div>
+  </section>
+
   <!-- Projects Section -->
   <section class="py-20 px-6 bg-[var(--color-card)] border-t border-[var(--color-border)]">
     <div class="max-w-4xl mx-auto">
@@ -126,31 +156,28 @@ const featuredProjects = projects
       </div>
 
       <div class="grid md:grid-cols-3 gap-6">
+        <a href="/projects/games" class="card group bg-gradient-to-br from-purple-500/5 to-pink-500/5 border-primary-500/20">
+          <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center text-2xl mb-4 shadow-lg">
+            🎮
+          </div>
+          <h3 class="text-lg font-bold mb-2 group-hover:text-primary-600 dark:group-hover:text-primary-400 transition-colors">
+            게임센터
+          </h3>
+          <p class="text-sm text-[var(--color-text-muted)]">
+            6가지 무료 미니게임
+          </p>
+          <span class="inline-block mt-2 text-xs px-2 py-1 bg-primary-500/20 text-primary-500 rounded-full">NEW</span>
+        </a>
+
         <a href="/projects/roulette" class="card group">
           <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-rose-500 to-orange-500 flex items-center justify-center text-2xl mb-4 shadow-lg">
-            <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-            </svg>
+            🎡
           </div>
           <h3 class="text-lg font-bold mb-2 group-hover:text-primary-600 dark:group-hover:text-primary-400 transition-colors">
             룰렛
           </h3>
           <p class="text-sm text-[var(--color-text-muted)]">
-            커스텀 항목으로 돌리는 랜덤 룰렛 게임
-          </p>
-        </a>
-
-        <a href="/projects/gallery" class="card group">
-          <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-blue-500 to-cyan-500 flex items-center justify-center text-2xl mb-4 shadow-lg">
-            <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 15.75l5.159-5.159a2.25 2.25 0 013.182 0l5.159 5.159m-1.5-1.5l1.409-1.409a2.25 2.25 0 013.182 0l2.909 2.909m-18 3.75h16.5a1.5 1.5 0 001.5-1.5V6a1.5 1.5 0 00-1.5-1.5H3.75A1.5 1.5 0 002.25 6v12a1.5 1.5 0 001.5 1.5zm10.5-11.25h.008v.008h-.008V8.25zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0z" />
-            </svg>
-          </div>
-          <h3 class="text-lg font-bold mb-2 group-hover:text-primary-600 dark:group-hover:text-primary-400 transition-colors">
-            갤러리
-          </h3>
-          <p class="text-sm text-[var(--color-text-muted)]">
-            사진과 이미지를 모아보는 갤러리
+            커스텀 항목으로 돌리는 랜덤 룰렛
           </p>
         </a>
 
