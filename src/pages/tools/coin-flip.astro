@@ -1,0 +1,14 @@
+---
+import ToolLayout from '../../layouts/ToolLayout.astro';
+import CoinFlip from '../../components/tools/CoinFlip';
+---
+
+<ToolLayout
+  title="동전 던지기"
+  description="공정한 동전 던지기로 결정을 내리세요. 앞면/뒷면 확률 50:50, 암호학적 난수 생성기 사용."
+  slug="coin-flip"
+  icon="🪙"
+  category="random"
+>
+  <CoinFlip client:load />
+</ToolLayout>

@@ -201,16 +201,106 @@ const tools = [
     icon: '🌍',
     category: 'productivity',
   },
+  // Calculator
+  {
+    slug: 'percent',
+    title: { ko: '퍼센트 계산기', en: 'Percent Calculator', ja: 'パーセント計算機' },
+    description: { ko: '퍼센트 계산, 증감률, 할인율 계산', en: 'Calculate percentages, rates, discounts', ja: 'パーセント計算、増減率計算' },
+    icon: '%',
+    category: 'calculator',
+  },
+  {
+    slug: 'discount',
+    title: { ko: '할인 계산기', en: 'Discount Calculator', ja: '割引計算機' },
+    description: { ko: '할인가 및 할인율 계산', en: 'Calculate discount price and rate', ja: '割引価格と割引率を計算' },
+    icon: '🏷️',
+    category: 'calculator',
+  },
+  {
+    slug: 'bmi',
+    title: { ko: 'BMI 계산기', en: 'BMI Calculator', ja: 'BMI計算機' },
+    description: { ko: '체질량 지수 및 적정 체중 계산', en: 'Calculate BMI and ideal weight', ja: 'BMIと適正体重を計算' },
+    icon: '⚖️',
+    category: 'calculator',
+  },
+  {
+    slug: 'age',
+    title: { ko: '나이 계산기', en: 'Age Calculator', ja: '年齢計算機' },
+    description: { ko: '만 나이, 띠, 별자리 계산', en: 'Calculate age, zodiac signs', ja: '年齢、干支、星座を計算' },
+    icon: '🎂',
+    category: 'calculator',
+  },
+  {
+    slug: 'dday',
+    title: { ko: 'D-Day 계산기', en: 'D-Day Calculator', ja: 'D-Day計算機' },
+    description: { ko: '특정 날짜까지 남은 일수 계산', en: 'Calculate days until a date', ja: '特定日までの日数を計算' },
+    icon: '📅',
+    category: 'calculator',
+  },
+  {
+    slug: 'dutch-pay',
+    title: { ko: '더치페이 계산기', en: 'Split Bill Calculator', ja: '割り勘計算機' },
+    description: { ko: 'N분의 1 정산 및 송금액 계산', en: 'Split bills and calculate payments', ja: '割り勘と送金額を計算' },
+    icon: '💸',
+    category: 'calculator',
+  },
+  {
+    slug: 'llm-cost',
+    title: { ko: 'LLM 비용 계산기', en: 'LLM Cost Calculator', ja: 'LLMコスト計算機' },
+    description: { ko: 'ChatGPT, Claude 등 AI 모델 API 비용 계산', en: 'Calculate AI model API costs', ja: 'AIモデルのAPIコストを計算' },
+    icon: '🤖',
+    category: 'developer',
+  },
+  {
+    slug: 'timestamp',
+    title: { ko: 'Unix Timestamp 변환기', en: 'Unix Timestamp Converter', ja: 'Unixタイムスタンプ変換' },
+    description: { ko: 'Unix Timestamp와 날짜 상호 변환', en: 'Convert Unix timestamp and date', ja: 'Unixタイムスタンプと日付を変換' },
+    icon: '⏱️',
+    category: 'developer',
+  },
+  // Random
+  {
+    slug: 'coin-flip',
+    title: { ko: '동전 던지기', en: 'Coin Flip', ja: 'コイントス' },
+    description: { ko: '공정한 동전 던지기로 결정하기', en: 'Make decisions with a fair coin flip', ja: 'コイントスで決める' },
+    icon: '🪙',
+    category: 'random',
+  },
+  {
+    slug: 'dice',
+    title: { ko: '주사위 굴리기', en: 'Dice Roller', ja: 'サイコロ' },
+    description: { ko: 'D4~D100 다양한 주사위 굴리기', en: 'Roll various dice from D4 to D100', ja: 'D4からD100まで様々なサイコロ' },
+    icon: '🎲',
+    category: 'random',
+  },
+  // Text
+  {
+    slug: 'kor-eng',
+    title: { ko: '한영 타자 변환기', en: 'Korean-English Converter', ja: '韓英タイピング変換' },
+    description: { ko: '영타로 친 한글, 한타로 친 영어 변환', en: 'Convert mistyped Korean/English', ja: '誤入力の韓国語/英語を変換' },
+    icon: '⌨️',
+    category: 'text',
+  },
+  // Image
+  {
+    slug: 'image-metadata',
+    title: { ko: '이미지 메타데이터 분석기', en: 'Image Metadata Viewer', ja: '画像メタデータビューア' },
+    description: { ko: '사진 촬영 기기, GPS 위치, 설정 정보 확인', en: 'View device, GPS, camera settings', ja: '撮影デバイス、GPS、カメラ設定を表示' },
+    icon: '🔍',
+    category: 'image',
+  },
 ];
 
 const categories = [
   { id: 'all', label: { ko: '전체', en: 'All', ja: 'すべて' } },
+  { id: 'calculator', label: { ko: '계산기', en: 'Calculator', ja: '計算機' } },
   { id: 'generators', label: { ko: '생성기', en: 'Generators', ja: '生成ツール' } },
   { id: 'converters', label: { ko: '변환기', en: 'Converters', ja: '変換ツール' } },
   { id: 'text', label: { ko: '텍스트', en: 'Text', ja: 'テキスト' } },
   { id: 'developer', label: { ko: '개발자', en: 'Developer', ja: '開発者' } },
   { id: 'designer', label: { ko: '디자이너', en: 'Designer', ja: 'デザイナー' } },
   { id: 'image', label: { ko: '이미지/사진', en: 'Image/Photo', ja: '画像/写真' } },
+  { id: 'random', label: { ko: '랜덤/뽑기', en: 'Random/Pick', ja: 'ランダム' } },
   { id: 'marketer', label: { ko: '마케터', en: 'Marketer', ja: 'マーケター' } },
   { id: 'productivity', label: { ko: '생산성', en: 'Productivity', ja: '生産性' } },
 ];

@@ -1,0 +1,14 @@
+---
+import ToolLayout from '../../layouts/ToolLayout.astro';
+import DiscountCalculator from '../../components/tools/DiscountCalculator';
+---
+
+<ToolLayout
+  title="할인 계산기"
+  description="할인된 최종 가격을 계산합니다. 원래 가격과 할인율을 입력하면 절약 금액과 최종 가격을 확인할 수 있습니다."
+  slug="discount"
+  icon="🏷️"
+  category="calculator"
+>
+  <DiscountCalculator client:load />
+</ToolLayout>

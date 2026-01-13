@@ -1,0 +1,14 @@
+---
+import ToolLayout from '../../layouts/ToolLayout.astro';
+import AgeCalculator from '../../components/tools/AgeCalculator';
+---
+
+<ToolLayout
+  title="나이 계산기"
+  description="생년월일로 만 나이, 세는 나이, 별자리, 띠 등을 계산합니다. 다음 생일까지 남은 일수도 확인하세요."
+  slug="age"
+  icon="🎂"
+  category="calculator"
+>
+  <AgeCalculator client:load />
+</ToolLayout>

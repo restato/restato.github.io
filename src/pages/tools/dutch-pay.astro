@@ -1,0 +1,14 @@
+---
+import ToolLayout from '../../layouts/ToolLayout.astro';
+import DutchPayCalculator from '../../components/tools/DutchPayCalculator';
+---
+
+<ToolLayout
+  title="더치페이 계산기"
+  description="N분의 1 정산을 쉽게! 총 금액을 인원수로 나누고, 각자 낸 금액을 입력하면 누가 누구에게 얼마를 보내야 하는지 계산합니다."
+  slug="dutch-pay"
+  icon="💸"
+  category="calculator"
+>
+  <DutchPayCalculator client:load />
+</ToolLayout>

@@ -1,0 +1,14 @@
+---
+import ToolLayout from '../../layouts/ToolLayout.astro';
+import PercentCalculator from '../../components/tools/PercentCalculator';
+---
+
+<ToolLayout
+  title="퍼센트 계산기"
+  description="퍼센트 계산을 쉽게! A는 B의 몇 %인지, B의 A%는 얼마인지, 증감률 계산 등"
+  slug="percent"
+  icon="💯"
+  category="calculator"
+>
+  <PercentCalculator client:load />
+</ToolLayout>

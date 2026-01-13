@@ -1,0 +1,14 @@
+---
+import ToolLayout from '../../layouts/ToolLayout.astro';
+import DiceRoller from '../../components/tools/DiceRoller';
+---
+
+<ToolLayout
+  title="주사위 굴리기"
+  description="D4, D6, D8, D10, D12, D20, D100 주사위를 굴려보세요. TRPG, 보드게임에 활용 가능합니다."
+  slug="dice"
+  icon="🎲"
+  category="random"
+>
+  <DiceRoller client:load />
+</ToolLayout>
