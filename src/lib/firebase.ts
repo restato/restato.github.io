@@ -4,7 +4,7 @@ import { getDatabase, ref, set, get, push, onValue, remove, onDisconnect } from 
 const firebaseConfig = {
   apiKey: "AIzaSyD9cO6TJFoUIFkM4qsPm7v2AiCV-_Oyzls",
   authDomain: "restato-52824.firebaseapp.com",
-  databaseURL: "https://restato-52824-default-rtdb.asia-southeast1.firebasedatabase.app",
+  databaseURL: "https://restato-52824-default-rtdb.firebaseio.com",
   projectId: "restato-52824",
   storageBucket: "restato-52824.firebasestorage.app",
   messagingSenderId: "713753016756",
