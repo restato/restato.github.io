@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 
 // 정적 JSON 데이터 경로
 const JOBS_DATA_URL = '/data/jobs.json';
@@ -32,56 +32,15 @@ const defaultSites: SiteInfo[] = [
   { id: 'airbnb', name: 'Airbnb', color: '#FF5A5F', url: 'https://careers.airbnb.com/positions/?_departments=engineering', status: 'link-only', jobCount: 0 },
 ];
 
-// 사이트별 추가 정보
-const siteDetails: Record<string, { description: string; features: string[] }> = {
-  daangn: {
-    description: '당근마켓 운영사. 지역 기반 중고거래 플랫폼.',
-    features: ['하이퍼로컬 서비스', '빠른 성장', '수평적 문화'],
-  },
-  dunamu: {
-    description: '업비트 운영사. 국내 최대 암호화폐 거래소.',
-    features: ['핀테크', '블록체인', '빠른 의사결정'],
-  },
-  woowahan: {
-    description: '배달의민족 운영사. 국내 최대 배달 플랫폼.',
-    features: ['음식 배달', '물류 혁신', '좋은 복지'],
-  },
-  naver: {
-    description: '국내 최대 검색 포털 및 IT 대기업.',
-    features: ['검색/AI', '커머스', '클라우드'],
-  },
-  kakaobank: {
-    description: '국내 대표 인터넷 전문은행.',
-    features: ['핀테크', '혁신 금융', '안정적 성장'],
-  },
-  toss: {
-    description: '금융 슈퍼앱. 종합 핀테크 서비스.',
-    features: ['핀테크', '스타트업 문화', '빠른 성장'],
-  },
-  line: {
-    description: '글로벌 메신저 앱. 일본/아시아 중심.',
-    features: ['글로벌 서비스', '메신저', '다양한 사업'],
-  },
-  samsung: {
-    description: '글로벌 테크 대기업.',
-    features: ['반도체', '스마트폰', '가전'],
-  },
-  kakao: {
-    description: '국내 대표 IT 플랫폼 기업.',
-    features: ['메신저', '콘텐츠', '모빌리티'],
-  },
-  airbnb: {
-    description: '글로벌 숙박 공유 플랫폼.',
-    features: ['글로벌 서비스', '여행/숙박', '리모트 근무'],
-  },
-};
-
 export default function JobsAggregator() {
   const [sites, setSites] = useState<SiteInfo[]>(defaultSites);
   const [isLoading, setIsLoading] = useState(true);
   const [lastUpdated, setLastUpdated] = useState<string>('');
   const [selectedSite, setSelectedSite] = useState<SiteInfo | null>(null);
-  const [isSheetOpen, setIsSheetOpen] = useState(false);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [iframeLoading, setIframeLoading] = useState(true);
+  const [iframeError, setIframeError] = useState(false);
+  const iframeRef = useRef<HTMLIFrameElement>(null);
 
   // 데이터 로드
   useEffect(() => {
@@ -103,28 +62,60 @@ export default function JobsAggregator() {
     fetchData();
   }, []);
 
-  // 사이트 클릭 핸들러
+  // 사이트 클릭 핸들러 - 바로 모달 열기
   const handleSiteClick = (site: SiteInfo) => {
     setSelectedSite(site);
-    setIsSheetOpen(true);
+    setIframeLoading(true);
+    setIframeError(false);
+    setIsModalOpen(true);
+    // body 스크롤 방지
+    document.body.style.overflow = 'hidden';
   };
 
-  // Bottom Sheet 닫기
-  const closeSheet = () => {
-    setIsSheetOpen(false);
-    setTimeout(() => setSelectedSite(null), 300);
+  // 모달 닫기
+  const closeModal = () => {
+    setIsModalOpen(false);
+    document.body.style.overflow = '';
+    setTimeout(() => {
+      setSelectedSite(null);
+      setIframeError(false);
+    }, 300);
+  };
+
+  // iframe 로드 완료 핸들러
+  const handleIframeLoad = () => {
+    setIframeLoading(false);
+  };
+
+  // iframe 에러 핸들러
+  const handleIframeError = () => {
+    setIframeLoading(false);
+    setIframeError(true);
   };
 
   // ESC 키로 닫기
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape' && isSheetOpen) {
-        closeSheet();
+      if (e.key === 'Escape' && isModalOpen) {
+        closeModal();
       }
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [isSheetOpen]);
+  }, [isModalOpen]);
+
+  // iframe 로드 타임아웃 (대부분의 사이트가 X-Frame-Options로 차단)
+  useEffect(() => {
+    if (isModalOpen && iframeLoading) {
+      const timeout = setTimeout(() => {
+        if (iframeLoading) {
+          setIframeLoading(false);
+          setIframeError(true);
+        }
+      }, 5000); // 5초 후 타임아웃
+      return () => clearTimeout(timeout);
+    }
+  }, [isModalOpen, iframeLoading]);
 
   const formatDate = (dateStr: string) => {
     if (!dateStr) return '';
@@ -206,7 +197,7 @@ export default function JobsAggregator() {
       {/* 안내 */}
       <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-xl p-4">
         <p className="text-sm text-blue-800 dark:text-blue-200">
-          <strong>안내:</strong> 사이트 카드를 클릭하면 상세 정보를 확인할 수 있습니다.
+          <strong>안내:</strong> 사이트 카드를 클릭하면 채용 페이지를 바로 확인할 수 있습니다.
         </p>
       </div>
 
@@ -215,93 +206,125 @@ export default function JobsAggregator() {
         <p>새로운 채용 사이트 추가 요청은 GitHub Issue로 남겨주세요.</p>
       </div>
 
-      {/* Bottom Sheet Overlay */}
-      {isSheetOpen && (
-        <div
-          className="fixed inset-0 bg-black/50 z-50 transition-opacity duration-300"
-          onClick={closeSheet}
-        />
-      )}
+      {/* 전체 화면 모달 */}
+      {isModalOpen && selectedSite && (
+        <>
+          {/* 모달 오버레이 */}
+          <div
+            className="fixed inset-0 bg-black/60 z-50 transition-opacity duration-300"
+            onClick={closeModal}
+          />
 
-      {/* Bottom Sheet */}
-      <div
-        className={`fixed bottom-0 left-0 right-0 bg-[var(--color-bg)] rounded-t-3xl z-50 transform transition-transform duration-300 ease-out ${
-          isSheetOpen ? 'translate-y-0' : 'translate-y-full'
-        }`}
-        style={{ maxHeight: '85vh' }}
-      >
-        {selectedSite && (
-          <div className="p-6 max-w-2xl mx-auto">
-            {/* Handle */}
-            <div className="w-12 h-1.5 bg-[var(--color-border)] rounded-full mx-auto mb-6" />
-
-            {/* Header */}
-            <div className="flex items-center gap-4 mb-6">
+          {/* 모달 컨테이너 */}
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4">
+            <div
+              className="bg-[var(--color-bg)] rounded-2xl w-full h-full max-w-[98vw] max-h-[98vh] flex flex-col shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-200"
+              onClick={(e) => e.stopPropagation()}
+            >
+              {/* 모달 헤더 */}
               <div
-                className="w-16 h-16 rounded-2xl flex items-center justify-center text-white font-bold text-2xl shrink-0"
+                className="flex items-center justify-between px-4 py-3 border-b border-[var(--color-border)] shrink-0"
                 style={{ backgroundColor: selectedSite.color }}
               >
-                {selectedSite.name.charAt(0)}
-              </div>
-              <div>
-                <h2 className="text-2xl font-bold text-[var(--color-text)]">{selectedSite.name}</h2>
-                <p className="text-[var(--color-text-muted)]">
-                  {siteDetails[selectedSite.id]?.description || 'IT 기업'}
-                </p>
-              </div>
-            </div>
-
-            {/* Features */}
-            {siteDetails[selectedSite.id]?.features && (
-              <div className="mb-6">
-                <h3 className="text-sm font-semibold text-[var(--color-text-muted)] mb-2">특징</h3>
-                <div className="flex flex-wrap gap-2">
-                  {siteDetails[selectedSite.id].features.map((feature, idx) => (
-                    <span
-                      key={idx}
-                      className="px-3 py-1.5 bg-[var(--color-card)] border border-[var(--color-border)] rounded-full text-sm text-[var(--color-text)]"
-                    >
-                      {feature}
-                    </span>
-                  ))}
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-xl bg-white/20 flex items-center justify-center text-white font-bold text-lg">
+                    {selectedSite.name.charAt(0)}
+                  </div>
+                  <div>
+                    <h2 className="text-lg font-bold text-white">{selectedSite.name} 채용공고</h2>
+                    <p className="text-xs text-white/80 hidden sm:block truncate max-w-md">
+                      {selectedSite.url}
+                    </p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-2">
+                  <a
+                    href={selectedSite.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="px-3 py-1.5 bg-white/20 hover:bg-white/30 text-white text-sm rounded-lg transition-colors flex items-center gap-1.5"
+                  >
+                    <span className="hidden sm:inline">새 탭에서 열기</span>
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                    </svg>
+                  </a>
+                  <button
+                    onClick={closeModal}
+                    className="p-2 bg-white/20 hover:bg-white/30 text-white rounded-lg transition-colors"
+                    aria-label="닫기"
+                  >
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                  </button>
                 </div>
               </div>
-            )}
 
-            {/* URL Preview */}
-            <div className="mb-6 p-4 bg-[var(--color-card)] rounded-xl border border-[var(--color-border)]">
-              <h3 className="text-sm font-semibold text-[var(--color-text-muted)] mb-2">
-                채용 페이지
-              </h3>
-              <p className="text-sm text-[var(--color-text)] break-all font-mono">
-                {selectedSite.url}
-              </p>
+              {/* iframe 컨테이너 */}
+              <div className="flex-1 relative bg-white">
+                {/* 로딩 표시 */}
+                {iframeLoading && !iframeError && (
+                  <div className="absolute inset-0 flex items-center justify-center bg-[var(--color-bg)]">
+                    <div className="text-center">
+                      <div
+                        className="w-12 h-12 border-4 border-t-transparent rounded-full animate-spin mx-auto mb-4"
+                        style={{ borderColor: selectedSite.color, borderTopColor: 'transparent' }}
+                      />
+                      <p className="text-[var(--color-text-muted)]">채용 페이지 로딩 중...</p>
+                    </div>
+                  </div>
+                )}
+
+                {/* iframe 로드 실패 시 대안 UI */}
+                {iframeError && (
+                  <div className="absolute inset-0 flex items-center justify-center bg-[var(--color-bg)]">
+                    <div className="text-center px-6 max-w-md">
+                      <div
+                        className="w-20 h-20 rounded-2xl flex items-center justify-center text-white font-bold text-3xl mx-auto mb-6"
+                        style={{ backgroundColor: selectedSite.color }}
+                      >
+                        {selectedSite.name.charAt(0)}
+                      </div>
+                      <h3 className="text-xl font-bold text-[var(--color-text)] mb-3">
+                        {selectedSite.name} 채용 페이지
+                      </h3>
+                      <p className="text-[var(--color-text-muted)] mb-6">
+                        보안 정책으로 인해 이 페이지에서 직접 표시할 수 없습니다.
+                        <br />
+                        아래 버튼을 눌러 새 탭에서 확인하세요.
+                      </p>
+                      <a
+                        href={selectedSite.url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center gap-2 px-6 py-3 text-white font-medium rounded-xl transition-opacity hover:opacity-90"
+                        style={{ backgroundColor: selectedSite.color }}
+                      >
+                        채용 페이지 열기
+                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                        </svg>
+                      </a>
+                    </div>
+                  </div>
+                )}
+
+                {/* iframe */}
+                <iframe
+                  ref={iframeRef}
+                  src={selectedSite.url}
+                  className={`w-full h-full border-0 ${iframeError ? 'hidden' : ''}`}
+                  onLoad={handleIframeLoad}
+                  onError={handleIframeError}
+                  sandbox="allow-same-origin allow-scripts allow-popups allow-forms"
+                  title={`${selectedSite.name} 채용 페이지`}
+                />
+              </div>
             </div>
-
-            {/* Actions */}
-            <div className="flex gap-3">
-              <button
-                onClick={closeSheet}
-                className="flex-1 px-4 py-3 rounded-xl border border-[var(--color-border)] text-[var(--color-text)] font-medium hover:bg-[var(--color-card)] transition-colors"
-              >
-                닫기
-              </button>
-              <a
-                href={selectedSite.url}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex-1 px-4 py-3 rounded-xl text-white font-medium text-center transition-opacity hover:opacity-90"
-                style={{ backgroundColor: selectedSite.color }}
-              >
-                채용 페이지 방문 ↗
-              </a>
-            </div>
-
-            {/* Safe area padding for mobile */}
-            <div className="h-6" />
           </div>
-        )}
-      </div>
+        </>
+      )}
     </div>
   );
 }
