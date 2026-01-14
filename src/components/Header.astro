@@ -1,13 +1,6 @@
 ---
 import LanguageSelector from './LanguageSelector';
-
-const navItems = [
-  { href: '/', label: 'Home' },
-  { href: '/blog', label: 'Blog' },
-  { href: '/tools', label: 'Tools' },
-  { href: '/projects', label: 'Projects' },
-  { href: '/about', label: 'About' },
-];
+import HeaderNav, { MobileNav } from './HeaderNav';
 
 const currentPath = Astro.url.pathname;
 ---
@@ -24,23 +17,7 @@ const currentPath = Astro.url.pathname;
 
     <!-- Navigation -->
     <div class="flex items-center gap-1">
-      <ul class="hidden sm:flex items-center">
-        {navItems.map((item) => (
-          <li>
-            <a
-              href={item.href}
-              class:list={[
-                'px-4 py-2 rounded-lg text-sm font-medium transition-colors',
-                currentPath === item.href || (item.href !== '/' && currentPath.startsWith(item.href))
-                  ? 'text-primary-600 dark:text-primary-400 bg-primary-500/10'
-                  : 'text-[var(--color-text-muted)] hover:text-[var(--color-text)] hover:bg-[var(--color-card-hover)]'
-              ]}
-            >
-              {item.label}
-            </a>
-          </li>
-        ))}
-      </ul>
+      <HeaderNav currentPath={currentPath} client:load />
 
       <!-- Language Selector -->
       <div class="hidden sm:block ml-2">
@@ -79,23 +56,7 @@ const currentPath = Astro.url.pathname;
 
   <!-- Mobile Menu -->
   <div id="mobile-menu" class="hidden sm:hidden border-t border-[var(--color-border)] bg-[var(--color-bg)]">
-    <ul class="px-4 py-3 space-y-1">
-      {navItems.map((item) => (
-        <li>
-          <a
-            href={item.href}
-            class:list={[
-              'block py-2.5 px-4 rounded-lg font-medium transition-colors',
-              currentPath === item.href || (item.href !== '/' && currentPath.startsWith(item.href))
-                ? 'bg-primary-500/10 text-primary-600 dark:text-primary-400'
-                : 'text-[var(--color-text-muted)] hover:bg-[var(--color-card-hover)] hover:text-[var(--color-text)]'
-            ]}
-          >
-            {item.label}
-          </a>
-        </li>
-      ))}
-    </ul>
+    <MobileNav currentPath={currentPath} client:load />
     <!-- Mobile Language Selector -->
     <div class="px-4 pb-3 pt-2 border-t border-[var(--color-border)]">
       <LanguageSelector client:load />
