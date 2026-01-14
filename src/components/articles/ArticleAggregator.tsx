@@ -640,58 +640,6 @@ const defaultFeedSources: FeedSource[] = [
   },
 ];
 
-const linkOnlySources: FeedSource[] = [
-  {
-    id: 'twitter',
-    name: 'X (Twitter)',
-    color: '#000000',
-    directUrl: 'https://x.com',
-    icon: '𝕏',
-    description: '실시간 소셜 미디어',
-    type: 'link-only',
-    category: 'social',
-  },
-  {
-    id: 'linkedin',
-    name: 'LinkedIn',
-    color: '#0A66C2',
-    directUrl: 'https://www.linkedin.com/feed/',
-    icon: '💼',
-    description: '비즈니스 SNS',
-    type: 'link-only',
-    category: 'social',
-  },
-  {
-    id: 'threads',
-    name: 'Threads',
-    color: '#000000',
-    directUrl: 'https://www.threads.net',
-    icon: '🧵',
-    description: 'Meta 소셜 미디어',
-    type: 'link-only',
-    category: 'social',
-  },
-  {
-    id: 'medium',
-    name: 'Medium',
-    color: '#000000',
-    directUrl: 'https://medium.com',
-    icon: '📝',
-    description: '블로그 플랫폼',
-    type: 'link-only',
-    category: 'social',
-  },
-  {
-    id: 'reddit',
-    name: 'Reddit',
-    color: '#FF4500',
-    directUrl: 'https://www.reddit.com/r/programming/',
-    icon: '🤖',
-    description: 'r/programming',
-    type: 'link-only',
-    category: 'social',
-  },
-];
 
 const stripHtml = (html: string): string => {
   const tmp = document.createElement('div');
@@ -764,7 +712,7 @@ const groupByDate = (articles: PickedArticle[]): Map<string, PickedArticle[]> =>
 export default function ArticleAggregator() {
   const [articles, setArticles] = useState<Article[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState<'feed' | 'picks' | 'sources'>('feed');
+  const [activeTab, setActiveTab] = useState<'feed' | 'picks'>('feed');
   const [selectedSources, setSelectedSources] = useState<string[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [refreshing, setRefreshing] = useState(false);
@@ -947,7 +895,6 @@ export default function ArticleAggregator() {
         {[
           { id: 'feed', label: '📰 피드' },
           { id: 'picks', label: `⭐ 수집함${pickedArticles.length > 0 ? ` (${pickedArticles.length})` : ''}` },
-          { id: 'sources', label: '🔗 소스' },
         ].map((tab) => (
           <button
             key={tab.id}
@@ -1137,46 +1084,6 @@ export default function ArticleAggregator() {
         </div>
       )}
 
-      {/* 소스 탭 - 읽기/선택만 가능 */}
-      {activeTab === 'sources' && (
-        <div className="space-y-6">
-          <div>
-            <h2 className="text-lg font-semibold mb-3 text-[var(--color-text)]">📡 RSS 소스 ({allFeedSources.length}개)</h2>
-            <p className="text-sm text-[var(--color-text-muted)] mb-4">
-              원하는 소스를 켜거나 꺼서 피드를 커스터마이즈하세요.
-            </p>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-              {allFeedSources.map((source) => (
-                <div key={source.id} className="flex items-center gap-3 p-4 rounded-xl border border-[var(--color-border)] bg-[var(--color-card)]">
-                  <div className="w-10 h-10 rounded-lg flex items-center justify-center text-xl shrink-0" style={{ backgroundColor: `${source.color}20` }}>
-                    {source.icon}
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <div className="font-medium text-[var(--color-text)] text-sm truncate">{source.name}</div>
-                    <div className="text-xs text-[var(--color-text-muted)]">{source.description}</div>
-                  </div>
-                  <label className="relative inline-flex items-center cursor-pointer">
-                    <input type="checkbox" checked={selectedSources.includes(source.id)} onChange={() => toggleSource(source.id)} className="sr-only peer" />
-                    <div className="w-9 h-5 bg-gray-200 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-orange-600"></div>
-                  </label>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          <div>
-            <h2 className="text-lg font-semibold mb-3 text-[var(--color-text)]">🔗 바로가기</h2>
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3">
-              {linkOnlySources.map((source) => (
-                <a key={source.id} href={source.directUrl} target="_blank" rel="noopener noreferrer" className="flex flex-col items-center gap-2 p-3 rounded-xl border border-[var(--color-border)] bg-[var(--color-card)] hover:border-orange-400 hover:shadow-md transition-all group">
-                  <div className="w-12 h-12 rounded-xl flex items-center justify-center text-xl" style={{ backgroundColor: `${source.color}20` }}>{source.icon}</div>
-                  <div className="font-medium text-[var(--color-text)] text-sm group-hover:text-orange-600 transition-colors">{source.name}</div>
-                </a>
-              ))}
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 }
