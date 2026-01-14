@@ -1,0 +1,93 @@
+{
+  "jobs": [],
+  "sites": [
+    {
+      "id": "woowahan",
+      "name": "우아한형제들",
+      "color": "#2AC1BC",
+      "url": "https://career.woowahan.com",
+      "status": "error",
+      "jobCount": 0,
+      "error": "fetch failed"
+    },
+    {
+      "id": "naver",
+      "name": "네이버",
+      "color": "#03C75A",
+      "url": "https://recruit.navercorp.com",
+      "status": "error",
+      "jobCount": 0,
+      "error": "fetch failed"
+    },
+    {
+      "id": "toss",
+      "name": "토스",
+      "color": "#0064FF",
+      "url": "https://toss.im/career/jobs",
+      "status": "error",
+      "jobCount": 0,
+      "error": "fetch failed"
+    },
+    {
+      "id": "line",
+      "name": "라인",
+      "color": "#00C300",
+      "url": "https://careers.linecorp.com/ko/jobs",
+      "status": "error",
+      "jobCount": 0,
+      "error": "fetch failed"
+    },
+    {
+      "id": "kakao",
+      "name": "카카오",
+      "color": "#FEE500",
+      "url": "https://careers.kakao.com/jobs",
+      "status": "error",
+      "jobCount": 0,
+      "error": "fetch failed"
+    },
+    {
+      "id": "daangn",
+      "name": "당근",
+      "color": "#FF6F0F",
+      "url": "https://about.daangn.com/jobs",
+      "status": "error",
+      "jobCount": 0,
+      "error": "fetch failed"
+    },
+    {
+      "id": "airbnb",
+      "name": "Airbnb",
+      "color": "#FF5A5F",
+      "url": "https://careers.airbnb.com/positions",
+      "status": "error",
+      "jobCount": 0,
+      "error": "fetch failed"
+    },
+    {
+      "id": "kakaobank",
+      "name": "카카오뱅크",
+      "color": "#FFCD00",
+      "url": "https://recruit.kakaobank.com/jobs",
+      "status": "link-only",
+      "jobCount": 0
+    },
+    {
+      "id": "dunamu",
+      "name": "두나무",
+      "color": "#093687",
+      "url": "https://www.dunamu.com/careers/jobs?category=engineering",
+      "status": "link-only",
+      "jobCount": 0
+    },
+    {
+      "id": "samsung",
+      "name": "삼성",
+      "color": "#1428A0",
+      "url": "https://www.samsungcareers.com/hr/",
+      "status": "link-only",
+      "jobCount": 0
+    }
+  ],
+  "lastUpdated": "2026-01-14T17:46:00.858Z"
+}
