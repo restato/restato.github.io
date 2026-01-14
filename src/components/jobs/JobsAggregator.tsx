@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 
 // 정적 JSON 데이터 경로
 const JOBS_DATA_URL = '/data/jobs.json';
@@ -35,11 +35,6 @@ const defaultSites: SiteInfo[] = [
 export default function JobsAggregator() {
   const [sites, setSites] = useState<SiteInfo[]>(defaultSites);
   const [isLoading, setIsLoading] = useState(true);
-  const [selectedSite, setSelectedSite] = useState<SiteInfo | null>(null);
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [iframeLoading, setIframeLoading] = useState(true);
-  const [iframeError, setIframeError] = useState(false);
-  const iframeRef = useRef<HTMLIFrameElement>(null);
 
   // 데이터 로드
   useEffect(() => {
@@ -59,73 +54,6 @@ export default function JobsAggregator() {
 
     fetchData();
   }, []);
-
-  // 사이트 클릭 핸들러 - 바로 모달 열기
-  const handleSiteClick = (site: SiteInfo) => {
-    setSelectedSite(site);
-    setIframeLoading(true);
-    setIframeError(false);
-    setIsModalOpen(true);
-    // body 스크롤 방지
-    document.body.style.overflow = 'hidden';
-  };
-
-  // 모달 닫기
-  const closeModal = () => {
-    setIsModalOpen(false);
-    document.body.style.overflow = '';
-    setTimeout(() => {
-      setSelectedSite(null);
-      setIframeError(false);
-    }, 300);
-  };
-
-  // iframe 로드 완료 핸들러
-  const handleIframeLoad = () => {
-    setIframeLoading(false);
-    // X-Frame-Options로 차단된 경우 contentWindow에 접근 시도
-    // 접근이 불가능하면 에러로 처리
-    try {
-      const iframe = iframeRef.current;
-      if (iframe) {
-        // cross-origin 차단된 경우 contentWindow.location에 접근하면 에러 발생
-        const _ = iframe.contentWindow?.location.href;
-      }
-    } catch {
-      // SecurityError: cross-origin 접근 차단됨 = X-Frame-Options 차단
-      setIframeError(true);
-    }
-  };
-
-  // iframe 에러 핸들러
-  const handleIframeError = () => {
-    setIframeLoading(false);
-    setIframeError(true);
-  };
-
-  // ESC 키로 닫기
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape' && isModalOpen) {
-        closeModal();
-      }
-    };
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [isModalOpen]);
-
-  // iframe 로드 타임아웃 (대부분의 사이트가 X-Frame-Options로 차단)
-  useEffect(() => {
-    if (isModalOpen && iframeLoading) {
-      const timeout = setTimeout(() => {
-        if (iframeLoading) {
-          setIframeLoading(false);
-          setIframeError(true);
-        }
-      }, 5000); // 5초 후 타임아웃
-      return () => clearTimeout(timeout);
-    }
-  }, [isModalOpen, iframeLoading]);
 
   return (
     <div className="space-y-6">
@@ -156,10 +84,12 @@ export default function JobsAggregator() {
         ) : (
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
             {sites.map((site) => (
-              <button
+              <a
                 key={site.id}
-                onClick={() => handleSiteClick(site)}
-                className="flex items-center gap-3 p-3 rounded-lg border border-[var(--color-border)] hover:border-blue-400 hover:shadow-md bg-[var(--color-card)] transition-all duration-200 group text-left"
+                href={site.url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center gap-3 p-3 rounded-lg border border-[var(--color-border)] hover:border-blue-400 hover:shadow-md bg-[var(--color-card)] transition-all duration-200 group"
               >
                 <div
                   className="w-10 h-10 rounded-lg flex items-center justify-center text-white font-bold text-sm shrink-0 group-hover:scale-110 transition-transform"
@@ -171,133 +101,18 @@ export default function JobsAggregator() {
                   <span className="font-medium text-[var(--color-text)] text-sm block truncate">
                     {site.name}
                   </span>
-                  <span className="text-xs text-[var(--color-text-muted)]">채용공고 보기</span>
+                  <span className="text-xs text-[var(--color-text-muted)] flex items-center gap-1">
+                    채용공고 보기
+                    <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                    </svg>
+                  </span>
                 </div>
-              </button>
+              </a>
             ))}
           </div>
         )}
       </div>
-
-      {/* 전체 화면 모달 */}
-      {isModalOpen && selectedSite && (
-        <>
-          {/* 모달 오버레이 */}
-          <div
-            className="fixed inset-0 bg-black/60 z-50 transition-opacity duration-300"
-            onClick={closeModal}
-          />
-
-          {/* 모달 컨테이너 */}
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4">
-            <div
-              className="bg-[var(--color-bg)] rounded-2xl w-full h-full max-w-[98vw] max-h-[98vh] flex flex-col shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-200"
-              onClick={(e) => e.stopPropagation()}
-            >
-              {/* 모달 헤더 */}
-              <div
-                className="flex items-center justify-between px-4 py-3 border-b border-[var(--color-border)] shrink-0"
-                style={{ backgroundColor: selectedSite.color }}
-              >
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-xl bg-white/20 flex items-center justify-center text-white font-bold text-lg">
-                    {selectedSite.name.charAt(0)}
-                  </div>
-                  <div>
-                    <h2 className="text-lg font-bold text-white">{selectedSite.name} 채용공고</h2>
-                    <p className="text-xs text-white/80 hidden sm:block truncate max-w-md">
-                      {selectedSite.url}
-                    </p>
-                  </div>
-                </div>
-                <div className="flex items-center gap-2">
-                  <a
-                    href={selectedSite.url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="px-3 py-1.5 bg-white/20 hover:bg-white/30 text-white text-sm rounded-lg transition-colors flex items-center gap-1.5"
-                  >
-                    <span className="hidden sm:inline">새 탭에서 열기</span>
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
-                    </svg>
-                  </a>
-                  <button
-                    onClick={closeModal}
-                    className="p-2 bg-white/20 hover:bg-white/30 text-white rounded-lg transition-colors"
-                    aria-label="닫기"
-                  >
-                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                    </svg>
-                  </button>
-                </div>
-              </div>
-
-              {/* iframe 컨테이너 */}
-              <div className="flex-1 relative bg-white">
-                {/* 로딩 표시 */}
-                {iframeLoading && !iframeError && (
-                  <div className="absolute inset-0 flex items-center justify-center bg-[var(--color-bg)]">
-                    <div className="text-center">
-                      <div
-                        className="w-12 h-12 border-4 border-t-transparent rounded-full animate-spin mx-auto mb-4"
-                        style={{ borderColor: selectedSite.color, borderTopColor: 'transparent' }}
-                      />
-                      <p className="text-[var(--color-text-muted)]">채용 페이지 로딩 중...</p>
-                    </div>
-                  </div>
-                )}
-
-                {/* iframe 로드 실패 시 대안 UI */}
-                {iframeError && (
-                  <div className="absolute inset-0 flex items-center justify-center bg-[var(--color-bg)]">
-                    <div className="text-center px-6 max-w-md">
-                      <div
-                        className="w-20 h-20 rounded-2xl flex items-center justify-center text-white font-bold text-3xl mx-auto mb-6"
-                        style={{ backgroundColor: selectedSite.color }}
-                      >
-                        {selectedSite.name.charAt(0)}
-                      </div>
-                      <h3 className="text-xl font-bold text-[var(--color-text)] mb-3">
-                        {selectedSite.name} 채용 페이지
-                      </h3>
-                      <p className="text-[var(--color-text-muted)] mb-6">
-                        보안 정책으로 인해 이 페이지에서 직접 표시할 수 없습니다.
-                        <br />
-                        아래 버튼을 눌러 새 탭에서 확인하세요.
-                      </p>
-                      <a
-                        href={selectedSite.url}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="inline-flex items-center gap-2 px-6 py-3 text-white font-medium rounded-xl transition-opacity hover:opacity-90"
-                        style={{ backgroundColor: selectedSite.color }}
-                      >
-                        채용 페이지 열기
-                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
-                        </svg>
-                      </a>
-                    </div>
-                  </div>
-                )}
-
-                {/* iframe */}
-                <iframe
-                  ref={iframeRef}
-                  src={selectedSite.url}
-                  className={`w-full h-full border-0 ${iframeError ? 'hidden' : ''}`}
-                  onLoad={handleIframeLoad}
-                  onError={handleIframeError}
-                  sandbox="allow-same-origin allow-scripts allow-popups allow-forms"
-                  title={`${selectedSite.name} 채용 페이지`}
-                />
-              </div>
-            </div>
-          </div>
-        </>
-      )}
     </div>
   );
 }
