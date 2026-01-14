@@ -1,106 +1,21 @@
 ---
 import MainLayout from '../../layouts/MainLayout.astro';
 import { getCollection } from 'astro:content';
+import { ProjectsHeader, ProjectsGrid, NewProjectCard } from '../../components/ProjectsContent';
 
 const projects = (await getCollection('projects'))
   .sort((a, b) => a.data.order - b.data.order);
-
-// Hardcoded projects for now (can be moved to content collection later)
-const builtInProjects = [
-  {
-    slug: 'games',
-    title: '게임센터',
-    description: '재미있는 미니게임 모음',
-    icon: '🎮',
-    tags: ['Games', 'Interactive', 'Fun'],
-    featured: true,
-  },
-  {
-    slug: 'roulette',
-    title: '룰렛',
-    description: '커스텀 항목으로 돌리는 랜덤 룰렛 게임',
-    icon: '🎡',
-    tags: ['React', 'Animation'],
-  },
-  {
-    slug: 'slot-machine',
-    title: '슬롯머신',
-    description: '행운의 777을 노려보세요!',
-    icon: '🎰',
-    tags: ['React', 'Game'],
-  },
-  {
-    slug: 'rock-paper-scissors',
-    title: '가위바위보',
-    description: 'AI와 대결하는 가위바위보',
-    icon: '✊',
-    tags: ['React', 'AI'],
-  },
-  {
-    slug: 'number-guess',
-    title: '숫자 맞추기',
-    description: 'Up & Down 숫자 맞추기 게임',
-    icon: '🔢',
-    tags: ['React', 'Puzzle'],
-  },
-  {
-    slug: 'memory-game',
-    title: '기억력 게임',
-    description: '카드 짝 맞추기 두뇌 게임',
-    icon: '🧠',
-    tags: ['React', 'Brain'],
-  },
-  {
-    slug: 'reaction-test',
-    title: '반응속도',
-    description: '당신의 반응속도를 측정하세요',
-    icon: '⚡',
-    tags: ['React', 'Test'],
-  },
-  {
-    slug: 'gallery',
-    title: '갤러리',
-    description: '사진 갤러리',
-    icon: '📷',
-    tags: ['Gallery', 'Lightbox'],
-  },
-];
 ---
 
 <MainLayout title="프로젝트 | Restato" description="Claude와 함께 만든 프로젝트들">
   <section class="py-16 px-4">
     <div class="max-w-5xl mx-auto">
       <!-- Header -->
-      <div class="mb-12">
-        <h1 class="text-4xl font-bold mb-4">프로젝트</h1>
-        <p class="text-xl text-[var(--color-text-muted)]">
-          Claude와 함께 만든 다양한 프로젝트들
-        </p>
-      </div>
+      <ProjectsHeader client:load />
 
       <!-- Projects Grid -->
       <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {builtInProjects.map((project) => (
-          <a
-            href={`/projects/${project.slug}`}
-            class="card group hover:border-primary-500/50"
-          >
-            <div class="text-5xl mb-4">{project.icon}</div>
-            <h3 class="text-xl font-bold mb-2 group-hover:text-primary-500 transition-colors">
-              {project.title}
-            </h3>
-            <p class="text-[var(--color-text-muted)] mb-4">
-              {project.description}
-            </p>
-            <div class="flex flex-wrap gap-2">
-              {project.tags.map((tag) => (
-                <span class="text-xs px-2 py-1 rounded-full bg-[var(--color-border)] text-[var(--color-text-muted)]">
-                  {tag}
-                </span>
-              ))}
-            </div>
-          </a>
-        ))}
+        <ProjectsGrid client:load />
 
         {projects.map((project) => (
           <a
@@ -135,13 +50,7 @@ const builtInProjects = [
         ))}
 
         <!-- Add New Project Card -->
-        <div class="card border-dashed flex flex-col items-center justify-center text-center opacity-60 hover:opacity-100 transition-opacity">
-          <div class="text-4xl mb-4">✨</div>
-          <h3 class="text-lg font-bold mb-2">새 프로젝트</h3>
-          <p class="text-sm text-[var(--color-text-muted)]">
-            Coming Soon...
-          </p>
-        </div>
+        <NewProjectCard client:load />
       </div>
     </div>
   </section>
