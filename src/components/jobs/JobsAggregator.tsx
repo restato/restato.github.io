@@ -35,7 +35,6 @@ const defaultSites: SiteInfo[] = [
 export default function JobsAggregator() {
   const [sites, setSites] = useState<SiteInfo[]>(defaultSites);
   const [isLoading, setIsLoading] = useState(true);
-  const [lastUpdated, setLastUpdated] = useState<string>('');
   const [selectedSite, setSelectedSite] = useState<SiteInfo | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [iframeLoading, setIframeLoading] = useState(true);
@@ -51,7 +50,6 @@ export default function JobsAggregator() {
 
         const data: JobsData = await response.json();
         setSites(data.sites);
-        setLastUpdated(data.lastUpdated);
       } catch (error) {
         console.error('Failed to fetch data:', error);
       } finally {
@@ -117,37 +115,12 @@ export default function JobsAggregator() {
     }
   }, [isModalOpen, iframeLoading]);
 
-  const formatDate = (dateStr: string) => {
-    if (!dateStr) return '';
-    const date = new Date(dateStr);
-    return date.toLocaleString('ko-KR', {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit',
-    });
-  };
-
   return (
     <div className="space-y-6">
       {/* 헤더 */}
       <div className="bg-gradient-to-r from-blue-500 to-purple-600 rounded-xl p-6 text-white">
         <h1 className="text-2xl font-bold mb-2">IT 채용공고 모음</h1>
-        <p className="opacity-90 mb-4">국내외 IT 기업들의 채용 페이지 바로가기</p>
-
-        <div className="flex flex-wrap gap-4 text-sm">
-          <div className="bg-white/20 rounded-lg px-3 py-2">
-            <span className="opacity-80">등록 사이트</span>
-            <span className="ml-2 font-bold">{sites.length}개</span>
-          </div>
-          {lastUpdated && (
-            <div className="bg-white/20 rounded-lg px-3 py-2">
-              <span className="opacity-80">업데이트</span>
-              <span className="ml-2">{formatDate(lastUpdated)}</span>
-            </div>
-          )}
-        </div>
+        <p className="opacity-90">국내외 IT 기업들의 채용 페이지 바로가기</p>
       </div>
 
       {/* 사이트 목록 */}
@@ -192,18 +165,6 @@ export default function JobsAggregator() {
             ))}
           </div>
         )}
-      </div>
-
-      {/* 안내 */}
-      <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-xl p-4">
-        <p className="text-sm text-blue-800 dark:text-blue-200">
-          <strong>안내:</strong> 사이트 카드를 클릭하면 채용 페이지를 바로 확인할 수 있습니다.
-        </p>
-      </div>
-
-      {/* 추가 정보 */}
-      <div className="text-center text-sm text-[var(--color-text-muted)] py-4">
-        <p>새로운 채용 사이트 추가 요청은 GitHub Issue로 남겨주세요.</p>
       </div>
 
       {/* 전체 화면 모달 */}
