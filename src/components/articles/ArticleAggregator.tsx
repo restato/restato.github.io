@@ -819,29 +819,7 @@ export default function ArticleAggregator() {
     }
   }, [selectedSources.length > 0]);
 
-  const toggleSource = (sourceId: string) => {
-    setSelectedSources((prev) => {
-      const newSelected = prev.includes(sourceId)
-        ? prev.filter((id) => id !== sourceId)
-        : [...prev, sourceId];
-
-      const stored = loadStoredData();
-      stored.disabledSources = allFeedSources
-        .filter((s) => !newSelected.includes(s.id))
-        .map((s) => s.id);
-      saveStoredData(stored);
-
-      return newSelected;
-    });
-  };
-
-  // 카테고리로 필터링된 소스 (선택된 소스만 표시)
-  const filteredSources =
-    categoryFilter === 'all'
-      ? allFeedSources.filter((s) => selectedSources.includes(s.id))
-      : allFeedSources.filter((s) => s.category === categoryFilter && selectedSources.includes(s.id));
-
-  // 카테고리로 필터링된 아티클 (핵심 수정: 아티클도 카테고리로 필터링)
+  // 카테고리로 필터링된 아티클
   const filteredArticles =
     categoryFilter === 'all'
       ? articles
@@ -931,24 +909,6 @@ export default function ArticleAggregator() {
                 }`}
               >
                 {cat.label}
-              </button>
-            ))}
-          </div>
-
-          {/* 소스 필터 (선택된 카테고리의 소스만 표시) */}
-          <div className="flex flex-wrap gap-2 mb-4">
-            {filteredSources.map((source) => (
-              <button
-                key={source.id}
-                onClick={() => toggleSource(source.id)}
-                className={`px-3 py-1.5 rounded-full text-sm font-medium transition-all ${
-                  selectedSources.includes(source.id)
-                    ? 'text-white'
-                    : 'bg-[var(--color-card)] text-[var(--color-text-muted)] border border-[var(--color-border)] opacity-50'
-                }`}
-                style={selectedSources.includes(source.id) ? { backgroundColor: source.color } : {}}
-              >
-                {source.icon} {source.name}
               </button>
             ))}
           </div>
