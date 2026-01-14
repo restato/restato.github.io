@@ -83,6 +83,18 @@ export default function JobsAggregator() {
   // iframe 로드 완료 핸들러
   const handleIframeLoad = () => {
     setIframeLoading(false);
+    // X-Frame-Options로 차단된 경우 contentWindow에 접근 시도
+    // 접근이 불가능하면 에러로 처리
+    try {
+      const iframe = iframeRef.current;
+      if (iframe) {
+        // cross-origin 차단된 경우 contentWindow.location에 접근하면 에러 발생
+        const _ = iframe.contentWindow?.location.href;
+      }
+    } catch {
+      // SecurityError: cross-origin 접근 차단됨 = X-Frame-Options 차단
+      setIframeError(true);
+    }
   };
 
   // iframe 에러 핸들러
