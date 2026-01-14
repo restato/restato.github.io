@@ -1,5 +1,18 @@
 import type { JobSiteStatus } from '../../types/jobs';
-import { jobSites } from '../../data/jobSites';
+
+// 사이트 색상 매핑
+const siteColors: Record<string, string> = {
+  woowahan: '#2AC1BC',
+  naver: '#03C75A',
+  kakaobank: '#FFCD00',
+  toss: '#0064FF',
+  line: '#00C300',
+  dunamu: '#093687',
+  daangn: '#FF6F0F',
+  samsung: '#1428A0',
+  kakao: '#FEE500',
+  airbnb: '#FF5A5F',
+};
 
 interface JobSiteCardProps {
   status: JobSiteStatus;
@@ -8,8 +21,7 @@ interface JobSiteCardProps {
 }
 
 export default function JobSiteCard({ status, onClick, isSelected }: JobSiteCardProps) {
-  const site = jobSites.find((s) => s.id === status.siteId);
-  const isLinkOnly = status.status === 'link-only';
+  const color = siteColors[status.siteId] || '#666';
 
   return (
     <button
@@ -26,7 +38,7 @@ export default function JobSiteCard({ status, onClick, isSelected }: JobSiteCard
       {/* 회사 로고 */}
       <div
         className="w-10 h-10 rounded-lg flex items-center justify-center text-white font-bold text-sm shrink-0"
-        style={{ backgroundColor: site?.color || '#666' }}
+        style={{ backgroundColor: color }}
       >
         {status.siteName.charAt(0)}
       </div>
@@ -34,37 +46,22 @@ export default function JobSiteCard({ status, onClick, isSelected }: JobSiteCard
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-2">
           <span className="font-medium text-[var(--color-text)]">{status.siteName}</span>
-          {/* 상태 표시 */}
-          {status.status === 'loading' && (
-            <span className="animate-spin text-xs">⏳</span>
-          )}
-          {status.status === 'success' && (
-            <span className="text-green-500 text-xs">✓</span>
-          )}
+          {status.status === 'success' && <span className="text-green-500 text-xs">✓</span>}
           {status.status === 'error' && (
             <span className="text-red-500 text-xs" title={status.error}>
               ✕
             </span>
           )}
-          {isLinkOnly && (
-            <span className="text-yellow-500 text-xs" title="직접 방문 필요">
-              🔗
-            </span>
-          )}
         </div>
 
         <div className="text-sm text-[var(--color-text-muted)]">
-          {status.status === 'loading' && '로딩 중...'}
           {status.status === 'success' && `${status.jobCount}개 채용공고`}
           {status.status === 'error' && '불러오기 실패'}
-          {isLinkOnly && '직접 방문'}
         </div>
       </div>
 
       {/* 선택 표시 */}
-      {isSelected && (
-        <span className="text-blue-500 text-lg">✓</span>
-      )}
+      {isSelected && <span className="text-blue-500 text-lg">✓</span>}
     </button>
   );
 }
