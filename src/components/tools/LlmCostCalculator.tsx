@@ -49,22 +49,16 @@ const MODEL_PRICES: ModelPrice[] = [
   { name: 'gemini-1.5-pro', displayName: 'Gemini 1.5 Pro', provider: 'Google', inputCost: 0.00125, outputCost: 0.005, maxInputTokens: 2097152, maxOutputTokens: 8192 },
   { name: 'gemini-1.5-flash', displayName: 'Gemini 1.5 Flash', provider: 'Google', inputCost: 0.000075, outputCost: 0.0003, maxInputTokens: 1048576, maxOutputTokens: 8192 },
 
-  // Meta (via providers)
-  { name: 'llama-3.3-70b', displayName: 'Llama 3.3 70B', provider: 'Meta', inputCost: 0.00059, outputCost: 0.00079, maxInputTokens: 128000, maxOutputTokens: 128000 },
-  { name: 'llama-3.1-405b', displayName: 'Llama 3.1 405B', provider: 'Meta', inputCost: 0.003, outputCost: 0.003, maxInputTokens: 128000, maxOutputTokens: 128000 },
-  { name: 'llama-3.1-70b', displayName: 'Llama 3.1 70B', provider: 'Meta', inputCost: 0.00059, outputCost: 0.00079, maxInputTokens: 128000, maxOutputTokens: 128000 },
-  { name: 'llama-3.1-8b', displayName: 'Llama 3.1 8B', provider: 'Meta', inputCost: 0.00006, outputCost: 0.00006, maxInputTokens: 128000, maxOutputTokens: 128000 },
+  // AWS Bedrock (same models with AWS markup)
+  { name: 'bedrock-claude-3.5-sonnet', displayName: 'Claude 3.5 Sonnet', provider: 'AWS Bedrock', inputCost: 0.003, outputCost: 0.015, maxInputTokens: 200000, maxOutputTokens: 8192 },
+  { name: 'bedrock-claude-3-haiku', displayName: 'Claude 3 Haiku', provider: 'AWS Bedrock', inputCost: 0.00025, outputCost: 0.00125, maxInputTokens: 200000, maxOutputTokens: 4096 },
+  { name: 'bedrock-claude-3-opus', displayName: 'Claude 3 Opus', provider: 'AWS Bedrock', inputCost: 0.015, outputCost: 0.075, maxInputTokens: 200000, maxOutputTokens: 4096 },
 
-  // Mistral
-  { name: 'mistral-large', displayName: 'Mistral Large', provider: 'Mistral', inputCost: 0.002, outputCost: 0.006, maxInputTokens: 128000, maxOutputTokens: 128000 },
-  { name: 'mistral-small', displayName: 'Mistral Small', provider: 'Mistral', inputCost: 0.0002, outputCost: 0.0006, maxInputTokens: 32000, maxOutputTokens: 32000 },
-
-  // DeepSeek
-  { name: 'deepseek-chat', displayName: 'DeepSeek V3', provider: 'DeepSeek', inputCost: 0.00027, outputCost: 0.0011, maxInputTokens: 64000, maxOutputTokens: 8192 },
-  { name: 'deepseek-reasoner', displayName: 'DeepSeek R1', provider: 'DeepSeek', inputCost: 0.00055, outputCost: 0.00219, maxInputTokens: 64000, maxOutputTokens: 8192 },
-
-  // xAI
-  { name: 'grok-2', displayName: 'Grok 2', provider: 'xAI', inputCost: 0.002, outputCost: 0.01, maxInputTokens: 131072, maxOutputTokens: 131072 },
+  // Azure OpenAI
+  { name: 'azure-gpt-4o', displayName: 'GPT-4o', provider: 'Azure', inputCost: 0.0025, outputCost: 0.01, maxInputTokens: 128000, maxOutputTokens: 16384 },
+  { name: 'azure-gpt-4o-mini', displayName: 'GPT-4o Mini', provider: 'Azure', inputCost: 0.00015, outputCost: 0.0006, maxInputTokens: 128000, maxOutputTokens: 16384 },
+  { name: 'azure-gpt-4-turbo', displayName: 'GPT-4 Turbo', provider: 'Azure', inputCost: 0.01, outputCost: 0.03, maxInputTokens: 128000, maxOutputTokens: 4096 },
+  { name: 'azure-gpt-4', displayName: 'GPT-4', provider: 'Azure', inputCost: 0.03, outputCost: 0.06, maxInputTokens: 8192, maxOutputTokens: 8192 },
 ];
 
 // Simple tokenizer estimation (GPT-like: ~4 chars per token for English, ~2 chars for Korean)
@@ -99,7 +93,7 @@ export default function LlmCostCalculator() {
   const [outputText, setOutputText] = useState('');
   const [inputTokensManual, setInputTokensManual] = useState('');
   const [outputTokensManual, setOutputTokensManual] = useState('1000');
-  const [selectedProvider, setSelectedProvider] = useState<string>('all');
+  const [selectedProviders, setSelectedProviders] = useState<Set<string>>(() => new Set(MODEL_PRICES.map(m => m.provider)));
   const [selectedModels, setSelectedModels] = useState<Set<string>>(new Set(MODEL_PRICES.map(m => m.name)));
   const [useManualTokens, setUseManualTokens] = useState(false);
   const [requestCount, setRequestCount] = useState('1');
@@ -160,17 +154,32 @@ export default function LlmCostCalculator() {
   const requests = parseInt(requestCount) || 1;
 
   const providers = useMemo(() => {
-    const uniqueProviders = [...new Set(MODEL_PRICES.map((m) => m.provider))];
-    return ['all', ...uniqueProviders];
+    return [...new Set(MODEL_PRICES.map((m) => m.provider))];
   }, []);
 
   const filteredModels = useMemo(() => {
-    let models = MODEL_PRICES;
-    if (selectedProvider !== 'all') {
-      models = models.filter((m) => m.provider === selectedProvider);
+    return MODEL_PRICES
+      .filter((m) => selectedProviders.has(m.provider))
+      .filter((m) => selectedModels.has(m.name));
+  }, [selectedProviders, selectedModels]);
+
+  const toggleProvider = (provider: string) => {
+    const newSet = new Set(selectedProviders);
+    if (newSet.has(provider)) {
+      newSet.delete(provider);
+    } else {
+      newSet.add(provider);
     }
-    return models.filter((m) => selectedModels.has(m.name));
-  }, [selectedProvider, selectedModels]);
+    setSelectedProviders(newSet);
+  };
+
+  const selectAllProviders = () => {
+    setSelectedProviders(new Set(providers));
+  };
+
+  const deselectAllProviders = () => {
+    setSelectedProviders(new Set());
+  };
 
   const calculateCost = (model: ModelPrice) => {
     const inputCost = (inputTokens / 1000) * model.inputCost * requests;
@@ -555,26 +564,42 @@ export default function LlmCostCalculator() {
       {/* Provider Filter */}
       <div className="space-y-2">
         <div className="flex items-center justify-between">
-          <label className="text-sm font-medium text-[var(--color-text)]">제공업체 필터</label>
-          <button
-            onClick={() => setShowModelSelector(!showModelSelector)}
-            className="text-sm text-primary-500 hover:underline"
-          >
-            {showModelSelector ? '모델 선택 닫기' : '모델 개별 선택'}
-          </button>
+          <label className="text-sm font-medium text-[var(--color-text)]">제공업체 필터 (복수 선택)</label>
+          <div className="flex gap-2">
+            <button
+              onClick={selectAllProviders}
+              className="text-xs text-primary-500 hover:underline"
+            >
+              전체 선택
+            </button>
+            <span className="text-[var(--color-text-muted)]">|</span>
+            <button
+              onClick={deselectAllProviders}
+              className="text-xs text-[var(--color-text-muted)] hover:underline"
+            >
+              전체 해제
+            </button>
+            <span className="text-[var(--color-text-muted)]">|</span>
+            <button
+              onClick={() => setShowModelSelector(!showModelSelector)}
+              className="text-xs text-primary-500 hover:underline"
+            >
+              {showModelSelector ? '모델 선택 닫기' : '모델 개별 선택'}
+            </button>
+          </div>
         </div>
         <div className="flex flex-wrap gap-2">
           {providers.map((provider) => (
             <button
               key={provider}
-              onClick={() => setSelectedProvider(provider)}
+              onClick={() => toggleProvider(provider)}
               className={`px-3 py-1 rounded-lg text-sm font-medium transition-colors
-                ${selectedProvider === provider
+                ${selectedProviders.has(provider)
                   ? 'bg-primary-500 text-white'
                   : 'bg-[var(--color-card)] hover:bg-[var(--color-card-hover)] text-[var(--color-text)] border border-[var(--color-border)]'
                 }`}
             >
-              {provider === 'all' ? '전체' : provider}
+              {provider}
             </button>
           ))}
         </div>
