@@ -1,0 +1,13 @@
+---
+import MainLayout from '../../layouts/MainLayout.astro';
+import ArticleAggregator from '../../components/articles/ArticleAggregator';
+---
+
+<MainLayout
+  title="아티클 피드 | Restato"
+  description="개발/기술 뉴스를 한 곳에서 모아보세요. GeekNews, Hacker News, DEV.to, TechCrunch 등 주요 기술 뉴스와 아티클을 실시간으로 확인할 수 있습니다."
+>
+  <div class="max-w-4xl mx-auto px-4 py-8">
+    <ArticleAggregator client:load />
+  </div>
+</MainLayout>
