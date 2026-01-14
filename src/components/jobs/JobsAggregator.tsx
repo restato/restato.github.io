@@ -1,168 +1,130 @@
-import { useState, useEffect, useMemo, useCallback } from 'react';
-import type { JobPosting, JobSiteStatus } from '../../types/jobs';
-import JobCard from './JobCard';
-import JobSiteCard from './JobSiteCard';
+import { useState, useEffect } from 'react';
 
 // 정적 JSON 데이터 경로
 const JOBS_DATA_URL = '/data/jobs.json';
 
+interface SiteInfo {
+  id: string;
+  name: string;
+  color: string;
+  url: string;
+  status: 'link-only';
+  jobCount: number;
+}
+
 interface JobsData {
-  jobs: JobPosting[];
-  sites: {
-    id: string;
-    name: string;
-    color: string;
-    url: string;
-    status: 'success' | 'error' | 'link-only';
-    jobCount: number;
-    error?: string;
-  }[];
+  jobs: [];
+  sites: SiteInfo[];
   lastUpdated: string;
 }
 
+// 기본 사이트 정보 (데이터 로딩 실패 시 사용)
+const defaultSites: SiteInfo[] = [
+  { id: 'daangn', name: '당근', color: '#FF6F0F', url: 'https://about.daangn.com/jobs', status: 'link-only', jobCount: 0 },
+  { id: 'dunamu', name: '두나무', color: '#093687', url: 'https://www.dunamu.com/careers/jobs', status: 'link-only', jobCount: 0 },
+  { id: 'woowahan', name: '우아한형제들', color: '#2AC1BC', url: 'https://career.woowahan.com', status: 'link-only', jobCount: 0 },
+  { id: 'naver', name: '네이버', color: '#03C75A', url: 'https://recruit.navercorp.com/rcrt/list.do?lang=ko', status: 'link-only', jobCount: 0 },
+  { id: 'kakaobank', name: '카카오뱅크', color: '#FFCD00', url: 'https://recruit.kakaobank.com/jobs', status: 'link-only', jobCount: 0 },
+  { id: 'toss', name: '토스', color: '#0064FF', url: 'https://toss.im/career/jobs', status: 'link-only', jobCount: 0 },
+  { id: 'line', name: '라인', color: '#00C300', url: 'https://careers.linecorp.com/ko/jobs/?co=East%20Asia', status: 'link-only', jobCount: 0 },
+  { id: 'samsung', name: '삼성', color: '#1428A0', url: 'https://www.samsungcareers.com/hr/', status: 'link-only', jobCount: 0 },
+  { id: 'kakao', name: '카카오', color: '#FEE500', url: 'https://careers.kakao.com/jobs?part=TECHNOLOGY', status: 'link-only', jobCount: 0 },
+  { id: 'airbnb', name: 'Airbnb', color: '#FF5A5F', url: 'https://careers.airbnb.com/positions/?_departments=engineering', status: 'link-only', jobCount: 0 },
+];
+
+// 사이트별 추가 정보
+const siteDetails: Record<string, { description: string; features: string[] }> = {
+  daangn: {
+    description: '당근마켓 운영사. 지역 기반 중고거래 플랫폼.',
+    features: ['하이퍼로컬 서비스', '빠른 성장', '수평적 문화'],
+  },
+  dunamu: {
+    description: '업비트 운영사. 국내 최대 암호화폐 거래소.',
+    features: ['핀테크', '블록체인', '빠른 의사결정'],
+  },
+  woowahan: {
+    description: '배달의민족 운영사. 국내 최대 배달 플랫폼.',
+    features: ['음식 배달', '물류 혁신', '좋은 복지'],
+  },
+  naver: {
+    description: '국내 최대 검색 포털 및 IT 대기업.',
+    features: ['검색/AI', '커머스', '클라우드'],
+  },
+  kakaobank: {
+    description: '국내 대표 인터넷 전문은행.',
+    features: ['핀테크', '혁신 금융', '안정적 성장'],
+  },
+  toss: {
+    description: '금융 슈퍼앱. 종합 핀테크 서비스.',
+    features: ['핀테크', '스타트업 문화', '빠른 성장'],
+  },
+  line: {
+    description: '글로벌 메신저 앱. 일본/아시아 중심.',
+    features: ['글로벌 서비스', '메신저', '다양한 사업'],
+  },
+  samsung: {
+    description: '글로벌 테크 대기업.',
+    features: ['반도체', '스마트폰', '가전'],
+  },
+  kakao: {
+    description: '국내 대표 IT 플랫폼 기업.',
+    features: ['메신저', '콘텐츠', '모빌리티'],
+  },
+  airbnb: {
+    description: '글로벌 숙박 공유 플랫폼.',
+    features: ['글로벌 서비스', '여행/숙박', '리모트 근무'],
+  },
+};
+
 export default function JobsAggregator() {
-  const [jobs, setJobs] = useState<JobPosting[]>([]);
-  const [siteStatuses, setSiteStatuses] = useState<JobSiteStatus[]>([]);
+  const [sites, setSites] = useState<SiteInfo[]>(defaultSites);
   const [isLoading, setIsLoading] = useState(true);
   const [lastUpdated, setLastUpdated] = useState<string>('');
-  const [searchQuery, setSearchQuery] = useState('');
-  const [selectedCompanies, setSelectedCompanies] = useState<string[]>([]);
-  const [selectedDepartments, setSelectedDepartments] = useState<string[]>([]);
-  const [showFilters, setShowFilters] = useState(false);
-  const [sortBy, setSortBy] = useState<'company' | 'recent'>('company');
+  const [selectedSite, setSelectedSite] = useState<SiteInfo | null>(null);
+  const [isSheetOpen, setIsSheetOpen] = useState(false);
 
   // 데이터 로드
   useEffect(() => {
-    const fetchJobs = async () => {
+    const fetchData = async () => {
       try {
         const response = await fetch(JOBS_DATA_URL);
         if (!response.ok) throw new Error('데이터 로딩 실패');
 
         const data: JobsData = await response.json();
-
-        setJobs(data.jobs);
-        setSiteStatuses(
-          data.sites.map((site) => ({
-            siteId: site.id,
-            siteName: site.name,
-            status: site.status,
-            jobCount: site.jobCount,
-            error: site.error,
-          }))
-        );
+        setSites(data.sites);
         setLastUpdated(data.lastUpdated);
       } catch (error) {
-        console.error('Failed to fetch jobs:', error);
-        // 데이터 로딩 실패 시 링크 전용 모드
-        setSiteStatuses([
-          { siteId: 'woowahan', siteName: '우아한형제들', status: 'link-only', jobCount: 0 },
-          { siteId: 'naver', siteName: '네이버', status: 'link-only', jobCount: 0 },
-          { siteId: 'kakaobank', siteName: '카카오뱅크', status: 'link-only', jobCount: 0 },
-          { siteId: 'toss', siteName: '토스', status: 'link-only', jobCount: 0 },
-          { siteId: 'line', siteName: '라인', status: 'link-only', jobCount: 0 },
-          { siteId: 'dunamu', siteName: '두나무', status: 'link-only', jobCount: 0 },
-          { siteId: 'daangn', siteName: '당근', status: 'link-only', jobCount: 0 },
-          { siteId: 'samsung', siteName: '삼성', status: 'link-only', jobCount: 0 },
-          { siteId: 'kakao', siteName: '카카오', status: 'link-only', jobCount: 0 },
-          { siteId: 'airbnb', siteName: 'Airbnb', status: 'link-only', jobCount: 0 },
-        ]);
+        console.error('Failed to fetch data:', error);
       } finally {
         setIsLoading(false);
       }
     };
 
-    fetchJobs();
+    fetchData();
   }, []);
 
-  // 사이트 색상/URL 매핑
-  const siteConfig: Record<string, { color: string; url: string }> = {
-    woowahan: { color: '#2AC1BC', url: 'https://career.woowahan.com' },
-    naver: { color: '#03C75A', url: 'https://recruit.navercorp.com/rcrt/list.do?lang=ko' },
-    kakaobank: { color: '#FFCD00', url: 'https://recruit.kakaobank.com/jobs' },
-    toss: { color: '#0064FF', url: 'https://toss.im/career/jobs' },
-    line: { color: '#00C300', url: 'https://careers.linecorp.com/ko/jobs/?co=East%20Asia' },
-    dunamu: { color: '#093687', url: 'https://www.dunamu.com/careers/jobs?category=engineering' },
-    daangn: { color: '#FF6F0F', url: 'https://about.daangn.com/jobs' },
-    samsung: { color: '#1428A0', url: 'https://www.samsungcareers.com/hr/' },
-    kakao: { color: '#FEE500', url: 'https://careers.kakao.com/jobs?part=TECHNOLOGY' },
-    airbnb: { color: '#FF5A5F', url: 'https://careers.airbnb.com/positions/?_departments=engineering' },
+  // 사이트 클릭 핸들러
+  const handleSiteClick = (site: SiteInfo) => {
+    setSelectedSite(site);
+    setIsSheetOpen(true);
   };
 
-  // 필터 옵션 계산
-  const filterOptions = useMemo(() => {
-    const companies: Map<string, number> = new Map();
-    const departments: Map<string, number> = new Map();
+  // Bottom Sheet 닫기
+  const closeSheet = () => {
+    setIsSheetOpen(false);
+    setTimeout(() => setSelectedSite(null), 300);
+  };
 
-    jobs.forEach((job) => {
-      companies.set(job.company, (companies.get(job.company) || 0) + 1);
-      if (job.department) {
-        departments.set(job.department, (departments.get(job.department) || 0) + 1);
+  // ESC 키로 닫기
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && isSheetOpen) {
+        closeSheet();
       }
-    });
-
-    return {
-      companies: Array.from(companies.entries())
-        .map(([value, count]) => ({ value, label: value, count }))
-        .sort((a, b) => b.count - a.count),
-      departments: Array.from(departments.entries())
-        .map(([value, count]) => ({ value, label: value, count }))
-        .sort((a, b) => b.count - a.count)
-        .slice(0, 20),
     };
-  }, [jobs]);
-
-  // 필터링된 채용공고
-  const filteredJobs = useMemo(() => {
-    let result = [...jobs];
-
-    if (searchQuery) {
-      const query = searchQuery.toLowerCase();
-      result = result.filter(
-        (job) =>
-          job.title.toLowerCase().includes(query) ||
-          job.company.toLowerCase().includes(query) ||
-          job.department?.toLowerCase().includes(query)
-      );
-    }
-
-    if (selectedCompanies.length > 0) {
-      result = result.filter((job) => selectedCompanies.includes(job.company));
-    }
-
-    if (selectedDepartments.length > 0) {
-      result = result.filter((job) => job.department && selectedDepartments.includes(job.department));
-    }
-
-    if (sortBy === 'company') {
-      result.sort((a, b) => a.company.localeCompare(b.company));
-    }
-
-    return result;
-  }, [jobs, searchQuery, selectedCompanies, selectedDepartments, sortBy]);
-
-  const toggleCompany = useCallback((company: string) => {
-    setSelectedCompanies((prev) =>
-      prev.includes(company) ? prev.filter((c) => c !== company) : [...prev, company]
-    );
-  }, []);
-
-  const toggleDepartment = useCallback((dept: string) => {
-    setSelectedDepartments((prev) =>
-      prev.includes(dept) ? prev.filter((d) => d !== dept) : [...prev, dept]
-    );
-  }, []);
-
-  const clearFilters = useCallback(() => {
-    setSearchQuery('');
-    setSelectedCompanies([]);
-    setSelectedDepartments([]);
-  }, []);
-
-  const stats = useMemo(() => {
-    const total = jobs.length;
-    const successCount = siteStatuses.filter((s) => s.status === 'success').length;
-    return { total, successCount };
-  }, [jobs, siteStatuses]);
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isSheetOpen]);
 
   const formatDate = (dateStr: string) => {
     if (!dateStr) return '';
@@ -178,19 +140,15 @@ export default function JobsAggregator() {
 
   return (
     <div className="space-y-6">
-      {/* 헤더 통계 */}
+      {/* 헤더 */}
       <div className="bg-gradient-to-r from-blue-500 to-purple-600 rounded-xl p-6 text-white">
         <h1 className="text-2xl font-bold mb-2">IT 채용공고 모음</h1>
-        <p className="opacity-90 mb-4">국내외 IT 기업들의 채용공고를 한눈에</p>
+        <p className="opacity-90 mb-4">국내외 IT 기업들의 채용 페이지 바로가기</p>
 
         <div className="flex flex-wrap gap-4 text-sm">
           <div className="bg-white/20 rounded-lg px-3 py-2">
-            <span className="opacity-80">총 채용공고</span>
-            <span className="ml-2 font-bold">{stats.total}개</span>
-          </div>
-          <div className="bg-white/20 rounded-lg px-3 py-2">
-            <span className="opacity-80">연동 사이트</span>
-            <span className="ml-2 font-bold">{stats.successCount}개</span>
+            <span className="opacity-80">등록 사이트</span>
+            <span className="ml-2 font-bold">{sites.length}개</span>
           </div>
           {lastUpdated && (
             <div className="bg-white/20 rounded-lg px-3 py-2">
@@ -204,223 +162,145 @@ export default function JobsAggregator() {
       {/* 사이트 목록 */}
       <div>
         <h2 className="text-lg font-semibold mb-3 text-[var(--color-text)]">채용 사이트</h2>
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
-          {siteStatuses.map((status) => {
-            const config = siteConfig[status.siteId];
-            const isSelected = selectedCompanies.includes(status.siteName);
-
-            if (status.status === 'link-only' || status.status === 'error') {
-              return (
-                <a
-                  key={status.siteId}
-                  href={config?.url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex items-center gap-3 p-3 rounded-lg border border-[var(--color-border)] hover:border-[var(--color-text-muted)] bg-[var(--color-card)] transition-all duration-200"
-                >
-                  <div
-                    className="w-10 h-10 rounded-lg flex items-center justify-center text-white font-bold text-sm shrink-0"
-                    style={{ backgroundColor: config?.color || '#666' }}
-                  >
-                    {status.siteName.charAt(0)}
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <span className="font-medium text-[var(--color-text)] text-sm block truncate">
-                      {status.siteName}
-                    </span>
-                    <span className="text-xs text-[var(--color-text-muted)]">직접 방문</span>
-                  </div>
-                  <span className="text-[var(--color-text-muted)]">↗</span>
-                </a>
-              );
-            }
-
-            return (
-              <JobSiteCard
-                key={status.siteId}
-                status={status}
-                onClick={() => toggleCompany(status.siteName)}
-                isSelected={isSelected}
-              />
-            );
-          })}
-        </div>
-      </div>
-
-      {/* 검색 및 필터 */}
-      <div className="bg-[var(--color-card)] rounded-xl p-4 border border-[var(--color-border)]">
-        <div className="flex flex-col sm:flex-row gap-3">
-          <div className="flex-1 relative">
-            <input
-              type="text"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="채용공고 검색 (제목, 회사, 직군)"
-              className="w-full px-4 py-2 pl-10 rounded-lg border border-[var(--color-border)] bg-[var(--color-bg)] text-[var(--color-text)] focus:outline-none focus:ring-2 focus:ring-blue-500"
-            />
-            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--color-text-muted)]">
-              🔍
-            </span>
-          </div>
-
-          <button
-            onClick={() => setShowFilters(!showFilters)}
-            className={`px-4 py-2 rounded-lg border transition-colors ${
-              showFilters || selectedDepartments.length > 0
-                ? 'border-blue-500 bg-blue-50 text-blue-600 dark:bg-blue-900/20 dark:text-blue-400'
-                : 'border-[var(--color-border)] text-[var(--color-text)]'
-            }`}
-          >
-            필터 {selectedDepartments.length > 0 && `(${selectedDepartments.length})`}
-          </button>
-
-          <select
-            value={sortBy}
-            onChange={(e) => setSortBy(e.target.value as 'company' | 'recent')}
-            className="px-4 py-2 rounded-lg border border-[var(--color-border)] bg-[var(--color-bg)] text-[var(--color-text)]"
-          >
-            <option value="company">회사별</option>
-            <option value="recent">최신순</option>
-          </select>
-        </div>
-
-        {showFilters && (
-          <div className="mt-4 pt-4 border-t border-[var(--color-border)]">
-            <div className="flex items-center justify-between mb-3">
-              <h3 className="font-medium text-[var(--color-text)]">직군 필터</h3>
-              {(selectedCompanies.length > 0 || selectedDepartments.length > 0) && (
-                <button onClick={clearFilters} className="text-sm text-blue-500 hover:text-blue-600">
-                  필터 초기화
-                </button>
-              )}
-            </div>
-            <div className="flex flex-wrap gap-2">
-              {filterOptions.departments.map((opt) => (
-                <button
-                  key={opt.value}
-                  onClick={() => toggleDepartment(opt.value)}
-                  className={`px-3 py-1 rounded-full text-sm transition-colors ${
-                    selectedDepartments.includes(opt.value)
-                      ? 'bg-blue-500 text-white'
-                      : 'bg-[var(--color-bg)] text-[var(--color-text)] border border-[var(--color-border)]'
-                  }`}
-                >
-                  {opt.label} ({opt.count})
-                </button>
-              ))}
-            </div>
-          </div>
-        )}
-
-        {(selectedCompanies.length > 0 || selectedDepartments.length > 0 || searchQuery) && (
-          <div className="mt-3 flex flex-wrap items-center gap-2">
-            <span className="text-sm text-[var(--color-text-muted)]">활성 필터:</span>
-            {searchQuery && (
-              <span className="inline-flex items-center gap-1 px-2 py-1 bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 rounded text-sm">
-                "{searchQuery}"
-                <button onClick={() => setSearchQuery('')} className="hover:text-blue-800">
-                  ×
-                </button>
-              </span>
-            )}
-            {selectedCompanies.map((company) => (
-              <span
-                key={company}
-                className="inline-flex items-center gap-1 px-2 py-1 bg-green-100 dark:bg-green-900/30 text-green-600 dark:text-green-400 rounded text-sm"
+        {isLoading ? (
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
+            {[...Array(10)].map((_, i) => (
+              <div
+                key={i}
+                className="animate-pulse flex items-center gap-3 p-3 rounded-lg border border-[var(--color-border)] bg-[var(--color-card)]"
               >
-                {company}
-                <button onClick={() => toggleCompany(company)} className="hover:text-green-800">
-                  ×
-                </button>
-              </span>
-            ))}
-            {selectedDepartments.map((dept) => (
-              <span
-                key={dept}
-                className="inline-flex items-center gap-1 px-2 py-1 bg-purple-100 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400 rounded text-sm"
-              >
-                {dept}
-                <button onClick={() => toggleDepartment(dept)} className="hover:text-purple-800">
-                  ×
-                </button>
-              </span>
-            ))}
-          </div>
-        )}
-      </div>
-
-      {/* 결과 개수 */}
-      <div className="flex items-center justify-between">
-        <p className="text-[var(--color-text-muted)]">
-          {filteredJobs.length === jobs.length
-            ? `총 ${jobs.length}개 채용공고`
-            : `${filteredJobs.length}개 채용공고 (전체 ${jobs.length}개 중)`}
-        </p>
-      </div>
-
-      {/* 채용공고 목록 */}
-      {isLoading ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {[...Array(6)].map((_, i) => (
-            <div
-              key={i}
-              className="animate-pulse p-4 rounded-lg border border-[var(--color-border)] bg-[var(--color-card)]"
-            >
-              <div className="flex items-start gap-3">
                 <div className="w-10 h-10 rounded-lg bg-[var(--color-border)]"></div>
                 <div className="flex-1 space-y-2">
                   <div className="h-4 bg-[var(--color-border)] rounded w-3/4"></div>
                   <div className="h-3 bg-[var(--color-border)] rounded w-1/2"></div>
-                  <div className="flex gap-2">
-                    <div className="h-5 bg-[var(--color-border)] rounded w-16"></div>
-                    <div className="h-5 bg-[var(--color-border)] rounded w-20"></div>
-                  </div>
                 </div>
               </div>
-            </div>
-          ))}
-        </div>
-      ) : filteredJobs.length > 0 ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {filteredJobs.map((job) => (
-            <JobCard key={job.id} job={job} />
-          ))}
-        </div>
-      ) : jobs.length === 0 ? (
-        <div className="text-center py-12">
-          <p className="text-6xl mb-4">📋</p>
-          <h3 className="text-xl font-semibold text-[var(--color-text)] mb-2">
-            채용공고 데이터 준비 중
-          </h3>
-          <p className="text-[var(--color-text-muted)] mb-4">
-            채용공고 데이터가 아직 수집되지 않았습니다.
-          </p>
-          <p className="text-sm text-[var(--color-text-muted)]">
-            위 사이트 카드를 클릭하면 해당 채용 페이지로 이동합니다.
-          </p>
-        </div>
-      ) : (
-        <div className="text-center py-12">
-          <p className="text-6xl mb-4">🔍</p>
-          <h3 className="text-xl font-semibold text-[var(--color-text)] mb-2">
-            검색 결과가 없습니다
-          </h3>
-          <p className="text-[var(--color-text-muted)]">다른 검색어나 필터를 시도해보세요.</p>
-          <button
-            onClick={clearFilters}
-            className="mt-4 px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors"
-          >
-            필터 초기화
-          </button>
-        </div>
-      )}
+            ))}
+          </div>
+        ) : (
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
+            {sites.map((site) => (
+              <button
+                key={site.id}
+                onClick={() => handleSiteClick(site)}
+                className="flex items-center gap-3 p-3 rounded-lg border border-[var(--color-border)] hover:border-blue-400 hover:shadow-md bg-[var(--color-card)] transition-all duration-200 group text-left"
+              >
+                <div
+                  className="w-10 h-10 rounded-lg flex items-center justify-center text-white font-bold text-sm shrink-0 group-hover:scale-110 transition-transform"
+                  style={{ backgroundColor: site.color }}
+                >
+                  {site.name.charAt(0)}
+                </div>
+                <div className="flex-1 min-w-0">
+                  <span className="font-medium text-[var(--color-text)] text-sm block truncate">
+                    {site.name}
+                  </span>
+                  <span className="text-xs text-[var(--color-text-muted)]">채용공고 보기</span>
+                </div>
+              </button>
+            ))}
+          </div>
+        )}
+      </div>
 
       {/* 안내 */}
-      <div className="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-xl p-4">
-        <p className="text-sm text-yellow-800 dark:text-yellow-200">
-          <strong>참고:</strong> 채용공고 데이터는 매일 자동 업데이트됩니다. 일부 사이트는 봇 차단
-          정책으로 인해 "직접 방문" 링크를 클릭하여 확인해주세요.
+      <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-xl p-4">
+        <p className="text-sm text-blue-800 dark:text-blue-200">
+          <strong>안내:</strong> 사이트 카드를 클릭하면 상세 정보를 확인할 수 있습니다.
         </p>
+      </div>
+
+      {/* 추가 정보 */}
+      <div className="text-center text-sm text-[var(--color-text-muted)] py-4">
+        <p>새로운 채용 사이트 추가 요청은 GitHub Issue로 남겨주세요.</p>
+      </div>
+
+      {/* Bottom Sheet Overlay */}
+      {isSheetOpen && (
+        <div
+          className="fixed inset-0 bg-black/50 z-50 transition-opacity duration-300"
+          onClick={closeSheet}
+        />
+      )}
+
+      {/* Bottom Sheet */}
+      <div
+        className={`fixed bottom-0 left-0 right-0 bg-[var(--color-bg)] rounded-t-3xl z-50 transform transition-transform duration-300 ease-out ${
+          isSheetOpen ? 'translate-y-0' : 'translate-y-full'
+        }`}
+        style={{ maxHeight: '85vh' }}
+      >
+        {selectedSite && (
+          <div className="p-6 max-w-2xl mx-auto">
+            {/* Handle */}
+            <div className="w-12 h-1.5 bg-[var(--color-border)] rounded-full mx-auto mb-6" />
+
+            {/* Header */}
+            <div className="flex items-center gap-4 mb-6">
+              <div
+                className="w-16 h-16 rounded-2xl flex items-center justify-center text-white font-bold text-2xl shrink-0"
+                style={{ backgroundColor: selectedSite.color }}
+              >
+                {selectedSite.name.charAt(0)}
+              </div>
+              <div>
+                <h2 className="text-2xl font-bold text-[var(--color-text)]">{selectedSite.name}</h2>
+                <p className="text-[var(--color-text-muted)]">
+                  {siteDetails[selectedSite.id]?.description || 'IT 기업'}
+                </p>
+              </div>
+            </div>
+
+            {/* Features */}
+            {siteDetails[selectedSite.id]?.features && (
+              <div className="mb-6">
+                <h3 className="text-sm font-semibold text-[var(--color-text-muted)] mb-2">특징</h3>
+                <div className="flex flex-wrap gap-2">
+                  {siteDetails[selectedSite.id].features.map((feature, idx) => (
+                    <span
+                      key={idx}
+                      className="px-3 py-1.5 bg-[var(--color-card)] border border-[var(--color-border)] rounded-full text-sm text-[var(--color-text)]"
+                    >
+                      {feature}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* URL Preview */}
+            <div className="mb-6 p-4 bg-[var(--color-card)] rounded-xl border border-[var(--color-border)]">
+              <h3 className="text-sm font-semibold text-[var(--color-text-muted)] mb-2">
+                채용 페이지
+              </h3>
+              <p className="text-sm text-[var(--color-text)] break-all font-mono">
+                {selectedSite.url}
+              </p>
+            </div>
+
+            {/* Actions */}
+            <div className="flex gap-3">
+              <button
+                onClick={closeSheet}
+                className="flex-1 px-4 py-3 rounded-xl border border-[var(--color-border)] text-[var(--color-text)] font-medium hover:bg-[var(--color-card)] transition-colors"
+              >
+                닫기
+              </button>
+              <a
+                href={selectedSite.url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex-1 px-4 py-3 rounded-xl text-white font-medium text-center transition-opacity hover:opacity-90"
+                style={{ backgroundColor: selectedSite.color }}
+              >
+                채용 페이지 방문 ↗
+              </a>
+            </div>
+
+            {/* Safe area padding for mobile */}
+            <div className="h-6" />
+          </div>
+        )}
       </div>
     </div>
   );
