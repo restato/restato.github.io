@@ -344,19 +344,11 @@ export default function ArticleAdmin() {
   if (!isAuthenticated) {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
-        <div className="w-full max-w-md p-8 rounded-2xl border border-[var(--color-border)] bg-[var(--color-card)]">
-          <div className="text-center mb-6">
-            <div className="text-4xl mb-4">🔐</div>
-            <h1 className="text-2xl font-bold text-[var(--color-text)] mb-2">관리자 로그인</h1>
-            <p className="text-[var(--color-text-muted)] text-sm">
-              GitHub 토큰을 입력하여 관리자 모드에 접근하세요
-            </p>
-          </div>
-
+        <div className="w-full max-w-sm p-6 rounded-2xl border border-[var(--color-border)] bg-[var(--color-card)]">
           <div className="space-y-4">
             <input
               type="password"
-              placeholder="GitHub Personal Access Token"
+              placeholder="비밀번호"
               value={tokenInput}
               onChange={(e) => setTokenInput(e.target.value)}
               onKeyDown={(e) => e.key === 'Enter' && handleLogin()}
@@ -369,21 +361,6 @@ export default function ArticleAdmin() {
             >
               로그인
             </button>
-          </div>
-
-          <div className="mt-6 p-4 bg-[var(--color-bg)] rounded-lg">
-            <p className="text-xs text-[var(--color-text-muted)]">
-              <strong>토큰 생성 방법:</strong><br />
-              GitHub → Settings → Developer settings<br />
-              → Personal access tokens → Fine-grained tokens<br />
-              → Generate new token → Contents (Read and write)
-            </p>
-          </div>
-
-          <div className="mt-4 text-center">
-            <a href="/articles" className="text-sm text-orange-600 hover:text-orange-700">
-              ← 아티클 피드로 돌아가기
-            </a>
           </div>
         </div>
       </div>
