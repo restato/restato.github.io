@@ -213,6 +213,249 @@ export const toolTranslations = {
     infoNote: { ko: '모든 이미지 처리는 브라우저에서 로컬로 수행됩니다. 이미지는 서버로 전송되지 않습니다.', en: 'All image processing is done locally in your browser. Images are not sent to any server.', ja: 'すべての画像処理はブラウザでローカルに行われます。画像はサーバーに送信されません。' },
   },
 
+  // LLM Cost Calculator
+  llmCost: {
+    title: { ko: 'LLM 비용 계산기', en: 'LLM Cost Calculator', ja: 'LLMコスト計算機' },
+    description: { ko: 'AI 모델별 API 사용 비용 비교', en: 'Compare API costs across AI models', ja: 'AIモデル別APIコストを比較' },
+
+    // Input modes
+    textMode: { ko: '텍스트로 토큰 계산', en: 'Calculate tokens from text', ja: 'テキストからトークン計算' },
+    manualMode: { ko: '토큰 수 직접 입력', en: 'Enter token count manually', ja: 'トークン数を直接入力' },
+
+    // Labels
+    inputText: { ko: '입력 텍스트 (Input)', en: 'Input Text', ja: '入力テキスト' },
+    outputText: { ko: '출력 텍스트 (Output) - 예상 응답', en: 'Output Text - Expected Response', ja: '出力テキスト - 予想応答' },
+    inputTokens: { ko: '입력 토큰 수', en: 'Input Tokens', ja: '入力トークン数' },
+    outputTokens: { ko: '출력 토큰 수', en: 'Output Tokens', ja: '出力トークン数' },
+    outputTokensAlt: { ko: '또는 출력 토큰 수 직접 입력', en: 'Or enter output tokens manually', ja: 'または出力トークン数を直接入力' },
+    requestCount: { ko: '요청 횟수', en: 'Request Count', ja: 'リクエスト回数' },
+
+    // Placeholders
+    inputPlaceholder: { ko: '프롬프트를 입력하세요...', en: 'Enter your prompt...', ja: 'プロンプトを入力...' },
+    outputPlaceholder: { ko: '예상되는 출력 텍스트를 입력하거나, 아래에서 출력 토큰 수를 직접 입력하세요...', en: 'Enter expected output text, or manually enter output token count below...', ja: '予想される出力テキストを入力するか、下で出力トークン数を直接入力...' },
+
+    // Presets
+    presetShort: { ko: '짧은 답변', en: 'Short Answer', ja: '短い回答' },
+    presetNormal: { ko: '일반 대화', en: 'Normal Chat', ja: '通常の会話' },
+    presetLong: { ko: '긴 글 작성', en: 'Long Writing', ja: '長文作成' },
+    presetCode: { ko: '코드 생성', en: 'Code Generation', ja: 'コード生成' },
+    presetDoc: { ko: '문서 분석', en: 'Document Analysis', ja: 'ドキュメント分析' },
+    presetBulk: { ko: '대량 처리 (1000건)', en: 'Bulk Processing (1000)', ja: '大量処理 (1000件)' },
+
+    // Token summary
+    inputTokensSummary: { ko: '입력 토큰', en: 'Input Tokens', ja: '入力トークン' },
+    outputTokensSummary: { ko: '출력 토큰', en: 'Output Tokens', ja: '出力トークン' },
+    requestsSummary: { ko: '요청 횟수', en: 'Requests', ja: 'リクエスト数' },
+
+    // Currency
+    currencySelect: { ko: '통화 선택', en: 'Select Currency', ja: '通貨を選択' },
+    exchangeSettings: { ko: '환율 설정', en: 'Exchange Rate Settings', ja: '為替レート設定' },
+    exchangeClose: { ko: '환율 설정 닫기', en: 'Close Exchange Settings', ja: '為替レート設定を閉じる' },
+    exchangeRate: { ko: '$1 USD 기준 환율', en: 'Exchange rate per $1 USD', ja: '$1 USDあたりの為替レート' },
+    fetchRates: { ko: '실시간 환율 가져오기', en: 'Fetch Live Rates', ja: 'リアルタイムレートを取得' },
+    fetchingRates: { ko: '가져오는 중...', en: 'Fetching...', ja: '取得中...' },
+    ratesError: { ko: '환율 데이터를 가져올 수 없습니다.', en: 'Could not fetch exchange rates.', ja: '為替レートを取得できませんでした。' },
+    networkError: { ko: '네트워크 오류가 발생했습니다.', en: 'Network error occurred.', ja: 'ネットワークエラーが発生しました。' },
+    lastUpdated: { ko: '마지막 업데이트', en: 'Last updated', ja: '最終更新' },
+    defaultRates: { ko: '기본 환율 사용 중', en: 'Using default rates', ja: 'デフォルトレートを使用中' },
+    exchangeSource: { ko: '출처', en: 'Source', ja: '出典' },
+
+    // Currency names
+    currencyUsd: { ko: '달러', en: 'USD', ja: 'ドル' },
+    currencyKrw: { ko: '원화', en: 'KRW', ja: 'ウォン' },
+    currencyJpy: { ko: '엔화', en: 'JPY', ja: '円' },
+    currencyEur: { ko: '유로', en: 'EUR', ja: 'ユーロ' },
+
+    // Provider filter
+    providerFilter: { ko: '제공업체 필터 (복수 선택)', en: 'Provider Filter (Multi-select)', ja: 'プロバイダーフィルター (複数選択)' },
+    selectAll: { ko: '전체 선택', en: 'Select All', ja: 'すべて選択' },
+    deselectAll: { ko: '전체 해제', en: 'Deselect All', ja: 'すべて解除' },
+    modelSelect: { ko: '모델 개별 선택', en: 'Select Models', ja: 'モデルを個別選択' },
+    modelSelectClose: { ko: '모델 선택 닫기', en: 'Close Model Selection', ja: 'モデル選択を閉じる' },
+    select: { ko: '선택', en: 'Select', ja: '選択' },
+    deselect: { ko: '해제', en: 'Deselect', ja: '解除' },
+
+    // Table headers
+    model: { ko: '모델', en: 'Model', ja: 'モデル' },
+    inputCost: { ko: '입력 비용', en: 'Input Cost', ja: '入力コスト' },
+    outputCost: { ko: '출력 비용', en: 'Output Cost', ja: '出力コスト' },
+    totalCost: { ko: '총 비용', en: 'Total Cost', ja: '合計コスト' },
+    comparison: { ko: '비교', en: 'Comparison', ja: '比較' },
+    lowest: { ko: '최저가', en: 'Lowest', ja: '最安' },
+    selectModels: { ko: '비교할 모델을 선택하세요.', en: 'Select models to compare.', ja: '比較するモデルを選択してください。' },
+
+    // Pricing table
+    pricingTable: { ko: '모델별 토큰당 가격', en: 'Price per Token by Model', ja: 'モデル別トークン単価' },
+    pricePer1kInput: { ko: '입력 1K당', en: 'Per 1K Input', ja: '入力1Kあたり' },
+    pricePer1kOutput: { ko: '출력 1K당', en: 'Per 1K Output', ja: '出力1Kあたり' },
+    maxInput: { ko: '최대 입력', en: 'Max Input', ja: '最大入力' },
+    maxOutput: { ko: '최대 출력', en: 'Max Output', ja: '最大出力' },
+
+    // Notes section
+    notes: { ko: '참고 사항', en: 'Notes', ja: '注意事項' },
+    priceDate: { ko: '가격은 2025년 1월 기준이며 실제 가격은 공식 사이트에서 확인하세요.', en: 'Prices as of January 2025. Check official sites for current pricing.', ja: '価格は2025年1月時点のものです。最新価格は公式サイトでご確認ください。' },
+    tokenEstimation: { ko: '토큰 수 추정: 영어 약 4자당 1토큰, 한국어 약 2자당 1토큰', en: 'Token estimation: ~4 English chars per token, ~2 Korean chars per token', ja: 'トークン推定: 英語約4文字で1トークン、韓国語約2文字で1トークン' },
+    koreanTokenNote: { ko: '한국어는 영어보다 토큰을 더 많이 사용합니다 (~1.5-2배).', en: 'Korean uses more tokens than English (~1.5-2x).', ja: '韓国語は英語より多くのトークンを使用します（約1.5-2倍）。' },
+    exchangeNote: { ko: '환율은 페이지 로드 시 자동으로', en: 'Exchange rates are auto-fetched from', ja: '為替レートはページ読み込み時に' },
+    exchangeNoteSuffix: { ko: '에서 가져옵니다.', en: 'on page load.', ja: 'から自動取得されます。' },
+
+    // Token references
+    tokenReference: { ko: '토큰 계산 레퍼런스', en: 'Token Calculation Reference', ja: 'トークン計算リファレンス' },
+    openaiTokenizer: { ko: 'GPT 모델용 토큰 계산기', en: 'Tokenizer for GPT models', ja: 'GPTモデル用トークナイザー' },
+    anthropicTokens: { ko: 'Claude 모델 토큰 계산 API', en: 'Token counting API for Claude models', ja: 'ClaudeモデルのトークンカウントAPI' },
+    geminiTokens: { ko: 'Gemini 모델 토큰 가이드', en: 'Token guide for Gemini models', ja: 'Geminiモデルのトークンガイド' },
+
+    // Price sources
+    priceSources: { ko: '가격 정보 출처', en: 'Pricing Sources', ja: '価格情報ソース' },
+    priceSourceNote: { ko: '아래 공식 가격 페이지에서 최신 정보를 확인하세요:', en: 'Check the official pricing pages below for latest information:', ja: '以下の公式価格ページで最新情報をご確認ください:' },
+
+    // Character count
+    characters: { ko: '자', en: 'chars', ja: '文字' },
+    tokensEstimated: { ko: '토큰 (추정)', en: 'tokens (est.)', ja: 'トークン（推定）' },
+  },
+
+  // Age Calculator
+  age: {
+    title: { ko: '나이 계산기', en: 'Age Calculator', ja: '年齢計算機' },
+    description: { ko: '생년월일로 나이 계산', en: 'Calculate age from birthdate', ja: '生年月日から年齢を計算' },
+    birthDate: { ko: '생년월일', en: 'Birth Date', ja: '生年月日' },
+    internationalAge: { ko: '만 나이', en: 'International Age', ja: '満年齢' },
+    koreanAge: { ko: '세는 나이', en: 'Korean Age', ja: '数え年' },
+    years: { ko: '세', en: ' years old', ja: '歳' },
+    exactAge: { ko: '정확한 나이', en: 'Exact Age', ja: '正確な年齢' },
+    yearsMonthsDays: { ko: '년', en: ' years ', ja: '年' },
+    monthsUnit: { ko: '개월', en: ' months ', ja: 'ヶ月' },
+    daysUnit: { ko: '일', en: ' days', ja: '日' },
+    daysLived: { ko: '살아온 날', en: 'Days Lived', ja: '生きた日数' },
+    untilBirthday: { ko: '다음 생일까지', en: 'Until Birthday', ja: '次の誕生日まで' },
+    todayBirthday: { ko: '오늘!', en: 'Today!', ja: '今日!' },
+    zodiac: { ko: '별자리', en: 'Zodiac', ja: '星座' },
+    chineseZodiac: { ko: '띠', en: 'Chinese Zodiac', ja: '干支' },
+    funStats: { ko: '재미있는 통계', en: 'Fun Statistics', ja: '楽しい統計' },
+    hoursLived: { ko: '시간을 살았어요', en: 'hours lived', ja: '時間を生きました' },
+    minutesPassed: { ko: '분이 지났어요', en: 'minutes passed', ja: '分が経ちました' },
+    weeksSpent: { ko: '주를 보냈어요', en: 'weeks spent', ja: '週を過ごしました' },
+    heartbeats: { ko: '번 뛰었어요', en: 'heartbeats', ja: '回鼓動しました' },
+    // Zodiac signs
+    capricorn: { ko: '염소자리', en: 'Capricorn', ja: '山羊座' },
+    aquarius: { ko: '물병자리', en: 'Aquarius', ja: '水瓶座' },
+    pisces: { ko: '물고기자리', en: 'Pisces', ja: '魚座' },
+    aries: { ko: '양자리', en: 'Aries', ja: '牡羊座' },
+    taurus: { ko: '황소자리', en: 'Taurus', ja: '牡牛座' },
+    gemini: { ko: '쌍둥이자리', en: 'Gemini', ja: '双子座' },
+    cancer: { ko: '게자리', en: 'Cancer', ja: '蟹座' },
+    leo: { ko: '사자자리', en: 'Leo', ja: '獅子座' },
+    virgo: { ko: '처녀자리', en: 'Virgo', ja: '乙女座' },
+    libra: { ko: '천칭자리', en: 'Libra', ja: '天秤座' },
+    scorpio: { ko: '전갈자리', en: 'Scorpio', ja: '蠍座' },
+    sagittarius: { ko: '사수자리', en: 'Sagittarius', ja: '射手座' },
+    // Chinese zodiac
+    monkey: { ko: '원숭이', en: 'Monkey', ja: '申' },
+    rooster: { ko: '닭', en: 'Rooster', ja: '酉' },
+    dog: { ko: '개', en: 'Dog', ja: '戌' },
+    pig: { ko: '돼지', en: 'Pig', ja: '亥' },
+    rat: { ko: '쥐', en: 'Rat', ja: '子' },
+    ox: { ko: '소', en: 'Ox', ja: '丑' },
+    tiger: { ko: '호랑이', en: 'Tiger', ja: '寅' },
+    rabbit: { ko: '토끼', en: 'Rabbit', ja: '卯' },
+    dragon: { ko: '용', en: 'Dragon', ja: '辰' },
+    snake: { ko: '뱀', en: 'Snake', ja: '巳' },
+    horse: { ko: '말', en: 'Horse', ja: '午' },
+    sheep: { ko: '양', en: 'Sheep', ja: '未' },
+  },
+
+  // BMI Calculator
+  bmi: {
+    title: { ko: 'BMI 계산기', en: 'BMI Calculator', ja: 'BMI計算機' },
+    description: { ko: '체질량지수 계산', en: 'Calculate Body Mass Index', ja: '体格指数を計算' },
+    height: { ko: '키 (cm)', en: 'Height (cm)', ja: '身長 (cm)' },
+    weight: { ko: '몸무게 (kg)', en: 'Weight (kg)', ja: '体重 (kg)' },
+    calculate: { ko: 'BMI 계산하기', en: 'Calculate BMI', ja: 'BMIを計算' },
+    myBmi: { ko: '나의 BMI', en: 'My BMI', ja: '私のBMI' },
+    idealWeight: { ko: '적정 체중 범위', en: 'Ideal Weight Range', ja: '理想体重範囲' },
+    underweight: { ko: '저체중', en: 'Underweight', ja: '低体重' },
+    normal: { ko: '정상', en: 'Normal', ja: '普通' },
+    overweight: { ko: '과체중', en: 'Overweight', ja: '過体重' },
+    obese1: { ko: '비만 1단계', en: 'Obese Class I', ja: '肥満1度' },
+    obese2: { ko: '비만 2단계', en: 'Obese Class II', ja: '肥満2度' },
+    extremelyObese: { ko: '고도비만', en: 'Extremely Obese', ja: '高度肥満' },
+    underweightDesc: { ko: '체중이 부족합니다. 균형 잡힌 식단으로 건강한 체중을 유지하세요.', en: 'You are underweight. Maintain a healthy weight with a balanced diet.', ja: '体重が不足しています。バランスの取れた食事で健康的な体重を維持してください。' },
+    normalDesc: { ko: '건강한 체중입니다. 현재 상태를 유지하세요!', en: 'You have a healthy weight. Keep it up!', ja: '健康的な体重です。この状態を維持しましょう！' },
+    overweightDesc: { ko: '비만 전 단계입니다. 식이조절과 운동을 권장합니다.', en: 'Pre-obesity stage. Diet and exercise recommended.', ja: '肥満予備軍です。食事制限と運動をお勧めします。' },
+    obese1Desc: { ko: '건강 관리가 필요합니다. 전문가 상담을 권장합니다.', en: 'Health management needed. Professional consultation recommended.', ja: '健康管理が必要です。専門家への相談をお勧めします。' },
+    obese2Desc: { ko: '건강 위험이 높습니다. 의료 전문가와 상담하세요.', en: 'High health risk. Consult a medical professional.', ja: '健康リスクが高いです。医療専門家にご相談ください。' },
+    extremelyObeseDesc: { ko: '심각한 건강 위험이 있습니다. 즉시 의료 상담이 필요합니다.', en: 'Serious health risk. Immediate medical consultation needed.', ja: '深刻な健康リスクがあります。直ちに医療相談が必要です。' },
+    bmiTable: { ko: 'BMI 기준표 (아시아-태평양 기준)', en: 'BMI Reference (Asia-Pacific)', ja: 'BMI基準表（アジア太平洋基準）' },
+    disclaimer: { ko: 'BMI는 참고용 지표입니다. 정확한 건강 상태는 전문가와 상담하세요.', en: 'BMI is for reference only. Consult a professional for accurate health status.', ja: 'BMIは参考指標です。正確な健康状態は専門家にご相談ください。' },
+    lessThan: { ko: '미만', en: 'under', ja: '未満' },
+    orMore: { ko: '이상', en: 'or more', ja: '以上' },
+  },
+
+  // Timestamp Converter
+  timestamp: {
+    title: { ko: '타임스탬프 변환기', en: 'Timestamp Converter', ja: 'タイムスタンプ変換器' },
+    description: { ko: 'Unix 타임스탬프 변환', en: 'Convert Unix timestamps', ja: 'Unixタイムスタンプを変換' },
+    currentTimestamp: { ko: '현재 Unix Timestamp', en: 'Current Unix Timestamp', ja: '現在のUnixタイムスタンプ' },
+    copyAndUse: { ko: '복사 & 사용', en: 'Copy & Use', ja: 'コピー＆使用' },
+    seconds: { ko: '초 (Seconds)', en: 'Seconds', ja: '秒 (Seconds)' },
+    milliseconds: { ko: '밀리초 (Milliseconds)', en: 'Milliseconds', ja: 'ミリ秒 (Milliseconds)' },
+    timestampToDate: { ko: 'Timestamp → 날짜', en: 'Timestamp → Date', ja: 'タイムスタンプ → 日付' },
+    dateToTimestamp: { ko: '날짜 → Timestamp', en: 'Date → Timestamp', ja: '日付 → タイムスタンプ' },
+    localTime: { ko: '로컬 시간', en: 'Local Time', ja: 'ローカル時間' },
+    relativeTime: { ko: '상대 시간', en: 'Relative Time', ja: '相対時間' },
+    commonTimestamps: { ko: '자주 사용하는 시간', en: 'Common Timestamps', ja: 'よく使う時間' },
+    inOneHour: { ko: '1시간 후', en: 'In 1 hour', ja: '1時間後' },
+    tomorrow: { ko: '내일', en: 'Tomorrow', ja: '明日' },
+    inOneWeek: { ko: '1주일 후', en: 'In 1 week', ja: '1週間後' },
+    inOneMonth: { ko: '1개월 후', en: 'In 1 month', ja: '1ヶ月後' },
+    whatIsTimestamp: { ko: 'Unix Timestamp란?', en: 'What is Unix Timestamp?', ja: 'Unixタイムスタンプとは？' },
+    timestampExplanation: { ko: '1970년 1월 1일 00:00:00 UTC부터 경과한 시간을 초(또는 밀리초)로 표현한 값입니다. 프로그래밍에서 시간을 다룰 때 널리 사용됩니다.', en: 'A value representing the time elapsed since January 1, 1970 00:00:00 UTC in seconds (or milliseconds). Widely used in programming for handling time.', ja: '1970年1月1日 00:00:00 UTCからの経過時間を秒（またはミリ秒）で表した値です。プログラミングで時間を扱う際に広く使用されています。' },
+    ago: { ko: '전', en: 'ago', ja: '前' },
+    later: { ko: '후', en: 'later', ja: '後' },
+    yearsAgo: { ko: '년', en: ' year(s)', ja: '年' },
+    monthsAgo: { ko: '개월', en: ' month(s)', ja: 'ヶ月' },
+    daysAgo: { ko: '일', en: ' day(s)', ja: '日' },
+    hoursAgo: { ko: '시간', en: ' hour(s)', ja: '時間' },
+    minutesAgo: { ko: '분', en: ' minute(s)', ja: '分' },
+    secondsAgo: { ko: '초', en: ' second(s)', ja: '秒' },
+  },
+
+  // D-Day Calculator
+  dday: {
+    title: { ko: 'D-Day 계산기', en: 'D-Day Calculator', ja: 'D-Day計算機' },
+    description: { ko: '특정 날짜까지 남은 일수 계산', en: 'Calculate days until a specific date', ja: '特定の日付までの日数を計算' },
+    targetDate: { ko: '목표 날짜', en: 'Target Date', ja: '目標日' },
+    eventName: { ko: '이벤트 이름 (선택)', en: 'Event Name (Optional)', ja: 'イベント名（任意）' },
+    daysRemaining: { ko: '남은 일수', en: 'Days Remaining', ja: '残り日数' },
+    daysPassed: { ko: '지난 일수', en: 'Days Passed', ja: '経過日数' },
+    today: { ko: '오늘', en: 'Today', ja: '今日' },
+    addEvent: { ko: '이벤트 추가', en: 'Add Event', ja: 'イベント追加' },
+    savedEvents: { ko: '저장된 이벤트', en: 'Saved Events', ja: '保存されたイベント' },
+    noEvents: { ko: '저장된 이벤트가 없습니다', en: 'No saved events', ja: '保存されたイベントがありません' },
+  },
+
+  // Discount Calculator
+  discount: {
+    title: { ko: '할인 계산기', en: 'Discount Calculator', ja: '割引計算機' },
+    description: { ko: '할인 금액 및 최종 가격 계산', en: 'Calculate discount amount and final price', ja: '割引額と最終価格を計算' },
+    originalPrice: { ko: '원래 가격', en: 'Original Price', ja: '元の価格' },
+    discountRate: { ko: '할인율 (%)', en: 'Discount Rate (%)', ja: '割引率 (%)' },
+    discountAmount: { ko: '할인 금액', en: 'Discount Amount', ja: '割引額' },
+    finalPrice: { ko: '최종 가격', en: 'Final Price', ja: '最終価格' },
+    youSave: { ko: '절약 금액', en: 'You Save', ja: '節約額' },
+  },
+
+  // Dutch Pay Calculator
+  dutchPay: {
+    title: { ko: '더치페이 계산기', en: 'Split Bill Calculator', ja: '割り勘計算機' },
+    description: { ko: '총 금액을 인원수로 나누기', en: 'Split total amount by number of people', ja: '合計金額を人数で分割' },
+    totalAmount: { ko: '총 금액', en: 'Total Amount', ja: '合計金額' },
+    numberOfPeople: { ko: '인원 수', en: 'Number of People', ja: '人数' },
+    perPerson: { ko: '1인당 금액', en: 'Per Person', ja: '一人当たり' },
+    remainder: { ko: '나머지', en: 'Remainder', ja: '余り' },
+    addExtra: { ko: '추가 금액', en: 'Additional Amount', ja: '追加金額' },
+  },
+
   // Tools page
   toolsPage: {
     title: { ko: '온라인 도구', en: 'Online Tools', ja: 'オンラインツール' },

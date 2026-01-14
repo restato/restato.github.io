@@ -1,4 +1,5 @@
 import { useState, useMemo, useEffect } from 'react';
+import { useTranslation } from '../../i18n/useTranslation';
 
 interface ModelPrice {
   name: string;
@@ -13,18 +14,28 @@ interface ModelPrice {
 interface Currency {
   code: string;
   symbol: string;
-  name: string;
+  nameKey: 'currencyUsd' | 'currencyKrw' | 'currencyJpy' | 'currencyEur';
   defaultRate: number;
 }
 
 const CURRENCIES: Currency[] = [
-  { code: 'USD', symbol: '$', name: '달러', defaultRate: 1 },
-  { code: 'KRW', symbol: '₩', name: '원화', defaultRate: 1450 },
-  { code: 'JPY', symbol: '¥', name: '엔화', defaultRate: 157 },
-  { code: 'EUR', symbol: '€', name: '유로', defaultRate: 0.92 },
+  { code: 'USD', symbol: '$', nameKey: 'currencyUsd', defaultRate: 1 },
+  { code: 'KRW', symbol: '₩', nameKey: 'currencyKrw', defaultRate: 1450 },
+  { code: 'JPY', symbol: '¥', nameKey: 'currencyJpy', defaultRate: 157 },
+  { code: 'EUR', symbol: '€', nameKey: 'currencyEur', defaultRate: 0.92 },
 ];
 
-// Prices per 1K tokens (data from litellm pricing)
+// Pricing sources for reference
+const PRICING_SOURCES = [
+  { name: 'OpenAI', url: 'https://openai.com/api/pricing/' },
+  { name: 'Anthropic', url: 'https://www.anthropic.com/pricing' },
+  { name: 'Google AI', url: 'https://ai.google.dev/pricing' },
+  { name: 'AWS Bedrock', url: 'https://aws.amazon.com/bedrock/pricing/' },
+  { name: 'Azure OpenAI', url: 'https://azure.microsoft.com/pricing/details/cognitive-services/openai-service/' },
+  { name: 'LiteLLM', url: 'https://litellm.vercel.app/docs/providers' },
+];
+
+// Prices per 1K tokens (data from official pricing pages)
 const MODEL_PRICES: ModelPrice[] = [
   // OpenAI
   { name: 'gpt-4o', displayName: 'GPT-4o', provider: 'OpenAI', inputCost: 0.0025, outputCost: 0.01, maxInputTokens: 128000, maxOutputTokens: 16384 },
@@ -89,6 +100,9 @@ function estimateTokens(text: string): number {
 }
 
 export default function LlmCostCalculator() {
+  const { t, translations } = useTranslation();
+  const tc = translations.tools.llmCost;
+
   const [inputText, setInputText] = useState('');
   const [outputText, setOutputText] = useState('');
   const [inputTokensManual, setInputTokensManual] = useState('');
@@ -98,6 +112,7 @@ export default function LlmCostCalculator() {
   const [useManualTokens, setUseManualTokens] = useState(false);
   const [requestCount, setRequestCount] = useState('1');
   const [showModelSelector, setShowModelSelector] = useState(false);
+  const [showPricingTable, setShowPricingTable] = useState(false);
 
   // Currency settings
   const [selectedCurrency, setSelectedCurrency] = useState<string>('USD');
@@ -127,12 +142,12 @@ export default function LlmCostCalculator() {
           }
         });
         setExchangeRates(newRates);
-        setRatesLastUpdated(new Date().toLocaleString('ko-KR'));
+        setRatesLastUpdated(new Date().toLocaleString());
       } else {
-        setRatesError('환율 데이터를 가져올 수 없습니다.');
+        setRatesError(t(tc.ratesError));
       }
     } catch {
-      setRatesError('네트워크 오류가 발생했습니다.');
+      setRatesError(t(tc.networkError));
     } finally {
       setIsLoadingRates(false);
     }
@@ -256,6 +271,25 @@ export default function LlmCostCalculator() {
     setSelectedModels(newSet);
   };
 
+  const presets = [
+    { labelKey: 'presetShort' as const, input: 500, output: 500 },
+    { labelKey: 'presetNormal' as const, input: 1000, output: 1000 },
+    { labelKey: 'presetLong' as const, input: 2000, output: 4000 },
+    { labelKey: 'presetCode' as const, input: 3000, output: 2000 },
+    { labelKey: 'presetDoc' as const, input: 10000, output: 2000 },
+    { labelKey: 'presetBulk' as const, input: 1000, output: 500, requests: 1000 },
+  ];
+
+  const formatTokenCount = (tokens: number): string => {
+    if (tokens >= 1000000) {
+      return `${(tokens / 1000000).toFixed(1)}M`;
+    }
+    if (tokens >= 1000) {
+      return `${(tokens / 1000).toFixed(0)}K`;
+    }
+    return tokens.toString();
+  };
+
   return (
     <div className="flex flex-col gap-6">
       {/* Input Mode Toggle */}
@@ -268,7 +302,7 @@ export default function LlmCostCalculator() {
               : 'bg-[var(--color-card)] hover:bg-[var(--color-card-hover)] text-[var(--color-text)] border border-[var(--color-border)]'
             }`}
         >
-          텍스트로 토큰 계산
+          {t(tc.textMode)}
         </button>
         <button
           onClick={() => setUseManualTokens(true)}
@@ -278,7 +312,7 @@ export default function LlmCostCalculator() {
               : 'bg-[var(--color-card)] hover:bg-[var(--color-card-hover)] text-[var(--color-text)] border border-[var(--color-border)]'
             }`}
         >
-          토큰 수 직접 입력
+          {t(tc.manualMode)}
         </button>
       </div>
 
@@ -287,39 +321,39 @@ export default function LlmCostCalculator() {
         <div className="space-y-4">
           <div className="space-y-2">
             <label className="block text-sm font-medium text-[var(--color-text)]">
-              입력 텍스트 (Input)
+              {t(tc.inputText)}
             </label>
             <textarea
               value={inputText}
               onChange={(e) => setInputText(e.target.value)}
-              placeholder="프롬프트를 입력하세요..."
+              placeholder={t(tc.inputPlaceholder)}
               rows={4}
               className="w-full px-4 py-3 rounded-lg border border-[var(--color-border)]
                 bg-[var(--color-card)] text-[var(--color-text)]
                 focus:outline-none focus:ring-2 focus:ring-primary-500 resize-none"
             />
             <div className="flex justify-between text-sm text-[var(--color-text-muted)]">
-              <span>{inputText.length.toLocaleString()}자</span>
-              <span>≈ {estimateTokens(inputText).toLocaleString()} 토큰 (추정)</span>
+              <span>{inputText.length.toLocaleString()}{t(tc.characters)}</span>
+              <span>≈ {estimateTokens(inputText).toLocaleString()} {t(tc.tokensEstimated)}</span>
             </div>
           </div>
 
           <div className="space-y-2">
             <label className="block text-sm font-medium text-[var(--color-text)]">
-              출력 텍스트 (Output) - 예상 응답
+              {t(tc.outputText)}
             </label>
             <textarea
               value={outputText}
               onChange={(e) => setOutputText(e.target.value)}
-              placeholder="예상되는 출력 텍스트를 입력하거나, 아래에서 출력 토큰 수를 직접 입력하세요..."
+              placeholder={t(tc.outputPlaceholder)}
               rows={4}
               className="w-full px-4 py-3 rounded-lg border border-[var(--color-border)]
                 bg-[var(--color-card)] text-[var(--color-text)]
                 focus:outline-none focus:ring-2 focus:ring-primary-500 resize-none"
             />
             <div className="flex justify-between text-sm text-[var(--color-text-muted)]">
-              <span>{outputText.length.toLocaleString()}자</span>
-              <span>≈ {estimateTokens(outputText).toLocaleString()} 토큰 (추정)</span>
+              <span>{outputText.length.toLocaleString()}{t(tc.characters)}</span>
+              <span>≈ {estimateTokens(outputText).toLocaleString()} {t(tc.tokensEstimated)}</span>
             </div>
           </div>
 
@@ -327,7 +361,7 @@ export default function LlmCostCalculator() {
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
                 <label className="block text-sm font-medium text-[var(--color-text)]">
-                  또는 출력 토큰 수 직접 입력
+                  {t(tc.outputTokensAlt)}
                 </label>
                 <input
                   type="number"
@@ -341,7 +375,7 @@ export default function LlmCostCalculator() {
               </div>
               <div className="space-y-2">
                 <label className="block text-sm font-medium text-[var(--color-text)]">
-                  요청 횟수
+                  {t(tc.requestCount)}
                 </label>
                 <input
                   type="number"
@@ -360,7 +394,7 @@ export default function LlmCostCalculator() {
           {outputText && (
             <div className="space-y-2">
               <label className="block text-sm font-medium text-[var(--color-text)]">
-                요청 횟수
+                {t(tc.requestCount)}
               </label>
               <input
                 type="number"
@@ -382,7 +416,7 @@ export default function LlmCostCalculator() {
         <div className="grid grid-cols-3 gap-4">
           <div className="space-y-2">
             <label className="block text-sm font-medium text-[var(--color-text)]">
-              입력 토큰 수
+              {t(tc.inputTokens)}
             </label>
             <input
               type="number"
@@ -396,7 +430,7 @@ export default function LlmCostCalculator() {
           </div>
           <div className="space-y-2">
             <label className="block text-sm font-medium text-[var(--color-text)]">
-              출력 토큰 수
+              {t(tc.outputTokens)}
             </label>
             <input
               type="number"
@@ -410,7 +444,7 @@ export default function LlmCostCalculator() {
           </div>
           <div className="space-y-2">
             <label className="block text-sm font-medium text-[var(--color-text)]">
-              요청 횟수
+              {t(tc.requestCount)}
             </label>
             <input
               type="number"
@@ -428,16 +462,9 @@ export default function LlmCostCalculator() {
 
       {/* Quick Presets */}
       <div className="flex flex-wrap gap-2">
-        {[
-          { label: '짧은 답변', input: 500, output: 500 },
-          { label: '일반 대화', input: 1000, output: 1000 },
-          { label: '긴 글 작성', input: 2000, output: 4000 },
-          { label: '코드 생성', input: 3000, output: 2000 },
-          { label: '문서 분석', input: 10000, output: 2000 },
-          { label: '대량 처리 (1000건)', input: 1000, output: 500, requests: 1000 },
-        ].map((preset) => (
+        {presets.map((preset) => (
           <button
-            key={preset.label}
+            key={preset.labelKey}
             onClick={() => {
               setUseManualTokens(true);
               setInputTokensManual(String(preset.input));
@@ -447,7 +474,7 @@ export default function LlmCostCalculator() {
             className="px-3 py-1 text-sm rounded-lg bg-[var(--color-card)] hover:bg-[var(--color-card-hover)]
               border border-[var(--color-border)] text-[var(--color-text-muted)]"
           >
-            {preset.label}
+            {t(tc[preset.labelKey])}
           </button>
         ))}
       </div>
@@ -456,15 +483,15 @@ export default function LlmCostCalculator() {
       <div className="p-4 rounded-lg bg-primary-500/10 border border-primary-500/20">
         <div className="grid grid-cols-3 gap-4 text-center">
           <div>
-            <p className="text-sm text-[var(--color-text-muted)]">입력 토큰</p>
+            <p className="text-sm text-[var(--color-text-muted)]">{t(tc.inputTokensSummary)}</p>
             <p className="text-2xl font-bold text-[var(--color-text)]">{inputTokens.toLocaleString()}</p>
           </div>
           <div>
-            <p className="text-sm text-[var(--color-text-muted)]">출력 토큰</p>
+            <p className="text-sm text-[var(--color-text-muted)]">{t(tc.outputTokensSummary)}</p>
             <p className="text-2xl font-bold text-[var(--color-text)]">{outputTokens.toLocaleString()}</p>
           </div>
           <div>
-            <p className="text-sm text-[var(--color-text-muted)]">요청 횟수</p>
+            <p className="text-sm text-[var(--color-text-muted)]">{t(tc.requestsSummary)}</p>
             <p className="text-2xl font-bold text-[var(--color-text)]">{requests.toLocaleString()}</p>
           </div>
         </div>
@@ -473,12 +500,12 @@ export default function LlmCostCalculator() {
       {/* Currency Selection */}
       <div className="space-y-2">
         <div className="flex items-center justify-between">
-          <label className="text-sm font-medium text-[var(--color-text)]">통화 선택</label>
+          <label className="text-sm font-medium text-[var(--color-text)]">{t(tc.currencySelect)}</label>
           <button
             onClick={() => setShowExchangeRates(!showExchangeRates)}
             className="text-sm text-primary-500 hover:underline"
           >
-            {showExchangeRates ? '환율 설정 닫기' : '환율 설정'}
+            {showExchangeRates ? t(tc.exchangeClose) : t(tc.exchangeSettings)}
           </button>
         </div>
         <div className="flex flex-wrap gap-2">
@@ -492,7 +519,7 @@ export default function LlmCostCalculator() {
                   : 'bg-[var(--color-card)] hover:bg-[var(--color-card-hover)] text-[var(--color-text)] border border-[var(--color-border)]'
                 }`}
             >
-              {currency.symbol} {currency.name}
+              {currency.symbol} {t(tc[currency.nameKey])}
             </button>
           ))}
         </div>
@@ -500,13 +527,13 @@ export default function LlmCostCalculator() {
         {showExchangeRates && (
           <div className="p-4 rounded-lg bg-[var(--color-card)] border border-[var(--color-border)] mt-2">
             <div className="flex items-center justify-between mb-3">
-              <p className="text-sm text-[var(--color-text-muted)]">$1 USD 기준 환율</p>
+              <p className="text-sm text-[var(--color-text-muted)]">{t(tc.exchangeRate)}</p>
               <button
                 onClick={fetchExchangeRates}
                 disabled={isLoadingRates}
                 className="px-3 py-1 text-sm rounded-lg bg-primary-500 text-white hover:bg-primary-600 disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                {isLoadingRates ? '가져오는 중...' : '실시간 환율 가져오기'}
+                {isLoadingRates ? t(tc.fetchingRates) : t(tc.fetchRates)}
               </button>
             </div>
 
@@ -518,7 +545,7 @@ export default function LlmCostCalculator() {
               {CURRENCIES.filter(c => c.code !== 'USD').map((currency) => (
                 <div key={currency.code} className="space-y-1">
                   <label className="block text-xs text-[var(--color-text-muted)]">
-                    {currency.symbol} {currency.name}
+                    {currency.symbol} {t(tc[currency.nameKey])}
                   </label>
                   <input
                     type="number"
@@ -539,13 +566,13 @@ export default function LlmCostCalculator() {
             <div className="mt-3 pt-3 border-t border-[var(--color-border)]">
               <p className="text-xs text-[var(--color-text-muted)]">
                 {ratesLastUpdated ? (
-                  <>마지막 업데이트: {ratesLastUpdated}</>
+                  <>{t(tc.lastUpdated)}: {ratesLastUpdated}</>
                 ) : (
-                  <>기본 환율 사용 중</>
+                  <>{t(tc.defaultRates)}</>
                 )}
               </p>
               <p className="text-xs text-[var(--color-text-muted)] mt-1">
-                출처:{' '}
+                {t(tc.exchangeSource)}:{' '}
                 <a
                   href="https://www.exchangerate-api.com"
                   target="_blank"
@@ -564,27 +591,27 @@ export default function LlmCostCalculator() {
       {/* Provider Filter */}
       <div className="space-y-2">
         <div className="flex items-center justify-between">
-          <label className="text-sm font-medium text-[var(--color-text)]">제공업체 필터 (복수 선택)</label>
+          <label className="text-sm font-medium text-[var(--color-text)]">{t(tc.providerFilter)}</label>
           <div className="flex gap-2">
             <button
               onClick={selectAllProviders}
               className="text-xs text-primary-500 hover:underline"
             >
-              전체 선택
+              {t(tc.selectAll)}
             </button>
             <span className="text-[var(--color-text-muted)]">|</span>
             <button
               onClick={deselectAllProviders}
               className="text-xs text-[var(--color-text-muted)] hover:underline"
             >
-              전체 해제
+              {t(tc.deselectAll)}
             </button>
             <span className="text-[var(--color-text-muted)]">|</span>
             <button
               onClick={() => setShowModelSelector(!showModelSelector)}
               className="text-xs text-primary-500 hover:underline"
             >
-              {showModelSelector ? '모델 선택 닫기' : '모델 개별 선택'}
+              {showModelSelector ? t(tc.modelSelectClose) : t(tc.modelSelect)}
             </button>
           </div>
         </div>
@@ -613,13 +640,13 @@ export default function LlmCostCalculator() {
               onClick={selectAllModels}
               className="px-3 py-1 text-sm rounded-lg bg-primary-500/10 text-primary-500 hover:bg-primary-500/20"
             >
-              전체 선택
+              {t(tc.selectAll)}
             </button>
             <button
               onClick={deselectAllModels}
               className="px-3 py-1 text-sm rounded-lg bg-[var(--color-card-hover)] text-[var(--color-text-muted)]"
             >
-              전체 해제
+              {t(tc.deselectAll)}
             </button>
           </div>
 
@@ -631,13 +658,13 @@ export default function LlmCostCalculator() {
                   onClick={() => selectProviderModels(provider)}
                   className="text-xs text-primary-500 hover:underline"
                 >
-                  선택
+                  {t(tc.select)}
                 </button>
                 <button
                   onClick={() => deselectProviderModels(provider)}
                   className="text-xs text-[var(--color-text-muted)] hover:underline"
                 >
-                  해제
+                  {t(tc.deselect)}
                 </button>
               </div>
               <div className="flex flex-wrap gap-2">
@@ -670,11 +697,11 @@ export default function LlmCostCalculator() {
         <table className="w-full text-sm">
           <thead>
             <tr className="border-b border-[var(--color-border)]">
-              <th className="text-left py-3 px-2 text-[var(--color-text-muted)] font-medium">모델</th>
-              <th className="text-right py-3 px-2 text-[var(--color-text-muted)] font-medium">입력 비용</th>
-              <th className="text-right py-3 px-2 text-[var(--color-text-muted)] font-medium">출력 비용</th>
-              <th className="text-right py-3 px-2 text-[var(--color-text-muted)] font-medium">총 비용</th>
-              <th className="text-right py-3 px-2 text-[var(--color-text-muted)] font-medium">비교</th>
+              <th className="text-left py-3 px-2 text-[var(--color-text-muted)] font-medium">{t(tc.model)}</th>
+              <th className="text-right py-3 px-2 text-[var(--color-text-muted)] font-medium">{t(tc.inputCost)}</th>
+              <th className="text-right py-3 px-2 text-[var(--color-text-muted)] font-medium">{t(tc.outputCost)}</th>
+              <th className="text-right py-3 px-2 text-[var(--color-text-muted)] font-medium">{t(tc.totalCost)}</th>
+              <th className="text-right py-3 px-2 text-[var(--color-text-muted)] font-medium">{t(tc.comparison)}</th>
             </tr>
           </thead>
           <tbody>
@@ -710,7 +737,7 @@ export default function LlmCostCalculator() {
                   </td>
                   <td className="text-right py-3 px-2 font-mono text-[var(--color-text-muted)]">
                     {isFirst ? (
-                      <span className="text-green-500">최저가</span>
+                      <span className="text-green-500">{t(tc.lowest)}</span>
                     ) : (
                       <span className="text-red-400">{formatComparison(totalCost)}</span>
                     )}
@@ -722,26 +749,86 @@ export default function LlmCostCalculator() {
         </table>
         {sortedModels.length === 0 && (
           <p className="text-center py-8 text-[var(--color-text-muted)]">
-            비교할 모델을 선택하세요.
+            {t(tc.selectModels)}
           </p>
+        )}
+      </div>
+
+      {/* Pricing Table Toggle */}
+      <div className="space-y-2">
+        <button
+          onClick={() => setShowPricingTable(!showPricingTable)}
+          className="w-full px-4 py-2 text-sm font-medium rounded-lg bg-[var(--color-card)] hover:bg-[var(--color-card-hover)] border border-[var(--color-border)] text-[var(--color-text)]"
+        >
+          {showPricingTable ? '▲ ' : '▼ '}{t(tc.pricingTable)}
+        </button>
+
+        {showPricingTable && (
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="border-b border-[var(--color-border)]">
+                  <th className="text-left py-3 px-2 text-[var(--color-text-muted)] font-medium">{t(tc.model)}</th>
+                  <th className="text-right py-3 px-2 text-[var(--color-text-muted)] font-medium">{t(tc.pricePer1kInput)}</th>
+                  <th className="text-right py-3 px-2 text-[var(--color-text-muted)] font-medium">{t(tc.pricePer1kOutput)}</th>
+                  <th className="text-right py-3 px-2 text-[var(--color-text-muted)] font-medium">{t(tc.maxInput)}</th>
+                  <th className="text-right py-3 px-2 text-[var(--color-text-muted)] font-medium">{t(tc.maxOutput)}</th>
+                </tr>
+              </thead>
+              <tbody>
+                {MODEL_PRICES.map((model) => (
+                  <tr key={model.name} className="border-b border-[var(--color-border)]">
+                    <td className="py-3 px-2">
+                      <div>
+                        <p className="font-medium text-[var(--color-text)]">{model.displayName}</p>
+                        <p className="text-xs text-[var(--color-text-muted)]">{model.provider}</p>
+                      </div>
+                    </td>
+                    <td className="text-right py-3 px-2 font-mono text-[var(--color-text)]">
+                      ${model.inputCost.toFixed(6).replace(/\.?0+$/, '')}
+                    </td>
+                    <td className="text-right py-3 px-2 font-mono text-[var(--color-text)]">
+                      ${model.outputCost.toFixed(6).replace(/\.?0+$/, '')}
+                    </td>
+                    <td className="text-right py-3 px-2 font-mono text-[var(--color-text-muted)]">
+                      {formatTokenCount(model.maxInputTokens)}
+                    </td>
+                    <td className="text-right py-3 px-2 font-mono text-[var(--color-text-muted)]">
+                      {formatTokenCount(model.maxOutputTokens)}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         )}
       </div>
 
       {/* Pricing Info */}
       <div className="p-4 rounded-lg bg-[var(--color-card)] border border-[var(--color-border)]">
-        <h3 className="font-medium text-[var(--color-text)] mb-2">참고 사항</h3>
+        <h3 className="font-medium text-[var(--color-text)] mb-2">{t(tc.notes)}</h3>
         <ul className="text-sm text-[var(--color-text-muted)] space-y-1">
-          <li>• 가격은 2025년 1월 기준이며 실제 가격은 공식 사이트에서 확인하세요.</li>
-          <li>• 토큰 수 추정: 영어 약 4자당 1토큰, 한국어 약 2자당 1토큰</li>
-          <li>• 한국어는 영어보다 토큰을 더 많이 사용합니다 (~1.5-2배).</li>
-          <li>• 환율은 페이지 로드 시 자동으로 <a href="https://www.exchangerate-api.com" target="_blank" rel="noopener noreferrer" className="text-primary-500 hover:underline">ExchangeRate-API</a>에서 가져옵니다.</li>
+          <li>• {t(tc.priceDate)}</li>
+          <li>• {t(tc.tokenEstimation)}</li>
+          <li>• {t(tc.koreanTokenNote)}</li>
+          <li>• {t(tc.exchangeNote)} <a href="https://www.exchangerate-api.com" target="_blank" rel="noopener noreferrer" className="text-primary-500 hover:underline">ExchangeRate-API</a>{t(tc.exchangeNoteSuffix)}</li>
         </ul>
 
-        <h4 className="font-medium text-[var(--color-text)] mt-4 mb-2">토큰 계산 레퍼런스</h4>
+        <h4 className="font-medium text-[var(--color-text)] mt-4 mb-2">{t(tc.tokenReference)}</h4>
         <ul className="text-sm text-[var(--color-text-muted)] space-y-1">
-          <li>• <a href="https://platform.openai.com/tokenizer" target="_blank" rel="noopener noreferrer" className="text-primary-500 hover:underline">OpenAI Tokenizer</a> - GPT 모델용 토큰 계산기</li>
-          <li>• <a href="https://docs.anthropic.com/en/api/messages-count-tokens" target="_blank" rel="noopener noreferrer" className="text-primary-500 hover:underline">Anthropic Token Counting</a> - Claude 모델 토큰 계산 API</li>
-          <li>• <a href="https://ai.google.dev/gemini-api/docs/tokens" target="_blank" rel="noopener noreferrer" className="text-primary-500 hover:underline">Gemini Token Guide</a> - Gemini 모델 토큰 가이드</li>
+          <li>• <a href="https://platform.openai.com/tokenizer" target="_blank" rel="noopener noreferrer" className="text-primary-500 hover:underline">OpenAI Tokenizer</a> - {t(tc.openaiTokenizer)}</li>
+          <li>• <a href="https://docs.anthropic.com/en/api/messages-count-tokens" target="_blank" rel="noopener noreferrer" className="text-primary-500 hover:underline">Anthropic Token Counting</a> - {t(tc.anthropicTokens)}</li>
+          <li>• <a href="https://ai.google.dev/gemini-api/docs/tokens" target="_blank" rel="noopener noreferrer" className="text-primary-500 hover:underline">Gemini Token Guide</a> - {t(tc.geminiTokens)}</li>
+        </ul>
+
+        <h4 className="font-medium text-[var(--color-text)] mt-4 mb-2">{t(tc.priceSources)}</h4>
+        <p className="text-sm text-[var(--color-text-muted)] mb-2">{t(tc.priceSourceNote)}</p>
+        <ul className="text-sm text-[var(--color-text-muted)] space-y-1">
+          {PRICING_SOURCES.map((source) => (
+            <li key={source.name}>
+              • <a href={source.url} target="_blank" rel="noopener noreferrer" className="text-primary-500 hover:underline">{source.name}</a>
+            </li>
+          ))}
         </ul>
       </div>
     </div>
