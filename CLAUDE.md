@@ -208,3 +208,179 @@ className={`base-class ${condition ? 'active-class' : ''}`}
 className="w-full md:w-1/2 lg:w-1/3"
 className="text-sm md:text-base lg:text-lg"
 ```
+
+## 온라인 도구 추가 가이드
+
+새로운 온라인 도구를 추가할 때는 다음 단계를 **반드시** 따라야 합니다:
+
+### 1. React 컴포넌트 생성
+`/src/components/tools/` 디렉토리에 새 도구 컴포넌트를 생성합니다.
+
+```tsx
+// /src/components/tools/NewTool.tsx
+import { useState } from 'react';
+import { useTranslation } from '../../i18n/useTranslation';
+
+export default function NewTool() {
+  const { t, translations } = useTranslation();
+  const tc = translations.tools.common;
+
+  // 도구 로직
+
+  return (
+    <div className="flex flex-col gap-6">
+      {/* 도구 UI */}
+    </div>
+  );
+}
+```
+
+### 2. 번역 추가
+`/src/i18n/translations/tools.ts`에 새 도구의 번역을 추가합니다.
+
+```ts
+newTool: {
+  title: { ko: '새 도구', en: 'New Tool', ja: '新しいツール' },
+  description: { ko: '도구 설명', en: 'Tool description', ja: 'ツールの説明' },
+  // ... 기타 번역 키
+},
+```
+
+### 3. Astro 페이지 생성
+`/src/pages/tools/` 디렉토리에 새 페이지를 생성합니다.
+
+```astro
+---
+// /src/pages/tools/new-tool.astro
+import MainLayout from '../../layouts/MainLayout.astro';
+import NewTool from '../../components/tools/NewTool';
+---
+
+<MainLayout
+  title="새 도구 | Restato"
+  description="도구 설명"
+>
+  <div class="max-w-4xl mx-auto px-4 py-8">
+    <h1 class="text-3xl font-bold mb-6">새 도구</h1>
+    <NewTool client:load />
+  </div>
+</MainLayout>
+```
+
+### 4. 도구 목록에 추가
+`/src/pages/tools/index.astro`의 `tools` 배열에 새 도구를 추가합니다.
+
+```ts
+{
+  slug: 'new-tool',
+  title: { ko: '새 도구', en: 'New Tool', ja: '新しいツール' },
+  description: { ko: '도구 설명', en: 'Tool description', ja: 'ツールの説明' },
+  icon: '🔧',
+  category: 'developer', // 적절한 카테고리 선택
+},
+```
+
+### 5. 테스트 코드 작성 (필수!)
+`/src/components/tools/__tests__/` 디렉토리에 테스트 파일을 생성합니다.
+
+```tsx
+// /src/components/tools/__tests__/NewTool.test.tsx
+import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { render, screen } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
+import NewTool from '../NewTool';
+import './testUtils';
+
+describe('NewTool', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it('renders without crashing', () => {
+    render(<NewTool />);
+    // 기본 렌더링 검증
+  });
+
+  it('핵심 기능 테스트', async () => {
+    render(<NewTool />);
+    const user = userEvent.setup();
+    // 기능 테스트
+  });
+
+  // 추가 테스트 케이스...
+});
+```
+
+### 6. 마케팅 콘텐츠 추가 (필수!)
+`/src/content/blog/online-tools-guide.mdx`에 새 도구 마케팅 설명을 추가합니다.
+
+```mdx
+### 새 도구
+**핵심 기능 한 줄 설명**
+
+- 주요 기능 1
+- 주요 기능 2
+- 사용 사례
+
+[새 도구 사용하기 →](/tools/new-tool)
+```
+
+### 도구 추가 체크리스트
+
+- [ ] React 컴포넌트 생성 (`/src/components/tools/`)
+- [ ] 번역 추가 (`/src/i18n/translations/tools.ts`)
+- [ ] Astro 페이지 생성 (`/src/pages/tools/`)
+- [ ] 도구 목록에 추가 (`/src/pages/tools/index.astro`)
+- [ ] **테스트 코드 작성** (`/src/components/tools/__tests__/`)
+- [ ] **마케팅 콘텐츠 추가** (`/src/content/blog/online-tools-guide.mdx`)
+- [ ] TypeScript 타입 정의
+- [ ] 다국어 지원 (한국어, 영어, 일본어)
+- [ ] 반응형 디자인
+- [ ] 다크모드 지원
+- [ ] 접근성 고려
+
+### 테스트 실행
+```bash
+# 전체 테스트 실행
+npm run test
+
+# 특정 파일 테스트
+npm run test NewTool
+
+# UI 모드로 테스트
+npm run test:ui
+
+# 커버리지 확인
+npm run test:coverage
+```
+
+## 다국어 지원 (i18n)
+
+### 번역 시스템 구조
+- `/src/i18n/index.ts` - 언어 설정 및 유틸리티
+- `/src/i18n/useTranslation.ts` - React 훅
+- `/src/i18n/translations/` - 번역 파일
+
+### 번역 사용 방법
+```tsx
+import { useTranslation } from '../../i18n/useTranslation';
+
+function Component() {
+  const { t, lang, translations } = useTranslation();
+
+  return (
+    <div>
+      {/* 인라인 번역 */}
+      <p>{t({ ko: '한국어', en: 'English', ja: '日本語' })}</p>
+
+      {/* 번역 파일 사용 */}
+      <p>{t(translations.tools.common.copy)}</p>
+    </div>
+  );
+}
+```
+
+### 지원 언어
+- `ko`: 한국어 (기본)
+- `en`: English
+- `ja`: 日本語

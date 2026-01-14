@@ -2,6 +2,9 @@
 import MainLayout from '../../layouts/MainLayout.astro';
 import ToolSearch from '../../components/tools/ToolSearch';
 import RecentTools from '../../components/tools/RecentTools';
+import ToolsGrid from '../../components/tools/ToolsGrid';
+import ToolsPageHeader from '../../components/tools/ToolsPageHeader';
+import ToolsPageInfo from '../../components/tools/ToolsPageInfo';
 
 const tools = [
   // Generators
@@ -311,24 +314,8 @@ const categories = [
   description="유용한 웹 도구 모음 - QR 코드 생성기, 비밀번호 생성기, 색상 변환기, 단위 변환기, 개발자 도구, 디자이너 도구, 마케터 도구 등"
 >
   <div class="max-w-6xl mx-auto px-4 py-8">
-    <!-- Breadcrumb -->
-    <nav class="text-sm mb-6">
-      <ol class="flex items-center gap-2">
-        <li><a href="/" class="text-[var(--color-text-muted)] hover:text-primary-500">홈</a></li>
-        <li class="text-[var(--color-text-muted)]">/</li>
-        <li class="text-[var(--color-text)]">도구</li>
-      </ol>
-    </nav>
-
-    <!-- Header -->
-    <header class="mb-8">
-      <h1 class="text-3xl md:text-4xl font-bold text-[var(--color-text)] mb-4">
-        🛠️ 온라인 도구
-      </h1>
-      <p class="text-[var(--color-text-muted)] text-lg">
-        개발자, 디자이너, 마케터, PM을 위한 유용한 웹 도구 모음입니다. 무료로 사용할 수 있습니다.
-      </p>
-    </header>
+    <!-- Header with i18n support -->
+    <ToolsPageHeader client:load />
 
     <!-- Search -->
     <div class="mb-6">
@@ -338,95 +325,10 @@ const categories = [
     <!-- Recent Tools -->
     <RecentTools client:load className="mb-8" />
 
-    <!-- Category Filters -->
-    <div class="flex flex-wrap gap-2 mb-8" id="category-filters">
-      {categories.map((category) => (
-        <button
-          data-category={category.id}
-          class={`px-4 py-2 rounded-lg text-sm font-medium transition-colors
-            ${category.id === 'all'
-              ? 'bg-primary-500 text-white'
-              : 'bg-[var(--color-card)] hover:bg-[var(--color-card-hover)] text-[var(--color-text)] border border-[var(--color-border)]'
-            }`}
-        >
-          {category.label.ko}
-        </button>
-      ))}
-    </div>
+    <!-- Tools Grid with i18n support -->
+    <ToolsGrid client:load tools={tools} categories={categories} />
 
-    <!-- Tools Grid -->
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4" id="tools-grid">
-      {tools.map((tool) => (
-        <a
-          href={`/tools/${tool.slug}`}
-          data-category={tool.category}
-          class="group p-6 rounded-xl bg-[var(--color-card)] border border-[var(--color-border)]
-            hover:border-primary-500 hover:shadow-lg transition-all"
-        >
-          <div class="flex items-start gap-4">
-            <span class="text-3xl">{tool.icon}</span>
-            <div class="flex-1 min-w-0">
-              <h3 class="text-lg font-semibold text-[var(--color-text)] group-hover:text-primary-500 transition-colors">
-                {tool.title.ko}
-              </h3>
-              <p class="text-sm text-[var(--color-text-muted)] mt-1">
-                {tool.description.ko}
-              </p>
-            </div>
-            <svg class="w-5 h-5 text-[var(--color-text-muted)] group-hover:text-primary-500 transition-colors flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
-            </svg>
-          </div>
-        </a>
-      ))}
-    </div>
-
-    <!-- Tool Count -->
-    <div class="mt-8 text-center text-[var(--color-text-muted)]">
-      총 <span class="font-bold text-[var(--color-text)]">{tools.length}개</span>의 도구가 있습니다.
-    </div>
-
-    <!-- Info -->
-    <div class="mt-8 p-6 rounded-xl bg-[var(--color-card)] border border-[var(--color-border)]">
-      <h2 class="text-xl font-semibold text-[var(--color-text)] mb-4">ℹ️ 정보</h2>
-      <ul class="space-y-2 text-[var(--color-text-muted)]">
-        <li>• 모든 도구는 브라우저에서 실행되며, 데이터가 서버로 전송되지 않습니다.</li>
-        <li>• 무료로 사용 가능하며, 회원가입이 필요없습니다.</li>
-        <li>• 모바일과 데스크톱 모두에서 사용할 수 있습니다.</li>
-        <li>• 한국어, 영어, 일본어를 지원합니다.</li>
-      </ul>
-    </div>
+    <!-- Info with i18n support -->
+    <ToolsPageInfo client:load />
   </div>
 </MainLayout>
-
-<script>
-  const filters = document.getElementById('category-filters');
-  const grid = document.getElementById('tools-grid');
-
-  if (filters && grid) {
-    filters.addEventListener('click', (e) => {
-      const target = e.target as HTMLElement;
-      if (target.tagName !== 'BUTTON') return;
-
-      const category = target.dataset.category;
-
-      // Update button styles
-      filters.querySelectorAll('button').forEach((btn) => {
-        btn.classList.remove('bg-primary-500', 'text-white');
-        btn.classList.add('bg-[var(--color-card)]', 'text-[var(--color-text)]', 'border', 'border-[var(--color-border)]');
-      });
-      target.classList.remove('bg-[var(--color-card)]', 'text-[var(--color-text)]', 'border', 'border-[var(--color-border)]');
-      target.classList.add('bg-primary-500', 'text-white');
-
-      // Filter tools
-      grid.querySelectorAll('a').forEach((card) => {
-        const cardCategory = card.dataset.category;
-        if (category === 'all' || cardCategory === category) {
-          card.classList.remove('hidden');
-        } else {
-          card.classList.add('hidden');
-        }
-      });
-    });
-  }
-</script>
