@@ -732,9 +732,16 @@ export default function LlmCostCalculator() {
         <h3 className="font-medium text-[var(--color-text)] mb-2">참고 사항</h3>
         <ul className="text-sm text-[var(--color-text-muted)] space-y-1">
           <li>• 가격은 2025년 1월 기준이며 실제 가격은 공식 사이트에서 확인하세요.</li>
-          <li>• 토큰 수 추정: 영어 약 4자당 1토큰, 한국어 약 2자당 1토큰 (<a href="https://ai.google.dev/gemini-api/docs/tokens" target="_blank" rel="noopener noreferrer" className="text-primary-500 hover:underline">Gemini 토큰 가이드</a>)</li>
+          <li>• 토큰 수 추정: 영어 약 4자당 1토큰, 한국어 약 2자당 1토큰</li>
           <li>• 한국어는 영어보다 토큰을 더 많이 사용합니다 (~1.5-2배).</li>
           <li>• 환율은 페이지 로드 시 자동으로 <a href="https://www.exchangerate-api.com" target="_blank" rel="noopener noreferrer" className="text-primary-500 hover:underline">ExchangeRate-API</a>에서 가져옵니다.</li>
+        </ul>
+
+        <h4 className="font-medium text-[var(--color-text)] mt-4 mb-2">토큰 계산 레퍼런스</h4>
+        <ul className="text-sm text-[var(--color-text-muted)] space-y-1">
+          <li>• <a href="https://platform.openai.com/tokenizer" target="_blank" rel="noopener noreferrer" className="text-primary-500 hover:underline">OpenAI Tokenizer</a> - GPT 모델용 토큰 계산기</li>
+          <li>• <a href="https://docs.anthropic.com/en/api/messages-count-tokens" target="_blank" rel="noopener noreferrer" className="text-primary-500 hover:underline">Anthropic Token Counting</a> - Claude 모델 토큰 계산 API</li>
+          <li>• <a href="https://ai.google.dev/gemini-api/docs/tokens" target="_blank" rel="noopener noreferrer" className="text-primary-500 hover:underline">Gemini Token Guide</a> - Gemini 모델 토큰 가이드</li>
         </ul>
       </div>
     </div>
