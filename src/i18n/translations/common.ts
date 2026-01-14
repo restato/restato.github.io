@@ -6,6 +6,7 @@ export const commonTranslations = {
   nav: {
     home: { ko: '홈', en: 'Home', ja: 'ホーム' },
     blog: { ko: '블로그', en: 'Blog', ja: 'ブログ' },
+    jobs: { ko: '채용', en: 'Jobs', ja: '採用' },
     projects: { ko: '프로젝트', en: 'Projects', ja: 'プロジェクト' },
     about: { ko: '소개', en: 'About', ja: '紹介' },
     tools: { ko: '도구', en: 'Tools', ja: 'ツール' },
