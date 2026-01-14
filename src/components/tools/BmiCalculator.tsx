@@ -1,15 +1,19 @@
 import { useState } from 'react';
+import { useTranslation } from '../../i18n/useTranslation';
 
 interface BmiResult {
   bmi: number;
-  category: string;
+  categoryKey: string;
   color: string;
-  description: string;
+  descriptionKey: string;
   idealWeightMin: number;
   idealWeightMax: number;
 }
 
 export default function BmiCalculator() {
+  const { t, translations } = useTranslation();
+  const tc = translations.tools.bmi;
+
   const [height, setHeight] = useState('');
   const [weight, setWeight] = useState('');
   const [result, setResult] = useState<BmiResult | null>(null);
@@ -27,53 +31,77 @@ export default function BmiCalculator() {
     const idealWeightMin = 18.5 * h * h;
     const idealWeightMax = 24.9 * h * h;
 
-    let category: string;
+    let categoryKey: string;
     let color: string;
-    let description: string;
+    let descriptionKey: string;
 
     if (bmi < 18.5) {
-      category = '저체중';
+      categoryKey = 'underweight';
       color = 'text-blue-500';
-      description = '체중이 부족합니다. 균형 잡힌 식단으로 건강한 체중을 유지하세요.';
+      descriptionKey = 'underweightDesc';
     } else if (bmi < 23) {
-      category = '정상';
+      categoryKey = 'normal';
       color = 'text-green-500';
-      description = '건강한 체중입니다. 현재 상태를 유지하세요!';
+      descriptionKey = 'normalDesc';
     } else if (bmi < 25) {
-      category = '과체중';
+      categoryKey = 'overweight';
       color = 'text-yellow-500';
-      description = '비만 전 단계입니다. 식이조절과 운동을 권장합니다.';
+      descriptionKey = 'overweightDesc';
     } else if (bmi < 30) {
-      category = '비만 1단계';
+      categoryKey = 'obese1';
       color = 'text-orange-500';
-      description = '건강 관리가 필요합니다. 전문가 상담을 권장합니다.';
+      descriptionKey = 'obese1Desc';
     } else if (bmi < 35) {
-      category = '비만 2단계';
+      categoryKey = 'obese2';
       color = 'text-red-500';
-      description = '건강 위험이 높습니다. 의료 전문가와 상담하세요.';
+      descriptionKey = 'obese2Desc';
     } else {
-      category = '고도비만';
+      categoryKey = 'extremelyObese';
       color = 'text-red-700';
-      description = '심각한 건강 위험이 있습니다. 즉시 의료 상담이 필요합니다.';
+      descriptionKey = 'extremelyObeseDesc';
     }
 
     setResult({
       bmi,
-      category,
+      categoryKey,
       color,
-      description,
+      descriptionKey,
       idealWeightMin,
       idealWeightMax,
     });
   };
 
+  const getCategoryText = (key: string) => {
+    const categoryMap: Record<string, { ko: string; en: string; ja: string }> = {
+      underweight: tc.underweight,
+      normal: tc.normal,
+      overweight: tc.overweight,
+      obese1: tc.obese1,
+      obese2: tc.obese2,
+      extremelyObese: tc.extremelyObese,
+    };
+    return t(categoryMap[key] || tc.normal);
+  };
+
+  const getDescriptionText = (key: string) => {
+    const descMap: Record<string, { ko: string; en: string; ja: string }> = {
+      underweightDesc: tc.underweightDesc,
+      normalDesc: tc.normalDesc,
+      overweightDesc: tc.overweightDesc,
+      obese1Desc: tc.obese1Desc,
+      obese2Desc: tc.obese2Desc,
+      extremelyObeseDesc: tc.extremelyObeseDesc,
+    };
+    return t(descMap[key] || tc.normalDesc);
+  };
+
   const bmiRanges = [
-    { range: '18.5 미만', category: '저체중', color: 'bg-blue-500' },
-    { range: '18.5 - 22.9', category: '정상', color: 'bg-green-500' },
-    { range: '23 - 24.9', category: '과체중', color: 'bg-yellow-500' },
-    { range: '25 - 29.9', category: '비만 1단계', color: 'bg-orange-500' },
-    { range: '30 - 34.9', category: '비만 2단계', color: 'bg-red-500' },
-    { range: '35 이상', category: '고도비만', color: 'bg-red-700' },
+    { range: `18.5 ${t(tc.lessThan)}`, categoryKey: 'underweight', color: 'bg-blue-500' },
+    { range: '18.5 - 22.9', categoryKey: 'normal', color: 'bg-green-500' },
+    { range: '23 - 24.9', categoryKey: 'overweight', color: 'bg-yellow-500' },
+    { range: '25 - 29.9', categoryKey: 'obese1', color: 'bg-orange-500' },
+    { range: '30 - 34.9', categoryKey: 'obese2', color: 'bg-red-500' },
+    { range: `35 ${t(tc.orMore)}`, categoryKey: 'extremelyObese', color: 'bg-red-700' },
   ];
 
   return (
@@ -82,7 +110,7 @@ export default function BmiCalculator() {
       <div className="grid grid-cols-2 gap-4">
         <div className="space-y-2">
           <label className="block text-sm font-medium text-[var(--color-text)]">
-            키 (cm)
+            {t(tc.height)}
           </label>
           <input
             type="number"
@@ -96,7 +124,7 @@ export default function BmiCalculator() {
         </div>
         <div className="space-y-2">
           <label className="block text-sm font-medium text-[var(--color-text)]">
-            몸무게 (kg)
+            {t(tc.weight)}
           </label>
           <input
             type="number"
@@ -116,7 +144,7 @@ export default function BmiCalculator() {
         className="w-full py-3 bg-primary-500 hover:bg-primary-600 text-white rounded-lg
           font-medium transition-colors"
       >
-        BMI 계산하기
+        {t(tc.calculate)}
       </button>
 
       {/* Result */}
@@ -124,23 +152,23 @@ export default function BmiCalculator() {
         <div className="space-y-4">
           {/* BMI Value */}
           <div className="text-center p-6 rounded-lg bg-[var(--color-card)] border border-[var(--color-border)]">
-            <p className="text-sm text-[var(--color-text-muted)] mb-2">나의 BMI</p>
+            <p className="text-sm text-[var(--color-text-muted)] mb-2">{t(tc.myBmi)}</p>
             <p className={`text-5xl font-bold ${result.color}`}>
               {result.bmi.toFixed(1)}
             </p>
             <p className={`text-xl font-medium mt-2 ${result.color}`}>
-              {result.category}
+              {getCategoryText(result.categoryKey)}
             </p>
           </div>
 
           {/* Description */}
           <div className="p-4 rounded-lg bg-[var(--color-card)] border border-[var(--color-border)]">
-            <p className="text-[var(--color-text)]">{result.description}</p>
+            <p className="text-[var(--color-text)]">{getDescriptionText(result.descriptionKey)}</p>
           </div>
 
           {/* Ideal Weight */}
           <div className="p-4 rounded-lg bg-green-500/10 border border-green-500/20">
-            <p className="text-sm text-[var(--color-text-muted)] mb-1">적정 체중 범위</p>
+            <p className="text-sm text-[var(--color-text-muted)] mb-1">{t(tc.idealWeight)}</p>
             <p className="text-lg font-medium text-green-500">
               {result.idealWeightMin.toFixed(1)}kg ~ {result.idealWeightMax.toFixed(1)}kg
             </p>
@@ -166,13 +194,13 @@ export default function BmiCalculator() {
 
       {/* BMI Table */}
       <div className="p-4 rounded-lg bg-[var(--color-card)] border border-[var(--color-border)]">
-        <h3 className="font-medium text-[var(--color-text)] mb-3">📊 BMI 기준표 (아시아-태평양 기준)</h3>
+        <h3 className="font-medium text-[var(--color-text)] mb-3">📊 {t(tc.bmiTable)}</h3>
         <div className="space-y-2">
           {bmiRanges.map((range, i) => (
             <div key={i} className="flex items-center gap-3">
               <div className={`w-4 h-4 rounded ${range.color}`} />
               <span className="text-sm text-[var(--color-text-muted)] w-24">{range.range}</span>
-              <span className="text-sm text-[var(--color-text)]">{range.category}</span>
+              <span className="text-sm text-[var(--color-text)]">{getCategoryText(range.categoryKey)}</span>
             </div>
           ))}
         </div>
@@ -180,7 +208,7 @@ export default function BmiCalculator() {
 
       {/* Disclaimer */}
       <p className="text-xs text-[var(--color-text-muted)] text-center">
-        * BMI는 참고용 지표입니다. 정확한 건강 상태는 전문가와 상담하세요.
+        * {t(tc.disclaimer)}
       </p>
     </div>
   );

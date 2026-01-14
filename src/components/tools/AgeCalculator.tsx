@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useTranslation } from '../../i18n/useTranslation';
 
 interface AgeResult {
   koreanAge: number;
@@ -7,30 +8,33 @@ interface AgeResult {
   days: number;
   totalDays: number;
   nextBirthday: number;
-  zodiac: string;
+  zodiacKey: string;
   zodiacEmoji: string;
-  chineseZodiac: string;
+  chineseZodiacKey: string;
   chineseZodiacEmoji: string;
 }
 
 export default function AgeCalculator() {
+  const { t, translations } = useTranslation();
+  const tc = translations.tools.age;
+
   const [birthDate, setBirthDate] = useState('');
   const [result, setResult] = useState<AgeResult | null>(null);
 
-  const getZodiac = (month: number, day: number): { sign: string; emoji: string } => {
+  const getZodiac = (month: number, day: number): { key: string; emoji: string } => {
     const zodiacSigns = [
-      { sign: '염소자리', emoji: '♑', start: [12, 22], end: [1, 19] },
-      { sign: '물병자리', emoji: '♒', start: [1, 20], end: [2, 18] },
-      { sign: '물고기자리', emoji: '♓', start: [2, 19], end: [3, 20] },
-      { sign: '양자리', emoji: '♈', start: [3, 21], end: [4, 19] },
-      { sign: '황소자리', emoji: '♉', start: [4, 20], end: [5, 20] },
-      { sign: '쌍둥이자리', emoji: '♊', start: [5, 21], end: [6, 21] },
-      { sign: '게자리', emoji: '♋', start: [6, 22], end: [7, 22] },
-      { sign: '사자자리', emoji: '♌', start: [7, 23], end: [8, 22] },
-      { sign: '처녀자리', emoji: '♍', start: [8, 23], end: [9, 22] },
-      { sign: '천칭자리', emoji: '♎', start: [9, 23], end: [10, 22] },
-      { sign: '전갈자리', emoji: '♏', start: [10, 23], end: [11, 21] },
-      { sign: '사수자리', emoji: '♐', start: [11, 22], end: [12, 21] },
+      { key: 'capricorn', emoji: '♑', start: [12, 22], end: [1, 19] },
+      { key: 'aquarius', emoji: '♒', start: [1, 20], end: [2, 18] },
+      { key: 'pisces', emoji: '♓', start: [2, 19], end: [3, 20] },
+      { key: 'aries', emoji: '♈', start: [3, 21], end: [4, 19] },
+      { key: 'taurus', emoji: '♉', start: [4, 20], end: [5, 20] },
+      { key: 'gemini', emoji: '♊', start: [5, 21], end: [6, 21] },
+      { key: 'cancer', emoji: '♋', start: [6, 22], end: [7, 22] },
+      { key: 'leo', emoji: '♌', start: [7, 23], end: [8, 22] },
+      { key: 'virgo', emoji: '♍', start: [8, 23], end: [9, 22] },
+      { key: 'libra', emoji: '♎', start: [9, 23], end: [10, 22] },
+      { key: 'scorpio', emoji: '♏', start: [10, 23], end: [11, 21] },
+      { key: 'sagittarius', emoji: '♐', start: [11, 22], end: [12, 21] },
     ];
 
     for (const z of zodiacSigns) {
@@ -39,31 +43,31 @@ export default function AgeCalculator() {
 
       if (sm > em) {
         if ((month === sm && day >= sd) || (month === em && day <= ed)) {
-          return { sign: z.sign, emoji: z.emoji };
+          return { key: z.key, emoji: z.emoji };
         }
       } else {
         if ((month === sm && day >= sd) || (month === em && day <= ed) || (month > sm && month < em)) {
-          return { sign: z.sign, emoji: z.emoji };
+          return { key: z.key, emoji: z.emoji };
         }
       }
     }
-    return { sign: '염소자리', emoji: '♑' };
+    return { key: 'capricorn', emoji: '♑' };
   };
 
-  const getChineseZodiac = (year: number): { animal: string; emoji: string } => {
+  const getChineseZodiac = (year: number): { key: string; emoji: string } => {
     const animals = [
-      { animal: '원숭이', emoji: '🐵' },
-      { animal: '닭', emoji: '🐔' },
-      { animal: '개', emoji: '🐕' },
-      { animal: '돼지', emoji: '🐷' },
-      { animal: '쥐', emoji: '🐭' },
-      { animal: '소', emoji: '🐮' },
-      { animal: '호랑이', emoji: '🐯' },
-      { animal: '토끼', emoji: '🐰' },
-      { animal: '용', emoji: '🐲' },
-      { animal: '뱀', emoji: '🐍' },
-      { animal: '말', emoji: '🐴' },
-      { animal: '양', emoji: '🐑' },
+      { key: 'monkey', emoji: '🐵' },
+      { key: 'rooster', emoji: '🐔' },
+      { key: 'dog', emoji: '🐕' },
+      { key: 'pig', emoji: '🐷' },
+      { key: 'rat', emoji: '🐭' },
+      { key: 'ox', emoji: '🐮' },
+      { key: 'tiger', emoji: '🐯' },
+      { key: 'rabbit', emoji: '🐰' },
+      { key: 'dragon', emoji: '🐲' },
+      { key: 'snake', emoji: '🐍' },
+      { key: 'horse', emoji: '🐴' },
+      { key: 'sheep', emoji: '🐑' },
     ];
     return animals[year % 12];
   };
@@ -121,19 +125,55 @@ export default function AgeCalculator() {
       days,
       totalDays,
       nextBirthday: daysUntilBirthday,
-      zodiac: zodiac.sign,
+      zodiacKey: zodiac.key,
       zodiacEmoji: zodiac.emoji,
-      chineseZodiac: chineseZodiac.animal,
+      chineseZodiacKey: chineseZodiac.key,
       chineseZodiacEmoji: chineseZodiac.emoji,
     });
   }, [birthDate]);
+
+  const getZodiacName = (key: string) => {
+    const zodiacMap: Record<string, { ko: string; en: string; ja: string }> = {
+      capricorn: tc.capricorn,
+      aquarius: tc.aquarius,
+      pisces: tc.pisces,
+      aries: tc.aries,
+      taurus: tc.taurus,
+      gemini: tc.gemini,
+      cancer: tc.cancer,
+      leo: tc.leo,
+      virgo: tc.virgo,
+      libra: tc.libra,
+      scorpio: tc.scorpio,
+      sagittarius: tc.sagittarius,
+    };
+    return t(zodiacMap[key] || tc.capricorn);
+  };
+
+  const getChineseZodiacName = (key: string) => {
+    const animalMap: Record<string, { ko: string; en: string; ja: string }> = {
+      monkey: tc.monkey,
+      rooster: tc.rooster,
+      dog: tc.dog,
+      pig: tc.pig,
+      rat: tc.rat,
+      ox: tc.ox,
+      tiger: tc.tiger,
+      rabbit: tc.rabbit,
+      dragon: tc.dragon,
+      snake: tc.snake,
+      horse: tc.horse,
+      sheep: tc.sheep,
+    };
+    return t(animalMap[key] || tc.rat);
+  };
 
   return (
     <div className="flex flex-col gap-6">
       {/* Birth Date Input */}
       <div className="space-y-2">
         <label className="block text-sm font-medium text-[var(--color-text)]">
-          생년월일
+          {t(tc.birthDate)}
         </label>
         <input
           type="date"
@@ -152,34 +192,34 @@ export default function AgeCalculator() {
           {/* Main Age Display */}
           <div className="grid grid-cols-2 gap-4">
             <div className="p-4 rounded-lg bg-primary-500/10 border border-primary-500/20 text-center">
-              <p className="text-sm text-[var(--color-text-muted)] mb-1">만 나이</p>
-              <p className="text-4xl font-bold text-primary-500">{result.internationalAge}세</p>
+              <p className="text-sm text-[var(--color-text-muted)] mb-1">{t(tc.internationalAge)}</p>
+              <p className="text-4xl font-bold text-primary-500">{result.internationalAge}{t(tc.years)}</p>
             </div>
             <div className="p-4 rounded-lg bg-[var(--color-card)] border border-[var(--color-border)] text-center">
-              <p className="text-sm text-[var(--color-text-muted)] mb-1">세는 나이</p>
-              <p className="text-4xl font-bold text-[var(--color-text)]">{result.koreanAge}세</p>
+              <p className="text-sm text-[var(--color-text-muted)] mb-1">{t(tc.koreanAge)}</p>
+              <p className="text-4xl font-bold text-[var(--color-text)]">{result.koreanAge}{t(tc.years)}</p>
             </div>
           </div>
 
           {/* Detailed Age */}
           <div className="p-4 rounded-lg bg-[var(--color-card)] border border-[var(--color-border)]">
             <p className="text-[var(--color-text)]">
-              정확한 나이: <span className="font-bold">{result.internationalAge}년 {result.months}개월 {result.days}일</span>
+              {t(tc.exactAge)}: <span className="font-bold">{result.internationalAge}{t(tc.yearsMonthsDays)} {result.months}{t(tc.monthsUnit)} {result.days}{t(tc.daysUnit)}</span>
             </p>
           </div>
 
           {/* Stats Grid */}
           <div className="grid grid-cols-2 gap-4">
             <div className="p-4 rounded-lg bg-[var(--color-card)] border border-[var(--color-border)]">
-              <p className="text-sm text-[var(--color-text-muted)] mb-1">살아온 날</p>
+              <p className="text-sm text-[var(--color-text-muted)] mb-1">{t(tc.daysLived)}</p>
               <p className="text-2xl font-bold text-[var(--color-text)]">
-                {result.totalDays.toLocaleString()}일
+                {result.totalDays.toLocaleString()}{t(tc.daysUnit)}
               </p>
             </div>
             <div className="p-4 rounded-lg bg-[var(--color-card)] border border-[var(--color-border)]">
-              <p className="text-sm text-[var(--color-text-muted)] mb-1">다음 생일까지</p>
+              <p className="text-sm text-[var(--color-text-muted)] mb-1">{t(tc.untilBirthday)}</p>
               <p className="text-2xl font-bold text-[var(--color-text)]">
-                {result.nextBirthday === 0 ? '🎂 오늘!' : `${result.nextBirthday}일`}
+                {result.nextBirthday === 0 ? `🎂 ${t(tc.todayBirthday)}` : `${result.nextBirthday}${t(tc.daysUnit)}`}
               </p>
             </div>
           </div>
@@ -188,24 +228,24 @@ export default function AgeCalculator() {
           <div className="grid grid-cols-2 gap-4">
             <div className="p-4 rounded-lg bg-[var(--color-card)] border border-[var(--color-border)] text-center">
               <p className="text-3xl mb-2">{result.zodiacEmoji}</p>
-              <p className="text-sm text-[var(--color-text-muted)]">별자리</p>
-              <p className="font-medium text-[var(--color-text)]">{result.zodiac}</p>
+              <p className="text-sm text-[var(--color-text-muted)]">{t(tc.zodiac)}</p>
+              <p className="font-medium text-[var(--color-text)]">{getZodiacName(result.zodiacKey)}</p>
             </div>
             <div className="p-4 rounded-lg bg-[var(--color-card)] border border-[var(--color-border)] text-center">
               <p className="text-3xl mb-2">{result.chineseZodiacEmoji}</p>
-              <p className="text-sm text-[var(--color-text-muted)]">띠</p>
-              <p className="font-medium text-[var(--color-text)]">{result.chineseZodiac}띠</p>
+              <p className="text-sm text-[var(--color-text-muted)]">{t(tc.chineseZodiac)}</p>
+              <p className="font-medium text-[var(--color-text)]">{getChineseZodiacName(result.chineseZodiacKey)}</p>
             </div>
           </div>
 
           {/* Fun Facts */}
           <div className="p-4 rounded-lg bg-[var(--color-card)] border border-[var(--color-border)]">
-            <h3 className="font-medium text-[var(--color-text)] mb-3">📊 재미있는 통계</h3>
+            <h3 className="font-medium text-[var(--color-text)] mb-3">📊 {t(tc.funStats)}</h3>
             <div className="space-y-2 text-sm text-[var(--color-text-muted)]">
-              <p>• 약 {Math.floor(result.totalDays * 24).toLocaleString()}시간을 살았어요</p>
-              <p>• 약 {Math.floor(result.totalDays * 24 * 60).toLocaleString()}분이 지났어요</p>
-              <p>• 약 {(result.totalDays / 7).toFixed(0)}주를 보냈어요</p>
-              <p>• 심장이 약 {(result.totalDays * 24 * 60 * 72).toLocaleString()}번 뛰었어요</p>
+              <p>• ~{Math.floor(result.totalDays * 24).toLocaleString()} {t(tc.hoursLived)}</p>
+              <p>• ~{Math.floor(result.totalDays * 24 * 60).toLocaleString()} {t(tc.minutesPassed)}</p>
+              <p>• ~{(result.totalDays / 7).toFixed(0)} {t(tc.weeksSpent)}</p>
+              <p>• ~{(result.totalDays * 24 * 60 * 72).toLocaleString()} {t(tc.heartbeats)}</p>
             </div>
           </div>
         </div>

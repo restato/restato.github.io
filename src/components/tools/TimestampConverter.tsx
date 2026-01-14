@@ -1,6 +1,11 @@
 import { useState, useEffect } from 'react';
+import { useTranslation } from '../../i18n/useTranslation';
 
 export default function TimestampConverter() {
+  const { t, lang, translations } = useTranslation();
+  const tc = translations.tools.timestamp;
+  const tcc = translations.tools.common;
+
   const [timestamp, setTimestamp] = useState('');
   const [dateString, setDateString] = useState('');
   const [currentTime, setCurrentTime] = useState(Date.now());
@@ -34,7 +39,8 @@ export default function TimestampConverter() {
   const dateTimestamp = parseDateString(dateString);
 
   const formatDate = (date: Date): string => {
-    return date.toLocaleString('ko-KR', {
+    const locale = lang === 'ko' ? 'ko-KR' : lang === 'ja' ? 'ja-JP' : 'en-US';
+    return date.toLocaleString(locale, {
       year: 'numeric',
       month: 'long',
       day: 'numeric',
@@ -63,14 +69,14 @@ export default function TimestampConverter() {
     const years = Math.floor(days / 365);
 
     let result = '';
-    if (years > 0) result = `${years}년`;
-    else if (months > 0) result = `${months}개월`;
-    else if (days > 0) result = `${days}일`;
-    else if (hours > 0) result = `${hours}시간`;
-    else if (minutes > 0) result = `${minutes}분`;
-    else result = `${seconds}초`;
+    if (years > 0) result = `${years}${t(tc.yearsAgo)}`;
+    else if (months > 0) result = `${months}${t(tc.monthsAgo)}`;
+    else if (days > 0) result = `${days}${t(tc.daysAgo)}`;
+    else if (hours > 0) result = `${hours}${t(tc.hoursAgo)}`;
+    else if (minutes > 0) result = `${minutes}${t(tc.minutesAgo)}`;
+    else result = `${seconds}${t(tc.secondsAgo)}`;
 
-    return diff > 0 ? `${result} 전` : `${result} 후`;
+    return diff > 0 ? `${result} ${t(tc.ago)}` : `${result} ${t(tc.later)}`;
   };
 
   const copyText = async (text: string) => {
@@ -83,13 +89,23 @@ export default function TimestampConverter() {
 
   const currentTimestamp = unit === 'milliseconds' ? currentTime : Math.floor(currentTime / 1000);
 
+  const commonTimes = [
+    { labelKey: 'inOneHour' as const, getTs: () => Math.floor(Date.now() / 1000) + 3600 },
+    { labelKey: 'tomorrow' as const, getTs: () => Math.floor(Date.now() / 1000) + 86400 },
+    { labelKey: 'inOneWeek' as const, getTs: () => Math.floor(Date.now() / 1000) + 604800 },
+    { labelKey: 'inOneMonth' as const, getTs: () => Math.floor(Date.now() / 1000) + 2592000 },
+    { label: '2000/1/1', getTs: () => 946684800 },
+    { label: '2024/1/1', getTs: () => 1704067200 },
+    { label: '2025/1/1', getTs: () => 1735689600 },
+  ];
+
   return (
     <div className="flex flex-col gap-6">
       {/* Current Time */}
       <div className="p-4 rounded-xl bg-gradient-to-r from-primary-500/10 to-primary-500/5 border border-primary-500/20">
         <div className="flex items-center justify-between">
           <div>
-            <p className="text-sm text-[var(--color-text-muted)]">현재 Unix Timestamp</p>
+            <p className="text-sm text-[var(--color-text-muted)]">{t(tc.currentTimestamp)}</p>
             <p className="text-2xl font-mono font-bold text-primary-500">
               {currentTimestamp}
             </p>
@@ -101,7 +117,7 @@ export default function TimestampConverter() {
             }}
             className="px-4 py-2 bg-primary-500 hover:bg-primary-600 text-white rounded-lg text-sm font-medium transition-colors"
           >
-            복사 & 사용
+            {t(tc.copyAndUse)}
           </button>
         </div>
         <p className="text-sm text-[var(--color-text-muted)] mt-2">
@@ -119,7 +135,7 @@ export default function TimestampConverter() {
               : 'bg-[var(--color-card)] hover:bg-[var(--color-card-hover)] text-[var(--color-text)] border border-[var(--color-border)]'
             }`}
         >
-          초 (Seconds)
+          {t(tc.seconds)}
         </button>
         <button
           onClick={() => setUnit('milliseconds')}
@@ -129,13 +145,13 @@ export default function TimestampConverter() {
               : 'bg-[var(--color-card)] hover:bg-[var(--color-card-hover)] text-[var(--color-text)] border border-[var(--color-border)]'
             }`}
         >
-          밀리초 (Milliseconds)
+          {t(tc.milliseconds)}
         </button>
       </div>
 
       {/* Timestamp to Date */}
       <div className="p-4 rounded-lg bg-[var(--color-card)] border border-[var(--color-border)]">
-        <h3 className="font-medium text-[var(--color-text)] mb-4">⏱️ Timestamp → 날짜</h3>
+        <h3 className="font-medium text-[var(--color-text)] mb-4">⏱️ {t(tc.timestampToDate)}</h3>
         <div className="space-y-4">
           <input
             type="text"
@@ -150,7 +166,7 @@ export default function TimestampConverter() {
           {timestampDate && (
             <div className="space-y-2">
               <div className="p-3 rounded-lg bg-[var(--color-bg)]">
-                <p className="text-sm text-[var(--color-text-muted)]">로컬 시간</p>
+                <p className="text-sm text-[var(--color-text-muted)]">{t(tc.localTime)}</p>
                 <p className="font-medium text-[var(--color-text)]">{formatDate(timestampDate)}</p>
               </div>
               <div className="p-3 rounded-lg bg-[var(--color-bg)]">
@@ -158,7 +174,7 @@ export default function TimestampConverter() {
                 <p className="font-mono text-[var(--color-text)]">{formatISO(timestampDate)}</p>
               </div>
               <div className="p-3 rounded-lg bg-[var(--color-bg)]">
-                <p className="text-sm text-[var(--color-text-muted)]">상대 시간</p>
+                <p className="text-sm text-[var(--color-text-muted)]">{t(tc.relativeTime)}</p>
                 <p className="font-medium text-primary-500">{formatRelative(timestampDate)}</p>
               </div>
             </div>
@@ -168,7 +184,7 @@ export default function TimestampConverter() {
 
       {/* Date to Timestamp */}
       <div className="p-4 rounded-lg bg-[var(--color-card)] border border-[var(--color-border)]">
-        <h3 className="font-medium text-[var(--color-text)] mb-4">📅 날짜 → Timestamp</h3>
+        <h3 className="font-medium text-[var(--color-text)] mb-4">📅 {t(tc.dateToTimestamp)}</h3>
         <div className="space-y-4">
           <input
             type="datetime-local"
@@ -189,7 +205,7 @@ export default function TimestampConverter() {
                 onClick={() => copyText(String(dateTimestamp))}
                 className="px-3 py-1 bg-primary-500 hover:bg-primary-600 text-white rounded-lg text-sm transition-colors"
               >
-                복사
+                {t(tcc.copy)}
               </button>
             </div>
           )}
@@ -198,24 +214,16 @@ export default function TimestampConverter() {
 
       {/* Common Timestamps */}
       <div className="p-4 rounded-lg bg-[var(--color-card)] border border-[var(--color-border)]">
-        <h3 className="font-medium text-[var(--color-text)] mb-3">📌 자주 사용하는 시간</h3>
+        <h3 className="font-medium text-[var(--color-text)] mb-3">📌 {t(tc.commonTimestamps)}</h3>
         <div className="space-y-2">
-          {[
-            { label: '1시간 후', getTs: () => Math.floor(Date.now() / 1000) + 3600 },
-            { label: '내일', getTs: () => Math.floor(Date.now() / 1000) + 86400 },
-            { label: '1주일 후', getTs: () => Math.floor(Date.now() / 1000) + 604800 },
-            { label: '1개월 후', getTs: () => Math.floor(Date.now() / 1000) + 2592000 },
-            { label: '2000년 1월 1일', getTs: () => 946684800 },
-            { label: '2024년 1월 1일', getTs: () => 1704067200 },
-            { label: '2025년 1월 1일', getTs: () => 1735689600 },
-          ].map((item) => (
+          {commonTimes.map((item, idx) => (
             <button
-              key={item.label}
+              key={idx}
               onClick={() => setTimestamp(String(unit === 'milliseconds' ? item.getTs() * 1000 : item.getTs()))}
               className="w-full p-2 rounded-lg text-left hover:bg-[var(--color-bg)]
                 text-[var(--color-text-muted)] transition-colors flex justify-between"
             >
-              <span>{item.label}</span>
+              <span>{'labelKey' in item ? t(tc[item.labelKey]) : item.label}</span>
               <span className="font-mono text-sm">{item.getTs()}</span>
             </button>
           ))}
@@ -224,10 +232,9 @@ export default function TimestampConverter() {
 
       {/* Info */}
       <div className="p-4 rounded-lg bg-[var(--color-card)] border border-[var(--color-border)]">
-        <h3 className="font-medium text-[var(--color-text)] mb-2">💡 Unix Timestamp란?</h3>
+        <h3 className="font-medium text-[var(--color-text)] mb-2">💡 {t(tc.whatIsTimestamp)}</h3>
         <p className="text-sm text-[var(--color-text-muted)]">
-          1970년 1월 1일 00:00:00 UTC부터 경과한 시간을 초(또는 밀리초)로 표현한 값입니다.
-          프로그래밍에서 시간을 다룰 때 널리 사용됩니다.
+          {t(tc.timestampExplanation)}
         </p>
       </div>
     </div>
