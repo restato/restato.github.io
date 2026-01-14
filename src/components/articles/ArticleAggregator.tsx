@@ -745,12 +745,10 @@ export default function ArticleAggregator() {
         setPickedArticles(stored.pickedArticles || []);
       }
 
-      // 활성 소스 설정
+      // 모든 소스 활성화 (소스 토글 기능이 제거되어 disabledSources 무시)
       const stored = loadStoredData();
-      const enabledSources = [...defaultFeedSources, ...(stored.customSources || [])]
-        .filter((s) => !(stored.disabledSources || []).includes(s.id))
-        .map((s) => s.id);
-      setSelectedSources(enabledSources);
+      const allSources = [...defaultFeedSources, ...(stored.customSources || [])];
+      setSelectedSources(allSources.map((s) => s.id));
     };
 
     initData();
@@ -823,7 +821,8 @@ export default function ArticleAggregator() {
     } else {
       setIsLoading(false);
     }
-  }, [selectedSources.length > 0]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedSources.length]);
 
   // 카테고리 + 소스로 필터링된 아티클
   const filteredArticles = articles.filter((a) => {
