@@ -835,11 +835,11 @@ export default function ArticleAggregator() {
     });
   };
 
-  // 카테고리로 필터링된 소스
+  // 카테고리로 필터링된 소스 (선택된 소스만 표시)
   const filteredSources =
     categoryFilter === 'all'
-      ? allFeedSources
-      : allFeedSources.filter((s) => s.category === categoryFilter);
+      ? allFeedSources.filter((s) => selectedSources.includes(s.id))
+      : allFeedSources.filter((s) => s.category === categoryFilter && selectedSources.includes(s.id));
 
   // 카테고리로 필터링된 아티클 (핵심 수정: 아티클도 카테고리로 필터링)
   const filteredArticles =
@@ -858,9 +858,9 @@ export default function ArticleAggregator() {
           <h1 className="text-2xl font-bold">아티클 피드</h1>
           <a
             href="/articles/admin"
-            className="text-xs bg-white/20 hover:bg-white/30 px-3 py-1 rounded transition-colors"
+            className="text-sm bg-white/30 hover:bg-white/40 px-4 py-2 rounded-lg transition-colors font-medium"
           >
-            관리자
+            🔐 관리자
           </a>
         </div>
         <p className="opacity-90 mb-4">개발/기술 뉴스를 한 곳에서 모아보세요</p>
