@@ -198,6 +198,28 @@ const sites = [
       }));
     },
   },
+  {
+    id: 'dunamu',
+    name: '두나무',
+    color: '#093687',
+    url: 'https://www.dunamu.com/careers/jobs',
+    scrape: async () => {
+      // Greenhouse API 사용
+      const res = await fetch(
+        'https://boards-api.greenhouse.io/v1/boards/dunamu/jobs',
+        { headers: { Accept: 'application/json', 'User-Agent': 'Mozilla/5.0' } }
+      );
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const data = await res.json();
+      return (data.jobs || []).map((item) => ({
+        id: `dunamu-${item.id}`,
+        title: item.title,
+        url: item.absolute_url || `https://boards.greenhouse.io/dunamu/jobs/${item.id}`,
+        department: item.departments?.[0]?.name,
+        location: item.location?.name,
+      }));
+    },
+  },
 ];
 
 // 링크 전용 사이트 (스크래핑 불가)
@@ -207,12 +229,6 @@ const linkOnlySites = [
     name: '카카오뱅크',
     color: '#FFCD00',
     url: 'https://recruit.kakaobank.com/jobs',
-  },
-  {
-    id: 'dunamu',
-    name: '두나무',
-    color: '#093687',
-    url: 'https://www.dunamu.com/careers/jobs?category=engineering',
   },
   {
     id: 'samsung',
