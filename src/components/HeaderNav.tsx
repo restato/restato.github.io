@@ -7,6 +7,7 @@ interface HeaderNavProps {
 const navItems = [
   { href: '/', labelKey: 'home' as const },
   { href: '/blog', labelKey: 'blog' as const },
+  { href: '/articles', labelKey: 'articles' as const },
   { href: '/jobs', labelKey: 'jobs' as const },
   { href: '/tools', labelKey: 'tools' as const },
   { href: '/projects', labelKey: 'projects' as const },
