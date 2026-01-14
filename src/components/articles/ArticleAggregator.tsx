@@ -2,8 +2,11 @@ import { useState, useEffect, useCallback } from 'react';
 
 // RSS to JSON API (CORS 지원)
 const RSS2JSON_API = 'https://api.rss2json.com/v1/api.json?rss_url=';
-const ADMIN_PASSWORD = 'restato2024'; // 간단한 관리자 비밀번호
+const ADMIN_PASSWORD = 'restato2024';
 const STORAGE_KEY = 'article-aggregator-data';
+const GITHUB_TOKEN_KEY = 'article-aggregator-github-token';
+const GITHUB_REPO = 'restato/restato.github.io';
+const GITHUB_FILE_PATH = 'public/data/articles.json';
 
 interface Article {
   id: string;
@@ -14,7 +17,7 @@ interface Article {
   source: string;
   sourceColor: string;
   thumbnail?: string;
-  isPick?: boolean; // MD's Pick 여부
+  isPick?: boolean;
 }
 
 interface FeedSource {
@@ -41,11 +44,11 @@ interface StoredData {
   customSources: FeedSource[];
   pickedArticles: PickedArticle[];
   disabledSources: string[];
+  lastUpdated?: string;
 }
 
 // 기본 RSS 피드 소스
 const defaultFeedSources: FeedSource[] = [
-  // 글로벌 뉴스
   {
     id: 'geeknews',
     name: 'GeekNews',
@@ -101,7 +104,6 @@ const defaultFeedSources: FeedSource[] = [
     type: 'rss',
     category: 'global',
   },
-  // 한국 미디어
   {
     id: 'yozm',
     name: '요즘IT',
@@ -113,7 +115,6 @@ const defaultFeedSources: FeedSource[] = [
     type: 'rss',
     category: 'korea',
   },
-  // 기술 블로그 - 글로벌
   {
     id: 'netflix',
     name: 'Netflix Tech',
@@ -169,7 +170,6 @@ const defaultFeedSources: FeedSource[] = [
     type: 'rss',
     category: 'tech-blog',
   },
-  // 기술 블로그 - 한국
   {
     id: 'kakao',
     name: '카카오 기술블로그',
@@ -227,7 +227,6 @@ const defaultFeedSources: FeedSource[] = [
   },
 ];
 
-// 직접 링크만 제공하는 소스
 const linkOnlySources: FeedSource[] = [
   {
     id: 'twitter',
@@ -281,14 +280,12 @@ const linkOnlySources: FeedSource[] = [
   },
 ];
 
-// HTML 태그 제거 함수
 const stripHtml = (html: string): string => {
   const tmp = document.createElement('div');
   tmp.innerHTML = html;
   return tmp.textContent || tmp.innerText || '';
 };
 
-// 날짜 포맷팅
 const formatDate = (dateStr: string): string => {
   const date = new Date(dateStr);
   const now = new Date();
@@ -300,6 +297,95 @@ const formatDate = (dateStr: string): string => {
   if (diffHours < 24) return `${diffHours}시간 전`;
   if (diffDays < 7) return `${diffDays}일 전`;
   return date.toLocaleDateString('ko-KR');
+};
+
+// GitHub API 헬퍼
+const getGithubToken = (): string | null => {
+  if (typeof window === 'undefined') return null;
+  return localStorage.getItem(GITHUB_TOKEN_KEY);
+};
+
+const setGithubToken = (token: string) => {
+  if (typeof window === 'undefined') return;
+  localStorage.setItem(GITHUB_TOKEN_KEY, token);
+};
+
+const removeGithubToken = () => {
+  if (typeof window === 'undefined') return;
+  localStorage.removeItem(GITHUB_TOKEN_KEY);
+};
+
+// GitHub에서 데이터 로드
+const loadFromGithub = async (): Promise<StoredData | null> => {
+  try {
+    // 먼저 정적 파일에서 시도
+    const response = await fetch('/data/articles.json');
+    if (response.ok) {
+      const data = await response.json();
+      return data;
+    }
+  } catch (e) {
+    console.error('Failed to load from static file:', e);
+  }
+  return null;
+};
+
+// GitHub에 데이터 저장
+const saveToGithub = async (data: StoredData): Promise<boolean> => {
+  const token = getGithubToken();
+  if (!token) {
+    console.error('GitHub token not set');
+    return false;
+  }
+
+  try {
+    // 현재 파일의 SHA 가져오기
+    const getResponse = await fetch(
+      `https://api.github.com/repos/${GITHUB_REPO}/contents/${GITHUB_FILE_PATH}`,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          Accept: 'application/vnd.github.v3+json',
+        },
+      }
+    );
+
+    let sha = '';
+    if (getResponse.ok) {
+      const fileData = await getResponse.json();
+      sha = fileData.sha;
+    }
+
+    // 파일 업데이트
+    const content = btoa(unescape(encodeURIComponent(JSON.stringify(data, null, 2))));
+    const updateResponse = await fetch(
+      `https://api.github.com/repos/${GITHUB_REPO}/contents/${GITHUB_FILE_PATH}`,
+      {
+        method: 'PUT',
+        headers: {
+          Authorization: `Bearer ${token}`,
+          Accept: 'application/vnd.github.v3+json',
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          message: `Update articles data - ${new Date().toISOString()}`,
+          content,
+          sha: sha || undefined,
+        }),
+      }
+    );
+
+    if (!updateResponse.ok) {
+      const error = await updateResponse.json();
+      console.error('GitHub API error:', error);
+      return false;
+    }
+
+    return true;
+  } catch (e) {
+    console.error('Failed to save to GitHub:', e);
+    return false;
+  }
 };
 
 // 로컬 스토리지 헬퍼
@@ -335,37 +421,60 @@ export default function ArticleAggregator() {
   const [error, setError] = useState<string | null>(null);
   const [refreshing, setRefreshing] = useState(false);
 
-  // 관리자 모드
   const [isAdmin, setIsAdmin] = useState(false);
   const [adminPassword, setAdminPassword] = useState('');
 
-  // 커스텀 데이터
   const [customSources, setCustomSources] = useState<FeedSource[]>([]);
   const [pickedArticles, setPickedArticles] = useState<PickedArticle[]>([]);
 
-  // 새 소스/아티클 추가 폼
   const [newSource, setNewSource] = useState({ name: '', rssUrl: '', icon: '📰', color: '#666666' });
   const [newPick, setNewPick] = useState({ title: '', link: '', description: '' });
 
-  // 카테고리 필터
   const [categoryFilter, setCategoryFilter] = useState<string>('all');
 
-  // 모든 소스 합치기
+  // GitHub 설정
+  const [githubToken, setGithubTokenState] = useState('');
+  const [hasGithubToken, setHasGithubToken] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
+  const [lastSaved, setLastSaved] = useState<string>('');
+
   const allFeedSources = [...defaultFeedSources, ...customSources];
 
   // 초기 데이터 로드
   useEffect(() => {
-    const stored = loadStoredData();
-    setCustomSources(stored.customSources);
-    setPickedArticles(stored.pickedArticles);
-    // 비활성화되지 않은 소스만 선택
-    const enabledSources = allFeedSources
-      .filter((s) => !stored.disabledSources.includes(s.id))
-      .map((s) => s.id);
-    setSelectedSources(enabledSources);
+    const initData = async () => {
+      // GitHub 토큰 확인
+      const token = getGithubToken();
+      setHasGithubToken(!!token);
+
+      // GitHub에서 데이터 로드 시도
+      const githubData = await loadFromGithub();
+      if (githubData && (githubData.pickedArticles?.length > 0 || githubData.customSources?.length > 0)) {
+        setCustomSources(githubData.customSources || []);
+        setPickedArticles(githubData.pickedArticles || []);
+        if (githubData.lastUpdated) {
+          setLastSaved(githubData.lastUpdated);
+        }
+        // localStorage에도 동기화
+        saveStoredData(githubData);
+      } else {
+        // localStorage에서 로드
+        const stored = loadStoredData();
+        setCustomSources(stored.customSources || []);
+        setPickedArticles(stored.pickedArticles || []);
+      }
+
+      // 선택된 소스 설정
+      const stored = loadStoredData();
+      const enabledSources = [...defaultFeedSources, ...(stored.customSources || [])]
+        .filter((s) => !(stored.disabledSources || []).includes(s.id))
+        .map((s) => s.id);
+      setSelectedSources(enabledSources);
+    };
+
+    initData();
   }, []);
 
-  // RSS 피드 가져오기
   const fetchRssFeed = async (source: FeedSource): Promise<Article[]> => {
     if (!source.rssUrl) return [];
 
@@ -403,7 +512,6 @@ export default function ArticleAggregator() {
     }
   };
 
-  // 모든 피드 가져오기
   const fetchAllFeeds = useCallback(async () => {
     setRefreshing(true);
     setError(null);
@@ -426,7 +534,6 @@ export default function ArticleAggregator() {
     }
   }, [selectedSources, customSources]);
 
-  // 초기 로드
   useEffect(() => {
     if (selectedSources.length > 0) {
       fetchAllFeeds();
@@ -435,14 +542,12 @@ export default function ArticleAggregator() {
     }
   }, [selectedSources.length > 0]);
 
-  // 소스 토글
   const toggleSource = (sourceId: string) => {
     setSelectedSources((prev) => {
       const newSelected = prev.includes(sourceId)
         ? prev.filter((id) => id !== sourceId)
         : [...prev, sourceId];
 
-      // 저장
       const stored = loadStoredData();
       stored.disabledSources = allFeedSources
         .filter((s) => !newSelected.includes(s.id))
@@ -453,7 +558,6 @@ export default function ArticleAggregator() {
     });
   };
 
-  // 관리자 로그인
   const handleAdminLogin = () => {
     if (adminPassword === ADMIN_PASSWORD) {
       setIsAdmin(true);
@@ -463,7 +567,44 @@ export default function ArticleAggregator() {
     }
   };
 
-  // 새 소스 추가
+  // GitHub 토큰 저장
+  const handleSaveGithubToken = () => {
+    if (githubToken.trim()) {
+      setGithubToken(githubToken.trim());
+      setHasGithubToken(true);
+      setGithubTokenState('');
+      alert('GitHub 토큰이 저장되었습니다.');
+    }
+  };
+
+  // GitHub에 데이터 저장
+  const handleSaveToGithub = async () => {
+    if (!hasGithubToken) {
+      alert('먼저 GitHub 토큰을 설정해주세요.');
+      return;
+    }
+
+    setIsSaving(true);
+    const data: StoredData = {
+      customSources,
+      pickedArticles,
+      disabledSources: allFeedSources
+        .filter((s) => !selectedSources.includes(s.id))
+        .map((s) => s.id),
+      lastUpdated: new Date().toISOString(),
+    };
+
+    const success = await saveToGithub(data);
+    setIsSaving(false);
+
+    if (success) {
+      setLastSaved(data.lastUpdated!);
+      alert('GitHub에 저장되었습니다! 배포 후 반영됩니다.');
+    } else {
+      alert('저장 실패. 토큰을 확인해주세요.');
+    }
+  };
+
   const handleAddSource = () => {
     if (!newSource.name || !newSource.rssUrl) {
       alert('이름과 RSS URL을 입력해주세요.');
@@ -486,16 +627,14 @@ export default function ArticleAggregator() {
     setCustomSources(newCustomSources);
     setSelectedSources((prev) => [...prev, source.id]);
 
-    // 저장
     const stored = loadStoredData();
     stored.customSources = newCustomSources;
     saveStoredData(stored);
 
     setNewSource({ name: '', rssUrl: '', icon: '📰', color: '#666666' });
-    alert('소스가 추가되었습니다!');
+    alert('소스가 추가되었습니다! GitHub에 저장하려면 "GitHub에 저장" 버튼을 눌러주세요.');
   };
 
-  // 소스 삭제
   const handleDeleteSource = (sourceId: string) => {
     if (!confirm('이 소스를 삭제하시겠습니까?')) return;
 
@@ -503,13 +642,11 @@ export default function ArticleAggregator() {
     setCustomSources(newCustomSources);
     setSelectedSources((prev) => prev.filter((id) => id !== sourceId));
 
-    // 저장
     const stored = loadStoredData();
     stored.customSources = newCustomSources;
     saveStoredData(stored);
   };
 
-  // MD's Pick 추가
   const handleAddPick = () => {
     if (!newPick.title || !newPick.link) {
       alert('제목과 링크를 입력해주세요.');
@@ -527,31 +664,34 @@ export default function ArticleAggregator() {
     const newPickedArticles = [pick, ...pickedArticles];
     setPickedArticles(newPickedArticles);
 
-    // 저장
     const stored = loadStoredData();
     stored.pickedArticles = newPickedArticles;
     saveStoredData(stored);
 
     setNewPick({ title: '', link: '', description: '' });
-    alert('아티클이 추가되었습니다!');
+    alert('아티클이 추가되었습니다! GitHub에 저장하려면 "GitHub에 저장" 버튼을 눌러주세요.');
   };
 
-  // MD's Pick 삭제
   const handleDeletePick = (pickId: string) => {
     if (!confirm('이 아티클을 삭제하시겠습니까?')) return;
 
     const newPickedArticles = pickedArticles.filter((p) => p.id !== pickId);
     setPickedArticles(newPickedArticles);
 
-    // 저장
     const stored = loadStoredData();
     stored.pickedArticles = newPickedArticles;
     saveStoredData(stored);
   };
 
-  // 데이터 내보내기
   const handleExportData = () => {
-    const data = loadStoredData();
+    const data: StoredData = {
+      customSources,
+      pickedArticles,
+      disabledSources: allFeedSources
+        .filter((s) => !selectedSources.includes(s.id))
+        .map((s) => s.id),
+      lastUpdated: new Date().toISOString(),
+    };
     const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
@@ -561,7 +701,6 @@ export default function ArticleAggregator() {
     URL.revokeObjectURL(url);
   };
 
-  // 데이터 가져오기
   const handleImportData = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (!file) return;
@@ -571,8 +710,8 @@ export default function ArticleAggregator() {
       try {
         const data = JSON.parse(e.target?.result as string) as StoredData;
         saveStoredData(data);
-        setCustomSources(data.customSources);
-        setPickedArticles(data.pickedArticles);
+        setCustomSources(data.customSources || []);
+        setPickedArticles(data.pickedArticles || []);
         alert('데이터를 가져왔습니다!');
         window.location.reload();
       } catch (err) {
@@ -582,7 +721,6 @@ export default function ArticleAggregator() {
     reader.readAsText(file);
   };
 
-  // 필터링된 소스
   const filteredSources =
     categoryFilter === 'all'
       ? allFeedSources
@@ -672,7 +810,6 @@ export default function ArticleAggregator() {
       {/* 피드 탭 */}
       {activeTab === 'feed' && (
         <div>
-          {/* 카테고리 필터 */}
           <div className="flex flex-wrap gap-2 mb-4">
             {[
               { id: 'all', label: '전체' },
@@ -694,7 +831,6 @@ export default function ArticleAggregator() {
             ))}
           </div>
 
-          {/* 소스 필터 칩 */}
           <div className="flex flex-wrap gap-2 mb-4">
             {filteredSources.map((source) => (
               <button
@@ -714,14 +850,12 @@ export default function ArticleAggregator() {
             ))}
           </div>
 
-          {/* 에러 메시지 */}
           {error && (
             <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-xl p-4 mb-4">
               <p className="text-red-700 dark:text-red-300">{error}</p>
             </div>
           )}
 
-          {/* 로딩 */}
           {isLoading ? (
             <div className="space-y-4">
               {[...Array(5)].map((_, i) => (
@@ -797,7 +931,6 @@ export default function ArticleAggregator() {
       {/* MD's Pick 탭 */}
       {activeTab === 'picks' && (
         <div className="space-y-4">
-          {/* 관리자: Pick 추가 폼 */}
           {isAdmin && (
             <div className="p-4 rounded-xl border-2 border-dashed border-orange-300 dark:border-orange-700 bg-orange-50 dark:bg-orange-900/20">
               <h3 className="font-semibold mb-3 text-[var(--color-text)]">⭐ 새 아티클 추가</h3>
@@ -833,7 +966,6 @@ export default function ArticleAggregator() {
             </div>
           )}
 
-          {/* Pick 목록 */}
           {pickedArticles.length === 0 ? (
             <div className="text-center py-12 text-[var(--color-text-muted)]">
               <p className="text-4xl mb-4">⭐</p>
@@ -898,7 +1030,6 @@ export default function ArticleAggregator() {
       {/* 소스 관리 탭 */}
       {activeTab === 'sources' && (
         <div className="space-y-6">
-          {/* 관리자: 소스 추가 폼 */}
           {isAdmin && (
             <div className="p-4 rounded-xl border-2 border-dashed border-orange-300 dark:border-orange-700 bg-orange-50 dark:bg-orange-900/20">
               <h3 className="font-semibold mb-3 text-[var(--color-text)]">📡 새 RSS 소스 추가</h3>
@@ -940,7 +1071,6 @@ export default function ArticleAggregator() {
             </div>
           )}
 
-          {/* RSS 피드 소스 */}
           <div>
             <h2 className="text-lg font-semibold mb-3 text-[var(--color-text)]">
               📡 RSS 피드 소스 ({allFeedSources.length}개)
@@ -987,7 +1117,6 @@ export default function ArticleAggregator() {
             </div>
           </div>
 
-          {/* 직접 링크 소스 */}
           <div>
             <h2 className="text-lg font-semibold mb-3 text-[var(--color-text)]">🔗 바로가기</h2>
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3">
@@ -1046,23 +1175,81 @@ export default function ArticleAggregator() {
                 <p className="text-green-700 dark:text-green-300 font-medium">
                   ✅ 관리자로 로그인되었습니다.
                 </p>
-                <p className="text-sm text-green-600 dark:text-green-400 mt-1">
-                  이제 소스 추가/삭제, MD's Pick 관리가 가능합니다.
-                </p>
               </div>
 
-              {/* 데이터 내보내기/가져오기 */}
+              {/* GitHub 연동 */}
               <div className="p-4 rounded-xl border border-[var(--color-border)] bg-[var(--color-card)]">
-                <h3 className="font-semibold mb-3 text-[var(--color-text)]">📦 데이터 관리</h3>
+                <h3 className="font-semibold mb-3 text-[var(--color-text)]">🔗 GitHub 연동</h3>
+
+                {hasGithubToken ? (
+                  <div className="space-y-3">
+                    <div className="flex items-center gap-2 text-green-600 dark:text-green-400">
+                      <span>✓</span>
+                      <span className="text-sm">GitHub 토큰 설정됨</span>
+                    </div>
+                    {lastSaved && (
+                      <p className="text-xs text-[var(--color-text-muted)]">
+                        마지막 저장: {new Date(lastSaved).toLocaleString('ko-KR')}
+                      </p>
+                    )}
+                    <div className="flex flex-wrap gap-3">
+                      <button
+                        onClick={handleSaveToGithub}
+                        disabled={isSaving}
+                        className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors disabled:opacity-50"
+                      >
+                        {isSaving ? '저장 중...' : '🚀 GitHub에 저장'}
+                      </button>
+                      <button
+                        onClick={() => {
+                          removeGithubToken();
+                          setHasGithubToken(false);
+                        }}
+                        className="px-4 py-2 border border-red-300 text-red-600 rounded-lg hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
+                      >
+                        토큰 삭제
+                      </button>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="space-y-3">
+                    <p className="text-sm text-[var(--color-text-muted)]">
+                      GitHub Personal Access Token을 입력하면 데이터가 Git에 저장됩니다.
+                    </p>
+                    <input
+                      type="password"
+                      placeholder="GitHub Personal Access Token"
+                      value={githubToken}
+                      onChange={(e) => setGithubTokenState(e.target.value)}
+                      className="w-full px-3 py-2 rounded-lg border border-[var(--color-border)] bg-[var(--color-bg)] text-[var(--color-text)]"
+                    />
+                    <button
+                      onClick={handleSaveGithubToken}
+                      className="px-4 py-2 bg-gray-800 text-white rounded-lg hover:bg-gray-900 transition-colors"
+                    >
+                      토큰 저장
+                    </button>
+                    <p className="text-xs text-[var(--color-text-muted)]">
+                      토큰 생성: GitHub → Settings → Developer settings → Personal access tokens → Fine-grained tokens
+                      <br />
+                      권한: Contents (Read and write)
+                    </p>
+                  </div>
+                )}
+              </div>
+
+              {/* 로컬 데이터 관리 */}
+              <div className="p-4 rounded-xl border border-[var(--color-border)] bg-[var(--color-card)]">
+                <h3 className="font-semibold mb-3 text-[var(--color-text)]">📦 로컬 데이터</h3>
                 <div className="flex flex-wrap gap-3">
                   <button
                     onClick={handleExportData}
                     className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
                   >
-                    📥 데이터 내보내기
+                    📥 내보내기
                   </button>
                   <label className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors cursor-pointer">
-                    📤 데이터 가져오기
+                    📤 가져오기
                     <input
                       type="file"
                       accept=".json"
@@ -1071,12 +1258,8 @@ export default function ArticleAggregator() {
                     />
                   </label>
                 </div>
-                <p className="text-xs text-[var(--color-text-muted)] mt-2">
-                  내보낸 JSON 파일을 코드에 반영하면 모든 사용자가 볼 수 있습니다.
-                </p>
               </div>
 
-              {/* 로그아웃 */}
               <button
                 onClick={() => setIsAdmin(false)}
                 className="px-4 py-2 border border-[var(--color-border)] text-[var(--color-text)] rounded-lg hover:bg-[var(--color-card)] transition-colors"
@@ -1088,7 +1271,6 @@ export default function ArticleAggregator() {
         </div>
       )}
 
-      {/* 푸터 */}
       <div className="text-center text-sm text-[var(--color-text-muted)] py-4">
         <p>RSS 피드를 통해 최신 기술 뉴스를 모아봅니다.</p>
       </div>
