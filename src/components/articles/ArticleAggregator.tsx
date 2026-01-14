@@ -721,8 +721,14 @@ export default function ArticleAggregator() {
   const [pickedArticles, setPickedArticles] = useState<PickedArticle[]>([]);
 
   const [categoryFilter, setCategoryFilter] = useState<string>('all');
+  const [sourceFilter, setSourceFilter] = useState<string>('all');
 
   const allFeedSources = [...defaultFeedSources, ...customSources];
+
+  // 선택된 카테고리에 해당하는 소스 목록
+  const sourcesInCategory = categoryFilter === 'all'
+    ? []
+    : allFeedSources.filter((s) => s.category === categoryFilter);
 
   // 초기 데이터 로드
   useEffect(() => {
@@ -819,11 +825,18 @@ export default function ArticleAggregator() {
     }
   }, [selectedSources.length > 0]);
 
-  // 카테고리로 필터링된 아티클
-  const filteredArticles =
-    categoryFilter === 'all'
-      ? articles
-      : articles.filter((a) => a.sourceCategory === categoryFilter);
+  // 카테고리 + 소스로 필터링된 아티클
+  const filteredArticles = articles.filter((a) => {
+    // 카테고리 필터
+    if (categoryFilter !== 'all' && a.sourceCategory !== categoryFilter) {
+      return false;
+    }
+    // 소스 필터 (카테고리가 선택된 경우에만 적용)
+    if (categoryFilter !== 'all' && sourceFilter !== 'all' && a.sourceId !== sourceFilter) {
+      return false;
+    }
+    return true;
+  });
 
   // 날짜별 그룹화된 Pick
   const groupedPicks = groupByDate(pickedArticles);
@@ -891,8 +904,8 @@ export default function ArticleAggregator() {
       {/* 피드 탭 */}
       {activeTab === 'feed' && (
         <div>
-          {/* 카테고리 필터 */}
-          <div className="flex flex-wrap gap-2 mb-4">
+          {/* 카테고리 필터 (Depth 1) */}
+          <div className="flex flex-wrap gap-2 mb-3">
             {[
               { id: 'all', label: '전체' },
               { id: 'korea', label: '🇰🇷 한국' },
@@ -901,7 +914,10 @@ export default function ArticleAggregator() {
             ].map((cat) => (
               <button
                 key={cat.id}
-                onClick={() => setCategoryFilter(cat.id)}
+                onClick={() => {
+                  setCategoryFilter(cat.id);
+                  setSourceFilter('all'); // 카테고리 변경 시 소스 필터 초기화
+                }}
                 className={`px-3 py-1.5 rounded-full text-sm font-medium transition-all ${
                   categoryFilter === cat.id
                     ? 'bg-orange-600 text-white'
@@ -912,6 +928,37 @@ export default function ArticleAggregator() {
               </button>
             ))}
           </div>
+
+          {/* 소스 필터 (Depth 2) - 카테고리 선택 시에만 표시 */}
+          {categoryFilter !== 'all' && sourcesInCategory.length > 0 && (
+            <div className="flex flex-wrap gap-2 mb-4 pl-4 border-l-2 border-orange-300 dark:border-orange-700">
+              <button
+                onClick={() => setSourceFilter('all')}
+                className={`px-2.5 py-1 rounded-lg text-xs font-medium transition-all ${
+                  sourceFilter === 'all'
+                    ? 'bg-orange-500 text-white'
+                    : 'bg-[var(--color-card)] text-[var(--color-text-muted)] border border-[var(--color-border)] hover:border-orange-400'
+                }`}
+              >
+                전체
+              </button>
+              {sourcesInCategory.map((source) => (
+                <button
+                  key={source.id}
+                  onClick={() => setSourceFilter(source.id)}
+                  className={`px-2.5 py-1 rounded-lg text-xs font-medium transition-all flex items-center gap-1 ${
+                    sourceFilter === source.id
+                      ? 'text-white'
+                      : 'bg-[var(--color-card)] text-[var(--color-text-muted)] border border-[var(--color-border)] hover:border-orange-400'
+                  }`}
+                  style={sourceFilter === source.id ? { backgroundColor: source.color } : {}}
+                >
+                  <span>{source.icon}</span>
+                  <span>{source.name}</span>
+                </button>
+              ))}
+            </div>
+          )}
 
           {error && (
             <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-xl p-4 mb-4">
