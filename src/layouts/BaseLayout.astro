@@ -155,6 +155,41 @@ const articleSchema = type === 'article' ? {
         document.documentElement.classList.add('dark');
       }
     </script>
+
+    <!-- Language Script -->
+    <script is:inline>
+      (function() {
+        const langMap = {
+          ko: { html: 'ko', ogLocale: 'ko_KR' },
+          en: { html: 'en', ogLocale: 'en_US' },
+          ja: { html: 'ja', ogLocale: 'ja_JP' }
+        };
+
+        function updateHtmlLang(lang) {
+          const config = langMap[lang];
+          if (!config) return;
+
+          document.documentElement.lang = config.html;
+
+          const ogLocaleMeta = document.querySelector('meta[property="og:locale"]');
+          if (ogLocaleMeta) {
+            ogLocaleMeta.setAttribute('content', config.ogLocale);
+          }
+        }
+
+        // Initial language setup
+        const stored = localStorage.getItem('lang');
+        const browserLang = navigator.language.split('-')[0];
+        const lang = (stored && langMap[stored]) ? stored :
+                     (langMap[browserLang] ? browserLang : 'ko');
+        updateHtmlLang(lang);
+
+        // Listen for language changes
+        window.addEventListener('languageChange', function(e) {
+          updateHtmlLang(e.detail);
+        });
+      })();
+    </script>
   </head>
   <body class="min-h-screen flex flex-col">
     <slot />
