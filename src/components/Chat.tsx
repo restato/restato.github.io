@@ -133,7 +133,7 @@ export default function Chat() {
   }, [status]);
 
   return (
-    <div className="flex flex-col h-[calc(100vh-120px)] max-w-3xl mx-auto border border-[var(--color-border)] rounded-lg overflow-hidden bg-[var(--color-card)]">
+    <div className="flex flex-col h-full max-w-3xl mx-auto border border-[var(--color-border)] rounded-lg overflow-hidden bg-[var(--color-card)]">
       {/* 헤더 */}
       <div
         className="flex items-center justify-between px-4 py-2 border-b border-[var(--color-border)] bg-[var(--color-bg)]"
@@ -203,6 +203,7 @@ export default function Chat() {
 
       {/* 메시지 영역 */}
       <div
+        ref={messagesEndRef}
         className="flex-1 overflow-y-auto p-4 space-y-3"
         role="log"
         aria-label={t(tt.messages.emptyChat)}
@@ -247,7 +248,6 @@ export default function Chat() {
             </div>
           );
         })}
-        <div ref={messagesEndRef} aria-hidden="true" />
       </div>
 
       {/* 만료/에러 상태 */}
