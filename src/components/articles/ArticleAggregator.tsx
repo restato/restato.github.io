@@ -721,6 +721,7 @@ export default function ArticleAggregator() {
   const [pickedArticles, setPickedArticles] = useState<PickedArticle[]>([]);
 
   const [selectedSourceFilters, setSelectedSourceFilters] = useState<string[]>([]);
+  const [isFilterOpen, setIsFilterOpen] = useState(false);
 
   const allFeedSources = [...defaultFeedSources, ...customSources];
 
@@ -927,118 +928,175 @@ export default function ArticleAggregator() {
       {/* 피드 탭 */}
       {activeTab === 'feed' && (
         <div>
-          {/* 필터 헤더 */}
-          <div className="flex items-center justify-between mb-3">
-            <span className="text-sm text-[var(--color-text-muted)]">
-              {selectedSourceFilters.length > 0
-                ? `${selectedSourceFilters.length}개 소스 선택됨`
-                : '전체 소스 표시'}
-            </span>
-            {selectedSourceFilters.length > 0 && (
-              <button
-                onClick={clearAllFilters}
-                className="text-xs text-orange-600 hover:text-orange-700"
-              >
-                필터 초기화
-              </button>
-            )}
-          </div>
+          {/* 필터 버튼 */}
+          <button
+            onClick={() => setIsFilterOpen(true)}
+            className="w-full flex items-center justify-between p-3 mb-4 rounded-xl border border-[var(--color-border)] bg-[var(--color-card)] hover:border-orange-400 transition-all"
+          >
+            <div className="flex items-center gap-2">
+              <span className="text-lg">🔍</span>
+              <span className="font-medium">소스 필터</span>
+              {selectedSourceFilters.length > 0 && (
+                <span className="px-2 py-0.5 bg-orange-100 dark:bg-orange-900/30 text-orange-600 dark:text-orange-400 text-xs font-medium rounded-full">
+                  {selectedSourceFilters.length}개 선택
+                </span>
+              )}
+            </div>
+            <span className="text-[var(--color-text-muted)]">▼</span>
+          </button>
 
-          {/* 🇰🇷 한국 */}
-          <div className="mb-3">
-            <div className="flex items-center gap-2 mb-2">
-              <button
-                onClick={() => toggleCategoryAll('korea')}
-                className={`px-2.5 py-1 rounded-lg text-xs font-medium transition-all ${
-                  sourcesByCategory.korea.every((s) => selectedSourceFilters.includes(s.id))
-                    ? 'bg-orange-600 text-white'
-                    : 'bg-[var(--color-card)] text-[var(--color-text-muted)] border border-[var(--color-border)]'
-                }`}
-              >
-                🇰🇷 한국 전체
-              </button>
-            </div>
-            <div className="flex flex-wrap gap-1.5 pl-3 border-l-2 border-orange-200 dark:border-orange-800">
-              {sourcesByCategory.korea.map((source) => (
-                <button
-                  key={source.id}
-                  onClick={() => toggleSourceFilter(source.id)}
-                  className={`px-2 py-0.5 rounded text-xs font-medium transition-all ${
-                    selectedSourceFilters.includes(source.id)
-                      ? 'text-white'
-                      : 'bg-[var(--color-card)] text-[var(--color-text-muted)] border border-[var(--color-border)] hover:border-orange-400'
-                  }`}
-                  style={selectedSourceFilters.includes(source.id) ? { backgroundColor: source.color } : {}}
-                >
-                  {source.icon} {source.name}
-                </button>
-              ))}
-            </div>
-          </div>
+          {/* 바텀시트 모달 */}
+          {isFilterOpen && (
+            <>
+              {/* 오버레이 */}
+              <div
+                className="fixed inset-0 bg-black/50 z-40"
+                onClick={() => setIsFilterOpen(false)}
+              />
+              {/* 바텀시트 */}
+              <div className="fixed inset-x-0 bottom-0 z-50 bg-[var(--color-bg)] rounded-t-2xl max-h-[80vh] overflow-hidden animate-slide-up">
+                {/* 핸들 */}
+                <div className="flex justify-center pt-3 pb-2">
+                  <div className="w-10 h-1 bg-[var(--color-border)] rounded-full" />
+                </div>
+                {/* 헤더 */}
+                <div className="flex items-center justify-between px-4 pb-3 border-b border-[var(--color-border)]">
+                  <h3 className="font-semibold text-lg">소스 필터</h3>
+                  <div className="flex items-center gap-2">
+                    {selectedSourceFilters.length > 0 && (
+                      <button
+                        onClick={clearAllFilters}
+                        className="text-sm text-orange-600 hover:text-orange-700"
+                      >
+                        초기화
+                      </button>
+                    )}
+                    <button
+                      onClick={() => setIsFilterOpen(false)}
+                      className="p-2 hover:bg-[var(--color-card)] rounded-lg transition-colors"
+                    >
+                      ✕
+                    </button>
+                  </div>
+                </div>
+                {/* 필터 내용 */}
+                <div className="p-4 overflow-y-auto max-h-[calc(80vh-100px)]">
+                  <div className="text-sm text-[var(--color-text-muted)] mb-4">
+                    {selectedSourceFilters.length > 0
+                      ? `${selectedSourceFilters.length}개 소스 선택됨`
+                      : '전체 소스 표시 중'}
+                  </div>
 
-          {/* 🌍 글로벌 */}
-          <div className="mb-3">
-            <div className="flex items-center gap-2 mb-2">
-              <button
-                onClick={() => toggleCategoryAll('global')}
-                className={`px-2.5 py-1 rounded-lg text-xs font-medium transition-all ${
-                  sourcesByCategory.global.every((s) => selectedSourceFilters.includes(s.id))
-                    ? 'bg-orange-600 text-white'
-                    : 'bg-[var(--color-card)] text-[var(--color-text-muted)] border border-[var(--color-border)]'
-                }`}
-              >
-                🌍 글로벌 전체
-              </button>
-            </div>
-            <div className="flex flex-wrap gap-1.5 pl-3 border-l-2 border-blue-200 dark:border-blue-800">
-              {sourcesByCategory.global.map((source) => (
-                <button
-                  key={source.id}
-                  onClick={() => toggleSourceFilter(source.id)}
-                  className={`px-2 py-0.5 rounded text-xs font-medium transition-all ${
-                    selectedSourceFilters.includes(source.id)
-                      ? 'text-white'
-                      : 'bg-[var(--color-card)] text-[var(--color-text-muted)] border border-[var(--color-border)] hover:border-blue-400'
-                  }`}
-                  style={selectedSourceFilters.includes(source.id) ? { backgroundColor: source.color } : {}}
-                >
-                  {source.icon} {source.name}
-                </button>
-              ))}
-            </div>
-          </div>
+                  {/* 🇰🇷 한국 */}
+                  <div className="mb-4">
+                    <div className="flex items-center gap-2 mb-2">
+                      <button
+                        onClick={() => toggleCategoryAll('korea')}
+                        className={`px-2.5 py-1 rounded-lg text-xs font-medium transition-all ${
+                          sourcesByCategory.korea.every((s) => selectedSourceFilters.includes(s.id))
+                            ? 'bg-orange-600 text-white'
+                            : 'bg-[var(--color-card)] text-[var(--color-text-muted)] border border-[var(--color-border)]'
+                        }`}
+                      >
+                        🇰🇷 한국 전체 ({sourcesByCategory.korea.length})
+                      </button>
+                    </div>
+                    <div className="flex flex-wrap gap-1.5 pl-3 border-l-2 border-orange-200 dark:border-orange-800">
+                      {sourcesByCategory.korea.map((source) => (
+                        <button
+                          key={source.id}
+                          onClick={() => toggleSourceFilter(source.id)}
+                          className={`px-2 py-1 rounded text-xs font-medium transition-all ${
+                            selectedSourceFilters.includes(source.id)
+                              ? 'text-white'
+                              : 'bg-[var(--color-card)] text-[var(--color-text-muted)] border border-[var(--color-border)] hover:border-orange-400'
+                          }`}
+                          style={selectedSourceFilters.includes(source.id) ? { backgroundColor: source.color } : {}}
+                        >
+                          {source.icon} {source.name}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
 
-          {/* 🏢 기술블로그 */}
-          <div className="mb-4">
-            <div className="flex items-center gap-2 mb-2">
-              <button
-                onClick={() => toggleCategoryAll('tech-blog')}
-                className={`px-2.5 py-1 rounded-lg text-xs font-medium transition-all ${
-                  sourcesByCategory['tech-blog'].every((s) => selectedSourceFilters.includes(s.id))
-                    ? 'bg-orange-600 text-white'
-                    : 'bg-[var(--color-card)] text-[var(--color-text-muted)] border border-[var(--color-border)]'
-                }`}
-              >
-                🏢 기술블로그 전체
-              </button>
-            </div>
-            <div className="flex flex-wrap gap-1.5 pl-3 border-l-2 border-purple-200 dark:border-purple-800">
-              {sourcesByCategory['tech-blog'].map((source) => (
-                <button
-                  key={source.id}
-                  onClick={() => toggleSourceFilter(source.id)}
-                  className={`px-2 py-0.5 rounded text-xs font-medium transition-all ${
-                    selectedSourceFilters.includes(source.id)
-                      ? 'text-white'
-                      : 'bg-[var(--color-card)] text-[var(--color-text-muted)] border border-[var(--color-border)] hover:border-purple-400'
-                  }`}
-                  style={selectedSourceFilters.includes(source.id) ? { backgroundColor: source.color } : {}}
-                >
-                  {source.icon} {source.name}
-                </button>
-              ))}
-            </div>
-          </div>
+                  {/* 🌍 글로벌 */}
+                  <div className="mb-4">
+                    <div className="flex items-center gap-2 mb-2">
+                      <button
+                        onClick={() => toggleCategoryAll('global')}
+                        className={`px-2.5 py-1 rounded-lg text-xs font-medium transition-all ${
+                          sourcesByCategory.global.every((s) => selectedSourceFilters.includes(s.id))
+                            ? 'bg-orange-600 text-white'
+                            : 'bg-[var(--color-card)] text-[var(--color-text-muted)] border border-[var(--color-border)]'
+                        }`}
+                      >
+                        🌍 글로벌 전체 ({sourcesByCategory.global.length})
+                      </button>
+                    </div>
+                    <div className="flex flex-wrap gap-1.5 pl-3 border-l-2 border-blue-200 dark:border-blue-800">
+                      {sourcesByCategory.global.map((source) => (
+                        <button
+                          key={source.id}
+                          onClick={() => toggleSourceFilter(source.id)}
+                          className={`px-2 py-1 rounded text-xs font-medium transition-all ${
+                            selectedSourceFilters.includes(source.id)
+                              ? 'text-white'
+                              : 'bg-[var(--color-card)] text-[var(--color-text-muted)] border border-[var(--color-border)] hover:border-blue-400'
+                          }`}
+                          style={selectedSourceFilters.includes(source.id) ? { backgroundColor: source.color } : {}}
+                        >
+                          {source.icon} {source.name}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* 🏢 기술블로그 */}
+                  <div className="mb-4">
+                    <div className="flex items-center gap-2 mb-2">
+                      <button
+                        onClick={() => toggleCategoryAll('tech-blog')}
+                        className={`px-2.5 py-1 rounded-lg text-xs font-medium transition-all ${
+                          sourcesByCategory['tech-blog'].every((s) => selectedSourceFilters.includes(s.id))
+                            ? 'bg-orange-600 text-white'
+                            : 'bg-[var(--color-card)] text-[var(--color-text-muted)] border border-[var(--color-border)]'
+                        }`}
+                      >
+                        🏢 기술블로그 전체 ({sourcesByCategory['tech-blog'].length})
+                      </button>
+                    </div>
+                    <div className="flex flex-wrap gap-1.5 pl-3 border-l-2 border-purple-200 dark:border-purple-800">
+                      {sourcesByCategory['tech-blog'].map((source) => (
+                        <button
+                          key={source.id}
+                          onClick={() => toggleSourceFilter(source.id)}
+                          className={`px-2 py-1 rounded text-xs font-medium transition-all ${
+                            selectedSourceFilters.includes(source.id)
+                              ? 'text-white'
+                              : 'bg-[var(--color-card)] text-[var(--color-text-muted)] border border-[var(--color-border)] hover:border-purple-400'
+                          }`}
+                          style={selectedSourceFilters.includes(source.id) ? { backgroundColor: source.color } : {}}
+                        >
+                          {source.icon} {source.name}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+                {/* 적용 버튼 */}
+                <div className="p-4 border-t border-[var(--color-border)] bg-[var(--color-bg)]">
+                  <button
+                    onClick={() => setIsFilterOpen(false)}
+                    className="w-full py-3 bg-orange-600 hover:bg-orange-700 text-white font-medium rounded-xl transition-colors"
+                  >
+                    {selectedSourceFilters.length > 0
+                      ? `${selectedSourceFilters.length}개 소스로 필터 적용`
+                      : '전체 소스 보기'}
+                  </button>
+                </div>
+              </div>
+            </>
+          )}
 
           {error && (
             <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-xl p-4 mb-4">
