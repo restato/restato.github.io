@@ -1,0 +1,157 @@
+---
+title: "Running Multiple Claude Code Sessions Without Conflicts"
+description: "Set up Git worktree and custom skills to run parallel Claude sessions on the same project."
+date: 2025-01-16
+tags: ["claude-code", "git", "worktree", "productivity"]
+---
+
+Ran into a problem today. Wanted to work on two features at the same time with Claude Code, but opening multiple sessions on the same directory caused file conflicts.
+
+Here's how I fixed it.
+
+## The problem
+
+When you open multiple Claude Code sessions in the same directory, they can step on each other's toes. One session edits a file, another session doesn't know about it, chaos ensues.
+
+## Git worktree to the rescue
+
+Git worktree lets you check out multiple branches in separate directories, all sharing the same Git history. Perfect for this.
+
+```bash
+# Create a new worktree for feature work
+git worktree add ../project-feature-auth -b feature-auth
+
+# Now you have:
+# /project          → main branch
+# /project-feature-auth → feature-auth branch
+
+# Run Claude in each directory
+cd ../project-feature-auth && claude
+```
+
+Each Claude session gets its own isolated file system. No conflicts.
+
+## Making it easier with a custom skill
+
+Typing those commands every time is annoying. So I made a `/worktree` skill.
+
+Created `skills/worktree/SKILL.md`:
+
+```markdown
+---
+name: worktree
+description: Git worktree management for parallel Claude sessions
+aliases: [wt, parallel]
+visibility: global
+---
+
+# Usage
+
+/worktree new feature-auth    # Create new worktree
+/worktree list                # Show all worktrees
+/worktree remove feature-auth # Clean up
+```
+
+Now I just run `/worktree new feature-auth` and Claude handles the rest.
+
+## Auto-showing worktree status on session start
+
+Added a SessionStart hook so I always know what worktrees exist:
+
+```bash
+#!/bin/bash
+# hooks/worktree-status.sh
+
+if ! git rev-parse --is-inside-work-tree &> /dev/null; then
+  exit 0
+fi
+
+echo "📂 Git Worktree Status"
+echo "Current branch: $(git rev-parse --abbrev-ref HEAD)"
+
+worktree_count=$(git worktree list | wc -l | tr -d ' ')
+if [ "$worktree_count" -gt 1 ]; then
+  echo "Active worktrees:"
+  git worktree list
+fi
+```
+
+Registered it in `settings.json`:
+
+```json
+{
+  "hooks": {
+    "SessionStart": [{
+      "matcher": "startup",
+      "hooks": [{
+        "type": "command",
+        "command": "~/.claude/hooks/worktree-status.sh"
+      }]
+    }]
+  }
+}
+```
+
+Now every new session shows me what worktrees are active.
+
+## Bonus: Saving tokens with script-based skills
+
+While doing this, I realized my `/git-sync` skill was using a ton of tokens. Claude was reading the SKILL.md, thinking about each step, calling tools 5-7 times...
+
+Switched to a script-based approach instead:
+
+**Before (token heavy):**
+```
+SKILL.md explains steps → Claude interprets → Multiple tool calls
+```
+
+**After (token efficient):**
+```
+SKILL.md says "run this script" → One Bash call → Done
+```
+
+Created `git-sync.sh` that does everything:
+- Checks status
+- Creates branch if on main
+- Commits with auto-generated message
+- Pushes
+- Opens PR (if gh CLI available)
+
+```bash
+# Now /git-sync just runs:
+~/.claude/skills/git-sync/git-sync.sh "feat: Add feature"
+```
+
+Went from ~3000 tokens per run to ~500. Huge improvement.
+
+## Workflow now
+
+1. Start main session: `claude`
+2. Need parallel work: `/worktree new feature-x`
+3. Open new terminal, cd to worktree, run `claude`
+4. Work independently in each session
+5. When done: `/git-sync` in each worktree
+6. Clean up: `/worktree remove feature-x`
+
+## Gotchas
+
+- Each worktree needs its own `npm install` or dependency setup
+- Don't forget to push from worktrees before removing them
+- The main repo and worktrees share Git history, so commits are visible everywhere
+
+## Files created
+
+```
+~/.claude/
+├── hooks/
+│   └── worktree-status.sh    # SessionStart hook
+├── skills/
+│   ├── worktree/
+│   │   └── SKILL.md          # /worktree skill
+│   └── git-sync/
+│       ├── SKILL.md          # Simplified
+│       └── git-sync.sh       # All logic here
+└── settings.json             # Hook registration
+```
+
+Pretty happy with this setup. Parallel Claude sessions without the headache.
