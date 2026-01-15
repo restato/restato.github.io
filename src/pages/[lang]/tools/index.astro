@@ -1,0 +1,101 @@
+---
+import MainLayout from '../../../layouts/MainLayout.astro';
+import ToolSearch from '../../../components/tools/ToolSearch';
+import RecentTools from '../../../components/tools/RecentTools';
+import ToolsGrid from '../../../components/tools/ToolsGrid';
+import ToolsPageHeader from '../../../components/tools/ToolsPageHeader';
+import ToolsPageInfo from '../../../components/tools/ToolsPageInfo';
+import { toolsConfig, categories, type Language } from '../../../data/tools';
+
+const languages: Language[] = ['ko', 'en', 'ja'];
+
+export function getStaticPaths() {
+  return [
+    { params: { lang: 'ko' } },
+    { params: { lang: 'en' } },
+    { params: { lang: 'ja' } }
+  ];
+}
+
+const { lang } = Astro.params as { lang: Language };
+
+// SEO content per language
+const seoContent = {
+  ko: {
+    title: '무료 온라인 도구 모음 | Restato',
+    description: '무료 온라인 도구 모음 - QR 코드 생성기, 비밀번호 생성기, 색상 변환기, JSON 포매터, 이미지 변환기 등 40개 이상의 무료 웹 도구. 무설치, 회원가입 불필요.',
+  },
+  en: {
+    title: 'Free Online Tools Collection | Restato',
+    description: 'Free online tools collection - QR code generator, password generator, color converter, JSON formatter, image converter and 40+ free web tools. No installation, no signup required.',
+  },
+  ja: {
+    title: '無料オンラインツール集 | Restato',
+    description: '無料オンラインツール集 - QRコード生成器、パスワード生成器、カラー変換器、JSONフォーマッター、画像変換器など40以上の無料ウェブツール。インストール不要、会員登録不要。',
+  },
+};
+
+// Generate alternate URLs for hreflang
+const alternateUrls = languages.map(l => ({
+  lang: l,
+  url: `https://restato.github.io/${l}/tools`
+}));
+
+// Transform toolsConfig to the format expected by ToolsGrid
+const tools = toolsConfig.map(tool => ({
+  slug: tool.slug,
+  title: {
+    ko: tool.seo.ko.title.split(' - ')[0],
+    en: tool.seo.en.title.split(' - ')[0],
+    ja: tool.seo.ja.title.split(' - ')[0],
+  },
+  description: {
+    ko: tool.seo.ko.description,
+    en: tool.seo.en.description,
+    ja: tool.seo.ja.description,
+  },
+  icon: tool.icon,
+  category: tool.category,
+}));
+
+// Also add anonymous chat to tools list
+tools.push({
+  slug: `/${lang}/anonymous-chat`,
+  title: { ko: '익명 채팅', en: 'Anonymous Chat', ja: '匿名チャット' },
+  description: {
+    ko: '무료 익명 1:1 실시간 채팅. P2P 연결로 서버에 저장되지 않는 안전한 채팅.',
+    en: 'Free anonymous 1:1 real-time chat. Secure P2P connection, nothing stored on servers.',
+    ja: '無料匿名1:1リアルタイムチャット。P2P接続でサーバーに保存されない安全なチャット。',
+  },
+  icon: '💬',
+  category: 'productivity',
+});
+
+const seo = seoContent[lang];
+---
+
+<MainLayout
+  title={seo.title}
+  description={seo.description}
+  lang={lang}
+  alternateUrls={alternateUrls}
+>
+  <div class="max-w-6xl mx-auto px-4 py-8">
+    <!-- Header with i18n support -->
+    <ToolsPageHeader client:load />
+
+    <!-- Search -->
+    <div class="mb-6">
+      <ToolSearch client:load basePath={`/${lang}/tools`} />
+    </div>
+
+    <!-- Recent Tools -->
+    <RecentTools client:load className="mb-8" basePath={`/${lang}/tools`} />
+
+    <!-- Tools Grid with i18n support -->
+    <ToolsGrid client:load tools={tools} categories={categories} basePath={`/${lang}/tools`} />
+
+    <!-- Info with i18n support -->
+    <ToolsPageInfo client:load />
+  </div>
+</MainLayout>

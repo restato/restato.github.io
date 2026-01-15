@@ -1,0 +1,314 @@
+---
+import MainLayout from '../../../layouts/MainLayout.astro';
+import RelatedTools from '../../../components/tools/RelatedTools.astro';
+import ShareButton from '../../../components/tools/ShareButton';
+import FavoriteButton from '../../../components/tools/FavoriteButton';
+import BookmarkPrompt from '../../../components/tools/BookmarkPrompt';
+import { toolsConfig, type Language } from '../../../data/tools';
+
+// Import all tool components explicitly (required for Astro hydration)
+import QRCodeGenerator from '../../../components/tools/QRCodeGenerator';
+import PasswordGenerator from '../../../components/tools/PasswordGenerator';
+import UuidGenerator from '../../../components/tools/UuidGenerator';
+import LoremIpsumGenerator from '../../../components/tools/LoremIpsumGenerator';
+import ColorPalette from '../../../components/tools/ColorPalette';
+import HashGenerator from '../../../components/tools/HashGenerator';
+import ColorConverter from '../../../components/tools/ColorConverter';
+import UnitConverter from '../../../components/tools/UnitConverter';
+import Base64Tool from '../../../components/tools/Base64Tool';
+import ImageConverter from '../../../components/tools/ImageConverter';
+import TextCounter from '../../../components/tools/TextCounter';
+import MarkdownPreview from '../../../components/tools/MarkdownPreview';
+import DiffTool from '../../../components/tools/DiffTool';
+import JsonFormatter from '../../../components/tools/JsonFormatter';
+import RegexTester from '../../../components/tools/RegexTester';
+import UrlEncoder from '../../../components/tools/UrlEncoder';
+import JwtDecoder from '../../../components/tools/JwtDecoder';
+import CronGenerator from '../../../components/tools/CronGenerator';
+import TimestampConverter from '../../../components/tools/TimestampConverter';
+import LlmCostCalculator from '../../../components/tools/LlmCostCalculator';
+import GradientGenerator from '../../../components/tools/GradientGenerator';
+import BoxShadowGenerator from '../../../components/tools/BoxShadowGenerator';
+import ImageResizer from '../../../components/tools/ImageResizer';
+import ExifViewer from '../../../components/tools/ExifViewer';
+import BackgroundRemover from '../../../components/tools/BackgroundRemover';
+import ImageMetadataViewer from '../../../components/tools/ImageMetadataViewer';
+import UtmBuilder from '../../../components/tools/UtmBuilder';
+import TimerStopwatch from '../../../components/tools/TimerStopwatch';
+import PomodoroTimer from '../../../components/tools/PomodoroTimer';
+import WorldClock from '../../../components/tools/WorldClock';
+import PercentCalculator from '../../../components/tools/PercentCalculator';
+import DiscountCalculator from '../../../components/tools/DiscountCalculator';
+import BmiCalculator from '../../../components/tools/BmiCalculator';
+import AgeCalculator from '../../../components/tools/AgeCalculator';
+import DdayCalculator from '../../../components/tools/DdayCalculator';
+import DutchPayCalculator from '../../../components/tools/DutchPayCalculator';
+import CoinFlip from '../../../components/tools/CoinFlip';
+import DiceRoller from '../../../components/tools/DiceRoller';
+import KorEngConverter from '../../../components/tools/KorEngConverter';
+
+// Localized UI strings
+const uiStrings = {
+  ko: {
+    home: '홈',
+    tools: '도구',
+    usageGuide: '사용 안내',
+    free: '완전 무료, 회원가입 불필요',
+    privacy: '모든 처리는 브라우저에서 실행 (데이터 서버 전송 없음)',
+    responsive: '모바일, 태블릿, 데스크톱 모두 지원',
+    multilang: '한국어, 영어, 일본어 지원',
+    faqFree: '은(는) 무료인가요?',
+    faqFreeAnswer: '네, 완전히 무료이며 회원가입도 필요없습니다. 모든 처리는 브라우저에서 이루어지므로 데이터가 서버로 전송되지 않습니다.',
+    faqMobile: '모바일에서도 사용할 수 있나요?',
+    faqMobileAnswer: '네, 모든 기기에서 사용 가능합니다. 반응형 디자인으로 모바일, 태블릿, 데스크톱 모두 지원합니다.',
+    faqPrivacy: '데이터가 서버로 전송되나요?',
+    faqPrivacyAnswer: '아니요, 모든 처리는 사용자의 브라우저에서 이루어집니다. 개인정보가 서버로 전송되지 않아 안전합니다.',
+  },
+  en: {
+    home: 'Home',
+    tools: 'Tools',
+    usageGuide: 'Usage Guide',
+    free: 'Completely free, no signup required',
+    privacy: 'All processing happens in your browser (no data sent to servers)',
+    responsive: 'Works on mobile, tablet, and desktop',
+    multilang: 'Supports Korean, English, and Japanese',
+    faqFree: ' - Is it free?',
+    faqFreeAnswer: 'Yes, it is completely free and no signup is required. All processing is done in your browser, so no data is sent to servers.',
+    faqMobile: 'Can I use it on mobile?',
+    faqMobileAnswer: 'Yes, it works on all devices. The responsive design supports mobile, tablet, and desktop.',
+    faqPrivacy: 'Is my data sent to servers?',
+    faqPrivacyAnswer: 'No, all processing is done in your browser. Your data is never sent to servers, so it is safe.',
+  },
+  ja: {
+    home: 'ホーム',
+    tools: 'ツール',
+    usageGuide: '使い方ガイド',
+    free: '完全無料、会員登録不要',
+    privacy: 'すべての処理はブラウザで実行（サーバーへのデータ送信なし）',
+    responsive: 'モバイル、タブレット、デスクトップ対応',
+    multilang: '韓国語、英語、日本語対応',
+    faqFree: 'は無料ですか？',
+    faqFreeAnswer: 'はい、完全に無料で会員登録も不要です。すべての処理はブラウザで行われるため、データはサーバーに送信されません。',
+    faqMobile: 'モバイルでも使えますか？',
+    faqMobileAnswer: 'はい、すべてのデバイスで使用できます。レスポンシブデザインでモバイル、タブレット、デスクトップすべてに対応しています。',
+    faqPrivacy: 'データはサーバーに送信されますか？',
+    faqPrivacyAnswer: 'いいえ、すべての処理はユーザーのブラウザで行われます。個人情報がサーバーに送信されることはなく、安全です。',
+  },
+};
+
+const languages: Language[] = ['ko', 'en', 'ja'];
+
+export function getStaticPaths() {
+  const paths: { params: { lang: string; slug: string }; props: { tool: typeof toolsConfig[0]; lang: Language } }[] = [];
+
+  for (const lang of ['ko', 'en', 'ja'] as Language[]) {
+    for (const tool of toolsConfig) {
+      paths.push({
+        params: { lang, slug: tool.slug },
+        props: { tool, lang }
+      });
+    }
+  }
+
+  return paths;
+}
+
+const { tool, lang } = Astro.props;
+const seo = tool.seo[lang];
+const ui = uiStrings[lang];
+
+// Generate alternate URLs for hreflang
+const alternateUrls = languages.map(l => ({
+  lang: l,
+  url: `https://restato.github.io/${l}/tools/${tool.slug}`
+}));
+
+const pageTitle = `${seo.title} | Restato`;
+const canonicalUrl = `https://restato.github.io/${lang}/tools/${tool.slug}`;
+
+// Extract short title for FAQ
+const shortTitle = seo.title.split(' - ')[0];
+
+// FAQ Schema
+const faqSchema = {
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {
+      "@type": "Question",
+      "name": `${shortTitle}${ui.faqFree}`,
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": ui.faqFreeAnswer
+      }
+    },
+    {
+      "@type": "Question",
+      "name": ui.faqMobile,
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": ui.faqMobileAnswer
+      }
+    },
+    {
+      "@type": "Question",
+      "name": ui.faqPrivacy,
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": ui.faqPrivacyAnswer
+      }
+    }
+  ]
+};
+
+// WebApplication Schema
+const appSchema = {
+  "@context": "https://schema.org",
+  "@type": "WebApplication",
+  "name": seo.title,
+  "description": seo.description,
+  "url": canonicalUrl,
+  "applicationCategory": "UtilityApplication",
+  "operatingSystem": "All",
+  "offers": {
+    "@type": "Offer",
+    "price": "0",
+    "priceCurrency": "USD"
+  },
+  "author": {
+    "@type": "Person",
+    "name": "Restato"
+  },
+  "inLanguage": lang
+};
+---
+
+<MainLayout
+  title={pageTitle}
+  description={seo.description}
+  lang={lang}
+  alternateUrls={alternateUrls}
+>
+  <script type="application/ld+json" set:html={JSON.stringify(faqSchema)} />
+  <script type="application/ld+json" set:html={JSON.stringify(appSchema)} />
+
+  <div class="max-w-4xl mx-auto px-4 py-8">
+    <!-- Breadcrumb -->
+    <nav class="text-sm mb-6">
+      <ol class="flex items-center gap-2">
+        <li><a href={`/${lang}`} class="text-[var(--color-text-muted)] hover:text-primary-500">{ui.home}</a></li>
+        <li class="text-[var(--color-text-muted)]">/</li>
+        <li><a href={`/${lang}/tools`} class="text-[var(--color-text-muted)] hover:text-primary-500">{ui.tools}</a></li>
+        <li class="text-[var(--color-text-muted)]">/</li>
+        <li class="text-[var(--color-text)]">{shortTitle}</li>
+      </ol>
+    </nav>
+
+    <!-- Header -->
+    <header class="mb-8">
+      <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+        <div>
+          <h1 class="text-3xl font-bold text-[var(--color-text)] mb-2">
+            {tool.icon} {shortTitle}
+          </h1>
+          <p class="text-[var(--color-text-muted)]">
+            {seo.description}
+          </p>
+        </div>
+        <div class="flex items-center gap-2">
+          <FavoriteButton client:load slug={tool.slug} title={shortTitle} icon={tool.icon} />
+          <ShareButton client:load title={pageTitle} description={seo.description} />
+        </div>
+      </div>
+    </header>
+
+    <!-- Tool Content -->
+    <div class="p-6 rounded-xl bg-[var(--color-card)] border border-[var(--color-border)]">
+      {tool.slug === 'qr-code' && <QRCodeGenerator client:load />}
+      {tool.slug === 'password' && <PasswordGenerator client:load />}
+      {tool.slug === 'uuid' && <UuidGenerator client:load />}
+      {tool.slug === 'lorem-ipsum' && <LoremIpsumGenerator client:load />}
+      {tool.slug === 'color-palette' && <ColorPalette client:load />}
+      {tool.slug === 'hash' && <HashGenerator client:load />}
+      {tool.slug === 'color' && <ColorConverter client:load />}
+      {tool.slug === 'unit' && <UnitConverter client:load />}
+      {tool.slug === 'base64' && <Base64Tool client:load />}
+      {tool.slug === 'image-converter' && <ImageConverter client:load />}
+      {tool.slug === 'text-counter' && <TextCounter client:load />}
+      {tool.slug === 'markdown' && <MarkdownPreview client:load />}
+      {tool.slug === 'diff' && <DiffTool client:load />}
+      {tool.slug === 'json' && <JsonFormatter client:load />}
+      {tool.slug === 'regex' && <RegexTester client:load />}
+      {tool.slug === 'url-encoder' && <UrlEncoder client:load />}
+      {tool.slug === 'jwt-decoder' && <JwtDecoder client:load />}
+      {tool.slug === 'cron' && <CronGenerator client:load />}
+      {tool.slug === 'timestamp' && <TimestampConverter client:load />}
+      {tool.slug === 'llm-cost' && <LlmCostCalculator client:load />}
+      {tool.slug === 'gradient' && <GradientGenerator client:load />}
+      {tool.slug === 'box-shadow' && <BoxShadowGenerator client:load />}
+      {tool.slug === 'image-resizer' && <ImageResizer client:load />}
+      {tool.slug === 'exif' && <ExifViewer client:load />}
+      {tool.slug === 'background-remover' && <BackgroundRemover client:load />}
+      {tool.slug === 'image-metadata' && <ImageMetadataViewer client:load />}
+      {tool.slug === 'utm' && <UtmBuilder client:load />}
+      {tool.slug === 'timer' && <TimerStopwatch client:load />}
+      {tool.slug === 'pomodoro' && <PomodoroTimer client:load />}
+      {tool.slug === 'world-clock' && <WorldClock client:load />}
+      {tool.slug === 'percent' && <PercentCalculator client:load />}
+      {tool.slug === 'discount' && <DiscountCalculator client:load />}
+      {tool.slug === 'bmi' && <BmiCalculator client:load />}
+      {tool.slug === 'age' && <AgeCalculator client:load />}
+      {tool.slug === 'dday' && <DdayCalculator client:load />}
+      {tool.slug === 'dutch-pay' && <DutchPayCalculator client:load />}
+      {tool.slug === 'coin-flip' && <CoinFlip client:load />}
+      {tool.slug === 'dice' && <DiceRoller client:load />}
+      {tool.slug === 'kor-eng' && <KorEngConverter client:load />}
+    </div>
+
+    <!-- Related Tools -->
+    <RelatedTools currentSlug={tool.slug} currentCategory={tool.category} />
+
+    <!-- Info Section -->
+    <section class="mt-8 p-6 rounded-xl bg-[var(--color-card)] border border-[var(--color-border)]">
+      <h2 class="text-lg font-semibold text-[var(--color-text)] mb-4">{ui.usageGuide}</h2>
+      <ul class="space-y-2 text-sm text-[var(--color-text-muted)]">
+        <li class="flex items-start gap-2">
+          <span class="text-green-500">✓</span>
+          <span>{ui.free}</span>
+        </li>
+        <li class="flex items-start gap-2">
+          <span class="text-green-500">✓</span>
+          <span>{ui.privacy}</span>
+        </li>
+        <li class="flex items-start gap-2">
+          <span class="text-green-500">✓</span>
+          <span>{ui.responsive}</span>
+        </li>
+        <li class="flex items-start gap-2">
+          <span class="text-green-500">✓</span>
+          <span>{ui.multilang}</span>
+        </li>
+      </ul>
+    </section>
+  </div>
+
+  <!-- Bookmark Prompt -->
+  <BookmarkPrompt client:idle />
+
+  <!-- Track tool visit -->
+  <script define:vars={{ slug: tool.slug, title: shortTitle, icon: tool.icon }}>
+    const STORAGE_KEY = 'restato_recent_tools';
+    const MAX_RECENT = 5;
+
+    try {
+      const stored = localStorage.getItem(STORAGE_KEY);
+      let tools = stored ? JSON.parse(stored) : [];
+      tools = tools.filter(t => t.slug !== slug);
+      tools.unshift({ slug, title, icon, visitedAt: Date.now() });
+      tools = tools.slice(0, MAX_RECENT);
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(tools));
+    } catch (err) {
+      console.error('Failed to track tool visit:', err);
+    }
+  </script>
+</MainLayout>
