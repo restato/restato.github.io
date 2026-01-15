@@ -1,0 +1,18 @@
+---
+import MainLayout from '../layouts/MainLayout.astro';
+import Chat from '../components/Chat.tsx';
+import { getLanguage } from '../i18n/index';
+import { chatTranslations } from '../i18n/translations/chat';
+
+const lang = getLanguage();
+const tt = chatTranslations;
+---
+
+<MainLayout
+  title={`${tt.pageTitle[lang]} | Restato`}
+  description={tt.pageDescription[lang]}
+>
+  <div class="container mx-auto px-4 py-4">
+    <Chat client:load />
+  </div>
+</MainLayout>

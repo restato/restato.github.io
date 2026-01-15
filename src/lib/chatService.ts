@@ -11,11 +11,14 @@ import {
 } from './firebase';
 import { PeerConnectionError, SessionExpiredError, RoomNotFoundError } from './errors';
 
+export type SystemMessageType = 'peerConnected' | 'peerDisconnected';
+
 export interface ChatMessage {
   id: string;
-  sender: 'me' | 'peer';
+  sender: 'me' | 'peer' | 'system';
   text: string;
   timestamp: number;
+  messageType?: SystemMessageType;
 }
 
 export type ConnectionStatus =

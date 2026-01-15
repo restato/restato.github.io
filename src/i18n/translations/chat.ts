@@ -6,9 +6,9 @@ export const chatTranslations = {
     ja: '匿名チャット'
   },
   pageDescription: {
-    ko: '1:1 익명 채팅 서비스. 링크를 공유하거나 랜덤 매칭으로 대화를 시작하세요.',
-    en: '1:1 anonymous chat service. Share a link or start with random matching.',
-    ja: '1:1匿名チャットサービス。リンクを共有するか、ランダムマッチングで会話を始めましょう。'
+    ko: '익명으로 낯선 사람과 1:1 실시간 채팅. P2P 연결로 대화 내용이 서버에 저장되지 않습니다.',
+    en: 'Chat anonymously with strangers in real-time. P2P connection means nothing is stored on servers.',
+    ja: '匿名で見知らぬ人と1:1リアルタイムチャット。P2P接続で会話内容はサーバーに保存されません。'
   },
 
   // 연결 상태
@@ -31,6 +31,9 @@ export const chatTranslations = {
     inputPlaceholder: { ko: '메시지를 입력하세요...', en: 'Type a message...', ja: 'メッセージを入力...' },
     remainingTime: { ko: '남은 시간:', en: 'Time left:', ja: '残り時間:' },
     newChat: { ko: '새 대화 시작', en: 'Start New Chat', ja: '新しいチャットを開始' },
+    myMessage: { ko: '내 메시지', en: 'My message', ja: '自分のメッセージ' },
+    peerMessage: { ko: '상대방 메시지', en: "Peer's message", ja: '相手のメッセージ' },
+    messageInputForm: { ko: '메시지 입력 폼', en: 'Message input form', ja: 'メッセージ入力フォーム' },
   },
 
   // 메시지
@@ -114,5 +117,19 @@ export const chatTranslations = {
       en: 'Messages are not stored, sessions last up to 1 hour.',
       ja: '会話内容は保存されず、セッションは最大1時間保持されます。'
     },
+  },
+
+  // 보안 안내
+  security: {
+    title: { ko: '안심하고 대화하세요', en: 'Chat with confidence', ja: '安心してチャット' },
+    noStorage: { ko: '대화 내용이 저장되지 않습니다', en: 'Messages are not stored', ja: 'メッセージは保存されません' },
+    p2p: { ko: 'P2P 직접 연결', en: 'Direct P2P connection', ja: 'P2Pダイレクト接続' },
+    sessionLimit: { ko: '1시간 후 자동 종료', en: 'Auto-ends after 1 hour', ja: '1時間後に自動終了' },
+  },
+
+  // 간단 가이드
+  quickGuide: {
+    share: { ko: '링크 공유로 친구 초대', en: 'Share link to invite friends', ja: 'リンク共有で友達を招待' },
+    random: { ko: '또는 랜덤 매칭 대기', en: 'Or wait for random match', ja: 'またはランダムマッチング待機' },
   },
 } as const;

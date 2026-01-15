@@ -13,7 +13,7 @@ function getRoomIdFromHash(): string | null {
 }
 
 export default function Chat() {
-  const { t, translations } = useTranslation();
+  const { t, lang, translations } = useTranslation();
   const tt = translations.chat;
 
   const [messages, setMessages] = useState<ChatMessage[]>([]);
@@ -39,18 +39,20 @@ export default function Chat() {
   const handlePeerConnected = useCallback(() => {
     setMessages(prev => [...prev, {
       id: `system-${Date.now()}`,
-      sender: 'peer' as const,
-      text: '상대방이 연결되었습니다!',
-      timestamp: Date.now()
+      sender: 'system' as const,
+      text: '',
+      timestamp: Date.now(),
+      messageType: 'peerConnected'
     }]);
   }, []);
 
   const handlePeerDisconnected = useCallback(() => {
     setMessages(prev => [...prev, {
       id: `system-${Date.now()}`,
-      sender: 'peer' as const,
-      text: '상대방과의 연결이 끊어졌습니다.',
-      timestamp: Date.now()
+      sender: 'system' as const,
+      text: '',
+      timestamp: Date.now(),
+      messageType: 'peerDisconnected'
     }]);
   }, []);
 
@@ -88,7 +90,7 @@ export default function Chat() {
   const handleCopyLink = useCallback(async () => {
     if (!currentRoomId) return;
 
-    const url = `${window.location.origin}/chat#${currentRoomId}`;
+    const url = `${window.location.origin}/anonymous-chat#${currentRoomId}`;
     await navigator.clipboard.writeText(url);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
@@ -131,10 +133,10 @@ export default function Chat() {
   }, [status]);
 
   return (
-    <div className="flex flex-col h-[600px] max-w-2xl mx-auto border border-[var(--color-border)] rounded-lg overflow-hidden bg-[var(--color-card)]">
+    <div className="flex flex-col h-[calc(100vh-120px)] max-w-3xl mx-auto border border-[var(--color-border)] rounded-lg overflow-hidden bg-[var(--color-card)]">
       {/* 헤더 */}
       <div
-        className="flex items-center justify-between px-4 py-3 border-b border-[var(--color-border)] bg-[var(--color-bg)]"
+        className="flex items-center justify-between px-4 py-2 border-b border-[var(--color-border)] bg-[var(--color-bg)]"
         role="status"
         aria-live="polite"
         aria-label={t(tt.status[status] || tt.status.error)}
@@ -153,6 +155,29 @@ export default function Chat() {
         )}
       </div>
 
+      {/* 보안 안내 배너 - 대기/초기화 중일 때만 표시 */}
+      {(status === 'waiting' || status === 'initializing' || status === 'connecting') && (
+        <div className="px-4 py-3 bg-green-500/10 border-b border-[var(--color-border)]">
+          <div className="flex items-center gap-2 mb-2">
+            <svg className="w-4 h-4 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+            </svg>
+            <span className="text-sm font-medium text-green-700 dark:text-green-400">{t(tt.security.title)}</span>
+          </div>
+          <div className="flex flex-wrap gap-3 text-xs text-[var(--color-text-muted)]">
+            <span className="flex items-center gap-1">
+              <span>🔒</span> {t(tt.security.noStorage)}
+            </span>
+            <span className="flex items-center gap-1">
+              <span>🔗</span> {t(tt.security.p2p)}
+            </span>
+            <span className="flex items-center gap-1">
+              <span>⏱️</span> {t(tt.security.sessionLimit)}
+            </span>
+          </div>
+        </div>
+      )}
+
       {/* 공유 링크 */}
       {currentRoomId && status === 'waiting' && (
         <div className="px-4 py-3 bg-blue-500/10 border-b border-[var(--color-border)]" role="region" aria-label={t(tt.ui.shareLink)}>
@@ -161,7 +186,7 @@ export default function Chat() {
             <input
               type="text"
               readOnly
-              value={`${typeof window !== 'undefined' ? window.location.origin : ''}/chat#${currentRoomId}`}
+              value={`${typeof window !== 'undefined' ? window.location.origin : ''}/anonymous-chat#${currentRoomId}`}
               className="flex-1 px-3 py-2 text-sm rounded border border-[var(--color-border)] bg-[var(--color-bg)] text-[var(--color-text)] focus:outline-none focus:ring-2 focus:ring-blue-500"
               aria-label={t(tt.ui.shareLink)}
             />
@@ -188,27 +213,40 @@ export default function Chat() {
             {t(tt.messages.emptyChat)}
           </p>
         )}
-        {messages.map((msg) => (
-          <div
-            key={msg.id}
-            className={`flex ${msg.sender === 'me' ? 'justify-end' : 'justify-start'}`}
-          >
+        {messages.map((msg) => {
+          // 시스템 메시지 텍스트 결정
+          const messageText = msg.sender === 'system' && msg.messageType
+            ? t(tt.messages[msg.messageType])
+            : msg.text;
+
+          return (
             <div
-              className={`max-w-[70%] px-4 py-2 rounded-lg ${
-                msg.sender === 'me'
-                  ? 'bg-blue-500 text-white'
-                  : 'bg-[var(--color-bg)] text-[var(--color-text)] border border-[var(--color-border)]'
-              }`}
-              role="article"
-              aria-label={`${msg.sender === 'me' ? '내 메시지' : '상대방 메시지'}: ${msg.text}`}
+              key={msg.id}
+              className={`flex ${msg.sender === 'me' ? 'justify-end' : msg.sender === 'system' ? 'justify-center' : 'justify-start'}`}
             >
-              <p className="break-words">{msg.text}</p>
-              <p className={`text-xs mt-1 ${msg.sender === 'me' ? 'text-blue-100' : 'text-[var(--color-text-muted)]'}`}>
-                {new Date(msg.timestamp).toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit' })}
-              </p>
+              {msg.sender === 'system' ? (
+                <div className="px-3 py-1 rounded-full bg-[var(--color-bg)] text-[var(--color-text-muted)] text-sm border border-[var(--color-border)]">
+                  {messageText}
+                </div>
+              ) : (
+                <div
+                  className={`max-w-[70%] px-4 py-2 rounded-lg ${
+                    msg.sender === 'me'
+                      ? 'bg-blue-500 text-white'
+                      : 'bg-[var(--color-bg)] text-[var(--color-text)] border border-[var(--color-border)]'
+                  }`}
+                  role="article"
+                  aria-label={`${msg.sender === 'me' ? t(tt.ui.myMessage) : t(tt.ui.peerMessage)}: ${messageText}`}
+                >
+                  <p className="break-words">{messageText}</p>
+                  <p className={`text-xs mt-1 ${msg.sender === 'me' ? 'text-blue-100' : 'text-[var(--color-text-muted)]'}`}>
+                    {new Date(msg.timestamp).toLocaleTimeString(lang === 'ko' ? 'ko-KR' : lang === 'ja' ? 'ja-JP' : 'en-US', { hour: '2-digit', minute: '2-digit' })}
+                  </p>
+                </div>
+              )}
             </div>
-          </div>
-        ))}
+          );
+        })}
         <div ref={messagesEndRef} aria-hidden="true" />
       </div>
 
@@ -230,7 +268,7 @@ export default function Chat() {
 
       {/* 입력 영역 */}
       {status === 'connected' && (
-        <form onSubmit={handleSendMessage} className="p-4 border-t border-[var(--color-border)]" role="form" aria-label="메시지 입력 폼">
+        <form onSubmit={handleSendMessage} className="p-4 border-t border-[var(--color-border)]" role="form" aria-label={t(tt.ui.messageInputForm)}>
           <div className="flex gap-2">
             <input
               type="text"
@@ -255,8 +293,8 @@ export default function Chat() {
 
       {/* 대기 중일 때 입력창 대신 안내 */}
       {(status === 'waiting' || status === 'connecting' || status === 'initializing') && (
-        <div className="p-4 border-t border-[var(--color-border)] text-center" role="status" aria-live="polite">
-          <div className="flex items-center justify-center gap-2 text-[var(--color-text-muted)]">
+        <div className="p-4 border-t border-[var(--color-border)]" role="status" aria-live="polite">
+          <div className="flex items-center justify-center gap-2 text-[var(--color-text-muted)] mb-3">
             <svg
               className="animate-spin h-5 w-5"
               xmlns="http://www.w3.org/2000/svg"
@@ -270,6 +308,9 @@ export default function Chat() {
             <span className="text-sm">
               {status === 'waiting' ? t(tt.messages.waitingMessage) : t(tt.messages.connectingMessage)}
             </span>
+          </div>
+          <div className="text-center text-xs text-[var(--color-text-muted)]">
+            <p>{t(tt.quickGuide.share)} · {t(tt.quickGuide.random)}</p>
           </div>
         </div>
       )}
