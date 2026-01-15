@@ -1,42 +1,42 @@
 ---
-title: "Google Search Console에서 Sitemap을 못 가져올 때"
-description: "sitemap-index.xml 가져올 수 없음 오류의 원인과 해결 방법"
+title: "Fixing Google Search Console Sitemap Fetch Error"
+description: "Why Google couldn't fetch my sitemap and how I fixed it."
 date: 2026-01-16
 tags: ["seo", "astro", "troubleshooting"]
 ---
 
-Google Search Console에서 "가져올 수 없음" 에러가 떴다. sitemap 설정은 분명히 제대로 해놨는데.
+Google Search Console kept showing "Couldn't fetch" for my sitemap. The config looked fine, so what was going on?
 
-## 문제 상황
+## The problem
 
-Astro 블로그에 `@astrojs/sitemap` 플러그인을 설정해두고, robots.txt에도 sitemap 경로를 명시했다.
+I had `@astrojs/sitemap` configured in my Astro blog, and robots.txt pointed to the right place:
 
 ```txt
 Sitemap: https://restato.github.io/sitemap-index.xml
 ```
 
-그런데 Search Console에서 sitemap을 제출하니까 "가져올 수 없음"이라고 나왔다.
+But Search Console just wouldn't fetch it.
 
-## 원인 파악
+## Root cause
 
-`npm run build`를 돌려보니 바로 에러가 터졌다.
+Ran `npm run build` locally and immediately got:
 
 ```
 [vite]: Rollup failed to resolve import "@imgly/background-removal"
 ```
 
-빌드가 실패하면 sitemap이 생성되지 않고, GitHub Actions 배포도 실패한다. 결국 Google이 접근할 sitemap 파일 자체가 없었던 것.
+Build failure = no sitemap generated = nothing for GitHub Actions to deploy. Google was trying to fetch a file that didn't exist.
 
-## 해결
+## The fix
 
-`astro.config.mjs`에서 문제의 모듈을 external로 추가했다.
+Added the problematic module to `astro.config.mjs`:
 
 ```js
 vite: {
   build: {
     rollupOptions: {
       external: [
-        '@imgly/background-removal',  // 이거 추가
+        '@imgly/background-removal',  // this was missing
         'onnxruntime-web',
         'onnxruntime-web/webgpu',
       ],
@@ -45,7 +45,7 @@ vite: {
 },
 ```
 
-추가로 sitemap에 `lastmod`도 넣어줬다. Google이 크롤링 우선순위를 정하는 데 도움이 된다.
+Also added `lastmod` to the sitemap for better crawl prioritization:
 
 ```js
 sitemap({
@@ -56,6 +56,6 @@ sitemap({
 }),
 ```
 
-## 교훈
+## Lesson learned
 
-Search Console에서 sitemap 오류가 나면 일단 **빌드가 성공하는지부터** 확인하자. 설정 파일만 뚫어지게 쳐다봤는데, 정작 빌드 자체가 실패하고 있었다.
+When Search Console can't fetch your sitemap, check if your build actually succeeds first. I was staring at config files when the real issue was a failed build.
