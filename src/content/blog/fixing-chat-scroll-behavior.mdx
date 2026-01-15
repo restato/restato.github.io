@@ -1,0 +1,117 @@
+---
+title: "Fixing Chat Scroll Behavior in React"
+description: "Fixed a bug where the whole page scrolled instead of just the chat container."
+date: 2026-01-16
+tags: ["react", "scroll", "hooks", "debugging"]
+---
+
+Built an anonymous chat feature and ran into an annoying scroll issue. When new messages arrived, the entire page would scroll down instead of just the chat message area.
+
+## The problem
+
+Had a `useScrollToBottom` hook that was supposed to keep the chat scrolled to the latest message:
+
+```typescript
+// Original - buggy version
+export function useScrollToBottom<T extends unknown[]>(dependency: T) {
+  const ref = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    ref.current?.scrollIntoView({ behavior: 'smooth' });
+  }, [dependency]);
+
+  return ref;
+}
+```
+
+Two problems:
+
+1. `scrollIntoView` scrolls the *entire viewport*, not just the container
+2. It ran on every render, including initial page load (caused page to jump on refresh)
+
+## What I changed
+
+Switched from `scrollIntoView` to setting `scrollTop` directly on the container:
+
+```typescript
+import { useEffect, useRef } from 'react';
+
+export function useScrollToBottom<T extends unknown[]>(dependency: T) {
+  const containerRef = useRef<HTMLDivElement>(null);
+  const prevLengthRef = useRef(0);
+
+  useEffect(() => {
+    // Only scroll when messages are added, not on initial load
+    if (dependency.length > prevLengthRef.current && dependency.length > 0) {
+      const container = containerRef.current;
+      if (container) {
+        container.scrollTop = container.scrollHeight;
+      }
+    }
+    prevLengthRef.current = dependency.length;
+  }, [dependency]);
+
+  return containerRef;
+}
+```
+
+Key changes:
+- Track previous length to only scroll when new items added
+- Use `scrollTop = scrollHeight` instead of `scrollIntoView`
+- Ref goes on the container, not an empty div at the bottom
+
+## Using it in the component
+
+```tsx
+// Before - ref on empty div at bottom
+<div className="messages-area">
+  {messages.map(msg => <Message key={msg.id} {...msg} />)}
+  <div ref={messagesEndRef} />  {/* Wrong place */}
+</div>
+
+// After - ref on the scrollable container
+<div
+  ref={messagesEndRef}  {/* Correct place */}
+  className="messages-area overflow-y-auto"
+>
+  {messages.map(msg => <Message key={msg.id} {...msg} />)}
+</div>
+```
+
+## Why scrollIntoView was wrong
+
+`scrollIntoView` is designed to bring an element into the visible viewport. If the element is inside a scrollable container AND the page itself can scroll, it'll scroll both.
+
+For chat UIs where you want only the message container to scroll:
+
+```typescript
+// Bad - scrolls entire page
+element.scrollIntoView({ behavior: 'smooth' });
+
+// Good - scrolls only the container
+container.scrollTop = container.scrollHeight;
+```
+
+## The height fix
+
+Also had to set explicit height on the chat container:
+
+```css
+.chat-container {
+  height: calc(100vh - 140px);
+}
+
+@media (max-width: 768px) {
+  .chat-container {
+    height: calc(100vh - 120px);
+  }
+}
+```
+
+Without explicit height, the container would grow with content instead of scrolling internally. The offset accounts for header and other page elements.
+
+## Gotchas
+
+The initial scroll on page refresh was tricky to debug. The hook was running because `messages` went from `undefined` to `[]` to actual messages. Fixed by checking `dependency.length > 0` along with the length comparison.
+
+Spent more time than I'd like to admit on this one. The frustrating part was that everything looked correct - the scroll was happening, just not where I wanted it.
