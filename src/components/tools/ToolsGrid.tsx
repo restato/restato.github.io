@@ -64,7 +64,7 @@ export default function ToolsGrid({ tools, categories }: ToolsGridProps) {
         {filteredTools.map((tool) => (
           <a
             key={tool.slug}
-            href={`/tools/${tool.slug}`}
+            href={tool.slug.startsWith('/') ? tool.slug : `/tools/${tool.slug}`}
             className="group p-6 rounded-xl bg-[var(--color-card)] border border-[var(--color-border)]
               hover:border-primary-500 hover:shadow-lg transition-all"
           >

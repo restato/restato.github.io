@@ -1,0 +1,61 @@
+---
+title: "Fixing Google Search Console Sitemap Fetch Error"
+description: "Why Google couldn't fetch my sitemap and how I fixed it."
+date: 2026-01-16
+tags: ["seo", "astro", "troubleshooting"]
+---
+
+Google Search Console kept showing "Couldn't fetch" for my sitemap. The config looked fine, so what was going on?
+
+## The problem
+
+I had `@astrojs/sitemap` configured in my Astro blog, and robots.txt pointed to the right place:
+
+```txt
+Sitemap: https://restato.github.io/sitemap-index.xml
+```
+
+But Search Console just wouldn't fetch it.
+
+## Root cause
+
+Ran `npm run build` locally and immediately got:
+
+```
+[vite]: Rollup failed to resolve import "@imgly/background-removal"
+```
+
+Build failure = no sitemap generated = nothing for GitHub Actions to deploy. Google was trying to fetch a file that didn't exist.
+
+## The fix
+
+Added the problematic module to `astro.config.mjs`:
+
+```js
+vite: {
+  build: {
+    rollupOptions: {
+      external: [
+        '@imgly/background-removal',  // this was missing
+        'onnxruntime-web',
+        'onnxruntime-web/webgpu',
+      ],
+    },
+  },
+},
+```
+
+Also added `lastmod` to the sitemap for better crawl prioritization:
+
+```js
+sitemap({
+  serialize(item) {
+    item.lastmod = new Date().toISOString();
+    return item;
+  },
+}),
+```
+
+## Lesson learned
+
+When Search Console can't fetch your sitemap, check if your build actually succeeds first. I was staring at config files when the real issue was a failed build.
