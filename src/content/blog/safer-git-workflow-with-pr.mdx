@@ -1,0 +1,82 @@
+---
+title: "Making My Git Workflow Safer with PRs"
+description: "Updated my git-sync command to create branches and PRs instead of pushing to main."
+date: 2025-01-16
+tags: ["git", "workflow", "automation", "claude-code"]
+---
+
+Had a custom `/git-sync` skill in Claude Code that would commit and push directly to main. Convenient, but not great for code quality. Changed it to create branches and PRs instead.
+
+## The problem
+
+My original git-sync workflow was:
+
+```bash
+git add .
+git commit -m "message"
+git push origin main
+```
+
+Works, but skips code review entirely. Not a big deal for solo projects, but bad habits form fast.
+
+## What I changed
+
+Updated the skill to follow a PR-based workflow:
+
+1. Check for changes
+2. Generate branch name from commit message
+3. Create branch and commit
+4. Push to remote
+5. Create PR with `gh pr create`
+6. Return the PR link
+
+The branch naming follows conventional commits:
+
+| Commit Type | Branch Name |
+|-------------|-------------|
+| `feat:` | `feat/description` |
+| `fix:` | `fix/description` |
+| `docs:` | `docs/description` |
+
+So a commit like `feat: Add user auth` becomes branch `feat/add-user-auth`.
+
+## The new flow
+
+```bash
+# Before (dangerous)
+git add . && git commit -m "feat: thing" && git push origin main
+
+# After (safer)
+git checkout -b feat/thing
+git add . && git commit -m "feat: thing"
+git push -u origin feat/thing
+gh pr create --title "feat: thing" --body "..."
+# Returns: https://github.com/user/repo/pull/123
+```
+
+## Key safety features
+
+- **Never commits to main/master directly** - always creates a branch
+- **Smart branch detection** - if already on a feature branch, asks whether to use it or create new one
+- **PR link returned** - easy to share for review
+
+## Gotchas
+
+Need GitHub CLI installed and authenticated:
+
+```bash
+brew install gh
+gh auth login
+```
+
+Without it, the PR creation step fails. The skill handles this gracefully though - commits locally and tells you to push manually.
+
+## Why bother?
+
+Even for personal projects, PRs help:
+- Force yourself to write decent commit messages
+- GitHub shows nice diffs for review
+- Easy to revert if something breaks
+- Build good habits for team work
+
+Takes 2 extra seconds but saves headaches.
