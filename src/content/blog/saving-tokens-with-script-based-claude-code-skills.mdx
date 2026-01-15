@@ -1,0 +1,122 @@
+---
+title: "Saving Tokens with Script-Based Claude Code Skills"
+description: "Switched my Claude Code skills from prompt-heavy to script-based. Huge token savings."
+date: 2026-01-16
+tags: ["claude-code", "bash", "productivity", "automation"]
+---
+
+Noticed my `/git-sync` skill was eating through tokens. Every time I ran it, Claude would read the whole SKILL.md, think about each step, call 5-7 tools... felt wasteful.
+
+So I switched to scripts.
+
+## The problem
+
+My original SKILL.md was like 300 lines explaining every step:
+
+```markdown
+# Git Sync Skill
+
+## Step 1: Check Git Status
+Run `git status --porcelain` to see changes...
+
+## Step 2: Display Changes
+Show the user what will be committed...
+
+## Step 3: ...
+```
+
+Claude would read all of this, interpret it, then execute each step with separate tool calls. Worked fine, but burned through tokens.
+
+## What I changed
+
+Created a bash script that does everything:
+
+```bash
+#!/bin/bash
+# git-sync.sh
+
+# Check for changes
+CHANGES=$(git status --porcelain)
+if [ -z "$CHANGES" ]; then
+  echo "No changes to commit"
+  exit 0
+fi
+
+# Show changes
+echo "Changes:"
+echo "$CHANGES"
+
+# Auto-generate commit message based on changed files
+if echo "$CHANGES" | grep -q "skills/"; then
+  COMMIT_MSG="feat: Update skills"
+elif echo "$CHANGES" | grep -q "docs/"; then
+  COMMIT_MSG="docs: Update documentation"
+else
+  COMMIT_MSG="chore: Update files"
+fi
+
+# Create branch if on main
+BRANCH=$(git rev-parse --abbrev-ref HEAD)
+if [[ "$BRANCH" == "main" ]]; then
+  NEW_BRANCH=$(echo "$COMMIT_MSG" | cut -d: -f1)/$(echo "$COMMIT_MSG" | cut -d: -f2 | tr ' ' '-')
+  git checkout -b "$NEW_BRANCH"
+fi
+
+# Commit and push
+git add .
+git commit -m "$COMMIT_MSG"
+git push -u origin "$(git rev-parse --abbrev-ref HEAD)"
+```
+
+Then simplified SKILL.md to basically just say "run the script":
+
+```markdown
+# Git Sync Skill
+
+Run this script:
+~/.claude/skills/git-sync/git-sync.sh "your commit message"
+```
+
+## The difference
+
+| Before | After |
+|--------|-------|
+| ~300 line SKILL.md | ~60 line SKILL.md |
+| 5-7 tool calls | 1 tool call |
+| ~3000 tokens | ~500 tokens |
+
+That's like 80% savings per run.
+
+## Gotchas
+
+Had a dumb bug where I hardcoded the date in my blog post skill. Wrote `2025-01-16` instead of `2026-01-16`.
+
+Fixed it by adding a step to always fetch the system date first:
+
+```bash
+TODAY=$(date +%Y-%m-%d)
+```
+
+Now the skill instructions explicitly say to get the date from the system, not type it manually.
+
+## When to use this approach
+
+Script-based skills work great when:
+- The workflow is predictable
+- You don't need Claude to make decisions mid-process
+- You run it frequently (token savings add up)
+
+Keep prompt-based skills when:
+- You need Claude to analyze/interpret something
+- The workflow varies based on context
+- It's a one-off thing
+
+## Files structure
+
+```
+~/.claude/skills/git-sync/
+├── SKILL.md       # Just says "run the script"
+└── git-sync.sh    # All the actual logic
+```
+
+Pretty happy with this. Same functionality, way fewer tokens.
