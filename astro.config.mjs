@@ -9,7 +9,12 @@ export default defineConfig({
   integrations: [
     mdx(),
     react(),
-    sitemap(),
+    sitemap({
+      serialize(item) {
+        item.lastmod = new Date().toISOString();
+        return item;
+      },
+    }),
     tailwind(),
   ],
   output: 'static',
@@ -26,6 +31,7 @@ export default defineConfig({
     build: {
       rollupOptions: {
         external: [
+          '@imgly/background-removal',
           'onnxruntime-web',
           'onnxruntime-web/webgpu',
         ],
