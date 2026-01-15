@@ -10,6 +10,14 @@ export default defineConfig({
     mdx(),
     react(),
     sitemap({
+      i18n: {
+        defaultLocale: 'ko',
+        locales: {
+          ko: 'ko-KR',
+          en: 'en-US',
+          ja: 'ja-JP',
+        },
+      },
       serialize(item) {
         item.lastmod = new Date().toISOString();
         return item;

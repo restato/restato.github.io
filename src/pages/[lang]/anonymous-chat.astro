@@ -1,0 +1,49 @@
+---
+import MainLayout from '../../layouts/MainLayout.astro';
+import Chat from '../../components/Chat.tsx';
+import { anonymousChatSeo, type Language } from '../../data/tools';
+
+const languages: Language[] = ['ko', 'en', 'ja'];
+
+export function getStaticPaths() {
+  return [
+    { params: { lang: 'ko' } },
+    { params: { lang: 'en' } },
+    { params: { lang: 'ja' } }
+  ];
+}
+
+const { lang } = Astro.params as { lang: Language };
+const seo = anonymousChatSeo[lang];
+
+// Generate alternate URLs for hreflang
+const alternateUrls = languages.map(l => ({
+  lang: l,
+  url: `https://restato.github.io/${l}/anonymous-chat`
+}));
+
+const pageTitle = `${seo.title} | Restato`;
+---
+
+<MainLayout
+  title={pageTitle}
+  description={seo.description}
+  lang={lang}
+  alternateUrls={alternateUrls}
+>
+  <div class="chat-container px-4 py-2">
+    <Chat client:load />
+  </div>
+</MainLayout>
+
+<style>
+  .chat-container {
+    height: calc(100vh - 140px);
+  }
+
+  @media (max-width: 768px) {
+    .chat-container {
+      height: calc(100vh - 120px);
+    }
+  }
+</style>
