@@ -12,7 +12,19 @@ const tt = chatTranslations;
   title={`${tt.pageTitle[lang]} | Restato`}
   description={tt.pageDescription[lang]}
 >
-  <div class="container mx-auto px-4 py-4">
+  <div class="chat-container px-4 py-2">
     <Chat client:load />
   </div>
 </MainLayout>
+
+<style>
+  .chat-container {
+    height: calc(100vh - 140px);
+  }
+
+  @media (max-width: 768px) {
+    .chat-container {
+      height: calc(100vh - 120px);
+    }
+  }
+</style>
