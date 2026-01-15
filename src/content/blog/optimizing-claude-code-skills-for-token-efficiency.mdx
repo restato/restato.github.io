@@ -1,0 +1,120 @@
+---
+title: "Optimizing Claude Code Skills for Token Efficiency"
+description: "Cut my skill token usage by 80% by switching from prompt-heavy to script-based approach."
+date: 2026-01-16
+tags: ["claude-code", "bash", "optimization", "automation"]
+---
+
+Been building custom skills for Claude Code lately. Noticed they were eating through tokens fast. Every `/git-sync` run was costing me ~3000 tokens just to read the SKILL.md and figure out what to do.
+
+Fixed it today. Here's what I learned.
+
+## The problem
+
+My original approach: write detailed SKILL.md files explaining every step. Claude reads it, interprets it, executes each step separately.
+
+Example - my git-sync skill was 300+ lines:
+- Step 1: Check git status
+- Step 2: Display changes
+- Step 3: Ask for commit message
+- ...and so on
+
+Each run meant Claude reading all of that, thinking about it, then making 5-7 separate tool calls. Works fine, but wasteful.
+
+## The fix: scripts
+
+Moved the logic into bash scripts. SKILL.md just says "run this script":
+
+```bash
+~/.claude/skills/git-sync/git-sync.sh "feat: Add feature"
+```
+
+The script handles everything:
+
+```bash
+#!/bin/bash
+# Check for changes
+CHANGES=$(git status --porcelain)
+if [ -z "$CHANGES" ]; then
+  echo "No changes"
+  exit 0
+fi
+
+# Auto-generate commit message
+if echo "$CHANGES" | grep -q "skills/"; then
+  COMMIT_MSG="feat: Update skills"
+fi
+
+# Create branch if on main
+BRANCH=$(git rev-parse --abbrev-ref HEAD)
+if [[ "$BRANCH" == "main" ]]; then
+  git checkout -b "${COMMIT_TYPE}/${BRANCH_DESC}"
+fi
+
+# Commit and push
+git add . && git commit -m "$COMMIT_MSG" && git push
+```
+
+## Results
+
+| Metric | Before | After |
+|--------|--------|-------|
+| SKILL.md size | 300+ lines | ~60 lines |
+| Tool calls | 5-7 | 1 |
+| Tokens per run | ~3000 | ~500 |
+
+That's roughly 80% savings.
+
+## Applied it to write-devlog too
+
+Same pattern. Had a 767-line SKILL.md explaining how to generate blog posts. Compressed it to 143 lines by:
+
+1. Removing redundant examples (had 2, kept 1)
+2. Cutting verbose explanations
+3. Moving git operations to a script
+
+```bash
+# After writing the post, just run:
+~/.claude/skills/write-devlog/write-devlog-publish.sh "filename.mdx" "Post Title"
+```
+
+Script handles git add, commit, push, and prints the URLs.
+
+## When to use this approach
+
+**Good for scripts:**
+- Predictable workflows
+- No mid-process decisions needed
+- Frequently used skills
+
+**Keep as prompts:**
+- Need Claude to analyze/interpret
+- Workflow varies by context
+- One-off tasks
+
+## Gotcha: dates
+
+Had a bug where I hardcoded dates in my blog posts. Wrote `2025-01-16` when it was actually `2026-01-16`.
+
+Fixed by adding a mandatory first step:
+
+```bash
+date +%Y-%m-%d  # Always fetch from system
+```
+
+And made SKILL.md explicitly say "NEVER hardcode the date."
+
+## File structure now
+
+```
+~/.claude/skills/
+├── git-sync/
+│   ├── SKILL.md           # ~60 lines
+│   └── git-sync.sh        # All logic
+└── write-devlog/
+    ├── SKILL.md           # 143 lines (was 767)
+    ├── write-devlog-publish.sh
+    └── config.json
+```
+
+Pretty happy with this. Same functionality, fraction of the token cost.
