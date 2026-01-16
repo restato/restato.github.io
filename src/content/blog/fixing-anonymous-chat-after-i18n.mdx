@@ -1,0 +1,65 @@
+---
+title: "Fixing Anonymous Chat After i18n URL Changes"
+description: "Chat stopped connecting after adding language prefixes to URLs. Turned out to be a Vite cache issue."
+date: 2026-01-16
+tags: ["astro", "i18n", "debugging", "vite"]
+---
+
+Added i18n URL routing to my tools and anonymous chat pages. Everything worked in the build, but when I tested the chat - infinite loading. "연결 준비중..." forever.
+
+## The symptoms
+
+The anonymous chat page at `/en/anonymous-chat/` wouldn't connect. Just sat there spinning. No obvious errors at first.
+
+## What I thought the problem was
+
+I assumed the i18n changes broke something. Found two legit issues:
+
+1. **Share link missing language prefix** - Chat was generating `/anonymous-chat#roomId` instead of `/en/anonymous-chat#roomId`
+2. **Redirect losing the hash** - When redirecting from `/anonymous-chat` to `/{lang}/anonymous-chat`, the `#roomId` was getting dropped
+
+Fixed both:
+
+```typescript
+// Before
+const url = `${window.location.origin}/anonymous-chat#${currentRoomId}`;
+
+// After - preserve current path (includes language)
+const url = `${window.location.origin}${window.location.pathname}#${currentRoomId}`;
+```
+
+And for the redirect:
+
+```javascript
+// Before
+window.location.replace('/' + lang + '/anonymous-chat');
+
+// After - preserve hash
+window.location.replace('/' + lang + '/anonymous-chat' + window.location.hash);
+```
+
+## The actual problem
+
+After fixing those issues, still not working. Opened browser console:
+
+```
+Uncaught TypeError: jsxDEV is not a function
+Failed to load resource: 504 (Outdated Optimize Dep)
+```
+
+Classic Vite cache issue. The `Outdated Optimize Dep` error is the giveaway.
+
+## The fix
+
+```bash
+rm -rf node_modules/.vite
+npm run dev
+```
+
+That's it. Chat connected immediately.
+
+## Lesson learned
+
+When debugging after big changes, check the browser console first. I spent time analyzing code when the actual problem was stale cache. The i18n changes were fine - Vite just needed its cache cleared.
+
+The URL fixes I made were still valid improvements though. Share links now properly include the language prefix, and redirects preserve room IDs.
