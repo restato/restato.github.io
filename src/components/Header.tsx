@@ -13,7 +13,7 @@ const navItems: NavItem[] = [
   { href: '/', labelKey: 'home' },
   { href: '/blog', labelKey: 'blog' },
   { href: '/tools', labelKey: 'tools' },
-  { href: '/projects', labelKey: 'projects' },
+  { href: '/games', labelKey: 'games' },
   { href: '/about', labelKey: 'about' },
 ];
 
