@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { getLanguage, type Language } from '../i18n';
 import { commonTranslations } from '../i18n/translations/common';
 import LanguageSelector from './LanguageSelector';
+import { getBasePathFromUrl, getLanguageFromUrl, buildLanguageUrl, supportsLanguageRouting } from '../i18n/urlUtils';
 
 interface NavItem {
   href: string;
@@ -49,7 +50,19 @@ export default function Header() {
   };
 
   const isActive = (href: string): boolean => {
-    return currentPath === href || (href !== '/' && currentPath.startsWith(href));
+    // Normalize both paths by removing language prefix for comparison
+    const normalizedCurrent = getBasePathFromUrl(currentPath);
+    const normalizedHref = getBasePathFromUrl(href);
+    return normalizedCurrent === normalizedHref ||
+      (normalizedHref !== '/' && normalizedCurrent.startsWith(normalizedHref));
+  };
+
+  // Get the appropriate href based on current language
+  const getNavHref = (baseHref: string): string => {
+    if (supportsLanguageRouting(baseHref)) {
+      return buildLanguageUrl(baseHref, lang);
+    }
+    return baseHref;
   };
 
   return (
@@ -69,7 +82,7 @@ export default function Header() {
             {navItems.map((item) => (
               <li key={item.href}>
                 <a
-                  href={item.href}
+                  href={getNavHref(item.href)}
                   className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
                     isActive(item.href)
                       ? 'text-primary-600 dark:text-primary-400 bg-primary-500/10'
@@ -127,7 +140,7 @@ export default function Header() {
             {navItems.map((item) => (
               <li key={item.href}>
                 <a
-                  href={item.href}
+                  href={getNavHref(item.href)}
                   className={`block py-2.5 px-4 rounded-lg font-medium transition-colors ${
                     isActive(item.href)
                       ? 'bg-primary-500/10 text-primary-600 dark:text-primary-400'

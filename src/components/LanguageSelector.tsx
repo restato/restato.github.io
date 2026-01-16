@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { languages, getLanguage, setLanguage, type Language } from '../i18n';
+import { buildLanguageUrl, supportsLanguageRouting } from '../i18n/urlUtils';
 
 export default function LanguageSelector() {
   const [currentLang, setCurrentLang] = useState<Language>('ko');
@@ -22,6 +23,15 @@ export default function LanguageSelector() {
     setLanguage(lang);
     setCurrentLang(lang);
     setIsOpen(false);
+
+    // Navigate to language-specific URL if supported
+    const currentPath = window.location.pathname;
+    if (supportsLanguageRouting(currentPath)) {
+      const newUrl = buildLanguageUrl(currentPath, lang);
+      if (newUrl !== currentPath) {
+        window.location.href = newUrl;
+      }
+    }
   };
 
   return (
