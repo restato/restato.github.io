@@ -1,0 +1,219 @@
+---
+import MainLayout from '../../../layouts/MainLayout.astro';
+import { gamesConfig, getFeaturedGames, getGamesByCategory } from '../../../data/games';
+import type { Language } from '../../../i18n/index';
+
+export function getStaticPaths() {
+  return [
+    { params: { lang: 'ko' } },
+    { params: { lang: 'en' } },
+    { params: { lang: 'ja' } },
+  ];
+}
+
+const { lang } = Astro.params as { lang: Language };
+
+const featuredGames = getFeaturedGames();
+const arcadeGames = getGamesByCategory('arcade');
+const puzzleGames = getGamesByCategory('puzzle');
+const eventGames = getGamesByCategory('event');
+const classicGames = getGamesByCategory('classic');
+
+const translations = {
+  ko: {
+    title: '무료 온라인 게임 | Restato',
+    description: '무료 온라인 미니게임 모음. 스네이크, 2048, 타이핑, 룰렛, 사다리 타기 등 다양한 게임을 즐기세요.',
+    heading: '무료 온라인 게임',
+    subheading: '브라우저에서 바로 플레이하는 미니게임',
+    featured: '추천 게임',
+    arcade: '아케이드 게임',
+    puzzle: '퍼즐 / 두뇌 게임',
+    event: '이벤트 / 추첨',
+    classic: '클래식 게임',
+    playNow: '플레이',
+  },
+  en: {
+    title: 'Free Online Games | Restato',
+    description: 'Free online mini-game collection. Enjoy Snake, 2048, Typing, Roulette, Ladder and more.',
+    heading: 'Free Online Games',
+    subheading: 'Mini games you can play directly in your browser',
+    featured: 'Featured Games',
+    arcade: 'Arcade Games',
+    puzzle: 'Puzzle / Brain Games',
+    event: 'Event / Raffle',
+    classic: 'Classic Games',
+    playNow: 'Play',
+  },
+  ja: {
+    title: '無料オンラインゲーム | Restato',
+    description: '無料オンラインミニゲーム集。スネーク、2048、タイピング、ルーレット、あみだくじなど様々なゲームを楽しもう。',
+    heading: '無料オンラインゲーム',
+    subheading: 'ブラウザで直接プレイできるミニゲーム',
+    featured: 'おすすめゲーム',
+    arcade: 'アーケードゲーム',
+    puzzle: 'パズル / 脳トレ',
+    event: 'イベント / 抽選',
+    classic: 'クラシックゲーム',
+    playNow: 'プレイ',
+  },
+};
+
+const t = translations[lang];
+
+// JSON-LD Schema
+const gamesSchema = {
+  "@context": "https://schema.org",
+  "@type": "ItemList",
+  "name": t.heading,
+  "description": t.description,
+  "numberOfItems": gamesConfig.length,
+  "itemListElement": gamesConfig.map((game, index) => ({
+    "@type": "ListItem",
+    "position": index + 1,
+    "item": {
+      "@type": "Game",
+      "name": game.seo[lang].title,
+      "description": game.seo[lang].description,
+      "url": `https://restato.github.io/${lang}/games/${game.slug}`,
+      "gamePlatform": "Web Browser",
+      "applicationCategory": "Game",
+      "offers": {
+        "@type": "Offer",
+        "price": "0",
+        "priceCurrency": "USD"
+      }
+    }
+  }))
+};
+---
+
+<MainLayout title={t.title} description={t.description} lang={lang}>
+  <script type="application/ld+json" set:html={JSON.stringify(gamesSchema)} />
+
+  <section class="py-12 px-4">
+    <div class="max-w-6xl mx-auto">
+      <!-- Header -->
+      <div class="text-center mb-12">
+        <h1 class="text-4xl md:text-5xl font-bold mb-4 bg-gradient-to-r from-primary-500 to-purple-500 bg-clip-text text-transparent">
+          {t.heading}
+        </h1>
+        <p class="text-lg text-[var(--color-text-muted)]">
+          {t.subheading}
+        </p>
+      </div>
+
+      <!-- Featured Games -->
+      {featuredGames.length > 0 && (
+        <div class="mb-12">
+          <h2 class="text-2xl font-bold mb-6 flex items-center gap-2">
+            <span>⭐</span> {t.featured}
+          </h2>
+          <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
+            {featuredGames.map(game => (
+              <a
+                href={`/${lang}/games/${game.slug}`}
+                class="group p-4 bg-gradient-to-br from-primary-500/10 to-purple-500/10 rounded-xl border border-primary-500/30 hover:border-primary-500 transition-all hover:shadow-lg hover:-translate-y-1"
+              >
+                <div class="text-4xl mb-3">{game.icon}</div>
+                <h3 class="font-bold mb-1 group-hover:text-primary-500 transition-colors">
+                  {game.seo[lang].title.split(' - ')[0]}
+                </h3>
+                <p class="text-sm text-[var(--color-text-muted)] line-clamp-2">
+                  {game.seo[lang].description.slice(0, 60)}...
+                </p>
+              </a>
+            ))}
+          </div>
+        </div>
+      )}
+
+      <!-- Arcade Games -->
+      {arcadeGames.length > 0 && (
+        <div class="mb-12">
+          <h2 class="text-2xl font-bold mb-6 flex items-center gap-2">
+            <span>🕹️</span> {t.arcade}
+          </h2>
+          <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
+            {arcadeGames.map(game => (
+              <a
+                href={`/${lang}/games/${game.slug}`}
+                class="group p-4 bg-[var(--color-card)] rounded-xl border border-[var(--color-border)] hover:border-primary-500 transition-all hover:shadow-lg hover:-translate-y-1"
+              >
+                <div class="text-3xl mb-2">{game.icon}</div>
+                <h3 class="font-bold text-sm group-hover:text-primary-500 transition-colors">
+                  {game.seo[lang].title.split(' - ')[0]}
+                </h3>
+              </a>
+            ))}
+          </div>
+        </div>
+      )}
+
+      <!-- Puzzle Games -->
+      {puzzleGames.length > 0 && (
+        <div class="mb-12">
+          <h2 class="text-2xl font-bold mb-6 flex items-center gap-2">
+            <span>🧩</span> {t.puzzle}
+          </h2>
+          <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
+            {puzzleGames.map(game => (
+              <a
+                href={`/${lang}/games/${game.slug}`}
+                class="group p-4 bg-[var(--color-card)] rounded-xl border border-[var(--color-border)] hover:border-primary-500 transition-all hover:shadow-lg hover:-translate-y-1"
+              >
+                <div class="text-3xl mb-2">{game.icon}</div>
+                <h3 class="font-bold text-sm group-hover:text-primary-500 transition-colors">
+                  {game.seo[lang].title.split(' - ')[0]}
+                </h3>
+              </a>
+            ))}
+          </div>
+        </div>
+      )}
+
+      <!-- Event Games -->
+      {eventGames.length > 0 && (
+        <div class="mb-12">
+          <h2 class="text-2xl font-bold mb-6 flex items-center gap-2">
+            <span>🎉</span> {t.event}
+          </h2>
+          <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
+            {eventGames.map(game => (
+              <a
+                href={`/${lang}/games/${game.slug}`}
+                class="group p-4 bg-[var(--color-card)] rounded-xl border border-[var(--color-border)] hover:border-primary-500 transition-all hover:shadow-lg hover:-translate-y-1"
+              >
+                <div class="text-3xl mb-2">{game.icon}</div>
+                <h3 class="font-bold text-sm group-hover:text-primary-500 transition-colors">
+                  {game.seo[lang].title.split(' - ')[0]}
+                </h3>
+              </a>
+            ))}
+          </div>
+        </div>
+      )}
+
+      <!-- Classic Games -->
+      {classicGames.length > 0 && (
+        <div class="mb-12">
+          <h2 class="text-2xl font-bold mb-6 flex items-center gap-2">
+            <span>🎮</span> {t.classic}
+          </h2>
+          <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
+            {classicGames.map(game => (
+              <a
+                href={`/${lang}/games/${game.slug}`}
+                class="group p-4 bg-[var(--color-card)] rounded-xl border border-[var(--color-border)] hover:border-primary-500 transition-all hover:shadow-lg hover:-translate-y-1"
+              >
+                <div class="text-3xl mb-2">{game.icon}</div>
+                <h3 class="font-bold text-sm group-hover:text-primary-500 transition-colors">
+                  {game.seo[lang].title.split(' - ')[0]}
+                </h3>
+              </a>
+            ))}
+          </div>
+        </div>
+      )}
+    </div>
+  </section>
+</MainLayout>

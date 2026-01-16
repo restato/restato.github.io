@@ -2,7 +2,7 @@
 import { type Language, languages, defaultLang } from './index';
 
 // Paths that support language routing
-const LANG_SUPPORTED_PATHS = ['/tools', '/anonymous-chat'];
+const LANG_SUPPORTED_PATHS = ['/tools', '/anonymous-chat', '/games'];
 
 // Detect language from URL path
 export function getLanguageFromUrl(pathname: string): Language | null {
