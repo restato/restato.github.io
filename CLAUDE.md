@@ -20,14 +20,28 @@ src/
 │   ├── index.astro     # 홈페이지
 │   ├── about.astro     # 소개 페이지
 │   ├── blog/           # 블로그 페이지
-│   └── projects/       # 프로젝트 페이지 (게임 등)
+│   ├── projects/       # 프로젝트 페이지 (게임 등)
+│   ├── tools/          # 도구 페이지 (리다이렉트용)
+│   ├── anonymous-chat.astro  # 익명 채팅 (리다이렉트용)
+│   └── [lang]/         # 언어별 동적 라우팅
+│       ├── tools/      # /ko/tools, /en/tools, /ja/tools
+│       └── anonymous-chat.astro
 ├── components/         # React 컴포넌트 (.tsx)
 ├── layouts/            # 레이아웃 컴포넌트
+├── i18n/               # 다국어 지원
+│   ├── index.ts        # 언어 설정 및 유틸리티
+│   ├── urlUtils.ts     # URL 라우팅 유틸리티
+│   └── translations/   # 번역 파일
+├── data/               # 데이터 설정
+│   └── tools.ts        # 도구 SEO 설정
 ├── styles/             # 글로벌 스타일
 │   └── global.css      # Tailwind + CSS Variables
 └── content/
     ├── blog/           # MDX 블로그 포스트
     └── config.ts       # 콘텐츠 스키마
+
+scripts/
+└── generate-sitemaps.mjs  # 빌드 후 사이트맵 분리 스크립트
 ```
 
 ## 주요 명령어
@@ -384,3 +398,52 @@ function Component() {
 - `ko`: 한국어 (기본)
 - `en`: English
 - `ja`: 日本語
+
+### i18n URL 라우팅
+
+Tools와 Anonymous Chat 페이지는 언어 prefix가 포함된 URL을 사용합니다:
+- `/ko/tools/base64` - 한국어
+- `/en/tools/base64` - 영어
+- `/ja/tools/base64` - 일본어
+
+#### URL 유틸리티 (`/src/i18n/urlUtils.ts`)
+```typescript
+import { getLanguageFromUrl, buildLanguageUrl, supportsLanguageRouting } from '../i18n/urlUtils';
+
+// URL에서 언어 감지
+getLanguageFromUrl('/en/tools/base64'); // 'en'
+
+// 언어 prefix가 있는 URL 생성
+buildLanguageUrl('/tools/base64', 'en'); // '/en/tools/base64'
+
+// 언어 라우팅 지원 여부 확인
+supportsLanguageRouting('/tools/base64'); // true
+supportsLanguageRouting('/blog/post'); // false
+```
+
+#### 언어 감지 우선순위
+1. URL 경로 (예: `/en/tools`)
+2. localStorage (`lang` 키)
+3. 브라우저 언어 설정
+
+#### 레거시 URL 리다이렉트
+언어 prefix 없는 URL은 자동으로 리다이렉트됩니다:
+- `/tools/base64` → `/{lang}/tools/base64`
+- `/anonymous-chat` → `/{lang}/anonymous-chat`
+
+## SEO - 분리 사이트맵
+
+빌드 시 콘텐츠 유형별로 사이트맵이 자동 생성됩니다:
+
+```
+/dist/
+├── sitemap-index.xml     # 마스터 인덱스
+├── sitemap-blog.xml      # 블로그 포스트
+├── sitemap-tools.xml     # 도구 페이지 (3개 언어)
+├── sitemap-projects.xml  # 프로젝트/게임
+└── sitemap-pages.xml     # 기타 페이지
+```
+
+생성 스크립트: `/scripts/generate-sitemaps.mjs`
+
+Google Search Console에 `sitemap-index.xml`만 등록하면 모든 개별 사이트맵이 자동으로 발견됩니다.
