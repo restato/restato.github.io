@@ -1,6 +1,11 @@
 /**
  * Generate separate sitemaps for different content types
  * Run after Astro build: node scripts/generate-sitemaps.mjs
+ *
+ * Features:
+ * - Excludes redirect URLs (legacy /tools/xxx, /anonymous-chat without lang prefix)
+ * - Uses actual blog post dates for lastmod
+ * - Proper URL categorization
  */
 
 import fs from 'fs';
@@ -9,44 +14,71 @@ import { fileURLToPath } from 'url';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const DIST_DIR = path.join(__dirname, '../dist');
+const CONTENT_DIR = path.join(__dirname, '../src/content/blog');
 const SITE_URL = 'https://restato.github.io';
 
-// URL patterns for categorization
-const patterns = {
-  blog: /^\/blog\//,
-  tools: /^\/(ko|en|ja)?\/tools\//,
-  toolsIndex: /^\/(ko|en|ja)?\/tools\/?$/,
-  projects: /^\/projects\//,
-  anonymousChat: /^\/(ko|en|ja)?\/anonymous-chat/,
-};
+/**
+ * URLs to exclude from sitemap (redirect pages)
+ * These pages redirect to language-prefixed versions
+ */
+const REDIRECT_PATTERNS = [
+  /^\/tools\/[^/]+\/?$/, // /tools/xxx (without lang prefix)
+  /^\/tools\/?$/, // /tools/ (without lang prefix)
+  /^\/anonymous-chat\/?$/, // /anonymous-chat (without lang prefix)
+];
+
+/**
+ * Check if URL is a redirect page that should be excluded
+ */
+function isRedirectUrl(pathname) {
+  return REDIRECT_PATTERNS.some((pattern) => pattern.test(pathname));
+}
 
 /**
  * Categorize a URL based on its path
  */
-function categorizeUrl(url) {
-  const pathname = new URL(url).pathname;
+function categorizeUrl(pathname) {
+  // Blog posts
+  if (pathname.startsWith('/blog/')) return 'blog';
 
-  if (patterns.blog.test(pathname)) return 'blog';
-  if (patterns.tools.test(pathname) || patterns.toolsIndex.test(pathname))
-    return 'tools';
-  if (patterns.projects.test(pathname)) return 'projects';
-  if (patterns.anonymousChat.test(pathname)) return 'tools'; // Group with tools
+  // Tools with language prefix (canonical URLs)
+  if (pathname.match(/^\/(ko|en|ja)\/tools/)) return 'tools';
+
+  // Anonymous chat with language prefix
+  if (pathname.match(/^\/(ko|en|ja)\/anonymous-chat/)) return 'tools';
+
+  // Projects
+  if (pathname.startsWith('/projects/')) return 'projects';
+
+  // Everything else goes to pages
   return 'pages';
 }
 
 /**
- * Get priority based on content type
+ * Get priority based on content type and path
  */
 function getPriority(category, pathname) {
-  if (category === 'tools') {
-    // Tool index pages get higher priority
-    if (pathname.match(/^\/(ko|en|ja)?\/tools\/?$/)) return 1.0;
-    return 0.8;
-  }
-  if (category === 'blog') return 0.7;
-  if (category === 'projects') return 0.6;
   // Home page
   if (pathname === '/' || pathname === '') return 1.0;
+
+  if (category === 'tools') {
+    // Tool index pages get highest priority
+    if (pathname.match(/^\/(ko|en|ja)\/tools\/?$/)) return 1.0;
+    return 0.8;
+  }
+
+  if (category === 'blog') {
+    // Blog index
+    if (pathname === '/blog/' || pathname === '/blog') return 0.8;
+    return 0.7;
+  }
+
+  if (category === 'projects') {
+    // Projects index
+    if (pathname === '/projects/' || pathname === '/projects') return 0.7;
+    return 0.6;
+  }
+
   return 0.5;
 }
 
@@ -58,6 +90,50 @@ function getChangefreq(category) {
   if (category === 'tools') return 'monthly';
   if (category === 'projects') return 'monthly';
   return 'monthly';
+}
+
+/**
+ * Extract blog post dates from MDX files
+ * Returns a map of slug -> date
+ */
+function getBlogPostDates() {
+  const dates = new Map();
+
+  if (!fs.existsSync(CONTENT_DIR)) {
+    console.warn('Blog content directory not found');
+    return dates;
+  }
+
+  const files = fs.readdirSync(CONTENT_DIR).filter((f) => f.endsWith('.mdx'));
+
+  for (const file of files) {
+    const content = fs.readFileSync(path.join(CONTENT_DIR, file), 'utf-8');
+    const dateMatch = content.match(/^date:\s*(\d{4}-\d{2}-\d{2})/m);
+
+    if (dateMatch) {
+      const slug = file.replace('.mdx', '');
+      // Convert to ISO format with time
+      dates.set(slug, `${dateMatch[1]}T00:00:00.000Z`);
+    }
+  }
+
+  return dates;
+}
+
+/**
+ * Get lastmod date for a URL
+ */
+function getLastmod(pathname, blogDates, buildDate) {
+  // For blog posts, use the actual post date
+  if (pathname.startsWith('/blog/') && pathname !== '/blog/') {
+    const slug = pathname.replace('/blog/', '').replace(/\/$/, '');
+    if (blogDates.has(slug)) {
+      return blogDates.get(slug);
+    }
+  }
+
+  // For everything else, use build date
+  return buildDate;
 }
 
 /**
@@ -87,8 +163,7 @@ ${urlElements}
 /**
  * Generate sitemap index XML
  */
-function generateSitemapIndex(sitemaps) {
-  const lastmod = new Date().toISOString();
+function generateSitemapIndex(sitemaps, lastmod) {
   const sitemapElements = sitemaps
     .map(
       (name) => `  <sitemap>
@@ -122,7 +197,9 @@ function parseExistingSitemap(sitemapPath) {
  * Main function
  */
 async function main() {
-  console.log('Generating separate sitemaps...\n');
+  console.log('='.repeat(50));
+  console.log('Generating separate sitemaps...');
+  console.log('='.repeat(50));
 
   // Find existing sitemap (could be sitemap-0.xml or similar)
   const sitemapFiles = fs
@@ -143,9 +220,15 @@ async function main() {
     allUrls.push(...urls);
   }
 
-  console.log(`Found ${allUrls.length} URLs in existing sitemap(s)\n`);
+  console.log(`\nFound ${allUrls.length} URLs in existing sitemap(s)`);
 
-  // Categorize URLs
+  // Get blog post dates
+  const blogDates = getBlogPostDates();
+  console.log(`Found ${blogDates.size} blog post dates`);
+
+  const buildDate = new Date().toISOString();
+
+  // Categorize URLs and filter out redirects
   const categorized = {
     blog: [],
     tools: [],
@@ -153,19 +236,29 @@ async function main() {
     pages: [],
   };
 
-  const now = new Date().toISOString();
+  let excludedCount = 0;
 
   for (const url of allUrls) {
-    const category = categorizeUrl(url);
     const pathname = new URL(url).pathname;
+
+    // Skip redirect URLs
+    if (isRedirectUrl(pathname)) {
+      excludedCount++;
+      continue;
+    }
+
+    const category = categorizeUrl(pathname);
+    const lastmod = getLastmod(pathname, blogDates, buildDate);
 
     categorized[category].push({
       loc: url,
-      lastmod: now,
+      lastmod: lastmod,
       changefreq: getChangefreq(category),
       priority: getPriority(category, pathname),
     });
   }
+
+  console.log(`Excluded ${excludedCount} redirect URLs`);
 
   // Sort entries by priority (highest first)
   for (const category of Object.keys(categorized)) {
@@ -186,7 +279,7 @@ async function main() {
   }
 
   // Write sitemap index
-  const indexXml = generateSitemapIndex(sitemapFilesList);
+  const indexXml = generateSitemapIndex(sitemapFilesList, buildDate);
   fs.writeFileSync(path.join(DIST_DIR, 'sitemap-index.xml'), indexXml);
   console.log(
     `\nGenerated sitemap-index.xml referencing ${sitemapFilesList.length} sitemaps`
@@ -199,12 +292,18 @@ async function main() {
   }
 
   // Summary
-  console.log('\n--- Summary ---');
-  console.log(`Blog URLs: ${categorized.blog.length}`);
-  console.log(`Tools URLs: ${categorized.tools.length}`);
+  console.log('\n' + '='.repeat(50));
+  console.log('Summary');
+  console.log('='.repeat(50));
+  console.log(`Blog URLs:     ${categorized.blog.length}`);
+  console.log(`Tools URLs:    ${categorized.tools.length}`);
   console.log(`Projects URLs: ${categorized.projects.length}`);
-  console.log(`Other Pages URLs: ${categorized.pages.length}`);
-  console.log(`Total: ${allUrls.length}`);
+  console.log(`Other Pages:   ${categorized.pages.length}`);
+  console.log(`Excluded:      ${excludedCount} (redirect pages)`);
+  console.log('-'.repeat(50));
+  console.log(
+    `Total:         ${allUrls.length - excludedCount} (of ${allUrls.length} original)`
+  );
   console.log('\nSitemap generation complete!');
 }
 
