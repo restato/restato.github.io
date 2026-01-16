@@ -338,4 +338,26 @@ const categories = [
     <!-- Info with i18n support -->
     <ToolsPageInfo client:load />
   </div>
+
+  <!-- Redirect to language-specific URL -->
+  <script is:inline>
+    (function() {
+      const supportedLangs = ['ko', 'en', 'ja'];
+      const currentPath = window.location.pathname;
+
+      // Only redirect if we're on the non-language-prefixed path
+      if (currentPath === '/tools' || currentPath === '/tools/') {
+        // Get language preference
+        let lang = localStorage.getItem('lang');
+        if (!lang || !supportedLangs.includes(lang)) {
+          const browserLang = navigator.language.split('-')[0];
+          lang = supportedLangs.includes(browserLang) ? browserLang : 'ko';
+        }
+
+        // Redirect to language-specific URL
+        const newPath = '/' + lang + '/tools';
+        window.location.replace(newPath);
+      }
+    })();
+  </script>
 </MainLayout>

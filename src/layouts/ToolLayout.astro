@@ -160,6 +160,29 @@ const appSchema = {
       console.error('Failed to track tool visit:', err);
     }
   </script>
+
+  <!-- Redirect to language-specific URL -->
+  <script define:vars={{ slug }} is:inline>
+    (function() {
+      const supportedLangs = ['ko', 'en', 'ja'];
+      const currentPath = window.location.pathname;
+
+      // Only redirect if we're on the non-language-prefixed path
+      const toolPath = '/tools/' + slug;
+      if (currentPath === toolPath || currentPath === toolPath + '/') {
+        // Get language preference
+        let lang = localStorage.getItem('lang');
+        if (!lang || !supportedLangs.includes(lang)) {
+          const browserLang = navigator.language.split('-')[0];
+          lang = supportedLangs.includes(browserLang) ? browserLang : 'ko';
+        }
+
+        // Redirect to language-specific URL
+        const newPath = '/' + lang + '/tools/' + slug;
+        window.location.replace(newPath);
+      }
+    })();
+  </script>
 </MainLayout>
 
 <style>
