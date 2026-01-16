@@ -1,0 +1,77 @@
+---
+title: "Safer Blog Publishing with PRs"
+description: "Switched my blog deploy script from direct push to PR-based workflow."
+date: 2026-01-17
+tags: ["git", "automation", "workflow"]
+---
+
+My blog publish script kept breaking. Every time I ran it, something went wrong with git - wrong branch, out of sync with remote, push rejected.
+
+## The problem
+
+The original script did this:
+
+```bash
+git add post.mdx
+git commit -m "New post"
+git push origin master
+```
+
+Simple, but fragile. If I was on a different branch, it'd commit there but try to push to master. If master had diverged, push would fail.
+
+## What I changed
+
+Switched to a PR-based workflow:
+
+```bash
+# 1. Fetch latest master
+git fetch origin master
+
+# 2. Create branch from remote master
+BLOG_BRANCH="blog/${SLUG}"
+git checkout -b "$BLOG_BRANCH" origin/master
+
+# 3. Commit
+git add "${POSTS_DIR}/${FILENAME}"
+git commit -m "blog: ${TITLE}"
+
+# 4. Push branch
+git push -u origin "$BLOG_BRANCH"
+
+# 5. Create PR
+gh pr create \
+  --title "blog: ${TITLE}" \
+  --base master \
+  --head "$BLOG_BRANCH"
+```
+
+Now no matter what state my local repo is in, the script:
+1. Always creates a fresh branch from latest remote master
+2. Pushes to its own branch (no conflicts)
+3. Creates a PR for review
+
+## Extra bits
+
+Added some nice-to-haves:
+
+```bash
+# Check if PR already exists
+EXISTING_PR=$(gh pr list --head "$BLOG_BRANCH" --json number --jq '.[0].number')
+if [ -n "$EXISTING_PR" ]; then
+  echo "PR already exists: #${EXISTING_PR}"
+fi
+
+# Handle case where file was written on different branch
+if [ ! -f "$FILEPATH" ]; then
+  git checkout "$ORIGINAL_BRANCH" -- "${POSTS_DIR}/${FILENAME}"
+fi
+```
+
+## Why this is better
+
+- Can't accidentally push broken stuff to master
+- Can review the post in PR before publishing
+- Works regardless of local git state
+- Idempotent - running twice doesn't break anything
+
+The extra step of merging a PR is worth it for the peace of mind.
