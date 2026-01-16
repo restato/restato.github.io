@@ -1,0 +1,119 @@
+---
+title: "Improving YOLO Model for Four-Leaf Clover Detection"
+description: "Went from 58% to targeting 80% mAP by switching to YOLOv8s-P2 and tuning augmentations."
+date: 2026-01-17
+tags: ["yolo", "machine-learning", "ios", "coreml"]
+---
+
+Been working on a four-leaf clover detection model for an iOS app. Had a working YOLOv8n model but it was stuck at 58% mAP@0.5. Not great when you're trying to spot tiny clovers in grass.
+
+## The problem
+
+Current model (YOLOv8n) trained for 50 epochs and early-stopped:
+- mAP@0.5: 58.4%
+- Precision: 80.2%
+- Recall: 52.6%
+
+Missing half the clovers isn't going to cut it.
+
+## What I changed
+
+### 1. Switched to YOLOv8s-P2
+
+The `-P2` variant adds an extra detection head at stride 4 (instead of starting at stride 8). This is specifically designed for small object detection.
+
+```python
+model = YOLO("yolov8s-p2.yaml").load("yolov8s.pt")
+```
+
+### 2. Fixed early stopping
+
+Training was stopping too early. Bumped patience from 20 to 50:
+
+```python
+epochs=200,
+patience=50,
+```
+
+### 3. Learning rate schedule
+
+The default `lrf=0.01` drops learning rate too aggressively. Changed to cosine annealing with gentler decay:
+
+```python
+lrf=0.1,
+cos_lr=True,
+warmup_epochs=5.0,
+```
+
+### 4. Augmentation boost
+
+Clovers look the same upside down, so vertical flip is free data:
+
+```python
+flipud=0.5,      # was 0.0
+degrees=25.0,    # was 15.0
+mixup=0.15,      # was 0.0
+copy_paste=0.1,  # was 0.0
+multi_scale=True,
+```
+
+The `copy_paste` augmentation is nice for small datasets - it copies annotated objects onto other images.
+
+## Full training config
+
+```python
+from ultralytics import YOLO
+
+model = YOLO("yolov8s-p2.yaml").load("yolov8s.pt")
+
+results = model.train(
+    data="dataset.yaml",
+    epochs=200,
+    patience=50,
+    imgsz=640,
+    batch=8,
+    device=0,  # GPU
+
+    lr0=0.01,
+    lrf=0.1,
+    cos_lr=True,
+    warmup_epochs=5.0,
+    cls=0.75,
+
+    flipud=0.5,
+    degrees=25.0,
+    scale=0.7,
+    translate=0.2,
+    hsv_h=0.02,
+    hsv_v=0.5,
+
+    mosaic=1.0,
+    close_mosaic=15,
+    mixup=0.15,
+    copy_paste=0.1,
+    multi_scale=True,
+
+    optimizer="AdamW",
+    project="runs",
+    name="yolov8s_p2_improved",
+)
+```
+
+## Also trying 768 resolution
+
+Created a second experiment with `imgsz=768` instead of 640. Higher resolution should help with small objects, but takes longer to train. Running both to compare.
+
+Key difference for 768 version:
+```python
+imgsz=768,
+batch=12,  # reduced due to memory
+```
+
+## What's next
+
+If neither hits 80% mAP, backup plans:
+1. **SAHI** - slice images into tiles for inference
+2. **Pseudo-labeling** - use model to label the 294 unlabeled images, retrain
+3. **Hard negative mining** - collect false positives (3-leaf clovers) and add as negatives
+
+Training on Colab with T4 GPU. Will update with results.
