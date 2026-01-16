@@ -1,0 +1,132 @@
+---
+title: "Adding i18n URL Routing and Split Sitemaps for Astro"
+description: "Made language switching actually change the URL, plus split sitemaps for better SEO."
+date: 2026-01-16
+tags: ["astro", "i18n", "seo", "sitemap"]
+---
+
+Had a multi-language tools site where switching languages only updated localStorage. The URL stayed the same. Not great for SEO or sharing links.
+
+## The problem
+
+My site had two routing systems living side by side:
+- Old: `/tools/base64` (no language in URL)
+- New: `/ko/tools/base64`, `/en/tools/base64` (language prefixed)
+
+When someone switched languages using the dropdown, it just saved to localStorage. The URL never changed. So if you shared `/tools/base64` with someone, they'd see whatever language their browser defaulted to.
+
+Also, Google Search Console was getting one massive sitemap with 193 URLs all lumped together. Not ideal.
+
+## Fixing the URL routing
+
+Created a utility file for URL operations:
+
+```typescript
+// src/i18n/urlUtils.ts
+const LANG_SUPPORTED_PATHS = ['/tools', '/anonymous-chat'];
+
+export function getLanguageFromUrl(pathname: string): Language | null {
+  const match = pathname.match(/^\/(ko|en|ja)(\/|$)/);
+  return match ? (match[1] as Language) : null;
+}
+
+export function buildLanguageUrl(pathname: string, lang: Language): string {
+  const basePath = getBasePathFromUrl(pathname);
+  if (!supportsLanguageRouting(basePath)) return basePath;
+  return `/${lang}${basePath}`;
+}
+```
+
+Then updated the language selector to actually navigate:
+
+```typescript
+const handleSelect = (lang: Language) => {
+  setLanguage(lang);
+  setCurrentLang(lang);
+  setIsOpen(false);
+
+  const currentPath = window.location.pathname;
+  if (supportsLanguageRouting(currentPath)) {
+    const newUrl = buildLanguageUrl(currentPath, lang);
+    if (newUrl !== currentPath) {
+      window.location.href = newUrl;
+    }
+  }
+};
+```
+
+Also added priority to language detection - URL first, then localStorage, then browser preference:
+
+```typescript
+export function getLanguage(): Language {
+  // Priority 1: URL path
+  const urlMatch = window.location.pathname.match(/^\/(ko|en|ja)(\/|$)/);
+  if (urlMatch && urlMatch[1] in languages) {
+    const urlLang = urlMatch[1] as Language;
+    localStorage.setItem('lang', urlLang);  // sync localStorage
+    return urlLang;
+  }
+
+  // Priority 2: localStorage
+  // Priority 3: Browser preference
+  // ...
+}
+```
+
+## Redirecting old URLs
+
+People might have bookmarked `/tools/base64`. Added inline redirect scripts:
+
+```html
+<script is:inline>
+  (function() {
+    const currentPath = window.location.pathname;
+    if (currentPath === '/tools' || currentPath === '/tools/') {
+      let lang = localStorage.getItem('lang') || 'ko';
+      window.location.replace('/' + lang + '/tools');
+    }
+  })();
+</script>
+```
+
+Added this to `ToolLayout.astro` so all tool pages get it automatically.
+
+## Splitting the sitemap
+
+One giant sitemap felt wrong. Wrote a post-build script to split it:
+
+```javascript
+// scripts/generate-sitemaps.mjs
+const patterns = {
+  blog: /^\/blog\//,
+  tools: /^\/(ko|en|ja)?\/tools\//,
+  projects: /^\/projects\//,
+};
+
+function categorizeUrl(url) {
+  const pathname = new URL(url).pathname;
+  if (patterns.blog.test(pathname)) return 'blog';
+  if (patterns.tools.test(pathname)) return 'tools';
+  if (patterns.projects.test(pathname)) return 'projects';
+  return 'pages';
+}
+```
+
+Updated `package.json`:
+
+```json
+"build": "astro build && node scripts/generate-sitemaps.mjs"
+```
+
+Now I get:
+- `sitemap-blog.xml` (15 URLs)
+- `sitemap-tools.xml` (123 URLs)
+- `sitemap-projects.xml` (9 URLs)
+- `sitemap-pages.xml` (46 URLs)
+- `sitemap-index.xml` referencing all of them
+
+## Result
+
+Language switching now changes the URL. Sharing `/en/tools/base64` actually shows English. The sitemaps are organized by content type.
+
+For Google Search Console, just submit `sitemap-index.xml` and it discovers all the individual sitemaps automatically.
