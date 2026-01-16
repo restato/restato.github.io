@@ -1,8 +1,11 @@
 ---
-// Redirect from old /projects to new /games
+// Redirect to language-prefixed URL
+import { getLanguage } from '../../i18n/index';
+
+const lang = getLanguage();
 ---
 
-<script>
+<script define:vars={{ lang }}>
   // Client-side redirect with language detection
   const savedLang = localStorage.getItem('lang');
   const browserLang = navigator.language.split('-')[0];
@@ -14,12 +17,3 @@
 </script>
 
 <meta http-equiv="refresh" content="0;url=/ko/games/" />
-
-<html>
-  <head>
-    <title>Redirecting...</title>
-  </head>
-  <body>
-    <p>Redirecting to <a href="/ko/games/">/games/</a>...</p>
-  </body>
-</html>

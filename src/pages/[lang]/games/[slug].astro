@@ -1,0 +1,179 @@
+---
+import MainLayout from '../../../layouts/MainLayout.astro';
+import { gamesConfig, getGameConfig } from '../../../data/games';
+import type { Language } from '../../../i18n/index';
+
+// Dynamic imports for game components
+import SnakeGame from '../../../components/games/SnakeGame';
+import Game2048 from '../../../components/games/Game2048';
+import TypingGame from '../../../components/games/TypingGame';
+import DinoRunner from '../../../components/games/DinoRunner';
+import FlappyBird from '../../../components/games/FlappyBird';
+import Breakout from '../../../components/games/Breakout';
+import Minesweeper from '../../../components/games/Minesweeper';
+import TicTacToe from '../../../components/games/TicTacToe';
+import ColorMatch from '../../../components/games/ColorMatch';
+import MathQuiz from '../../../components/games/MathQuiz';
+import LadderGame from '../../../components/games/LadderGame';
+import TeamRandomizer from '../../../components/games/TeamRandomizer';
+import BingoGame from '../../../components/games/BingoGame';
+import EventRoulette from '../../../components/games/roulette/EventRoulette';
+
+// Existing game components
+import MemoryGame from '../../../components/MemoryGame';
+import ReactionTest from '../../../components/ReactionTest';
+import RockPaperScissors from '../../../components/RockPaperScissors';
+import NumberGuess from '../../../components/NumberGuess';
+import SlotMachine from '../../../components/SlotMachine';
+
+export function getStaticPaths() {
+  const paths = [];
+  const languages: Language[] = ['ko', 'en', 'ja'];
+
+  for (const lang of languages) {
+    for (const game of gamesConfig) {
+      paths.push({
+        params: { lang, slug: game.slug },
+      });
+    }
+  }
+
+  return paths;
+}
+
+const { lang, slug } = Astro.params as { lang: Language; slug: string };
+
+const game = getGameConfig(slug);
+
+if (!game) {
+  return Astro.redirect('/404');
+}
+
+const seo = game.seo[lang];
+
+const translations = {
+  ko: {
+    backToGames: '게임 목록',
+    howToPlay: '게임 방법',
+    free: '무료',
+    noInstall: '무설치',
+    browserGame: '브라우저 게임',
+  },
+  en: {
+    backToGames: 'All Games',
+    howToPlay: 'How to Play',
+    free: 'Free',
+    noInstall: 'No Install',
+    browserGame: 'Browser Game',
+  },
+  ja: {
+    backToGames: 'ゲーム一覧',
+    howToPlay: '遊び方',
+    free: '無料',
+    noInstall: 'インストール不要',
+    browserGame: 'ブラウザゲーム',
+  },
+};
+
+const t = translations[lang];
+
+// JSON-LD Schema
+const gameSchema = {
+  "@context": "https://schema.org",
+  "@type": "VideoGame",
+  "name": seo.title,
+  "description": seo.description,
+  "url": `https://restato.github.io/${lang}/games/${slug}`,
+  "gamePlatform": "Web Browser",
+  "applicationCategory": "Game",
+  "operatingSystem": "All",
+  "offers": {
+    "@type": "Offer",
+    "price": "0",
+    "priceCurrency": "USD",
+    "availability": "https://schema.org/InStock"
+  },
+  "author": {
+    "@type": "Person",
+    "name": "Restato"
+  }
+};
+---
+
+<MainLayout
+  title={seo.title}
+  description={seo.description}
+  lang={lang}
+>
+  <script type="application/ld+json" set:html={JSON.stringify(gameSchema)} />
+
+  <section class="py-8 px-4">
+    <div class="max-w-6xl mx-auto">
+      <!-- Breadcrumb -->
+      <div class="flex items-center gap-2 text-sm text-[var(--color-text-muted)] mb-6">
+        <a href={`/${lang}/games`} class="hover:text-primary-500 transition-colors">
+          {t.backToGames}
+        </a>
+        <span>/</span>
+        <span class="text-[var(--color-text)]">{seo.title.split(' - ')[0]}</span>
+      </div>
+
+      <!-- Header -->
+      <div class="text-center mb-8">
+        <div class="text-5xl mb-4">{game.icon}</div>
+        <h1 class="text-3xl md:text-4xl font-bold mb-2">
+          {seo.title.split(' - ')[0]}
+        </h1>
+        <p class="text-[var(--color-text-muted)] mb-4">
+          {seo.description}
+        </p>
+
+        <!-- Tags -->
+        <div class="flex justify-center gap-2 flex-wrap">
+          <span class="px-3 py-1 text-sm bg-green-500/10 text-green-500 rounded-full">
+            {t.free}
+          </span>
+          <span class="px-3 py-1 text-sm bg-blue-500/10 text-blue-500 rounded-full">
+            {t.noInstall}
+          </span>
+          <span class="px-3 py-1 text-sm bg-purple-500/10 text-purple-500 rounded-full">
+            {t.browserGame}
+          </span>
+        </div>
+      </div>
+
+      <!-- Game Component -->
+      <div class="bg-[var(--color-card)] rounded-2xl border border-[var(--color-border)] p-4 md:p-8">
+        {slug === 'snake' && <SnakeGame client:load />}
+        {slug === '2048' && <Game2048 client:load />}
+        {slug === 'typing' && <TypingGame client:load />}
+        {slug === 'dino-runner' && <DinoRunner client:load />}
+        {slug === 'flappy' && <FlappyBird client:load />}
+        {slug === 'breakout' && <Breakout client:load />}
+        {slug === 'minesweeper' && <Minesweeper client:load />}
+        {slug === 'tic-tac-toe' && <TicTacToe client:load />}
+        {slug === 'color-match' && <ColorMatch client:load />}
+        {slug === 'math-quiz' && <MathQuiz client:load />}
+        {slug === 'ladder' && <LadderGame client:load />}
+        {slug === 'team-randomizer' && <TeamRandomizer client:load />}
+        {slug === 'bingo' && <BingoGame client:load />}
+        {slug === 'roulette' && <EventRoulette client:load />}
+        {slug === 'spinner' && <EventRoulette client:load />}
+        {slug === 'memory-game' && <MemoryGame client:load />}
+        {slug === 'reaction-test' && <ReactionTest client:load />}
+        {slug === 'rock-paper-scissors' && <RockPaperScissors client:load />}
+        {slug === 'number-guess' && <NumberGuess client:load />}
+        {slug === 'slot-machine' && <SlotMachine client:load />}
+      </div>
+
+      <!-- SEO Keywords -->
+      <div class="mt-8 flex flex-wrap gap-2 justify-center">
+        {seo.keywords.slice(0, 8).map(keyword => (
+          <span class="px-3 py-1 text-xs bg-[var(--color-card)] border border-[var(--color-border)] rounded-full text-[var(--color-text-muted)]">
+            #{keyword}
+          </span>
+        ))}
+      </div>
+    </div>
+  </section>
+</MainLayout>
