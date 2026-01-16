@@ -90,7 +90,8 @@ export default function Chat() {
   const handleCopyLink = useCallback(async () => {
     if (!currentRoomId) return;
 
-    const url = `${window.location.origin}/anonymous-chat#${currentRoomId}`;
+    // 현재 URL 경로 유지 (언어 prefix 포함)
+    const url = `${window.location.origin}${window.location.pathname}#${currentRoomId}`;
     await navigator.clipboard.writeText(url);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
@@ -186,7 +187,7 @@ export default function Chat() {
             <input
               type="text"
               readOnly
-              value={`${typeof window !== 'undefined' ? window.location.origin : ''}/anonymous-chat#${currentRoomId}`}
+              value={`${typeof window !== 'undefined' ? window.location.origin + window.location.pathname : ''}#${currentRoomId}`}
               className="flex-1 px-3 py-2 text-sm rounded border border-[var(--color-border)] bg-[var(--color-bg)] text-[var(--color-text)] focus:outline-none focus:ring-2 focus:ring-blue-500"
               aria-label={t(tt.ui.shareLink)}
             />
