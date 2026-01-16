@@ -1,0 +1,90 @@
+---
+title: "Managing Claude Code Permissions"
+description: "Got tired of Claude asking permission for every command. Here's how I fixed it."
+date: 2026-01-17
+tags: ["claude-code", "productivity", "cli"]
+---
+
+Got annoyed today. Every time Claude Code ran a command, it asked "Allow this?" Click yes. Next command. "Allow this?" Click yes again.
+
+Decided to figure out how to stop this.
+
+## Where permissions live
+
+Claude Code stores permissions in `settings.json` files:
+
+```
+~/.claude/settings.json          # Global (all projects)
+.claude/settings.json            # Project (shared, git tracked)
+.claude/settings.local.json      # Project (personal, gitignored)
+```
+
+The structure is simple:
+
+```json
+{
+  "permissions": {
+    "allow": ["Bash(git:*)", "Bash(npm:*)"],
+    "deny": ["Bash(rm -rf:*)"]
+  }
+}
+```
+
+## Finding what I actually use
+
+Wanted to know which commands I'd been allowing across projects. Ran this:
+
+```bash
+find ~/Workspace -name "settings.local.json" -path "*/.claude/*" \
+  -exec cat {} \; | grep -oE '"Bash\([^)]+\)"' | \
+  sort | uniq -c | sort -rn
+```
+
+Output showed the winners:
+
+```
+4 xcodebuild
+3 xargs
+3 open
+3 ls
+3 find
+2 tree
+2 npm test
+2 cat
+2 grep
+```
+
+## The fix
+
+Added the frequent ones to my global config:
+
+```json
+{
+  "permissions": {
+    "allow": [
+      "Bash(swift:*)",
+      "Bash(git:*)",
+      "Bash(ls:*)",
+      "Bash(find:*)",
+      "Bash(cat:*)",
+      "Bash(grep:*)",
+      "Bash(npm:*)",
+      "Bash(gh:*)",
+      "WebSearch"
+    ],
+    "deny": [
+      "Bash(rm -rf:*)"
+    ]
+  }
+}
+```
+
+The `:*` suffix means "allow with any arguments."
+
+## Gotchas
+
+- When you click "Always allow" during a session, it saves to `settings.local.json` in that project only
+- Global settings (`~/.claude/settings.json`) apply everywhere
+- `deny` rules override `allow` - good for blocking dangerous stuff like `rm -rf`
+
+Now Claude just runs commands without asking. Much better.
