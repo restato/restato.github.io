@@ -1,0 +1,67 @@
+---
+title: "Fixing @imgly/background-removal Module Error on GitHub Pages"
+description: "The background removal tool was breaking in production. Turns out Vite was the culprit."
+date: 2026-01-17
+tags: ["astro", "vite", "troubleshooting", "github-pages"]
+---
+
+Had a fun one today. My background removal tool worked perfectly in dev, but users were getting this error in production:
+
+```
+TypeError: Failed to resolve module specifier '@imgly/background-removal'
+```
+
+## The setup
+
+I'm using [@imgly/background-removal](https://github.com/imgly/background-removal-js) for client-side AI-powered background removal. It's a neat library that runs ML models directly in the browser using WASM and ONNX.
+
+The component loads the library dynamically:
+
+```typescript
+const { removeBackground: removeBg } = await import('@imgly/background-removal');
+```
+
+## What went wrong
+
+Turns out I had this in my `astro.config.mjs`:
+
+```javascript
+vite: {
+  optimizeDeps: {
+    exclude: ['@imgly/background-removal'],
+  },
+  build: {
+    rollupOptions: {
+      external: [
+        '@imgly/background-removal',
+        'onnxruntime-web',
+        'onnxruntime-web/webgpu',
+      ],
+    },
+  },
+}
+```
+
+I probably added this at some point trying to fix a different build issue. The `external` option tells Vite "don't bundle this, it'll be available at runtime."
+
+That's fine for Node.js apps where you have `node_modules`. But GitHub Pages is static hosting - there's no runtime module resolution. The browser sees `import('@imgly/background-removal')` and has no idea where to find it.
+
+## The fix
+
+Removed the entire `vite` config block and installed the peer dependency:
+
+```bash
+npm install onnxruntime-web@1.21.0
+```
+
+Now Vite properly bundles everything. The WASM file ends up in the build output:
+
+```
+dist/_astro/ort-wasm-simd-threaded.jsep.*.wasm  23,914.39 kB
+```
+
+Yeah, that's 24MB. But the AI models themselves load from IMG.LY's CDN at runtime, so the actual page load isn't too bad.
+
+## Lesson learned
+
+When debugging "works locally, breaks in production" issues on static sites, check if you're marking packages as external. External dependencies only work when there's a runtime module system to resolve them.
