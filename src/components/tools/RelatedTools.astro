@@ -1,75 +1,47 @@
 ---
-interface Tool {
-  slug: string;
-  title: string;
-  description: string;
-  icon: string;
-  category: string;
-}
+import { toolsConfig, type Language } from '../../data/tools';
 
 interface Props {
   currentSlug: string;
   currentCategory: string;
+  lang?: Language;
 }
 
-const { currentSlug, currentCategory } = Astro.props;
+const { currentSlug, currentCategory, lang = 'ko' } = Astro.props;
 
-const allTools: Tool[] = [
-  // Generators
-  { slug: 'qr-code', title: 'QR 코드 생성기', description: 'URL이나 텍스트를 QR 코드로 변환', icon: '📱', category: 'generators' },
-  { slug: 'password', title: '비밀번호 생성기', description: '안전한 비밀번호 생성', icon: '🔐', category: 'generators' },
-  { slug: 'uuid', title: 'UUID 생성기', description: 'UUID v4 생성', icon: '🔑', category: 'generators' },
-  { slug: 'lorem-ipsum', title: 'Lorem Ipsum 생성기', description: '더미 텍스트 생성', icon: '📝', category: 'generators' },
-  { slug: 'color-palette', title: '색상 팔레트 생성기', description: '조화로운 색상 팔레트 생성', icon: '🎨', category: 'generators' },
-  { slug: 'hash', title: '해시 생성기', description: 'MD5, SHA-1, SHA-256 해시 생성', icon: '#️⃣', category: 'generators' },
-  // Converters
-  { slug: 'color', title: '색상 변환기', description: 'HEX, RGB, HSL 색상 변환', icon: '🌈', category: 'converters' },
-  { slug: 'unit', title: '단위 변환기', description: '길이, 무게, 온도 단위 변환', icon: '📏', category: 'converters' },
-  { slug: 'base64', title: 'Base64 인코더/디코더', description: '텍스트를 Base64로 인코딩/디코딩', icon: '🔄', category: 'converters' },
-  { slug: 'image-converter', title: '이미지 포맷 변환기', description: 'JPEG, PNG, WebP 포맷 간 변환', icon: '🖼️', category: 'image' },
-  // Text
-  { slug: 'text-counter', title: '텍스트 카운터', description: '글자수, 단어수, 줄수 세기', icon: '🔢', category: 'text' },
-  { slug: 'markdown', title: '마크다운 미리보기', description: '마크다운 실시간 미리보기', icon: '📄', category: 'text' },
-  { slug: 'diff', title: '텍스트 비교기', description: '두 텍스트의 차이점 비교', icon: '📊', category: 'developer' },
-  // Developer
-  { slug: 'json', title: 'JSON 포매터', description: 'JSON 포매팅 및 검증', icon: '{ }', category: 'developer' },
-  { slug: 'regex', title: '정규식 테스터', description: '정규식 테스트 및 매치 확인', icon: '🔍', category: 'developer' },
-  { slug: 'url-encoder', title: 'URL 인코더/디코더', description: 'URL 문자열 인코딩/디코딩', icon: '🔗', category: 'developer' },
-  { slug: 'jwt-decoder', title: 'JWT 디코더', description: 'JWT 토큰 디코딩 및 분석', icon: '🎫', category: 'developer' },
-  { slug: 'cron', title: 'Cron 표현식 생성기', description: 'Cron 표현식 생성 및 설명', icon: '⏰', category: 'developer' },
-  // Designer
-  { slug: 'gradient', title: 'CSS 그라데이션 생성기', description: 'CSS 그라데이션 시각적 생성', icon: '🌈', category: 'designer' },
-  { slug: 'box-shadow', title: 'CSS Box Shadow 생성기', description: 'CSS box-shadow 시각적 생성', icon: '🎭', category: 'designer' },
-  // Photographer
-  { slug: 'image-resizer', title: '이미지 리사이저', description: '이미지 크기 조절 및 압축', icon: '📐', category: 'image' },
-  { slug: 'exif', title: 'EXIF 정보 뷰어', description: '사진 EXIF 메타데이터 확인', icon: '📷', category: 'image' },
-  // Marketer
-  { slug: 'utm', title: 'UTM 링크 생성기', description: '캠페인 추적용 UTM 링크 생성', icon: '📊', category: 'marketer' },
-  // Productivity
-  { slug: 'timer', title: '타이머 / 스톱워치', description: '타이머와 스톱워치', icon: '⏱️', category: 'productivity' },
-  { slug: 'pomodoro', title: '포모도로 타이머', description: '포모도로 기법으로 생산성 향상', icon: '🍅', category: 'productivity' },
-  { slug: 'world-clock', title: '세계 시계', description: '전 세계 시간대 확인 및 변환', icon: '🌍', category: 'productivity' },
-];
+const translations = {
+  ko: '관련 도구',
+  en: 'Related Tools',
+  ja: '関連ツール',
+};
 
-// 같은 카테고리의 도구 우선, 그 다음 다른 카테고리
-const relatedTools = allTools
+const relatedTitle = translations[lang] || translations.ko;
+
+// Get tools from toolsConfig and filter related ones
+const relatedTools = toolsConfig
   .filter(tool => tool.slug !== currentSlug)
   .sort((a, b) => {
     if (a.category === currentCategory && b.category !== currentCategory) return -1;
     if (a.category !== currentCategory && b.category === currentCategory) return 1;
     return 0;
   })
-  .slice(0, 4);
+  .slice(0, 4)
+  .map(tool => ({
+    slug: tool.slug,
+    title: tool.seo[lang]?.title.split(' - ')[0] || tool.seo.ko.title.split(' - ')[0],
+    description: tool.seo[lang]?.description || tool.seo.ko.description,
+    icon: tool.icon,
+  }));
 ---
 
 <section class="mt-12 pt-8 border-t border-[var(--color-border)]">
   <h2 class="text-xl font-bold text-[var(--color-text)] mb-6 flex items-center gap-2">
-    <span>🔧</span> 관련 도구
+    <span>🔧</span> {relatedTitle}
   </h2>
   <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
     {relatedTools.map((tool) => (
       <a
-        href={`/tools/${tool.slug}`}
+        href={`/${lang}/tools/${tool.slug}`}
         class="group flex items-center gap-4 p-4 rounded-xl
           bg-[var(--color-card)] border border-[var(--color-border)]
           hover:border-primary-500 hover:shadow-md transition-all"
