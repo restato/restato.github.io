@@ -1,0 +1,101 @@
+---
+title: "Building a Smooth Git Workflow with Claude Code"
+description: "Created /commit and /pr skills for a seamless development cycle."
+date: 2026-01-17
+tags: ["claude-code", "git", "workflow", "automation"]
+---
+
+Spent today improving my Claude Code workflow. The old `/git-sync` skill was doing too much at once - commit, push, and PR all in one shot. No way to save work in progress without pushing everything.
+
+## The problem
+
+My old workflow:
+
+```
+work → /git-sync → commit + push + PR (all at once)
+              ↓
+         merge PR (manual)
+              ↓
+         create new branch (manual) ← annoying
+              ↓
+         continue working...
+```
+
+Two issues:
+1. Can't commit intermediate progress without pushing
+2. After merging a PR, I had to manually create a new branch
+
+## What I built
+
+Split it into two skills:
+
+### `/commit` - Save work in progress
+
+```bash
+# If on main/master, auto-creates branch based on changes
+# Then commits
+
+git checkout -b feat/add-login-auth  # auto-generated
+git add -A
+git commit -m "feat: add login authentication"
+```
+
+The branch name is generated from the changes - analyzes files and picks an appropriate `feat/`, `fix/`, `refactor/` prefix.
+
+### `/pr` - Ship it
+
+```bash
+# Push, create PR, merge, then prepare next branch
+git push -u origin feat/add-login-auth
+gh pr create --title "feat: add login auth" --base main
+gh pr merge --squash --delete-branch
+git checkout main
+git pull origin main
+# Ready for next /commit
+```
+
+The key improvement: after merging, it automatically switches back to main and pulls. So when I run `/commit` next time, it creates a fresh branch from the latest main.
+
+## The new cycle
+
+```
+work → /commit → branch created + committed (local only)
+  ↓
+work → /commit → another commit stacked
+  ↓
+work → /commit → keep going...
+  ↓
+/pr → push + PR + merge + ready for next cycle
+  ↓
+/commit → new branch from fresh main
+```
+
+No more manual branch management. The workflow just loops.
+
+## Bonus: Token savings
+
+While at it, converted all my skills to English. Korean uses way more tokens - each character can be multiple tokens. Same content in English uses roughly 7x fewer tokens.
+
+```json
+// Before
+"description": "변경사항을 커밋합니다"  // ~15 tokens
+
+// After
+"description": "Commit changes"  // ~2 tokens
+```
+
+Added this to my CLAUDE.md:
+
+```markdown
+## Skills Writing Rules
+- Always write skills in English for token efficiency
+```
+
+## Files changed
+
+- Deleted: `skills/git-sync/`
+- Added: `skills/commit/SKILL.md`
+- Added: `skills/pr/SKILL.md`
+- Updated: All skills converted to English
+
+The workflow feels much smoother now. Intermediate commits without the pressure to push, and no manual cleanup after merging PRs.
