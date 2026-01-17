@@ -467,6 +467,34 @@ export const toolTranslations = {
     developer: { ko: '개발자', en: 'Developer', ja: '開発者' },
     image: { ko: '이미지', en: 'Image', ja: '画像' },
   },
+
+  // App Store Screenshot Resizer
+  appStoreScreenshot: {
+    title: {
+      ko: '앱스토어 스크린샷 리사이저',
+      en: 'App Store Screenshot Resizer',
+      ja: 'App Storeスクリーンショットリサイザー'
+    },
+    description: {
+      ko: '무료 iOS 앱스토어 스크린샷 크기 조절',
+      en: 'Free iOS App Store screenshot resizer',
+      ja: '無料iOS App Storeスクリーンショットリサイザー'
+    },
+    dropzone: {
+      ko: '이미지를 드래그하거나 클릭하여 업로드 (최대 10장)',
+      en: 'Drag or click to upload images (max 10)',
+      ja: '画像をドラッグまたはクリック (最大10枚)'
+    },
+    selectDevice: { ko: '기기 선택', en: 'Select Device', ja: 'デバイスを選択' },
+    selectSize: { ko: '해상도 선택', en: 'Select Size', ja: '解像度を選択' },
+    orientation: { ko: '방향', en: 'Orientation', ja: '向き' },
+    portrait: { ko: '세로', en: 'Portrait', ja: '縦向き' },
+    landscape: { ko: '가로', en: 'Landscape', ja: '横向き' },
+    adjustCrop: { ko: '크롭 영역 조정', en: 'Adjust Crop Area', ja: 'クロップ範囲を調整' },
+    applyToAll: { ko: '모든 이미지에 적용', en: 'Apply to All', ja: '全画像に適用' },
+    downloadAll: { ko: '모두 다운로드', en: 'Download All', ja: 'すべてダウンロード' },
+    processAll: { ko: '모두 처리', en: 'Process All', ja: 'すべて処理' },
+  },
 } as const;
 
 export type ToolTranslationKey = keyof typeof toolTranslations;

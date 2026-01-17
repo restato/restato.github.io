@@ -627,6 +627,29 @@ export const toolsConfig: ToolConfig[] = [
       },
     },
   },
+  {
+    slug: 'appstore-screenshot',
+    icon: '📱',
+    category: 'image',
+    component: 'AppStoreScreenshotResizer',
+    seo: {
+      ko: {
+        title: '앱스토어 스크린샷 리사이저 - 무료 iOS 스크린샷 크기 조절',
+        description: '무료 온라인 앱스토어 스크린샷 리사이저. 간단하게 iPhone, iPad 앱스토어 규격에 맞게 이미지 크롭 및 리사이즈. 설치 없이 브라우저에서 바로 사용.',
+        keywords: ['앱스토어 스크린샷', 'app store screenshot', 'iOS 스크린샷', 'iPhone 스크린샷', 'iPad 스크린샷', '무료', '심플', ...seoKeywords.ko],
+      },
+      en: {
+        title: 'App Store Screenshot Resizer - Free iOS Screenshot Tool',
+        description: 'Free online App Store screenshot resizer. Simple & fast way to crop and resize images for iPhone and iPad App Store requirements. No installation, browser-based.',
+        keywords: ['app store screenshot', 'iOS screenshot resizer', 'iPhone screenshot size', 'iPad screenshot', 'free', 'simple', ...seoKeywords.en],
+      },
+      ja: {
+        title: 'App Storeスクリーンショットリサイザー - 無料iOS スクリーンショットツール',
+        description: '無料オンラインApp Storeスクリーンショットリサイザー。シンプルで素早くiPhoneとiPadのApp Store要件に合わせて画像をクロップ＆リサイズ。インストール不要。',
+        keywords: ['app store スクリーンショット', 'iOS スクリーンショット', 'iPhone スクリーンショット サイズ', '無料', 'シンプル', ...seoKeywords.ja],
+      },
+    },
+  },
   // Marketer
   {
     slug: 'utm',
