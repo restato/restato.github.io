@@ -1,5 +1,6 @@
 ---
 import MainLayout from '../../../layouts/MainLayout.astro';
+import ShareButton from '../../../components/tools/ShareButton';
 import { gamesConfig, getGameConfig } from '../../../data/games';
 import type { Language } from '../../../i18n/index';
 
@@ -121,9 +122,17 @@ const gameSchema = {
       <!-- Header -->
       <div class="text-center mb-8">
         <div class="text-5xl mb-4">{game.icon}</div>
-        <h1 class="text-3xl md:text-4xl font-bold mb-2">
-          {seo.title.split(' - ')[0]}
-        </h1>
+        <div class="flex items-center justify-center gap-3 mb-2">
+          <h1 class="text-3xl md:text-4xl font-bold">
+            {seo.title.split(' - ')[0]}
+          </h1>
+          <ShareButton
+            client:load
+            title={seo.title}
+            description={seo.description}
+            lang={lang}
+          />
+        </div>
         <p class="text-[var(--color-text-muted)] mb-4">
           {seo.description}
         </p>

@@ -1,5 +1,6 @@
 ---
 import MainLayout from '../../../layouts/MainLayout.astro';
+import ShareButton from '../../../components/tools/ShareButton';
 import { gamesConfig, getFeaturedGames, getGamesByCategory } from '../../../data/games';
 import type { Language } from '../../../i18n/index';
 
@@ -94,9 +95,17 @@ const gamesSchema = {
     <div class="max-w-6xl mx-auto">
       <!-- Header -->
       <div class="text-center mb-12">
-        <h1 class="text-4xl md:text-5xl font-bold mb-4 bg-gradient-to-r from-primary-500 to-purple-500 bg-clip-text text-transparent">
-          {t.heading}
-        </h1>
+        <div class="flex items-center justify-center gap-3 mb-4">
+          <h1 class="text-4xl md:text-5xl font-bold bg-gradient-to-r from-primary-500 to-purple-500 bg-clip-text text-transparent">
+            {t.heading}
+          </h1>
+          <ShareButton
+            client:load
+            title={t.title}
+            description={t.description}
+            lang={lang}
+          />
+        </div>
         <p class="text-lg text-[var(--color-text-muted)]">
           {t.subheading}
         </p>
