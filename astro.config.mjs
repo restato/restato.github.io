@@ -32,18 +32,4 @@ export default defineConfig({
       wrap: true,
     },
   },
-  vite: {
-    optimizeDeps: {
-      exclude: ['@imgly/background-removal'],
-    },
-    build: {
-      rollupOptions: {
-        external: [
-          '@imgly/background-removal',
-          'onnxruntime-web',
-          'onnxruntime-web/webgpu',
-        ],
-      },
-    },
-  },
 });
