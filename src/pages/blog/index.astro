@@ -10,7 +10,7 @@ const posts = (await getCollection('blog', ({ data }) => !data.draft))
 const allTags = [...new Set(posts.flatMap(post => post.data.tags))].sort();
 ---
 
-<MainLayout title="Blog | Restato" description="Development logs, learnings, and thoughts.">
+<MainLayout title="Blog | Restato" description="Development logs, learnings, and thoughts." lang="en">
   <section class="py-20 px-6">
     <div class="max-w-4xl mx-auto">
       <!-- Header -->
