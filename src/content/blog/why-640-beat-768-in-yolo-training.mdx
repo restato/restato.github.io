@@ -1,0 +1,81 @@
+---
+title: "Why 640 Beat 768 in My YOLO Training"
+description: "Higher resolution should mean better detection, right? Not always."
+date: 2026-01-17
+tags: ["yolo", "machine-learning", "deep-learning"]
+---
+
+Ran two experiments training YOLOv8s-P2 for four-leaf clover detection. Expected the 768 resolution to win. It didn't.
+
+## The results
+
+| Model | Resolution | mAP@0.5 | Recall |
+|-------|------------|---------|--------|
+| P2 | 640 | **88.8%** | **83.7%** |
+| P2_768 | 768 | 87.1% | 76.4% |
+
+640 won by 1.7% mAP and 7.3% recall. What?
+
+## Why higher resolution lost
+
+### 1. Pretrained weights mismatch
+
+YOLOv8s was pretrained on 640x640 images. When I trained at 768, the feature map scales didn't match the pretrained weights. Transfer learning worked better when the resolution matched.
+
+### 2. Small dataset + more pixels = overfitting
+
+I only had 1,062 training images. That's not a lot.
+
+| Resolution | Pixels | Patterns to learn |
+|------------|--------|-------------------|
+| 640 | 409,600 | baseline |
+| 768 | 589,824 | 44% more |
+
+768 had to learn 44% more spatial patterns from the same data. Recipe for overfitting.
+
+### 3. Batch size dropped
+
+Memory constraints forced me to reduce batch size:
+
+```python
+# 640
+batch=16
+
+# 768
+batch=12  # OOM otherwise
+```
+
+Smaller batch = noisier gradients = less stable training. Especially hurts on small datasets.
+
+### 4. Augmentation already covered scale variance
+
+I was already using:
+
+```python
+multi_scale=True   # trains at various scales
+scale=0.7          # random resize ±70%
+mosaic=1.0         # combines 4 images
+```
+
+These augmentations simulate different resolutions. Going to 768 didn't add much the augmentations weren't already providing.
+
+### 5. P2 head sweet spot
+
+The P2 detection head operates at stride 4, optimized for small objects. At 640, objects fell into P2's optimal detection range. At 768, objects became relatively larger in the feature space, potentially moving out of P2's sweet spot.
+
+## When 768 would win
+
+- Large dataset (10,000+ images)
+- Very tiny objects (\<10px at 640)
+- Enough GPU memory to keep batch=16
+- Training from scratch (no pretrained weights)
+
+## Takeaway
+
+Higher resolution isn't automatically better. Match your resolution to:
+- Pretrained model resolution
+- Dataset size
+- Available compute (batch size matters)
+- Actual object sizes in your data
+
+For my clover detector, 640 + P2 + augmentation was the winning combo. 88.8% mAP from 58.4% baseline.
