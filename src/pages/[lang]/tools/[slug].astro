@@ -46,6 +46,7 @@ import DutchPayCalculator from '../../../components/tools/DutchPayCalculator';
 import CoinFlip from '../../../components/tools/CoinFlip';
 import DiceRoller from '../../../components/tools/DiceRoller';
 import KorEngConverter from '../../../components/tools/KorEngConverter';
+import AppStoreScreenshotResizer from '../../../components/tools/AppStoreScreenshotResizer';
 
 // Localized UI strings
 const uiStrings = {
@@ -263,6 +264,7 @@ const appSchema = {
       {tool.slug === 'coin-flip' && <CoinFlip client:load />}
       {tool.slug === 'dice' && <DiceRoller client:load />}
       {tool.slug === 'kor-eng' && <KorEngConverter client:load />}
+      {tool.slug === 'appstore-screenshot' && <AppStoreScreenshotResizer client:load />}
     </div>
 
     <!-- Related Tools -->

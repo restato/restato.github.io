@@ -1,0 +1,14 @@
+---
+import ToolLayout from '../../layouts/ToolLayout.astro';
+import AppStoreScreenshotResizer from '../../components/tools/AppStoreScreenshotResizer';
+---
+
+<ToolLayout
+  title="앱스토어 스크린샷 리사이저"
+  description="무료 온라인 앱스토어 스크린샷 리사이저. 간단하게 iPhone, iPad 앱스토어 규격에 맞게 이미지 크롭 및 리사이즈. 설치 없이 브라우저에서 바로 사용. 무료, 심플, 빠름."
+  slug="appstore-screenshot"
+  icon="📱"
+  category="image"
+>
+  <AppStoreScreenshotResizer client:load />
+</ToolLayout>
