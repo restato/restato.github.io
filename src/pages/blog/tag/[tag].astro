@@ -1,0 +1,120 @@
+---
+import MainLayout from '../../../layouts/MainLayout.astro';
+import BlogCard from '../../../components/BlogCard.astro';
+import { getCollection } from 'astro:content';
+
+export async function getStaticPaths() {
+  const posts = await getCollection('blog', ({ data }) => !data.draft);
+
+  // Get all unique tags
+  const allTags = [...new Set(posts.flatMap(post => post.data.tags))];
+
+  return allTags.map(tag => ({
+    params: { tag },
+    props: {
+      tag,
+      posts: posts
+        .filter(post => post.data.tags.includes(tag))
+        .sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf())
+    }
+  }));
+}
+
+const { tag, posts } = Astro.props;
+
+// Get all unique tags for the filter section
+const allPosts = await getCollection('blog', ({ data }) => !data.draft);
+const allTags = [...new Set(allPosts.flatMap(post => post.data.tags))].sort();
+---
+
+<MainLayout
+  title={`${tag} | Blog | Restato`}
+  description={`Posts tagged with "${tag}"`}
+  lang="en"
+>
+  <section class="py-20 px-6">
+    <div class="max-w-4xl mx-auto">
+      <!-- Header -->
+      <div class="mb-12">
+        <a href="/blog" class="text-sm font-medium text-primary-600 dark:text-primary-400 mb-2 inline-flex items-center gap-1 hover:underline">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7" />
+          </svg>
+          Blog
+        </a>
+        <h1 class="text-4xl font-bold mb-4">
+          <span class="text-[var(--color-text-muted)]">#</span>{tag}
+        </h1>
+        <p class="text-lg text-[var(--color-text-muted)] max-w-xl">
+          {posts.length} post{posts.length !== 1 ? 's' : ''} tagged with "{tag}"
+        </p>
+      </div>
+
+      <!-- Tags Filter -->
+      {allTags.length > 0 && (
+        <div class="mb-10 pb-6 border-b border-[var(--color-border)]">
+          <div class="flex flex-wrap gap-2 items-center">
+            <span class="text-sm font-medium text-[var(--color-text-muted)] mr-1">Tags</span>
+            <a
+              href="/blog"
+              class="text-sm px-3 py-1.5 rounded-lg bg-[var(--color-card)] border border-[var(--color-border)]
+                     hover:border-primary-500/50 hover:text-primary-600 dark:hover:text-primary-400
+                     transition-colors font-medium"
+            >
+              All
+            </a>
+            {allTags.map(t => (
+              <a
+                href={`/blog/tag/${t}`}
+                class:list={[
+                  "text-sm px-3 py-1.5 rounded-lg border transition-colors font-medium",
+                  t === tag
+                    ? "bg-primary-500 text-white border-primary-500"
+                    : "bg-[var(--color-card)] border-[var(--color-border)] hover:border-primary-500/50 hover:text-primary-600 dark:hover:text-primary-400"
+                ]}
+              >
+                {t}
+              </a>
+            ))}
+          </div>
+        </div>
+      )}
+
+      <!-- Posts Grid -->
+      {posts.length > 0 ? (
+        <div class="grid md:grid-cols-2 gap-6">
+          {posts.map((post) => (
+            <BlogCard
+              title={post.data.title}
+              description={post.data.description}
+              date={post.data.date}
+              slug={post.slug}
+              tags={post.data.tags}
+              image={post.data.image}
+            />
+          ))}
+        </div>
+      ) : (
+        <div class="text-center py-20 px-6 rounded-2xl border border-dashed border-[var(--color-border)]">
+          <div class="w-16 h-16 mx-auto mb-4 rounded-2xl bg-primary-500/10 flex items-center justify-center">
+            <svg class="w-8 h-8 text-primary-500" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M9.568 3H5.25A2.25 2.25 0 003 5.25v4.318c0 .597.237 1.17.659 1.591l9.581 9.581c.699.699 1.78.872 2.607.33a18.095 18.095 0 005.223-5.223c.542-.827.369-1.908-.33-2.607L11.16 3.66A2.25 2.25 0 009.568 3z" />
+              <path stroke-linecap="round" stroke-linejoin="round" d="M6 6h.008v.008H6V6z" />
+            </svg>
+          </div>
+          <h2 class="text-xl font-bold mb-2">No posts found</h2>
+          <p class="text-[var(--color-text-muted)]">
+            No posts are tagged with "{tag}" yet.
+          </p>
+        </div>
+      )}
+
+      <!-- Post count -->
+      {posts.length > 0 && (
+        <p class="mt-8 text-center text-sm text-[var(--color-text-muted)]">
+          {posts.length} post{posts.length !== 1 ? 's' : ''} with tag "{tag}"
+        </p>
+      )}
+    </div>
+  </section>
+</MainLayout>
