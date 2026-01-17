@@ -10,15 +10,15 @@ const posts = (await getCollection('blog', ({ data }) => !data.draft))
 const allTags = [...new Set(posts.flatMap(post => post.data.tags))].sort();
 ---
 
-<MainLayout title="Blog | Restato" description="개발 일지, 배운 것들, 그리고 생각들을 기록합니다.">
+<MainLayout title="Blog | Restato" description="Development logs, learnings, and thoughts." lang="en">
   <section class="py-20 px-6">
     <div class="max-w-4xl mx-auto">
       <!-- Header -->
       <div class="mb-12">
         <p class="text-sm font-medium text-primary-600 dark:text-primary-400 mb-2">Blog</p>
-        <h1 class="text-4xl font-bold mb-4">블로그</h1>
+        <h1 class="text-4xl font-bold mb-4">Blog</h1>
         <p class="text-lg text-[var(--color-text-muted)] max-w-xl">
-          개발하면서 배운 것들, 생각들, 그리고 삽질기를 기록합니다.
+          Development logs, learnings, thoughts, and coding adventures.
         </p>
       </div>
 
@@ -26,7 +26,7 @@ const allTags = [...new Set(posts.flatMap(post => post.data.tags))].sort();
       {allTags.length > 0 && (
         <div class="mb-10 pb-6 border-b border-[var(--color-border)]">
           <div class="flex flex-wrap gap-2 items-center">
-            <span class="text-sm font-medium text-[var(--color-text-muted)] mr-1">태그</span>
+            <span class="text-sm font-medium text-[var(--color-text-muted)] mr-1">Tags</span>
             {allTags.map(tag => (
               <a
                 href={`/blog/tag/${tag}`}
@@ -62,9 +62,9 @@ const allTags = [...new Set(posts.flatMap(post => post.data.tags))].sort();
               <path stroke-linecap="round" stroke-linejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0115.75 21H5.25A2.25 2.25 0 013 18.75V8.25A2.25 2.25 0 015.25 6H10" />
             </svg>
           </div>
-          <h2 class="text-xl font-bold mb-2">아직 작성된 글이 없습니다</h2>
+          <h2 class="text-xl font-bold mb-2">No posts yet</h2>
           <p class="text-[var(--color-text-muted)]">
-            곧 첫 번째 글이 올라올 거예요!
+            The first post will be up soon!
           </p>
         </div>
       )}
@@ -72,7 +72,7 @@ const allTags = [...new Set(posts.flatMap(post => post.data.tags))].sort();
       <!-- Post count -->
       {posts.length > 0 && (
         <p class="mt-8 text-center text-sm text-[var(--color-text-muted)]">
-          총 {posts.length}개의 글
+          {posts.length} posts
         </p>
       )}
     </div>
