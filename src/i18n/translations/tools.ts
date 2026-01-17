@@ -18,6 +18,14 @@ export const toolTranslations = {
     stop: { ko: '정지', en: 'Stop', ja: '停止' },
     pause: { ko: '일시정지', en: 'Pause', ja: '一時停止' },
     resume: { ko: '재개', en: 'Resume', ja: '再開' },
+    // RelatedTools, FavoriteButton, ShareButton
+    relatedTools: { ko: '관련 도구', en: 'Related Tools', ja: '関連ツール' },
+    favorite: { ko: '즐겨찾기', en: 'Favorite', ja: 'お気に入り' },
+    favorited: { ko: '즐겨찾기됨', en: 'Favorited', ja: 'お気に入り済み' },
+    addToFavorite: { ko: '즐겨찾기에 추가', en: 'Add to favorites', ja: 'お気に入りに追加' },
+    removeFromFavorite: { ko: '즐겨찾기에서 제거', en: 'Remove from favorites', ja: 'お気に入りから削除' },
+    share: { ko: '공유', en: 'Share', ja: '共有' },
+    copyLink: { ko: '링크 복사', en: 'Copy link', ja: 'リンクをコピー' },
   },
 
   // QR Code Generator

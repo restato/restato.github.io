@@ -1,44 +1,22 @@
 import { useState } from 'react';
-
-type Language = 'ko' | 'en' | 'ja';
-
-const translations = {
-  ko: {
-    share: '공유',
-    copied: '복사됨!',
-    copyLink: '링크 복사',
-    kakao: '카카오톡',
-  },
-  en: {
-    share: 'Share',
-    copied: 'Copied!',
-    copyLink: 'Copy Link',
-    kakao: 'KakaoTalk',
-  },
-  ja: {
-    share: 'シェア',
-    copied: 'コピー!',
-    copyLink: 'リンクコピー',
-    kakao: 'カカオトーク',
-  },
-};
+import { useTranslation } from '../../i18n/useTranslation';
 
 interface ShareButtonProps {
   title: string;
   description: string;
   url?: string;
-  lang?: Language;
 }
 
-export default function ShareButton({ title, description, url, lang = 'ko' }: ShareButtonProps) {
+export default function ShareButton({ title, description, url }: ShareButtonProps) {
+  const { t, translations } = useTranslation();
+  const tc = translations.tools.common;
+
   const [showDropdown, setShowDropdown] = useState(false);
   const [copied, setCopied] = useState(false);
-  const t = translations[lang];
 
   const shareUrl = url || (typeof window !== 'undefined' ? window.location.href : '');
   const encodedUrl = encodeURIComponent(shareUrl);
   const encodedTitle = encodeURIComponent(title);
-  const encodedDesc = encodeURIComponent(description);
 
   const copyLink = async () => {
     try {
@@ -125,14 +103,14 @@ export default function ShareButton({ title, description, url, lang = 'ko' }: Sh
           bg-[var(--color-card)] border border-[var(--color-border)]
           hover:border-primary-500 hover:text-primary-500
           transition-colors text-sm font-medium"
-        aria-label={t.share}
+        aria-label={t(tc.share)}
       >
         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
             d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z"
           />
         </svg>
-        {t.share}
+        {t(tc.share)}
       </button>
 
       {showDropdown && (
@@ -155,7 +133,7 @@ export default function ShareButton({ title, description, url, lang = 'ko' }: Sh
                   <svg className="w-4 h-4 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                   </svg>
-                  <span className="text-green-500">{t.copied}</span>
+                  <span className="text-green-500">{t(tc.copied)}</span>
                 </>
               ) : (
                 <>
@@ -164,7 +142,7 @@ export default function ShareButton({ title, description, url, lang = 'ko' }: Sh
                       d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"
                     />
                   </svg>
-                  {t.copyLink}
+                  {t(tc.copyLink)}
                 </>
               )}
             </button>
@@ -210,7 +188,7 @@ export default function ShareButton({ title, description, url, lang = 'ko' }: Sh
               <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
                 <path d="M12 3c5.799 0 10.5 3.664 10.5 8.185 0 4.52-4.701 8.184-10.5 8.184a13.5 13.5 0 01-1.727-.11l-4.408 2.883c-.501.265-.678.236-.472-.413l.892-3.678c-2.88-1.46-4.785-3.99-4.785-6.866C1.5 6.665 6.201 3 12 3z"/>
               </svg>
-              {t.kakao}
+              KakaoTalk
             </button>
           </div>
         </>
