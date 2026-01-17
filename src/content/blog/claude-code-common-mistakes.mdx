@@ -1,0 +1,284 @@
+---
+title: "Common Mistakes to Avoid with Claude Code"
+description: "Learn from others' mistakes to use Claude Code more effectively."
+date: 2026-01-17
+tags: ["claude-code", "best-practices", "beginner"]
+---
+
+After watching many developers use Claude Code, these are the most common mistakes and how to avoid them.
+
+## Mistake 1: Vague Prompts
+
+### The mistake
+
+```
+Fix it
+Make it better
+Clean this up
+```
+
+### Why it fails
+
+Claude doesn't know:
+- What "it" is
+- What "better" means to you
+- What "clean" looks like
+
+### The fix
+
+```
+Fix the null pointer error on line 45 of auth.ts
+by adding a check before accessing user.email
+
+Refactor handleSubmit to use async/await instead
+of .then() chains
+
+Remove unused imports and sort remaining imports
+alphabetically in utils.ts
+```
+
+## Mistake 2: Not Providing Context
+
+### The mistake
+
+```
+Update the API
+```
+
+### Why it fails
+
+Which API? Update how? What's the current state?
+
+### The fix
+
+```
+Update the /api/users endpoint to:
+1. Accept an optional 'status' query parameter
+2. Filter results when status is provided
+3. Return all users when status is omitted
+
+Currently the endpoint is in src/api/users.ts
+```
+
+## Mistake 3: One Giant Prompt
+
+### The mistake
+
+```
+Build a complete e-commerce site with user auth,
+product catalog, shopping cart, checkout with
+Stripe, order history, admin dashboard,
+inventory management, email notifications,
+and analytics.
+```
+
+### Why it fails
+
+Too much for one conversation. Claude will:
+- Miss details
+- Create inconsistencies
+- Overwhelm the context window
+
+### The fix
+
+Break it down:
+
+```
+Session 1: Set up user authentication
+Session 2: Build product catalog
+Session 3: Implement shopping cart
+...
+```
+
+## Mistake 4: Ignoring CLAUDE.md
+
+### The mistake
+
+Not creating a CLAUDE.md, then being frustrated when Claude:
+- Uses wrong frameworks
+- Ignores coding conventions
+- Doesn't know project structure
+
+### The fix
+
+Create CLAUDE.md with:
+- Tech stack
+- Commands
+- Code style
+- Key files
+
+Claude reads this automatically and follows it.
+
+## Mistake 5: Never Starting Fresh
+
+### The mistake
+
+Using the same session for hours:
+- Context bloats
+- Old info persists
+- Responses slow down
+- Quality degrades
+
+### The fix
+
+Start new sessions for new tasks. Use `/compact` during long sessions.
+
+## Mistake 6: Blindly Accepting Output
+
+### The mistake
+
+```
+Claude generates code → Immediately commit → Production breaks
+```
+
+### Why it fails
+
+Claude can:
+- Hallucinate APIs
+- Miss edge cases
+- Introduce subtle bugs
+
+### The fix
+
+```
+Claude generates code → Review → Test → Then commit
+```
+
+## Mistake 7: Fighting the Tool
+
+### The mistake
+
+Getting angry when Claude misunderstands:
+```
+I TOLD YOU THREE TIMES to use semicolons!!!
+```
+
+### The fix
+
+1. Check your CLAUDE.md for style rules
+2. Provide clear examples
+3. Start fresh if stuck
+4. Report actual bugs to Anthropic
+
+Claude isn't being stubborn. It literally doesn't remember.
+
+## Mistake 8: Using Wrong Model for Task
+
+### The mistake
+
+Using Opus for every simple question:
+```
+/model opus
+What's the port number in config?
+```
+
+Costs 60x more for no benefit.
+
+### The fix
+
+Match model to task:
+- Haiku: Simple questions, searches
+- Sonnet: Most coding tasks
+- Opus: Complex reasoning only
+
+## Mistake 9: Not Using Available Features
+
+### The mistake
+
+Manually doing what Claude automates:
+- Formatting code by hand (use hooks)
+- Creating boilerplate (use skills)
+- Running tests manually (use hooks)
+
+### The fix
+
+Set up:
+- Hooks for auto-formatting and tests
+- Skills for repetitive workflows
+- Custom commands for common tasks
+
+## Mistake 10: Expecting Perfect Code
+
+### The mistake
+
+```
+Write the authentication system. It should be perfect.
+```
+
+### Why it fails
+
+First drafts are never perfect. Even human experts iterate.
+
+### The fix
+
+Plan for iteration:
+```
+1. Generate initial implementation
+2. Review and identify issues
+3. Refine with specific feedback
+4. Test and fix edge cases
+5. Polish and finalize
+```
+
+## Mistake 11: Skipping the Plan
+
+### The mistake
+
+Diving into complex changes without planning:
+```
+Refactor the entire codebase to microservices
+```
+
+### The fix
+
+Use plan mode:
+```
+/plan
+Let's think through the microservices refactoring...
+```
+
+Get alignment before making changes.
+
+## Mistake 12: Ignoring Error Messages
+
+### The mistake
+
+```
+Claude: Error: Cannot find module 'xyz'
+You: Just fix it
+Claude: Error: Cannot find module 'xyz'
+You: FIX IT
+```
+
+### The fix
+
+Read the error. Provide context:
+```
+Getting "Cannot find module 'xyz'".
+I installed it with npm install xyz.
+The import is: import { thing } from 'xyz'
+What's wrong?
+```
+
+## Quick Reference
+
+| Mistake | Fix |
+|---------|-----|
+| Vague prompts | Be specific with files, lines, expectations |
+| No context | Describe current state and desired state |
+| Giant prompts | Break into multiple sessions |
+| No CLAUDE.md | Create one with tech stack and conventions |
+| Never fresh | Start new sessions for new tasks |
+| Blind trust | Review and test before committing |
+| Fighting | Clear prompts, fresh sessions |
+| Wrong model | Match model to task complexity |
+| Missing features | Use hooks, skills, commands |
+| Expecting perfect | Plan for iteration |
+
+## The Meta-Mistake
+
+The biggest mistake: treating Claude as either:
+- A magic solution that should work perfectly
+- A dumb tool that can't do anything
+
+Reality: Claude is a capable assistant that needs clear direction and reasonable expectations. Work with it, not against it.

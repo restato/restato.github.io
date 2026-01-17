@@ -1,0 +1,254 @@
+---
+title: "Fresh Context Philosophy: When to Start New Sessions"
+description: "Why starting fresh sessions often produces better results than continuing long ones."
+date: 2026-01-17
+tags: ["claude-code", "sessions", "productivity", "intermediate"]
+---
+
+Long Claude Code sessions accumulate stale context that degrades output quality. Knowing when to start fresh makes a significant difference.
+
+## The Problem with Long Sessions
+
+As sessions grow:
+
+1. **Context accumulates** - Old messages pile up
+2. **Information becomes stale** - Files change, but context remembers old versions
+3. **Focus drifts** - Early task context interferes with current work
+4. **Performance drops** - Larger context = slower responses
+5. **Costs increase** - Every message resends growing history
+
+## Signs Your Session Is Stale
+
+### Claude references deleted code
+
+```
+Claude: "Modify the validateUser function in utils.ts"
+You: "I deleted that function an hour ago"
+```
+
+### Old variable names appear
+
+```
+Claude: "Update the userName variable"
+You: "We renamed that to accountId"
+```
+
+### Repeated questions
+
+```
+Claude: "What framework are you using?"
+You: "I told you React three times already"
+```
+
+### Conflicting suggestions
+
+Claude suggests patterns that contradict earlier decisions in the same session.
+
+### Slow responses
+
+Response time increases as context bloats.
+
+## When to Start Fresh
+
+### Different task
+
+```
+Session 1: Fix login bug
+[done]
+
+Session 2: Implement search feature  ← New session
+```
+
+Different tasks need different context. Don't carry login bug context into search feature work.
+
+### Significant file changes
+
+If you've made changes outside Claude (in your IDE, via git pull, etc.), Claude's context is outdated.
+
+```bash
+git pull  # Significant changes
+claude    # Fresh session sees actual current state
+```
+
+### After major milestones
+
+```
+Completed auth system → Fresh session
+Starting payment feature → Clean context
+```
+
+### Time gaps
+
+If you step away for 30+ minutes, consider fresh:
+
+```
+# Before lunch
+claude --session "morning-work"
+[work, then lunch]
+
+# After lunch
+claude --session "afternoon-work"  ← Fresh
+```
+
+### When confused
+
+If Claude seems lost or produces inconsistent output, don't debug the session. Start fresh.
+
+## When to Continue
+
+### Same task, iterating
+
+```
+Claude: Here's the implementation
+You: Add error handling
+Claude: Here's the updated version
+You: Now add logging
+```
+
+Continuous refinement of the same thing.
+
+### Under 30 minutes
+
+Short sessions rarely have stale context issues.
+
+### Building on previous output
+
+If the next step directly depends on what Claude just produced, continue.
+
+## The Fresh Session Workflow
+
+### 1. Complete the current task
+
+Don't abandon mid-task. Finish or reach a stopping point.
+
+### 2. Commit/save your work
+
+```bash
+git add -A && git commit -m "Complete auth feature"
+```
+
+### 3. Start fresh
+
+```bash
+claude --session "new-task-name"
+```
+
+### 4. Re-establish context
+
+```
+I'm working on the payment feature.
+Key files are src/payments/ and src/lib/stripe.ts.
+We use React Query for server state.
+```
+
+Short context priming is cheaper than carrying stale history.
+
+## Cost Comparison
+
+### Long session (3 hours)
+
+```
+Start: 5k tokens
+Hour 1: 40k tokens
+Hour 2: 80k tokens
+Hour 3: 120k tokens
+
+Every message sends 120k tokens of history.
+```
+
+### Three fresh sessions (3 hours)
+
+```
+Session 1: 5k → 30k tokens (1 hour)
+Session 2: 5k → 25k tokens (1 hour)
+Session 3: 5k → 20k tokens (1 hour)
+
+Average context: ~25k tokens per message
+```
+
+Fresh sessions cost less because context doesn't compound.
+
+## Session Naming Strategy
+
+Name sessions for easy retrieval:
+
+```bash
+claude --session "feat-auth-login"
+claude --session "fix-payment-webhook"
+claude --session "refactor-api-routes"
+```
+
+Pattern: `type-area-specific`
+
+Later you can:
+```bash
+claude sessions list
+claude --resume feat-auth-login  # If needed
+```
+
+## Handoff Between Sessions
+
+### Ending a session
+
+Before exiting, ask:
+
+```
+Summarize what we accomplished and any next steps.
+```
+
+Save this summary.
+
+### Starting fresh
+
+Share the summary:
+
+```
+Last session we completed X, Y, Z.
+Next step is implementing the password reset flow.
+The relevant files are...
+```
+
+### Use /compact for handoff
+
+```
+/compact
+```
+
+Then copy the compacted summary for the next session.
+
+## Common Objections
+
+### "But Claude will forget everything"
+
+Good. That "everything" includes stale information. Re-reading current files is better than remembering outdated versions.
+
+### "It's slower to re-explain"
+
+A 30-second context prime costs less than fighting stale context for hours.
+
+### "I lose my conversation history"
+
+Sessions are saved. You can review them. But you shouldn't need to carry old context into new tasks.
+
+## Quick Decision Guide
+
+| Situation | Action |
+|-----------|--------|
+| New task | Fresh session |
+| Same task, quick iteration | Continue |
+| 30+ minutes passed | Fresh session |
+| Claude seems confused | Fresh session |
+| Major file changes | Fresh session |
+| Under 30 minutes, same work | Continue |
+| Different area of codebase | Fresh session |
+
+## The Mindset Shift
+
+Don't think of sessions as continuous work streams. Think of them as focused task containers.
+
+```
+❌ "I'll use Claude all day in one session"
+✅ "I'll use focused sessions for each task"
+```
+
+Each session is like a fresh pair of eyes. That's a feature, not a bug.

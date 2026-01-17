@@ -1,0 +1,336 @@
+---
+title: "Git Workflows with Claude Code"
+description: "How to use Claude Code for commits, branches, PRs, and code review."
+date: 2026-01-17
+tags: ["claude-code", "git", "workflow", "intermediate"]
+---
+
+Claude Code has deep git integration. It can create commits, manage branches, and even open pull requests.
+
+## Automatic Checkpoints
+
+Claude creates git checkpoints automatically before making changes:
+
+```
+Before: Working on auth feature
+Claude: [makes changes]
+After: Checkpoint created, changes saved
+```
+
+You can always roll back if something goes wrong.
+
+## Viewing Changes
+
+### See what changed
+
+```
+Show me what files were modified
+```
+
+Or:
+
+```
+Run git status
+```
+
+### View diffs
+
+```
+Show the diff for auth.ts
+```
+
+Or:
+
+```
+What changes did you make?
+```
+
+## Creating Commits
+
+### Ask Claude to commit
+
+```
+Commit these changes with an appropriate message
+```
+
+Claude will:
+1. Run `git status`
+2. Stage relevant files
+3. Write a descriptive commit message
+4. Create the commit
+
+### Conventional commits
+
+```
+Commit using conventional commit format
+```
+
+Results in:
+```
+feat(auth): add password reset functionality
+
+- Add reset password endpoint
+- Send reset email
+- Validate reset tokens
+```
+
+### Specific commit message
+
+```
+Commit with message "fix: resolve login timeout issue"
+```
+
+## Branch Management
+
+### Create a branch
+
+```
+Create a branch for the new search feature
+```
+
+### Switch branches
+
+```
+Switch to the main branch
+```
+
+### List branches
+
+```
+What branches exist?
+```
+
+## Pull Requests
+
+### Create a PR
+
+```
+Create a pull request for this branch
+```
+
+Claude will:
+1. Push the branch
+2. Generate a PR description
+3. Create the PR via GitHub CLI
+
+### PR with specifics
+
+```
+Create a PR targeting the develop branch with a detailed description
+```
+
+## Code Review
+
+### Review staged changes
+
+```
+Review my staged changes before I commit
+```
+
+### Review a PR
+
+```
+Review PR #123
+```
+
+### Get feedback
+
+```
+What could be improved in the changes I just made?
+```
+
+## Common Workflows
+
+### Feature development
+
+```
+1. Create branch: "Create a branch for user-profile-feature"
+2. Make changes: "Add the profile page component"
+3. Review: "Review these changes"
+4. Commit: "Commit with a descriptive message"
+5. PR: "Create a pull request"
+```
+
+### Bug fix
+
+```
+1. Find issue: "Find where the login bug occurs"
+2. Fix: "Fix the null pointer error"
+3. Test: "Run the auth tests"
+4. Commit: "Commit as a bug fix"
+5. PR: "Create a PR for review"
+```
+
+### Quick cleanup
+
+```
+1. Fix: "Remove unused imports from all files"
+2. Commit: "Commit as a chore"
+```
+
+## Gitignore and Sensitive Files
+
+Claude respects gitignore and won't commit sensitive files:
+
+```
+Claude will NOT commit:
+- .env files
+- API keys
+- Credentials
+- Files matching .gitignore
+```
+
+If you try:
+```
+Commit the .env file
+```
+
+Claude will warn you about committing secrets.
+
+## Conflict Resolution
+
+### Identify conflicts
+
+```
+Are there any merge conflicts?
+```
+
+### Resolve conflicts
+
+```
+Resolve the merge conflict in utils.ts, keeping our changes
+```
+
+### After resolution
+
+```
+Mark conflicts as resolved and commit
+```
+
+## Git History
+
+### Recent commits
+
+```
+Show the last 5 commits
+```
+
+### Specific file history
+
+```
+Show the commit history for auth.ts
+```
+
+### Who changed what
+
+```
+Who last modified the login function?
+```
+
+## Undoing Changes
+
+### Discard changes
+
+```
+Discard changes to auth.ts
+```
+
+### Revert a commit
+
+```
+Revert the last commit
+```
+
+### Reset to checkpoint
+
+```
+Reset to the last Claude checkpoint
+```
+
+## Stashing
+
+### Stash current work
+
+```
+Stash my current changes
+```
+
+### Apply stash
+
+```
+Apply the last stash
+```
+
+### List stashes
+
+```
+What's in my stash?
+```
+
+## Branch Protection
+
+Claude respects branch protection:
+
+```
+# Claude will refuse to:
+- Push directly to main/master
+- Force push without permission
+- Delete protected branches
+```
+
+For protected branches:
+```
+Create a PR to merge this into main
+```
+
+## Custom Git Hooks
+
+Integrate Claude with git hooks:
+
+```bash
+#!/bin/bash
+# .git/hooks/pre-commit
+
+# Run Claude to check for issues
+claude --headless "Check staged files for obvious problems"
+```
+
+## Best Practices
+
+### 1. Review before committing
+
+```
+Review the changes, then commit if they look good
+```
+
+### 2. Use descriptive messages
+
+```
+Commit with a message explaining why, not just what
+```
+
+### 3. Keep commits focused
+
+```
+Commit the auth changes separately from the UI changes
+```
+
+### 4. Don't force push
+
+```
+# Claude won't do this without explicit request
+git push --force  # Avoided by default
+```
+
+## Quick Reference
+
+| Task | Command |
+|------|---------|
+| See changes | `Show git status` |
+| Commit | `Commit these changes` |
+| New branch | `Create branch for X` |
+| Switch branch | `Switch to main` |
+| Create PR | `Create a pull request` |
+| Review PR | `Review PR #123` |
+| Undo | `Revert last commit` |
+| Stash | `Stash my changes` |

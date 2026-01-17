@@ -1,0 +1,365 @@
+---
+title: "Claude Code Headless Mode for Batch Tasks and CI/CD"
+description: "Run Claude Code without interaction for automation, scripts, and pipelines."
+date: 2026-01-17
+tags: ["claude-code", "headless", "automation", "ci-cd", "advanced"]
+---
+
+Headless mode runs Claude Code without human interaction. Essential for automation, CI/CD pipelines, and batch processing.
+
+## What Is Headless Mode
+
+Normal mode: Interactive conversation
+Headless mode: Single command, automatic execution, exit when done
+
+```bash
+# Normal (interactive)
+claude
+
+# Headless (automated)
+claude --headless "Fix all TypeScript errors in src/"
+```
+
+## Basic Usage
+
+### Single command
+
+```bash
+claude --headless "Add error handling to all API routes"
+```
+
+### With auto-accept
+
+```bash
+claude --headless --auto-accept "Run tests and fix any failures"
+```
+
+Without `--auto-accept`, Claude will pause at permission prompts (not useful in automation).
+
+### Capture output
+
+```bash
+claude --headless "Review this code" > review.txt
+```
+
+## CI/CD Integration
+
+### GitHub Actions
+
+```yaml
+name: AI Code Review
+on: [pull_request]
+
+jobs:
+  review:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Claude Code
+        run: npm install -g @anthropic-ai/claude-code
+
+      - name: Run AI Review
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+        run: |
+          claude --headless --auto-accept \
+            "Review the changes in this PR and post a summary"
+```
+
+### GitLab CI
+
+```yaml
+ai-review:
+  stage: review
+  script:
+    - npm install -g @anthropic-ai/claude-code
+    - claude --headless --auto-accept "Review the merge request changes"
+  only:
+    - merge_requests
+```
+
+### Pre-commit Hook
+
+```bash
+#!/bin/bash
+# .git/hooks/pre-commit
+
+# Run Claude to check for issues
+RESULT=$(claude --headless "Check staged files for obvious bugs or security issues")
+
+if echo "$RESULT" | grep -q "ISSUE FOUND"; then
+    echo "$RESULT"
+    exit 1
+fi
+```
+
+## Automation Scripts
+
+### Nightly code cleanup
+
+```bash
+#!/bin/bash
+# scripts/nightly-cleanup.sh
+
+claude --headless --auto-accept "
+1. Remove unused imports across the codebase
+2. Fix any linting errors
+3. Update outdated type definitions
+4. Commit changes with message 'chore: nightly cleanup'
+"
+```
+
+### Documentation generator
+
+```bash
+#!/bin/bash
+# scripts/update-docs.sh
+
+claude --headless --auto-accept "
+1. Read all public API functions in src/lib/
+2. Update docs/api.md with current signatures and descriptions
+3. Commit if changes were made
+"
+```
+
+### Test fixer
+
+```bash
+#!/bin/bash
+# scripts/fix-tests.sh
+
+npm test 2>&1 | tee /tmp/test-output.txt
+EXIT_CODE=$?
+
+if [ $EXIT_CODE -ne 0 ]; then
+    claude --headless --auto-accept \
+        "Tests failed. Output: $(cat /tmp/test-output.txt). Fix the failing tests."
+fi
+```
+
+## Batch Processing
+
+### Process multiple files
+
+```bash
+#!/bin/bash
+# Add documentation to all components
+
+for file in src/components/*.tsx; do
+    claude --headless --auto-accept \
+        "Add JSDoc comments to all exported functions in $file"
+done
+```
+
+### Bulk migrations
+
+```bash
+#!/bin/bash
+# Migrate all class components to functional
+
+for file in $(grep -l "extends React.Component" src/**/*.tsx); do
+    claude --headless --auto-accept \
+        "Convert $file from class component to functional component with hooks"
+done
+```
+
+## Error Handling
+
+### Check exit codes
+
+```bash
+claude --headless "Fix the bug"
+EXIT_CODE=$?
+
+if [ $EXIT_CODE -ne 0 ]; then
+    echo "Claude failed to complete the task"
+    exit 1
+fi
+```
+
+### Retry logic
+
+```bash
+#!/bin/bash
+MAX_RETRIES=3
+RETRY=0
+
+while [ $RETRY -lt $MAX_RETRIES ]; do
+    claude --headless --auto-accept "Complete the task" && break
+    RETRY=$((RETRY + 1))
+    echo "Attempt $RETRY failed, retrying..."
+    sleep 10
+done
+```
+
+### Timeout handling
+
+```bash
+timeout 300 claude --headless "Long running task" || echo "Task timed out"
+```
+
+## Combining with Scripts
+
+### Pre-process, then Claude
+
+```bash
+#!/bin/bash
+# Run cheap checks first, then AI
+
+# Fast local checks
+npm run lint || exit 1
+npm run typecheck || exit 1
+
+# Expensive AI analysis only if basics pass
+claude --headless "Deep code review for security issues"
+```
+
+### Claude generates, script verifies
+
+```bash
+#!/bin/bash
+# Claude writes, tests validate
+
+claude --headless --auto-accept "Write unit tests for the auth module"
+
+# Verify the tests actually pass
+npm test || {
+    echo "Generated tests fail"
+    git checkout -- tests/  # Revert
+    exit 1
+}
+```
+
+## Output Handling
+
+### JSON output for parsing
+
+```bash
+claude --headless "List all API endpoints as JSON" | jq '.endpoints[]'
+```
+
+### Structured reports
+
+```bash
+claude --headless "
+Generate a code quality report with sections:
+1. Security issues
+2. Performance concerns
+3. Code style violations
+
+Format as markdown.
+" > reports/quality-$(date +%Y%m%d).md
+```
+
+## Environment Variables
+
+Required:
+```bash
+export ANTHROPIC_API_KEY="your-key"
+```
+
+Optional:
+```bash
+export CLAUDE_MODEL="sonnet"  # Default model
+export CLAUDE_MAX_TOKENS="4096"  # Max output
+```
+
+## Common Pitfalls
+
+### Forgetting --auto-accept
+
+```bash
+# This will hang waiting for input
+claude --headless "Do something"  # Bad
+
+# This works
+claude --headless --auto-accept "Do something"  # Good
+```
+
+### No error handling
+
+```bash
+# Dangerous in scripts
+claude --headless "Fix everything"
+deploy.sh  # May deploy broken code
+
+# Better
+claude --headless "Fix everything" && npm test && deploy.sh
+```
+
+### Unbounded costs
+
+```bash
+# Could run forever and cost a lot
+while true; do
+    claude --headless "Improve the code"
+done
+
+# Better: bounded iterations
+for i in {1..3}; do
+    claude --headless "One round of improvements"
+done
+```
+
+## Security Considerations
+
+### Limit permissions in CI
+
+```json
+{
+  "permissions": {
+    "allow": [
+      "read:**/*",
+      "write:src/**/*",
+      "bash:npm test"
+    ],
+    "deny": [
+      "bash:rm *",
+      "bash:*--force*",
+      "write:.env*"
+    ]
+  }
+}
+```
+
+### Audit logs
+
+Log all headless executions:
+
+```bash
+claude --headless "$TASK" 2>&1 | tee -a /var/log/claude-automation.log
+```
+
+### Secrets management
+
+Never put secrets in the command:
+
+```bash
+# Bad
+claude --headless "Use API key sk-12345 to..."
+
+# Good
+# Put secrets in environment, reference in CLAUDE.md
+export SERVICE_API_KEY="sk-12345"
+claude --headless "Use the service API key from environment"
+```
+
+## Quick Reference
+
+```bash
+# Basic headless
+claude --headless "task"
+
+# With auto-accept (required for automation)
+claude --headless --auto-accept "task"
+
+# Save output
+claude --headless "task" > output.txt
+
+# With timeout
+timeout 300 claude --headless --auto-accept "task"
+
+# Check success
+claude --headless "task" && echo "Success" || echo "Failed"
+```

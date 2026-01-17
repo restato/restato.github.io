@@ -1,0 +1,353 @@
+---
+title: "Keeping Design Consistent with Claude Code"
+description: "How to maintain consistent code style, patterns, and architecture with CLAUDE.md and hooks."
+date: 2026-01-17
+tags: ["claude-code", "design", "consistency", "architecture", "advanced"]
+---
+
+Without guardrails, AI-generated code drifts from your project's established patterns. Here's how to maintain consistency.
+
+## The Problem
+
+You ask Claude to create a component. It uses:
+- Different naming conventions
+- Different file structure
+- Different patterns than existing code
+
+Each generation adds inconsistency. Over time, the codebase becomes a patchwork.
+
+## Solution 1: CLAUDE.md Style Guide
+
+Document your patterns explicitly:
+
+```markdown
+# Project Style Guide
+
+## Naming Conventions
+- Components: PascalCase (UserProfile.tsx)
+- Hooks: camelCase with use prefix (useAuth.ts)
+- Utils: camelCase (formatDate.ts)
+- Constants: UPPER_SNAKE_CASE
+- CSS modules: camelCase
+
+## Component Structure
+Every component follows this structure:
+
+```tsx
+// 1. Imports (external, then internal)
+import React from 'react';
+import { useAuth } from '@/hooks/useAuth';
+
+// 2. Types
+interface Props {
+  // ...
+}
+
+// 3. Component
+export function ComponentName({ prop1, prop2 }: Props) {
+  // 3a. Hooks first
+  const { user } = useAuth();
+
+  // 3b. State
+  const [value, setValue] = useState('');
+
+  // 3c. Effects
+  useEffect(() => {
+    // ...
+  }, []);
+
+  // 3d. Handlers
+  const handleClick = () => {
+    // ...
+  };
+
+  // 3e. Render
+  return (
+    <div>
+      {/* ... */}
+    </div>
+  );
+}
+```
+
+## File Organization
+```
+src/
+├── components/       # React components
+│   ├── ui/          # Generic UI (Button, Input)
+│   └── features/    # Feature-specific
+├── hooks/           # Custom hooks
+├── utils/           # Pure functions
+├── types/           # TypeScript types
+└── lib/             # External integrations
+```
+```
+
+## Solution 2: Reference Components
+
+Point Claude to examples:
+
+```markdown
+## Reference Implementations
+
+When creating new components, follow these examples:
+
+- Button patterns: `src/components/ui/Button.tsx`
+- Form patterns: `src/components/ui/Form.tsx`
+- API calls: `src/lib/api/users.ts`
+- Custom hooks: `src/hooks/useLocalStorage.ts`
+
+Always match the style of these reference files.
+```
+
+Then in prompts:
+
+```
+Create a Dropdown component following the pattern in Button.tsx
+```
+
+## Solution 3: Hooks for Enforcement
+
+Auto-format and lint after every change:
+
+```json
+{
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "write:**/*.ts",
+        "command": "npx eslint --fix"
+      },
+      {
+        "matcher": "write:**/*.tsx",
+        "command": "npx prettier --write"
+      }
+    ]
+  }
+}
+```
+
+### SwiftUI example
+
+```json
+{
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "write:**/*.swift",
+        "command": "swiftlint --fix"
+      }
+    ]
+  }
+}
+```
+
+## Solution 4: Pre-Check Hooks
+
+Validate before allowing changes:
+
+```json
+{
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "write:src/**/*",
+        "command": "node scripts/validate-patterns.js"
+      }
+    ]
+  }
+}
+```
+
+With validation script:
+
+```javascript
+// scripts/validate-patterns.js
+const file = process.env.CLAUDE_FILE_PATH;
+const content = fs.readFileSync(file, 'utf8');
+
+// Check for banned patterns
+if (content.includes('var ')) {
+  console.error('Use const/let, not var');
+  process.exit(1);
+}
+
+if (content.includes('any')) {
+  console.error('Avoid "any" type');
+  process.exit(1);
+}
+```
+
+## Solution 5: Template Skills
+
+Create skills that generate consistent code:
+
+```markdown
+# Component Skill
+
+## When invoked with /component <name>
+
+Create a new component with this exact structure:
+
+1. Create `src/components/{name}/{name}.tsx`:
+```tsx
+import styles from './{name}.module.css';
+
+interface {name}Props {
+  // Add props
+}
+
+export function {name}({ }: {name}Props) {
+  return (
+    <div className={styles.container}>
+      {/* Content */}
+    </div>
+  );
+}
+```
+
+2. Create `src/components/{name}/{name}.module.css`:
+```css
+.container {
+  /* Styles */
+}
+```
+
+3. Create `src/components/{name}/{name}.test.tsx`:
+```tsx
+import { render } from '@testing-library/react';
+import { {name} } from './{name}';
+
+describe('{name}', () => {
+  it('renders without crashing', () => {
+    render(<{name} />);
+  });
+});
+```
+
+4. Export from `src/components/index.ts`
+```
+
+Usage:
+```
+/component UserAvatar
+```
+
+## Pattern Categories to Document
+
+### 1. Error handling
+
+```markdown
+## Error Handling
+
+All async functions use try/catch with our error format:
+
+```typescript
+try {
+  const result = await operation();
+  return { data: result, error: null };
+} catch (error) {
+  logger.error(error);
+  return { data: null, error: normalizeError(error) };
+}
+```
+
+Never throw from async functions. Return error objects.
+```
+
+### 2. API calls
+
+```markdown
+## API Patterns
+
+All API calls use our fetch wrapper:
+
+```typescript
+// Good
+const users = await api.get<User[]>('/users');
+
+// Bad
+const response = await fetch('/api/users');
+```
+
+The wrapper handles auth, errors, and typing.
+```
+
+### 3. State management
+
+```markdown
+## State Management
+
+- Local UI state: useState
+- Form state: react-hook-form
+- Server state: React Query
+- Global app state: Zustand
+
+Never use Redux. Never prop-drill more than 2 levels.
+```
+
+### 4. Testing patterns
+
+```markdown
+## Testing Conventions
+
+- File location: Next to source (Component.test.tsx)
+- Test IDs: data-testid="component-action"
+- Mocking: Use msw for API mocks
+- Naming: "should [expected behavior] when [condition]"
+```
+
+## Checking Consistency
+
+### Manual review
+
+```
+Review the last 5 components I created.
+Are they consistent with the patterns in CLAUDE.md?
+List any deviations.
+```
+
+### Automated check
+
+```
+Compare all components in src/components/ against
+the patterns in CLAUDE.md.
+Create a report of inconsistencies.
+```
+
+## Fixing Inconsistencies
+
+### Gradual alignment
+
+```
+The Button.tsx component doesn't follow our current patterns.
+Refactor it to match the style in CLAUDE.md.
+```
+
+### Batch fixing
+
+```
+Find all components using class components.
+Convert them to functional components with hooks.
+Follow the patterns in src/components/ui/Button.tsx.
+```
+
+## Quick Reference
+
+| Method | When to Use |
+|--------|-------------|
+| CLAUDE.md style guide | Always (baseline) |
+| Reference components | Complex patterns |
+| PostToolUse hooks | Auto-formatting |
+| PreToolUse hooks | Strict enforcement |
+| Template skills | Repeatable structures |
+
+## Consistency Checklist
+
+- [ ] Naming conventions documented
+- [ ] File structure documented
+- [ ] Code patterns with examples
+- [ ] Reference implementations identified
+- [ ] Formatter hooks configured
+- [ ] Linter hooks configured
+- [ ] Template skills for common structures

@@ -1,0 +1,350 @@
+---
+title: "Testing Automation Patterns with Claude Code"
+description: "Automate test creation, execution, and fixing with Claude Code hooks and scripts."
+date: 2026-01-17
+tags: ["claude-code", "testing", "automation", "advanced"]
+---
+
+Claude Code can automate significant parts of your testing workflow: writing tests, running them, and fixing failures.
+
+## Test Generation
+
+### Generate tests for new code
+
+```
+Write comprehensive tests for the UserService class:
+- Unit tests for each public method
+- Edge cases for error handling
+- Mock external dependencies
+```
+
+### Generate tests for existing code
+
+```
+The auth module at src/auth/ has no tests.
+Create a test suite covering:
+- Login flow
+- Token refresh
+- Logout
+- Error cases
+```
+
+### TDD workflow
+
+```
+I want to implement a password strength checker.
+First, write the failing tests, then I'll implement.
+```
+
+## Auto-Run Tests After Changes
+
+### Using hooks
+
+Create `.claude/settings.json`:
+
+```json
+{
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "write:src/**/*.ts",
+        "command": "npm test -- --related"
+      }
+    ]
+  }
+}
+```
+
+Now tests run automatically after Claude modifies source files.
+
+### Specific test runner
+
+```json
+{
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "write:src/**/*.tsx",
+        "command": "npm test -- --findRelatedTests"
+      }
+    ]
+  }
+}
+```
+
+## Fix Failing Tests
+
+### Manual trigger
+
+```
+Run npm test. If any tests fail, fix them.
+Continue until all tests pass.
+```
+
+### Automated fix loop
+
+```bash
+#!/bin/bash
+# scripts/fix-tests.sh
+
+MAX_ATTEMPTS=5
+ATTEMPT=0
+
+while [ $ATTEMPT -lt $MAX_ATTEMPTS ]; do
+    npm test 2>&1 | tee /tmp/test-output.txt
+
+    if [ ${PIPESTATUS[0]} -eq 0 ]; then
+        echo "All tests pass!"
+        exit 0
+    fi
+
+    ATTEMPT=$((ATTEMPT + 1))
+    echo "Attempt $ATTEMPT: Fixing failures..."
+
+    claude --headless --auto-accept \
+        "Tests failed with output: $(cat /tmp/test-output.txt). Fix the failing tests."
+done
+
+echo "Could not fix tests after $MAX_ATTEMPTS attempts"
+exit 1
+```
+
+## Test Coverage Integration
+
+### Check coverage after changes
+
+```json
+{
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "write:src/**/*",
+        "command": "npm run test:coverage -- --changedSince=HEAD"
+      }
+    ]
+  }
+}
+```
+
+### Improve coverage
+
+```
+Run coverage report. For any file below 80% coverage,
+add tests to reach at least 80%.
+```
+
+## CI Integration
+
+### GitHub Actions: Test on PR
+
+```yaml
+name: AI Test Review
+on: [pull_request]
+
+jobs:
+  test-review:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Run Tests
+        run: npm test 2>&1 | tee test-output.txt
+        continue-on-error: true
+
+      - name: AI Analysis
+        if: failure()
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+        run: |
+          npm install -g @anthropic-ai/claude-code
+          claude --headless "Analyze test failures: $(cat test-output.txt). Suggest fixes."
+```
+
+### Auto-fix in PR
+
+```yaml
+- name: Auto-fix Tests
+  if: failure()
+  run: |
+    claude --headless --auto-accept "Fix failing tests"
+    git add -A
+    git commit -m "fix: auto-fix failing tests" || true
+    git push
+```
+
+## Test Patterns
+
+### Pattern 1: Write tests first (TDD)
+
+```
+I'm implementing a shopping cart.
+Write failing tests for:
+1. Add item to cart
+2. Remove item from cart
+3. Calculate total
+4. Apply discount code
+
+Don't implement yet, just the tests.
+```
+
+### Pattern 2: Test after implementation
+
+```
+I just implemented the PaymentProcessor class.
+Write comprehensive tests covering:
+- Successful payment
+- Declined payment
+- Network errors
+- Validation errors
+- Edge cases (zero amount, negative, overflow)
+```
+
+### Pattern 3: Mutation testing style
+
+```
+Review my tests for the UserValidator.
+Are there any bugs that could slip through?
+Write additional tests to catch edge cases I missed.
+```
+
+## Snapshot Testing
+
+### Generate snapshots
+
+```
+Create snapshot tests for all components in src/components/
+```
+
+### Update snapshots
+
+```
+Several snapshot tests are failing due to intentional UI changes.
+Review each failure and update snapshots if the change is correct.
+```
+
+## Integration Testing
+
+### Generate integration tests
+
+```
+Create integration tests for the user registration flow:
+1. API receives registration request
+2. Validates input
+3. Creates user in database
+4. Sends welcome email
+5. Returns success response
+
+Test the full flow, not mocked.
+```
+
+### Database test setup
+
+```
+Create test fixtures for the user and order tables.
+Include:
+- Normal users
+- Admin users
+- Users with orders
+- Users without orders
+- Edge cases (long names, special characters)
+```
+
+## Quick Test Commands
+
+Add to CLAUDE.md:
+
+```markdown
+## Testing Commands
+
+- `npm test` - Run all tests
+- `npm test -- --watch` - Watch mode
+- `npm test -- --coverage` - With coverage
+- `npm test -- -t "pattern"` - Run matching tests
+- `npm test -- --changedSince=main` - Only changed files
+```
+
+Claude can then use these effectively.
+
+## Testing Hooks Reference
+
+```json
+{
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "write:src/**/*",
+        "command": "npm test -- --bail --findRelatedTests",
+        "onError": "warn"
+      }
+    ],
+    "SessionEnd": [
+      {
+        "command": "npm run test:coverage",
+        "onError": "ignore"
+      }
+    ]
+  }
+}
+```
+
+## Debugging Test Failures
+
+### Get detailed output
+
+```
+Run npm test with verbose output.
+For each failure, explain:
+1. What the test expects
+2. What actually happened
+3. Why it might be failing
+4. How to fix it
+```
+
+### Isolate flaky tests
+
+```
+This test sometimes passes, sometimes fails.
+Analyze for:
+- Race conditions
+- Timing dependencies
+- Shared state
+- Random data issues
+
+Make it deterministic.
+```
+
+## Best Practices
+
+### 1. Run tests before committing
+
+```bash
+# In CLAUDE.md or as a skill
+Always run tests before suggesting a commit.
+```
+
+### 2. Don't skip tests
+
+```bash
+# Tell Claude not to disable failing tests
+Never use .skip() or .only(). Fix the tests instead.
+```
+
+### 3. Maintain test quality
+
+```
+When writing tests, ensure:
+- Descriptive test names
+- Single assertion per test when practical
+- Proper cleanup in afterEach
+- No interdependent tests
+```
+
+## Quick Reference
+
+| Goal | Command |
+|------|---------|
+| Generate tests | "Write tests for X" |
+| Fix failures | "Run tests, fix failures" |
+| Improve coverage | "Add tests for files below 80%" |
+| Auto-run on change | PostToolUse hook |
+| CI integration | Headless mode in pipeline |

@@ -1,0 +1,351 @@
+---
+title: "Claude Code Hooks: Automate Tasks on Every Change"
+description: "Set up hooks to auto-format, lint, test, and validate code after Claude makes changes."
+date: 2026-01-17
+tags: ["claude-code", "hooks", "automation", "intermediate"]
+---
+
+Hooks run shell commands automatically when Claude performs actions. Use them to enforce code quality without manual intervention.
+
+## What Are Hooks
+
+Hooks are shell commands that execute at specific lifecycle events:
+
+| Hook | When It Runs |
+|------|-------------|
+| PreToolUse | Before Claude uses a tool |
+| PostToolUse | After Claude uses a tool |
+| SessionStart | When session begins |
+| SessionEnd | When session ends |
+
+## Basic Setup
+
+Create `.claude/settings.json` in your project:
+
+```json
+{
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "write:**/*.ts",
+        "command": "npx prettier --write"
+      }
+    ]
+  }
+}
+```
+
+Now Prettier runs automatically after Claude writes any TypeScript file.
+
+## Common Hook Patterns
+
+### Auto-format on save
+
+```json
+{
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "write:**/*.ts",
+        "command": "npx prettier --write && npx eslint --fix"
+      },
+      {
+        "matcher": "write:**/*.tsx",
+        "command": "npx prettier --write && npx eslint --fix"
+      },
+      {
+        "matcher": "write:**/*.css",
+        "command": "npx prettier --write"
+      }
+    ]
+  }
+}
+```
+
+### Run tests after changes
+
+```json
+{
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "write:src/**/*",
+        "command": "npm test -- --bail --findRelatedTests"
+      }
+    ]
+  }
+}
+```
+
+### Type checking
+
+```json
+{
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "write:**/*.ts",
+        "command": "npx tsc --noEmit"
+      }
+    ]
+  }
+}
+```
+
+### SwiftLint for iOS
+
+```json
+{
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "write:**/*.swift",
+        "command": "swiftlint --fix --path"
+      }
+    ]
+  }
+}
+```
+
+## Matcher Patterns
+
+Matchers use glob patterns with tool prefixes:
+
+| Pattern | Matches |
+|---------|---------|
+| `write:**/*.ts` | Any TypeScript file write |
+| `write:src/**/*` | Any file in src/ |
+| `bash:npm *` | Any npm command |
+| `read:**/*` | Any file read |
+
+## PreToolUse: Validation Before Action
+
+Block actions that violate rules:
+
+```json
+{
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "write:.env*",
+        "command": "echo 'Cannot modify .env files' && exit 1"
+      },
+      {
+        "matcher": "bash:rm -rf *",
+        "command": "echo 'Dangerous command blocked' && exit 1"
+      }
+    ]
+  }
+}
+```
+
+If the hook exits with non-zero, the action is blocked.
+
+## SessionStart: Environment Setup
+
+Run setup commands when Claude starts:
+
+```json
+{
+  "hooks": {
+    "SessionStart": [
+      {
+        "command": "npm install"
+      },
+      {
+        "command": "git fetch origin"
+      }
+    ]
+  }
+}
+```
+
+## SessionEnd: Cleanup
+
+Run commands when session ends:
+
+```json
+{
+  "hooks": {
+    "SessionEnd": [
+      {
+        "command": "npm run test:coverage"
+      },
+      {
+        "command": "echo 'Session complete' >> ~/.claude/session.log"
+      }
+    ]
+  }
+}
+```
+
+## Error Handling
+
+Control what happens when hooks fail:
+
+```json
+{
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "write:**/*",
+        "command": "npm run lint",
+        "onError": "warn"
+      }
+    ]
+  }
+}
+```
+
+Options:
+- `"fail"` - Block the action (default for PreToolUse)
+- `"warn"` - Show warning but continue
+- `"ignore"` - Silently continue
+
+## Environment Variables
+
+Hooks receive context via environment variables:
+
+| Variable | Value |
+|----------|-------|
+| `CLAUDE_FILE_PATH` | File being operated on |
+| `CLAUDE_TOOL` | Tool being used |
+| `CLAUDE_SESSION_ID` | Current session ID |
+
+Use them in scripts:
+
+```bash
+#!/bin/bash
+# scripts/post-write.sh
+echo "Modified: $CLAUDE_FILE_PATH"
+npx prettier --write "$CLAUDE_FILE_PATH"
+```
+
+```json
+{
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "write:**/*",
+        "command": "./scripts/post-write.sh"
+      }
+    ]
+  }
+}
+```
+
+## Multiple Hooks
+
+Hooks run in order:
+
+```json
+{
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "write:**/*.ts",
+        "command": "npx prettier --write"
+      },
+      {
+        "matcher": "write:**/*.ts",
+        "command": "npx eslint --fix"
+      },
+      {
+        "matcher": "write:**/*.ts",
+        "command": "npx tsc --noEmit"
+      }
+    ]
+  }
+}
+```
+
+Order: Prettier → ESLint → TypeScript check
+
+## Debugging Hooks
+
+### Check if hooks are running
+
+Add logging:
+
+```json
+{
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "write:**/*",
+        "command": "echo 'Hook triggered for: $CLAUDE_FILE_PATH' >> /tmp/hooks.log"
+      }
+    ]
+  }
+}
+```
+
+### Test hooks manually
+
+```bash
+CLAUDE_FILE_PATH="src/test.ts" ./scripts/post-write.sh
+```
+
+## Performance Considerations
+
+Hooks add latency to every matching operation. Keep them fast:
+
+```json
+{
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "write:src/**/*",
+        "command": "npx prettier --write",
+        "timeout": 5000
+      }
+    ]
+  }
+}
+```
+
+Set timeouts to prevent hanging.
+
+## Complete Example
+
+Full setup for a TypeScript React project:
+
+```json
+{
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "write:.env*",
+        "command": "exit 1"
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "write:**/*.{ts,tsx}",
+        "command": "npx prettier --write && npx eslint --fix"
+      },
+      {
+        "matcher": "write:src/**/*",
+        "command": "npm test -- --bail --findRelatedTests --passWithNoTests",
+        "onError": "warn"
+      }
+    ],
+    "SessionEnd": [
+      {
+        "command": "npm run typecheck",
+        "onError": "ignore"
+      }
+    ]
+  }
+}
+```
+
+## Quick Reference
+
+| Goal | Hook | Matcher |
+|------|------|---------|
+| Auto-format | PostToolUse | `write:**/*.ts` |
+| Block dangerous | PreToolUse | `bash:rm *` |
+| Run tests | PostToolUse | `write:src/**/*` |
+| Setup env | SessionStart | (none) |
+| Final check | SessionEnd | (none) |

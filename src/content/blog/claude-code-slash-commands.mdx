@@ -1,0 +1,327 @@
+---
+title: "Creating Custom Slash Commands in Claude Code"
+description: "Build project-specific commands to speed up repetitive workflows."
+date: 2026-01-17
+tags: ["claude-code", "commands", "productivity", "intermediate"]
+---
+
+Slash commands are shortcuts for common tasks. Create custom ones to automate your specific workflows.
+
+## Built-in Commands
+
+Claude Code includes these by default:
+
+| Command | Action |
+|---------|--------|
+| `/help` | Show available commands |
+| `/clear` | Clear conversation |
+| `/compact` | Reduce context size |
+| `/model` | Switch models |
+| `/exit` | Exit Claude Code |
+
+## Creating Custom Commands
+
+### Project commands
+
+Create `.claude/commands/` in your project:
+
+```
+.claude/
+└── commands/
+    ├── test.md
+    ├── deploy.md
+    └── review.md
+```
+
+### Command file format
+
+Each `.md` file defines a command:
+
+```markdown
+---
+name: test
+description: Run tests for changed files
+---
+
+Run tests for files changed since the last commit:
+
+1. Get list of changed files with `git diff --name-only HEAD~1`
+2. Run `npm test -- --findRelatedTests` for those files
+3. Report any failures
+```
+
+Now use it:
+```
+/test
+```
+
+## Command Examples
+
+### /deploy
+
+```markdown
+---
+name: deploy
+description: Deploy to production
+---
+
+Deploy the application:
+
+1. Run `npm run build`
+2. Run `npm test`
+3. If both pass, run `./scripts/deploy.sh`
+4. Report the deployment status
+```
+
+### /review
+
+```markdown
+---
+name: review
+description: Review staged changes
+---
+
+Review the staged git changes:
+
+1. Run `git diff --staged`
+2. Check for:
+   - Potential bugs
+   - Security issues
+   - Missing tests
+   - Code style problems
+3. Provide specific feedback for each issue found
+```
+
+### /component
+
+```markdown
+---
+name: component
+description: Create a new React component
+arguments:
+  - name: componentName
+    description: Name of the component
+    required: true
+---
+
+Create a new React component called {{componentName}}:
+
+1. Create `src/components/{{componentName}}/{{componentName}}.tsx`
+2. Create `src/components/{{componentName}}/{{componentName}}.module.css`
+3. Create `src/components/{{componentName}}/{{componentName}}.test.tsx`
+4. Export from `src/components/index.ts`
+
+Use our standard component template with TypeScript.
+```
+
+Usage:
+```
+/component UserProfile
+```
+
+### /fix-imports
+
+```markdown
+---
+name: fix-imports
+description: Clean up imports in changed files
+---
+
+Fix imports in all modified files:
+
+1. Get modified files with `git status --short`
+2. For each file:
+   - Remove unused imports
+   - Sort imports alphabetically
+   - Group: external, then internal, then relative
+3. Run `npm run lint -- --fix`
+```
+
+## Commands with Arguments
+
+Define arguments in frontmatter:
+
+```markdown
+---
+name: create-api
+description: Create a new API endpoint
+arguments:
+  - name: method
+    description: HTTP method (get, post, put, delete)
+    required: true
+  - name: path
+    description: API path (e.g., /users)
+    required: true
+---
+
+Create a new {{method}} endpoint at {{path}}:
+
+1. Create handler in `src/api/{{path}}.ts`
+2. Add route to `src/api/routes.ts`
+3. Create tests in `src/api/{{path}}.test.ts`
+4. Update API documentation
+```
+
+Usage:
+```
+/create-api post /users/login
+```
+
+## Personal Commands
+
+Create user-wide commands in `~/.claude/commands/`:
+
+```
+~/.claude/
+└── commands/
+    ├── standup.md
+    └── timesheet.md
+```
+
+These work in all projects.
+
+## Command Organization
+
+### By workflow
+
+```
+.claude/commands/
+├── dev/
+│   ├── start.md
+│   ├── test.md
+│   └── lint.md
+├── git/
+│   ├── commit.md
+│   ├── pr.md
+│   └── review.md
+└── docs/
+    ├── api.md
+    └── readme.md
+```
+
+### Naming conventions
+
+- Use lowercase
+- Use hyphens for multi-word: `/fix-types`
+- Keep names short but descriptive
+
+## Listing Custom Commands
+
+See all available commands:
+
+```
+/help
+```
+
+Or:
+
+```
+What custom commands are available?
+```
+
+## Command Best Practices
+
+### 1. Keep commands focused
+
+```markdown
+# Good - single purpose
+---
+name: lint
+---
+Run linter and fix issues automatically.
+
+# Bad - too many things
+---
+name: do-everything
+---
+Run linter, tests, build, deploy, and update docs.
+```
+
+### 2. Include error handling
+
+```markdown
+---
+name: deploy
+---
+
+Deploy the application:
+
+1. Run `npm test`
+2. If tests fail, stop and report errors
+3. Run `npm run build`
+4. If build fails, stop and report errors
+5. Deploy only if both pass
+```
+
+### 3. Be explicit about steps
+
+```markdown
+---
+name: pr
+---
+
+Create a pull request:
+
+1. Check current branch is not main
+2. Push current branch to origin
+3. Create PR with title from last commit message
+4. Add appropriate labels based on changed files
+5. Return the PR URL
+```
+
+### 4. Reference project conventions
+
+```markdown
+---
+name: component
+---
+
+Create component following our conventions in CLAUDE.md:
+- Use functional components
+- Use CSS modules
+- Include tests
+- Export from index
+```
+
+## Debugging Commands
+
+### Test a command
+
+```
+Run /test in dry-run mode - show what you would do without doing it
+```
+
+### Check command loading
+
+```
+List all loaded commands and their sources
+```
+
+## Quick Reference
+
+```markdown
+# .claude/commands/my-command.md
+
+---
+name: my-command
+description: What it does
+arguments:
+  - name: arg1
+    description: First argument
+    required: true
+  - name: arg2
+    description: Optional argument
+    required: false
+---
+
+Instructions for Claude:
+
+1. Step one with {{arg1}}
+2. Step two with {{arg2}}
+3. Final step
+```
+
+| Location | Scope |
+|----------|-------|
+| `.claude/commands/` | Project only |
+| `~/.claude/commands/` | All projects |

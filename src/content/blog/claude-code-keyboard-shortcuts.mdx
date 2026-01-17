@@ -1,0 +1,237 @@
+---
+title: "Claude Code Keyboard Shortcuts Cheat Sheet"
+description: "Essential keyboard shortcuts to speed up your Claude Code workflow."
+date: 2026-01-17
+tags: ["claude-code", "shortcuts", "productivity", "beginner"]
+---
+
+Learning keyboard shortcuts makes Claude Code significantly faster to use. Here are the essential ones.
+
+## Basic Navigation
+
+| Shortcut | Action |
+|----------|--------|
+| `Ctrl+C` | Cancel current operation |
+| `Ctrl+D` | Exit Claude Code |
+| `Ctrl+L` | Clear screen |
+| `Ctrl+R` | Search command history |
+| `Up/Down` | Navigate through history |
+
+## Input Editing
+
+| Shortcut | Action |
+|----------|--------|
+| `Ctrl+A` | Move to beginning of line |
+| `Ctrl+E` | Move to end of line |
+| `Ctrl+W` | Delete word before cursor |
+| `Ctrl+U` | Delete entire line |
+| `Ctrl+K` | Delete from cursor to end |
+| `Alt+B` | Move back one word |
+| `Alt+F` | Move forward one word |
+
+## Multi-line Input
+
+| Shortcut | Action |
+|----------|--------|
+| `Shift+Enter` | New line without sending |
+| `Enter` | Send message |
+| `Ctrl+Enter` | Send message (alternative) |
+
+Use `Shift+Enter` for multi-line prompts:
+
+```
+Create a function that:
+- Takes a user object
+- Validates the email
+- Returns a formatted string
+```
+
+## Response Control
+
+| Shortcut | Action |
+|----------|--------|
+| `Ctrl+C` | Stop generation |
+| `Space` | Pause/resume scrolling |
+| `q` | Stop scrolling and return to input |
+
+## Permission Prompts
+
+When Claude asks for permission:
+
+| Key | Action |
+|-----|--------|
+| `y` | Yes, allow once |
+| `n` | No, deny |
+| `a` | Always allow this type |
+| `Enter` | Accept default (usually yes) |
+
+## Vim Mode
+
+Enable vim mode for vim-style editing:
+
+```bash
+claude config set vim-mode true
+```
+
+Then you get:
+
+| Mode | Shortcut | Action |
+|------|----------|--------|
+| Normal | `i` | Enter insert mode |
+| Normal | `a` | Enter insert mode after cursor |
+| Normal | `dd` | Delete line |
+| Normal | `yy` | Yank (copy) line |
+| Normal | `p` | Paste |
+| Normal | `/` | Search |
+| Insert | `Esc` | Return to normal mode |
+| Normal | `h/j/k/l` | Navigate |
+| Normal | `w/b` | Word forward/back |
+| Normal | `0/$` | Line start/end |
+
+## Quick Commands
+
+Type these at the prompt:
+
+| Command | Action |
+|---------|--------|
+| `/help` | Show all commands |
+| `/clear` | Clear conversation |
+| `/compact` | Reduce context size |
+| `/model sonnet` | Switch to Sonnet |
+| `/model haiku` | Switch to Haiku |
+| `/model opus` | Switch to Opus |
+| `/exit` | Exit Claude Code |
+
+## Session Management
+
+| Command | Action |
+|---------|--------|
+| `/session list` | Show all sessions |
+| `/session save` | Save current session |
+| `/session load <name>` | Load a session |
+
+## File Operations
+
+| Command | Action |
+|---------|--------|
+| `/read <file>` | Read a file |
+| `/edit <file>` | Focus on editing a file |
+
+## Tips for Faster Workflow
+
+### 1. Use history navigation
+
+Press `Up` to recall previous prompts. Edit and resend.
+
+### 2. Abbreviate when possible
+
+Claude understands context:
+
+```
+# Instead of this
+Read the file located at src/components/Button.tsx
+
+# Just type
+Read src/components/Button.tsx
+```
+
+### 3. Use tab completion
+
+Tab completes file paths (in most terminals):
+
+```
+Read src/com[TAB] → src/components/
+```
+
+### 4. Chain commands with semicolons
+
+```
+Read package.json; show me the dependencies
+```
+
+### 5. Use multi-line for complex prompts
+
+```
+[Shift+Enter]
+Create a function that:
+[Shift+Enter]
+1. Fetches user data
+[Shift+Enter]
+2. Validates the response
+[Shift+Enter]
+3. Caches the result
+[Enter]
+```
+
+## Customizing Shortcuts
+
+You can customize shortcuts in settings:
+
+```bash
+claude config set shortcuts.clear "Ctrl+K"
+claude config set shortcuts.exit "Ctrl+Q"
+```
+
+## Platform-Specific Notes
+
+### macOS
+
+- Use `Cmd` instead of `Ctrl` for some operations
+- `Cmd+K` clears terminal in most terminal apps
+
+### Windows
+
+- All `Ctrl` shortcuts work as expected
+- Some terminals may capture shortcuts differently
+
+### Linux
+
+- Standard terminal shortcuts apply
+- May vary by terminal emulator
+
+## Quick Reference Card
+
+Print this for your desk:
+
+```
+ESSENTIAL
+─────────────────────────────
+Ctrl+C      Cancel/Stop
+Ctrl+L      Clear screen
+Up/Down     History
+Shift+Enter Multi-line
+
+EDITING
+─────────────────────────────
+Ctrl+A      Start of line
+Ctrl+E      End of line
+Ctrl+W      Delete word
+Ctrl+U      Delete line
+
+COMMANDS
+─────────────────────────────
+/help       Show help
+/clear      Clear chat
+/compact    Save tokens
+/model X    Switch model
+
+PERMISSIONS
+─────────────────────────────
+y           Allow once
+n           Deny
+a           Always allow
+```
+
+## Practice Exercise
+
+Try this sequence to practice:
+
+1. Start Claude Code: `claude`
+2. Type a prompt, press `Up` to see history
+3. Use `Ctrl+A` to go to start, `Ctrl+E` to end
+4. Try multi-line with `Shift+Enter`
+5. Use `/clear` to reset
+6. Try `/model haiku` then `/model sonnet`
+7. Exit with `Ctrl+D` or `/exit`
+
+Within a few days, these become muscle memory.

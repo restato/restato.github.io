@@ -1,0 +1,288 @@
+---
+title: "Scripting for Token Efficiency in Claude Code"
+description: "Use bash scripts to reduce Claude Code token usage and automate repetitive tasks."
+date: 2026-01-17
+tags: ["claude-code", "scripting", "automation", "intermediate"]
+---
+
+Claude Code is great for thinking tasks, but expensive for mechanical ones. Moving repetitive work to scripts saves tokens and speeds up workflows.
+
+## The Problem
+
+Every Claude Code interaction costs tokens:
+
+```
+"Run npm test"            → ~50 tokens
+"Run npm run build"       → ~50 tokens
+"Check git status"        → ~50 tokens
+"Format the code"         → ~50 tokens
+```
+
+These simple commands don't need AI. They're wasting tokens on execution, not reasoning.
+
+## The Solution: Scripts
+
+Move mechanical tasks to bash scripts. Let Claude focus on decisions.
+
+### Before: Claude does everything
+
+```
+Run npm test
+[waits for Claude to execute]
+
+If tests pass, run the build
+[waits for Claude to execute]
+
+Then check for lint errors
+[waits for Claude to execute]
+```
+
+Token cost: ~500 tokens for simple commands
+
+### After: Script handles execution
+
+```bash
+#!/bin/bash
+# check.sh
+npm test && npm run build && npm run lint
+```
+
+Then with Claude:
+```
+Run ./check.sh and analyze any failures
+```
+
+Token cost: ~100 tokens, and Claude only engages if there's a problem
+
+## Scripts to Create
+
+### 1. Pre-commit check
+
+```bash
+#!/bin/bash
+# pre-check.sh
+set -e
+
+echo "Running tests..."
+npm test
+
+echo "Running linter..."
+npm run lint
+
+echo "Type checking..."
+npm run typecheck
+
+echo "All checks passed!"
+```
+
+### 2. Build and verify
+
+```bash
+#!/bin/bash
+# build.sh
+set -e
+
+npm run build
+echo "Build size:"
+du -sh dist/
+```
+
+### 3. Quick status
+
+```bash
+#!/bin/bash
+# status.sh
+echo "=== Git Status ==="
+git status --short
+
+echo -e "\n=== Recent Commits ==="
+git log --oneline -5
+
+echo -e "\n=== Branch ==="
+git branch --show-current
+```
+
+### 4. Setup environment
+
+```bash
+#!/bin/bash
+# setup.sh
+npm install
+cp .env.example .env
+npm run migrate
+echo "Ready to develop!"
+```
+
+## Integration Patterns
+
+### Pattern 1: Script first, Claude if needed
+
+```bash
+# In terminal
+./check.sh
+
+# If it fails, then ask Claude
+claude "The pre-check script failed with: [paste error]. Fix it."
+```
+
+### Pattern 2: Claude calls scripts
+
+In CLAUDE.md:
+```markdown
+## Scripts
+- `./scripts/check.sh` - Run all pre-commit checks
+- `./scripts/build.sh` - Build and show stats
+- `./scripts/status.sh` - Quick project status
+```
+
+Then Claude can use them:
+```
+Run the check script and tell me if anything fails
+```
+
+### Pattern 3: Headless automation
+
+```bash
+#!/bin/bash
+# ai-review.sh
+
+# Run checks first (cheap, no AI)
+./scripts/check.sh || exit 1
+
+# Only call Claude for review (expensive, needs AI)
+claude --headless "Review the staged changes and suggest improvements"
+```
+
+## What Should Be Scripts vs Claude
+
+### Scripts (no AI needed):
+- Running tests
+- Building projects
+- Formatting code
+- Installing dependencies
+- Git operations (add, commit, push)
+- File operations (copy, move, delete)
+- Starting dev servers
+
+### Claude (AI adds value):
+- Analyzing test failures
+- Explaining code
+- Suggesting fixes
+- Reviewing changes
+- Making decisions
+- Writing new code
+
+## Token Savings Calculation
+
+### Scenario: Daily development
+
+Without scripts:
+```
+10 test runs × 100 tokens = 1,000 tokens
+5 builds × 100 tokens = 500 tokens
+20 git commands × 50 tokens = 1,000 tokens
+Daily total: 2,500 tokens on mechanical tasks
+```
+
+With scripts:
+```
+10 test runs: 0 tokens (script handles)
+5 builds: 0 tokens (script handles)
+20 git commands: 0 tokens (script handles)
+1 Claude session analyzing failures: 500 tokens
+Daily total: 500 tokens
+```
+
+Savings: 80%
+
+## Advanced: Combining Scripts and Claude
+
+### Conditional AI engagement
+
+```bash
+#!/bin/bash
+# smart-test.sh
+
+# Run tests
+npm test 2>&1 | tee /tmp/test-output.txt
+EXIT_CODE=$?
+
+if [ $EXIT_CODE -ne 0 ]; then
+    # Only invoke Claude if tests fail
+    claude --headless "Tests failed. Output: $(cat /tmp/test-output.txt). Diagnose and fix."
+fi
+```
+
+### Batch processing
+
+```bash
+#!/bin/bash
+# fix-all.sh
+
+# Find all TODO comments
+TODOS=$(grep -r "TODO" src/ --include="*.ts")
+
+if [ -n "$TODOS" ]; then
+    claude --headless "Address these TODOs: $TODOS"
+fi
+```
+
+### Scheduled optimization
+
+```bash
+#!/bin/bash
+# weekly-review.sh (run via cron)
+
+# Generate stats (cheap)
+echo "=== Weekly Stats ===" > /tmp/weekly.txt
+git shortlog -sn --since="1 week ago" >> /tmp/weekly.txt
+npm run test:coverage >> /tmp/weekly.txt
+
+# AI summarizes (once per week)
+claude --headless "Summarize this weekly report: $(cat /tmp/weekly.txt)"
+```
+
+## Script Organization
+
+```
+project/
+├── scripts/
+│   ├── check.sh       # Pre-commit checks
+│   ├── build.sh       # Build commands
+│   ├── status.sh      # Quick status
+│   ├── setup.sh       # Environment setup
+│   └── ai/
+│       ├── review.sh  # AI code review
+│       └── fix.sh     # AI-assisted fixes
+└── CLAUDE.md          # Documents available scripts
+```
+
+## Document Scripts in CLAUDE.md
+
+```markdown
+## Available Scripts
+
+### Development
+- `./scripts/check.sh` - Run tests, lint, typecheck
+- `./scripts/build.sh` - Production build
+- `./scripts/dev.sh` - Start dev server
+
+### AI-Assisted
+- `./scripts/ai/review.sh` - Code review with Claude
+- `./scripts/ai/fix.sh <file>` - Fix issues in file
+
+Use scripts for mechanical tasks. Only call me for analysis.
+```
+
+## Quick Reference
+
+| Task | Method | Token Cost |
+|------|--------|------------|
+| Run tests | Script | 0 |
+| Analyze failure | Claude | ~200 |
+| Build project | Script | 0 |
+| Review build | Claude | ~300 |
+| Git commit | Script | 0 |
+| Write message | Claude | ~100 |
+| Format code | Script | 0 |
+| Refactor code | Claude | ~500 |

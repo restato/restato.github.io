@@ -1,0 +1,298 @@
+---
+title: "Claude Code Subagents: Parallel Exploration and Analysis"
+description: "How to use subagents for faster codebase exploration and parallel task execution."
+date: 2026-01-17
+tags: ["claude-code", "subagents", "parallel", "intermediate"]
+---
+
+Subagents are separate Claude instances that run within your session. They explore and analyze in parallel while you continue working.
+
+## What Subagents Do
+
+Instead of sequentially reading files:
+
+```
+Read auth.ts       → 10 sec
+Read users.ts      → 10 sec
+Read payments.ts   → 10 sec
+Total: 30 seconds
+```
+
+Subagents work in parallel:
+
+```
+Agent 1: auth.ts     ┐
+Agent 2: users.ts    ├→ 10 seconds total
+Agent 3: payments.ts ┘
+```
+
+## Launching Subagents
+
+Ask Claude to spawn agents for parallel work:
+
+```
+Launch 3 explore agents to find:
+1. All authentication-related code
+2. All database query patterns
+3. All API endpoint definitions
+
+Summarize findings when complete.
+```
+
+Claude creates three agents that work simultaneously.
+
+## Types of Subagent Tasks
+
+### Exploration
+
+```
+Launch explore agents to:
+1. Map the directory structure
+2. Find all React components
+3. Identify external API calls
+```
+
+### Research
+
+```
+Launch agents to research:
+1. How errors are handled in this codebase
+2. What testing patterns are used
+3. How configuration is managed
+```
+
+### Analysis
+
+```
+Launch agents to analyze:
+1. Code complexity in the auth module
+2. Test coverage gaps
+3. Potential security issues
+```
+
+## When to Use Subagents
+
+### Large codebase exploration
+
+```
+I'm new to this project.
+Launch agents to explore:
+1. Core application structure
+2. Data models and schemas
+3. API layer design
+```
+
+### Pre-refactoring research
+
+```
+Before refactoring the payment system:
+Launch agents to find:
+1. All payment-related files
+2. All places that call payment functions
+3. All tests for payment code
+```
+
+### Multi-area investigation
+
+```
+Investigate why signup is slow:
+1. Check frontend form handling
+2. Check API endpoint performance
+3. Check database queries
+```
+
+## Subagent Limitations
+
+### Read-only
+
+Subagents can explore but not modify:
+
+```
+✅ Read files
+✅ Search codebase
+✅ Analyze patterns
+❌ Write files
+❌ Run commands
+❌ Make changes
+```
+
+For modifications, the main session handles it after subagent research.
+
+### Context isolation
+
+Subagents don't share context with each other or the main session:
+
+```
+Main session: Knows project history
+Subagent 1: Only knows its task
+Subagent 2: Only knows its task
+```
+
+### Limited count
+
+Maximum ~3 concurrent agents to avoid overwhelming the system.
+
+## Interpreting Results
+
+Results return as each agent completes. Claude synthesizes them:
+
+```
+Agent 1 found: [auth files summary]
+Agent 2 found: [database patterns summary]
+Agent 3 found: [API endpoints summary]
+
+Combined analysis: [synthesis of all findings]
+```
+
+## Effective Subagent Prompts
+
+### Be specific
+
+```
+# Vague - agent might waste time
+Find interesting code
+
+# Specific - focused search
+Find all functions that modify user data,
+including the file path and function signature
+```
+
+### Define scope
+
+```
+# Too broad
+Analyze the whole codebase
+
+# Scoped
+Analyze error handling patterns in src/api/
+```
+
+### Request structured output
+
+```
+Launch agent to find all API endpoints.
+Return as a list with:
+- HTTP method
+- Path
+- Handler file location
+- Required authentication
+```
+
+## Pattern: Explore-Then-Act
+
+Use subagents for research, then act on findings:
+
+```
+Step 1: Research (parallel)
+Launch agents to:
+1. Find all deprecated API usages
+2. Find the new API equivalents
+3. Check for migration docs
+
+Step 2: Act (sequential)
+Based on findings, update each deprecated call
+to use the new API.
+```
+
+## Pattern: Parallel Validation
+
+Validate before major changes:
+
+```
+Before merging this PR, verify in parallel:
+1. All tests pass
+2. No type errors
+3. No security issues
+4. Documentation is updated
+
+Report any problems found.
+```
+
+## Background Agents
+
+For long-running analysis:
+
+```
+Run this in background:
+Analyze test coverage for all modules.
+I'll continue with other work.
+
+[Later]
+Check on the background analysis.
+```
+
+## Subagent vs Multiple Sessions
+
+| Aspect | Subagents | Multiple Sessions |
+|--------|-----------|-------------------|
+| Context | Within one session | Separate sessions |
+| Write access | No | Yes |
+| Coordination | Automatic | Manual |
+| Use case | Exploration | Parallel development |
+
+Use subagents for read-only research. Use multiple sessions for parallel development.
+
+## Cost Implications
+
+Each subagent consumes tokens:
+
+```
+Main session: 50k tokens
++ Agent 1: 10k tokens
++ Agent 2: 10k tokens
++ Agent 3: 10k tokens
+= 80k total tokens
+```
+
+Use subagents when parallel savings outweigh the token cost.
+
+## Quick Reference
+
+```
+# Launch explore agents
+Launch 3 agents to explore:
+1. [area 1]
+2. [area 2]
+3. [area 3]
+
+# Launch analysis agents
+Analyze in parallel:
+1. [analysis 1]
+2. [analysis 2]
+
+# Background agent
+Run in background: [long task]
+```
+
+## Common Mistakes
+
+### Too many agents
+
+```
+# Overkill
+Launch 10 agents to search
+
+# Reasonable
+Launch 3 focused agents
+```
+
+### Using for simple tasks
+
+```
+# Wasteful - just read directly
+Launch agent to read package.json
+
+# Appropriate - parallel research
+Launch agents to analyze 20 config files
+```
+
+### Expecting writes
+
+```
+# Won't work
+Launch agent to fix all typos
+
+# Works
+Launch agent to find all typos,
+then I'll fix them
+```

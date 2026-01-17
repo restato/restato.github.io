@@ -1,0 +1,329 @@
+---
+title: "Understanding Claude Code Permission System"
+description: "How Claude Code permissions work and how to configure them for your workflow."
+date: 2026-01-17
+tags: ["claude-code", "permissions", "security", "beginner"]
+---
+
+Claude Code asks for permission before accessing files or running commands. Understanding this system helps you work efficiently while staying secure.
+
+## How Permissions Work
+
+When Claude needs to do something, it asks:
+
+```
+Claude wants to: Execute bash command "npm test"
+Allow? (y/n/always)
+```
+
+Your options:
+- `y` (yes) - Allow this one time
+- `n` (no) - Block this action
+- `always` - Allow this type of action for the session
+
+## Default Permission Categories
+
+Claude Code groups actions into categories:
+
+| Category | Examples |
+|----------|----------|
+| Read files | View source code, configs |
+| Write files | Edit code, create files |
+| Delete files | Remove files |
+| Execute commands | Run npm, git, scripts |
+| Network access | API calls, package installs |
+
+Each category can be independently configured.
+
+## Permission Modes
+
+### Interactive Mode (Default)
+
+Claude asks for each new action type:
+
+```
+Claude wants to: Read file package.json
+Allow? (y/n/always)
+```
+
+Best for: Learning Claude Code, sensitive projects
+
+### Auto-Accept Mode
+
+Accept all actions automatically:
+
+```bash
+claude --auto-accept
+```
+
+Best for: Trusted projects, automation, CI/CD
+
+### Plan Mode
+
+Claude explains what it will do before acting:
+
+```
+I'll need to:
+1. Read src/auth.ts
+2. Modify the login function
+3. Run tests
+
+Approve this plan?
+```
+
+Best for: Complex changes, careful review
+
+## Configuring Permissions
+
+### Project-level settings
+
+Create `.claude/settings.json` in your project:
+
+```json
+{
+  "permissions": {
+    "allow": [
+      "read:**/*",
+      "write:src/**/*",
+      "bash:npm test",
+      "bash:npm run build"
+    ],
+    "deny": [
+      "write:.env*",
+      "write:**/*.key",
+      "bash:rm -rf *"
+    ]
+  }
+}
+```
+
+### User-level settings
+
+For global defaults, edit `~/.claude/settings.json`:
+
+```json
+{
+  "permissions": {
+    "defaultMode": "interactive",
+    "allow": [
+      "read:**/*"
+    ]
+  }
+}
+```
+
+## Permission Patterns
+
+### Glob patterns for files
+
+```json
+{
+  "allow": [
+    "read:**/*",           // Read any file
+    "write:src/**/*",      // Write only in src/
+    "write:!**/*.env"      // Never write .env files
+  ]
+}
+```
+
+### Specific commands
+
+```json
+{
+  "allow": [
+    "bash:npm *",          // Any npm command
+    "bash:git status",     // Specific git command
+    "bash:./scripts/*"     // Scripts in scripts folder
+  ]
+}
+```
+
+### Deny patterns (take precedence)
+
+```json
+{
+  "deny": [
+    "bash:rm -rf *",       // Block dangerous deletes
+    "write:.env*",         // Protect env files
+    "bash:*--force*"       // Block force flags
+  ]
+}
+```
+
+## Common Permission Setups
+
+### Development project (relaxed)
+
+```json
+{
+  "permissions": {
+    "allow": [
+      "read:**/*",
+      "write:src/**/*",
+      "write:tests/**/*",
+      "bash:npm *",
+      "bash:git *"
+    ],
+    "deny": [
+      "write:.env*",
+      "bash:*--force*"
+    ]
+  }
+}
+```
+
+### Sensitive project (strict)
+
+```json
+{
+  "permissions": {
+    "defaultMode": "interactive",
+    "allow": [
+      "read:src/**/*"
+    ],
+    "deny": [
+      "write:**/*",
+      "bash:*"
+    ]
+  }
+}
+```
+
+### CI/CD automation
+
+```json
+{
+  "permissions": {
+    "allow": [
+      "read:**/*",
+      "write:**/*",
+      "bash:npm *",
+      "bash:git *"
+    ]
+  }
+}
+```
+
+## Security Best Practices
+
+### 1. Protect sensitive files
+
+Always deny access to:
+- `.env` files
+- API keys and secrets
+- Private keys
+- Credentials
+
+```json
+{
+  "deny": [
+    "read:.env*",
+    "read:**/*.key",
+    "read:**/*secret*",
+    "read:**/*credential*"
+  ]
+}
+```
+
+### 2. Limit write scope
+
+Only allow writes where needed:
+
+```json
+{
+  "allow": [
+    "write:src/**/*",
+    "write:tests/**/*"
+  ],
+  "deny": [
+    "write:node_modules/**/*",
+    "write:dist/**/*"
+  ]
+}
+```
+
+### 3. Be careful with bash
+
+Limit which commands can run:
+
+```json
+{
+  "allow": [
+    "bash:npm test",
+    "bash:npm run build",
+    "bash:git status",
+    "bash:git diff"
+  ],
+  "deny": [
+    "bash:rm *",
+    "bash:*sudo*",
+    "bash:*> /etc/*"
+  ]
+}
+```
+
+### 4. Use plan mode for critical changes
+
+When modifying important code:
+
+```
+/plan
+```
+
+Then review before approving.
+
+## Troubleshooting
+
+### "Permission denied" errors
+
+Check your settings:
+
+```bash
+cat .claude/settings.json
+```
+
+Verify the path pattern matches. Glob patterns are case-sensitive.
+
+### Too many permission prompts
+
+Add common actions to your allow list:
+
+```json
+{
+  "allow": [
+    "read:**/*",
+    "bash:npm *",
+    "bash:git status"
+  ]
+}
+```
+
+### Accidentally denied something
+
+Permissions reset each session. Just restart:
+
+```bash
+claude
+```
+
+Or remove the specific deny entry from settings.
+
+## Permission Inheritance
+
+Settings are merged in order (later overrides earlier):
+
+1. Global defaults (`~/.claude/settings.json`)
+2. Project settings (`.claude/settings.json`)
+3. Directory settings (`.claude/settings.json` in subdirectories)
+4. Session overrides (command line flags)
+
+## Quick Reference
+
+| Goal | Setting |
+|------|---------|
+| Allow all reads | `"allow": ["read:**/*"]` |
+| Allow specific writes | `"allow": ["write:src/**/*"]` |
+| Block dangerous commands | `"deny": ["bash:rm -rf *"]` |
+| Protect secrets | `"deny": ["read:.env*"]` |
+| Auto-accept mode | `claude --auto-accept` |
+| Plan mode | `/plan` or `claude --plan` |

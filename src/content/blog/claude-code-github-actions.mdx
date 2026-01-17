@@ -1,0 +1,358 @@
+---
+title: "Running Claude Code in GitHub Actions"
+description: "Set up Claude Code in CI/CD pipelines for automated code review, fixes, and PR management."
+date: 2026-01-17
+tags: ["claude-code", "github-actions", "ci-cd", "advanced"]
+---
+
+Claude Code runs in GitHub Actions for automated code review, issue triage, and even automatic fixes.
+
+## Basic Setup
+
+### 1. Store API key as secret
+
+In your repository:
+1. Settings → Secrets and variables → Actions
+2. New repository secret
+3. Name: `ANTHROPIC_API_KEY`
+4. Value: your API key
+
+### 2. Create workflow file
+
+Create `.github/workflows/claude-review.yml`:
+
+```yaml
+name: Claude Code Review
+
+on:
+  pull_request:
+    types: [opened, synchronize]
+
+jobs:
+  review:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install Claude Code
+        run: npm install -g @anthropic-ai/claude-code
+
+      - name: Run Review
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+        run: |
+          claude --headless --auto-accept "Review the changes in this PR"
+```
+
+## Common Workflows
+
+### PR Code Review
+
+```yaml
+name: AI Code Review
+
+on:
+  pull_request:
+    types: [opened, synchronize]
+
+jobs:
+  review:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install dependencies
+        run: npm install -g @anthropic-ai/claude-code
+
+      - name: Get changed files
+        id: changed
+        run: |
+          echo "files=$(git diff --name-only origin/${{ github.base_ref }}...HEAD | tr '\n' ' ')" >> $GITHUB_OUTPUT
+
+      - name: Review changes
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+        run: |
+          claude --headless --auto-accept "
+          Review these changed files for:
+          1. Bugs or logic errors
+          2. Security issues
+          3. Performance concerns
+          4. Code style issues
+
+          Files: ${{ steps.changed.outputs.files }}
+          " > review.txt
+
+      - name: Post review comment
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const review = fs.readFileSync('review.txt', 'utf8');
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: `## AI Code Review\n\n${review}`
+            });
+```
+
+### Auto-fix on PR
+
+```yaml
+name: Auto-fix Issues
+
+on:
+  pull_request:
+    types: [opened]
+
+jobs:
+  autofix:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.head_ref }}
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Setup
+        run: npm install -g @anthropic-ai/claude-code
+
+      - name: Fix issues
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+        run: |
+          claude --headless --auto-accept "
+          Fix any linting errors, type errors, or obvious bugs.
+          Do not change functionality.
+          "
+
+      - name: Commit fixes
+        run: |
+          git config user.name "Claude Code"
+          git config user.email "claude@anthropic.com"
+          git add -A
+          git diff --staged --quiet || git commit -m "fix: auto-fix issues"
+          git push
+```
+
+### Issue Triage
+
+```yaml
+name: Triage Issues
+
+on:
+  issues:
+    types: [opened]
+
+jobs:
+  triage:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup
+        run: npm install -g @anthropic-ai/claude-code
+
+      - name: Analyze issue
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+        id: analysis
+        run: |
+          ISSUE_BODY="${{ github.event.issue.body }}"
+          claude --headless "
+          Analyze this issue and suggest:
+          1. Appropriate labels (bug, feature, docs, etc.)
+          2. Priority (high, medium, low)
+          3. Which files might need changes
+
+          Issue: $ISSUE_BODY
+          " > analysis.txt
+
+      - name: Add labels
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const analysis = fs.readFileSync('analysis.txt', 'utf8');
+
+            // Parse labels from analysis
+            const labels = [];
+            if (analysis.includes('bug')) labels.push('bug');
+            if (analysis.includes('feature')) labels.push('enhancement');
+            if (analysis.includes('high priority')) labels.push('priority: high');
+
+            if (labels.length > 0) {
+              github.rest.issues.addLabels({
+                issue_number: context.issue.number,
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                labels: labels
+              });
+            }
+```
+
+### Scheduled Maintenance
+
+```yaml
+name: Weekly Maintenance
+
+on:
+  schedule:
+    - cron: '0 0 * * 0'  # Every Sunday
+
+jobs:
+  maintenance:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup
+        run: npm install -g @anthropic-ai/claude-code
+
+      - name: Run maintenance
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+        run: |
+          claude --headless --auto-accept "
+          1. Update any outdated dependencies that are safe
+          2. Remove unused imports
+          3. Fix any new linting warnings
+          "
+
+      - name: Create PR
+        uses: peter-evans/create-pull-request@v5
+        with:
+          title: "chore: weekly maintenance"
+          branch: "maintenance/weekly"
+          commit-message: "chore: weekly maintenance"
+```
+
+## Cost Control
+
+### Limit when it runs
+
+```yaml
+on:
+  pull_request:
+    types: [opened]  # Only on new PRs, not every push
+    paths:
+      - 'src/**'     # Only when source changes
+      - '!**.md'     # Ignore docs
+```
+
+### Use Haiku for simple tasks
+
+```yaml
+- name: Quick check
+  run: |
+    claude --headless --model haiku "Check for obvious issues"
+```
+
+### Cache results
+
+```yaml
+- name: Cache review
+  uses: actions/cache@v3
+  with:
+    path: .claude-cache
+    key: review-${{ hashFiles('src/**') }}
+
+- name: Review if not cached
+  if: steps.cache.outputs.cache-hit != 'true'
+  run: claude --headless "Review the code"
+```
+
+## Security Best Practices
+
+### Limit permissions
+
+```yaml
+permissions:
+  contents: read
+  pull-requests: write
+  issues: write
+```
+
+### Don't expose secrets in logs
+
+```yaml
+- name: Review
+  env:
+    ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+  run: |
+    claude --headless "Review" 2>&1 | grep -v "api-key"
+```
+
+### Validate before committing
+
+```yaml
+- name: Validate changes
+  run: |
+    npm test
+    npm run lint
+    npm run typecheck
+
+- name: Commit only if valid
+  if: success()
+  run: git commit -m "fix: auto-fix"
+```
+
+## Debugging
+
+### Enable verbose output
+
+```yaml
+- name: Debug run
+  env:
+    CLAUDE_DEBUG: "true"
+  run: claude --headless "task"
+```
+
+### Save outputs
+
+```yaml
+- name: Review
+  run: claude --headless "Review" > review.txt 2>&1
+
+- name: Upload logs
+  uses: actions/upload-artifact@v3
+  with:
+    name: claude-logs
+    path: review.txt
+```
+
+## Rate Limiting
+
+Handle rate limits gracefully:
+
+```yaml
+- name: Review with retry
+  run: |
+    for i in {1..3}; do
+      claude --headless "Review" && break
+      echo "Attempt $i failed, waiting..."
+      sleep 60
+    done
+```
+
+## Quick Reference
+
+| Task | Trigger | Command |
+|------|---------|---------|
+| PR Review | pull_request | `claude --headless "Review PR"` |
+| Auto-fix | pull_request | `claude --headless --auto-accept "Fix issues"` |
+| Issue triage | issues:opened | `claude --headless "Analyze issue"` |
+| Maintenance | schedule | `claude --headless --auto-accept "Cleanup"` |

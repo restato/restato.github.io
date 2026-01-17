@@ -1,0 +1,249 @@
+---
+title: "Claude Code Skills: How They Save Tokens"
+description: "Why skills reduce token usage and how to leverage on-demand loading."
+date: 2026-01-17
+tags: ["claude-code", "skills", "tokens", "intermediate"]
+---
+
+Skills are reusable command templates in Claude Code. Beyond convenience, they significantly reduce token usage through on-demand loading.
+
+## How Normal Prompts Cost Tokens
+
+Every time you ask Claude to do something, it needs context:
+
+```
+# Each time you want to commit:
+"Create a git commit following conventional commit format,
+with a clear message describing the changes, run git status first,
+check for any sensitive files, and sign the commit with..."
+```
+
+This prompt costs ~100 tokens. Do it 10 times a day = 1,000 tokens just on prompts.
+
+## How Skills Save Tokens
+
+Skills load their instructions only when invoked:
+
+```
+/commit
+```
+
+The skill's full instructions (~500 tokens) load once, execute, then unload. Benefits:
+
+1. **No system prompt bloat** - Skills aren't in every request
+2. **Loaded on-demand** - Only when you call them
+3. **Unloaded after use** - Don't accumulate in context
+
+## Token Savings Example
+
+### Without skills (a day of commits):
+
+```
+System prompt: 3,000 tokens
++ Commit instructions: 100 tokens × 10 commits = 1,000 tokens
+Total: 4,000 tokens repeated in every request
+```
+
+### With skills:
+
+```
+System prompt: 3,000 tokens (skill not included)
++ /commit calls: 500 tokens × 10 (loaded only during commit)
+Total: 3,000 tokens in system prompt (much lighter)
+```
+
+The skill instructions don't inflate your conversation context.
+
+## Creating Token-Efficient Skills
+
+### Skill structure
+
+```
+~/.claude/skills/my-skill/
+├── SKILL.md          # Instructions (loaded on-demand)
+└── config.json       # Metadata
+```
+
+### SKILL.md example
+
+```markdown
+# Commit Skill
+
+## Workflow
+1. Run `git status` to see changes
+2. Run `git diff --staged` for staged changes
+3. Create commit message following conventional commits
+4. Run `git commit -m "message"`
+
+## Message Format
+type(scope): description
+
+Types: feat, fix, docs, style, refactor, test, chore
+```
+
+### config.json
+
+```json
+{
+  "name": "commit",
+  "description": "Create conventional commits",
+  "triggers": ["/commit"]
+}
+```
+
+## Built-in Skills vs Custom Skills
+
+Claude Code includes some built-in skills. Add your own for repetitive workflows:
+
+| Workflow | Save per use |
+|----------|-------------|
+| Git commits | ~100 tokens |
+| PR creation | ~200 tokens |
+| Code review | ~300 tokens |
+| Test generation | ~200 tokens |
+
+## Designing Token-Light Skills
+
+### 1. Keep instructions minimal
+
+```markdown
+# Bad: Verbose
+When the user wants to commit code, first you should carefully
+examine the changes by running git status, then you need to
+think about what kind of commit message would be appropriate...
+
+# Good: Concise
+1. Run `git status`
+2. Create conventional commit message
+3. Run `git commit -m "message"`
+```
+
+### 2. Use references instead of inline content
+
+```markdown
+# Bad: Inline examples
+Here are 50 examples of good commit messages...
+
+# Good: Reference
+Follow conventional commits format (feat, fix, docs, etc.)
+```
+
+### 3. Avoid redundant instructions
+
+```markdown
+# Bad: Repeating what Claude knows
+Remember that TypeScript is a typed language and you need
+to handle types correctly...
+
+# Good: Project-specific only
+Use strict mode. Prefer type inference over explicit types.
+```
+
+## Skill Loading Behavior
+
+When you run `/commit`:
+
+1. Claude reads SKILL.md (~500 tokens)
+2. Executes the workflow
+3. Skill context ends with the task
+4. Next message: skill not in context
+
+Compare to CLAUDE.md:
+- CLAUDE.md: Always loaded (every request)
+- Skills: Loaded on-demand (only when called)
+
+## When to Use Skills vs CLAUDE.md
+
+### Put in CLAUDE.md:
+- Project structure
+- Tech stack
+- Code style (always relevant)
+- Common commands
+
+### Put in Skills:
+- Specific workflows (commit, deploy, review)
+- Complex procedures
+- Infrequent but detailed tasks
+
+## Measuring Token Savings
+
+Before skills (everything in system prompt):
+```
+System prompt: 8,000 tokens (bloated with all instructions)
+```
+
+After skills (minimal system, on-demand loading):
+```
+System prompt: 3,000 tokens
+Skills: loaded only when needed
+```
+
+Over a day with 100 requests:
+- Before: 8,000 × 100 = 800,000 input tokens
+- After: 3,000 × 100 + skill loads = ~350,000 input tokens
+- Savings: ~50%
+
+## Creating Your First Skill
+
+### 1. Identify repetitive workflows
+
+What do you type repeatedly?
+
+### 2. Create the skill folder
+
+```bash
+mkdir -p ~/.claude/skills/my-skill
+```
+
+### 3. Write SKILL.md
+
+Keep it focused and minimal:
+
+```markdown
+# My Skill
+
+## What This Does
+[One sentence]
+
+## Steps
+1. Step one
+2. Step two
+3. Step three
+```
+
+### 4. Add config.json
+
+```json
+{
+  "name": "my-skill",
+  "description": "Does the thing",
+  "triggers": ["/my-skill", "/ms"]
+}
+```
+
+### 5. Test it
+
+```
+/my-skill
+```
+
+## Quick Reference
+
+| Aspect | CLAUDE.md | Skills |
+|--------|-----------|--------|
+| Loading | Always | On-demand |
+| Token cost | Every request | Only when called |
+| Best for | Constant context | Specific workflows |
+| Location | Project root | ~/.claude/skills/ |
+
+## Top Token-Saving Skills to Create
+
+1. `/commit` - Conventional commits
+2. `/pr` - Pull request creation
+3. `/review` - Code review checklist
+4. `/test` - Test generation
+5. `/docs` - Documentation updates
+6. `/refactor` - Refactoring workflow
+7. `/debug` - Debugging procedure
+
+Each saves 100-300 tokens per use by not bloating your system prompt.

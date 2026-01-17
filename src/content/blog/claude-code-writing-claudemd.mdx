@@ -1,0 +1,309 @@
+---
+title: "How to Write a CLAUDE.md That Actually Works"
+description: "Create effective project context files that make Claude Code understand your codebase."
+date: 2026-01-17
+tags: ["claude-code", "claudemd", "configuration", "beginner"]
+---
+
+CLAUDE.md is a file that tells Claude about your project. A good one makes Claude more helpful. A bad one wastes tokens and confuses things.
+
+## What CLAUDE.md Does
+
+When you start Claude Code in a directory with CLAUDE.md, it automatically reads it. This gives Claude:
+
+- Project context
+- Tech stack info
+- Coding conventions
+- Common commands
+- Important file locations
+
+## Where to Put It
+
+Place `CLAUDE.md` in your project root:
+
+```
+my-project/
+├── CLAUDE.md          ← Here
+├── package.json
+├── src/
+│   └── ...
+└── ...
+```
+
+You can also have subdirectory-specific files:
+
+```
+my-project/
+├── CLAUDE.md              ← Global project info
+├── src/
+│   └── CLAUDE.md          ← Frontend-specific info
+└── server/
+    └── CLAUDE.md          ← Backend-specific info
+```
+
+## Basic Structure
+
+Start simple:
+
+```markdown
+# Project Name
+
+## Tech Stack
+- Framework: Next.js 14
+- Language: TypeScript
+- Database: PostgreSQL
+- ORM: Prisma
+
+## Commands
+- `npm run dev` - Start development server
+- `npm run build` - Build for production
+- `npm test` - Run tests
+- `npm run lint` - Run linter
+
+## Project Structure
+- `src/app/` - Next.js app router pages
+- `src/components/` - React components
+- `src/lib/` - Utility functions
+- `prisma/` - Database schema and migrations
+```
+
+## What to Include
+
+### Essential: Commands
+
+Claude needs to know how to run things:
+
+```markdown
+## Commands
+- `npm run dev` - Development server (port 3000)
+- `npm test` - Jest tests
+- `npm run test:watch` - Tests in watch mode
+- `npm run lint` - ESLint
+- `npm run typecheck` - TypeScript check
+```
+
+### Essential: Code Style
+
+Prevent style arguments:
+
+```markdown
+## Code Style
+- Use functional components, not class components
+- Prefer named exports over default exports
+- Use TypeScript strict mode
+- Follow existing patterns in the codebase
+```
+
+### Useful: Architecture Overview
+
+Help Claude understand the structure:
+
+```markdown
+## Architecture
+- API routes in `src/app/api/`
+- Shared components in `src/components/ui/`
+- Business logic in `src/lib/`
+- Database queries in `src/db/`
+```
+
+### Useful: Common Patterns
+
+Show Claude how you do things:
+
+```markdown
+## Patterns
+
+### API Route Pattern
+```typescript
+export async function GET(request: Request) {
+  try {
+    const data = await fetchData();
+    return Response.json(data);
+  } catch (error) {
+    return Response.json({ error: 'Failed' }, { status: 500 });
+  }
+}
+```
+
+### Component Pattern
+```typescript
+interface Props {
+  title: string;
+  children: React.ReactNode;
+}
+
+export function Card({ title, children }: Props) {
+  return (
+    <div className="card">
+      <h2>{title}</h2>
+      {children}
+    </div>
+  );
+}
+```
+```
+
+### Optional: Key Files
+
+Point to important files:
+
+```markdown
+## Key Files
+- `src/lib/auth.ts` - Authentication logic
+- `src/lib/db.ts` - Database connection
+- `prisma/schema.prisma` - Database schema
+- `.env.example` - Environment variables template
+```
+
+## What NOT to Include
+
+### Too much detail
+
+```markdown
+# Bad: Too verbose
+This project was started in 2021 by the engineering team to solve
+the problem of customer onboarding. We went through several iterations
+and finally settled on Next.js because...
+
+# Good: Just the facts
+## Tech Stack
+- Next.js 14
+- TypeScript
+```
+
+### Obvious information
+
+```markdown
+# Bad: Stating the obvious
+JavaScript files end in .js
+React components return JSX
+
+# Good: Project-specific info
+Components use CSS Modules (*.module.css)
+```
+
+### Outdated information
+
+Keep CLAUDE.md current. Outdated info confuses Claude:
+
+```markdown
+# Bad: Outdated
+We use React 16  ← Actually using React 18
+
+# Good: Current
+We use React 18 with Server Components
+```
+
+### Sensitive information
+
+Never put secrets in CLAUDE.md:
+
+```markdown
+# Bad: Security risk
+API_KEY=sk-12345
+
+# Good: Reference .env
+See .env.example for required environment variables
+```
+
+## Real Example
+
+Here's a complete, practical CLAUDE.md:
+
+```markdown
+# E-Commerce API
+
+## Tech Stack
+- Node.js 20
+- Express
+- TypeScript
+- PostgreSQL + Prisma
+- Jest for testing
+
+## Commands
+npm run dev       # Start with hot reload
+npm run build     # Compile TypeScript
+npm test          # Run all tests
+npm run migrate   # Run database migrations
+
+## Project Structure
+src/
+├── routes/       # Express route handlers
+├── services/     # Business logic
+├── models/       # Prisma model extensions
+├── middleware/   # Auth, validation, etc.
+└── utils/        # Helper functions
+
+## Code Conventions
+- Services handle business logic, routes handle HTTP
+- All endpoints return { data, error, meta } format
+- Use Zod for request validation
+- Errors thrown in services, caught in routes
+
+## Testing
+- Unit tests: `*.test.ts` next to source files
+- Integration tests: `tests/integration/`
+- Run specific test: `npm test -- auth`
+
+## Environment
+Copy .env.example to .env for local development.
+Required: DATABASE_URL, JWT_SECRET
+```
+
+## Tips for Better CLAUDE.md
+
+### 1. Start small, add as needed
+
+Begin with commands and tech stack. Add more when Claude asks questions or makes mistakes.
+
+### 2. Update it regularly
+
+When you change patterns or add tools, update CLAUDE.md.
+
+### 3. Be specific about preferences
+
+```markdown
+# Vague
+Use good naming conventions
+
+# Specific
+- Variables: camelCase
+- Components: PascalCase
+- Files: kebab-case
+- Constants: UPPER_SNAKE_CASE
+```
+
+### 4. Include examples for complex patterns
+
+If you have non-obvious patterns, show don't tell:
+
+```markdown
+## Error Handling
+
+Always use our custom error class:
+
+```typescript
+throw new AppError('User not found', 404, 'USER_NOT_FOUND');
+```
+```
+
+### 5. Reference other documentation
+
+```markdown
+## More Info
+- API docs: docs/api.md
+- Database schema: prisma/schema.prisma
+- Deployment: docs/deployment.md
+```
+
+## Verifying It Works
+
+After creating CLAUDE.md, test it:
+
+```
+What tech stack does this project use?
+What command runs the tests?
+Show me the code style conventions for this project.
+```
+
+Claude should answer from your CLAUDE.md without reading other files.

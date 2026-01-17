@@ -1,0 +1,346 @@
+---
+title: "Claude Code MCP Basics: Connecting External Tools"
+description: "How to set up MCP servers to connect Claude Code with databases, APIs, and other tools."
+date: 2026-01-17
+tags: ["claude-code", "mcp", "integration", "intermediate"]
+---
+
+MCP (Model Context Protocol) lets Claude Code connect to external tools like databases, APIs, and services. It extends what Claude can do beyond file operations.
+
+## What Is MCP
+
+MCP is a protocol for connecting AI models to external tools:
+
+```
+Claude Code ←→ MCP Server ←→ External Tool
+                              (Database, API, etc.)
+```
+
+Examples:
+- Query a PostgreSQL database
+- Create GitHub issues
+- Fetch Sentry errors
+- Search documentation
+
+## Setting Up MCP
+
+### 1. Install an MCP server
+
+```bash
+npm install -g @anthropic-ai/mcp-server-postgres
+```
+
+### 2. Configure in Claude Code
+
+Create or edit `~/.claude/mcp.json`:
+
+```json
+{
+  "servers": {
+    "postgres": {
+      "command": "mcp-server-postgres",
+      "args": ["--connection-string", "postgresql://localhost/mydb"]
+    }
+  }
+}
+```
+
+### 3. Restart Claude Code
+
+```bash
+claude
+```
+
+Now Claude can query your database directly.
+
+## Common MCP Servers
+
+### PostgreSQL
+
+```json
+{
+  "servers": {
+    "postgres": {
+      "command": "mcp-server-postgres",
+      "args": ["--connection-string", "postgresql://user:pass@host/db"]
+    }
+  }
+}
+```
+
+Usage:
+```
+Query the users table to find all admins
+```
+
+### GitHub
+
+```json
+{
+  "servers": {
+    "github": {
+      "command": "mcp-server-github",
+      "env": {
+        "GITHUB_TOKEN": "ghp_..."
+      }
+    }
+  }
+}
+```
+
+Usage:
+```
+Create an issue in repo/name for this bug
+List open PRs that need review
+```
+
+### Sentry
+
+```json
+{
+  "servers": {
+    "sentry": {
+      "command": "mcp-server-sentry",
+      "env": {
+        "SENTRY_AUTH_TOKEN": "..."
+      }
+    }
+  }
+}
+```
+
+Usage:
+```
+What are the most common errors in the last 24 hours?
+```
+
+### Filesystem (extended)
+
+```json
+{
+  "servers": {
+    "fs": {
+      "command": "mcp-server-filesystem",
+      "args": ["--root", "/path/to/allowed/directory"]
+    }
+  }
+}
+```
+
+## Using MCP Tools
+
+Once configured, just ask Claude naturally:
+
+```
+# Database query
+Show me all orders from the last week with total > $100
+
+# GitHub
+Create a bug report for the login timeout issue
+
+# Sentry
+What's causing the spike in 500 errors?
+```
+
+Claude knows which MCP server to use based on context.
+
+## Environment Variables
+
+Store secrets in environment variables:
+
+```json
+{
+  "servers": {
+    "github": {
+      "command": "mcp-server-github",
+      "env": {
+        "GITHUB_TOKEN": "${GITHUB_TOKEN}"
+      }
+    }
+  }
+}
+```
+
+Then set in your shell:
+
+```bash
+export GITHUB_TOKEN="ghp_..."
+```
+
+## Multiple Servers
+
+Run multiple MCP servers simultaneously:
+
+```json
+{
+  "servers": {
+    "postgres": {
+      "command": "mcp-server-postgres",
+      "args": ["--connection-string", "${DATABASE_URL}"]
+    },
+    "github": {
+      "command": "mcp-server-github",
+      "env": {
+        "GITHUB_TOKEN": "${GITHUB_TOKEN}"
+      }
+    },
+    "slack": {
+      "command": "mcp-server-slack",
+      "env": {
+        "SLACK_TOKEN": "${SLACK_TOKEN}"
+      }
+    }
+  }
+}
+```
+
+## Troubleshooting
+
+### "MCP server connection failed"
+
+Check if the server is installed:
+
+```bash
+which mcp-server-postgres
+```
+
+If not found, install it:
+
+```bash
+npm install -g @anthropic-ai/mcp-server-postgres
+```
+
+### "Authentication failed"
+
+Verify credentials:
+
+```bash
+# Test database connection directly
+psql "postgresql://user:pass@host/db"
+
+# Test GitHub token
+curl -H "Authorization: token $GITHUB_TOKEN" https://api.github.com/user
+```
+
+### Server crashes
+
+Check logs:
+
+```bash
+claude --debug
+```
+
+Look for MCP-related errors.
+
+## Security Considerations
+
+### Limit database access
+
+Use read-only credentials for exploration:
+
+```json
+{
+  "servers": {
+    "postgres-readonly": {
+      "command": "mcp-server-postgres",
+      "args": ["--connection-string", "postgresql://readonly_user:pass@host/db"]
+    }
+  }
+}
+```
+
+### Scope GitHub permissions
+
+Create tokens with minimal required scopes:
+
+- `repo:read` for reading
+- `issues:write` for creating issues
+- Avoid `admin` scopes
+
+### Network isolation
+
+For sensitive databases, use SSH tunnels:
+
+```bash
+ssh -L 5432:db-server:5432 bastion-host
+```
+
+Then connect to `localhost:5432`.
+
+## Project-Specific MCP
+
+Override global MCP config per project:
+
+Create `.claude/mcp.json` in project root:
+
+```json
+{
+  "servers": {
+    "project-db": {
+      "command": "mcp-server-postgres",
+      "args": ["--connection-string", "${PROJECT_DATABASE_URL}"]
+    }
+  }
+}
+```
+
+## Available MCP Servers
+
+| Server | Purpose |
+|--------|---------|
+| mcp-server-postgres | PostgreSQL queries |
+| mcp-server-mysql | MySQL queries |
+| mcp-server-github | GitHub API |
+| mcp-server-sentry | Error tracking |
+| mcp-server-slack | Slack messaging |
+| mcp-server-filesystem | Extended file ops |
+
+Check npm for more: `npm search mcp-server`
+
+## Building Custom MCP Servers
+
+For internal tools, build custom servers:
+
+```javascript
+// my-mcp-server.js
+import { MCPServer } from '@anthropic-ai/mcp';
+
+const server = new MCPServer({
+  name: 'my-tool',
+  tools: {
+    getMetrics: {
+      description: 'Fetch application metrics',
+      parameters: { timeRange: 'string' },
+      handler: async ({ timeRange }) => {
+        // Fetch from internal API
+        return metrics;
+      }
+    }
+  }
+});
+
+server.start();
+```
+
+## Quick Reference
+
+```json
+// ~/.claude/mcp.json
+{
+  "servers": {
+    "server-name": {
+      "command": "command-to-run",
+      "args": ["--arg1", "value1"],
+      "env": {
+        "SECRET": "${ENV_VAR}"
+      }
+    }
+  }
+}
+```
+
+| Task | Example |
+|------|---------|
+| Query database | "Show users created today" |
+| GitHub issue | "Create issue for this bug" |
+| Check errors | "What's in Sentry?" |

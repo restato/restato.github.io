@@ -1,0 +1,233 @@
+---
+title: "Claude Code Token Economy: Understanding Costs"
+description: "How Claude Code token usage works and how to estimate your costs."
+date: 2026-01-17
+tags: ["claude-code", "tokens", "cost", "intermediate"]
+---
+
+Claude Code charges based on token usage. Understanding how tokens work helps you predict costs and use Claude Code efficiently.
+
+## What Are Tokens?
+
+Tokens are pieces of text. Roughly:
+- 1 token = 4 characters in English
+- 100 tokens = about 75 words
+- 1,000 tokens = about 750 words
+
+Code is less predictable:
+- Short variable names = fewer tokens
+- Long class names = more tokens
+- Comments add tokens too
+
+## How Costs Are Calculated
+
+You pay for:
+1. **Input tokens** - What you send (prompts, file contents)
+2. **Output tokens** - What Claude generates (responses, code)
+
+Pricing varies by model (approximate as of 2025):
+
+| Model | Input | Output |
+|-------|-------|--------|
+| Haiku | $0.25/1M tokens | $1.25/1M tokens |
+| Sonnet | $3/1M tokens | $15/1M tokens |
+| Opus | $15/1M tokens | $75/1M tokens |
+
+## What Consumes Tokens
+
+### System prompt
+
+Every request includes a system prompt (~2,000-5,000 tokens). This is sent with every interaction.
+
+### Conversation history
+
+As your session grows, more history is sent:
+- Start of session: ~5k tokens
+- After 30 minutes: ~50k tokens
+- After 2 hours: ~150k+ tokens
+
+### File reading
+
+Reading files adds tokens:
+- Small file (100 lines): ~500 tokens
+- Medium file (500 lines): ~2,500 tokens
+- Large file (2000 lines): ~10,000 tokens
+
+### Tool calls
+
+Each tool call (read, write, bash) adds overhead:
+- Tool definition: ~100 tokens
+- Tool input: varies
+- Tool output: varies
+
+## Estimating Session Costs
+
+### Quick estimate
+
+A typical development session:
+- Light (30 min, simple tasks): $0.10-0.50
+- Medium (1-2 hours, moderate tasks): $0.50-2.00
+- Heavy (3+ hours, complex tasks): $2.00-10.00
+
+### Detailed calculation
+
+Example session:
+```
+System prompt:           3,000 tokens
+Reading 5 files:        15,000 tokens
+Conversation (1 hour):  30,000 tokens
+Code generation:        10,000 tokens
+───────────────────────────────────────
+Total input:           ~58,000 tokens
+Total output:          ~10,000 tokens
+
+Cost (Sonnet):
+  Input:  58k × $3/1M = $0.17
+  Output: 10k × $15/1M = $0.15
+  Total: ~$0.32
+```
+
+## Monitoring Usage
+
+### In-session monitoring
+
+Claude Code shows token usage in the status bar:
+
+```
+[tokens: 45k/200k]
+```
+
+Watch this as you work.
+
+### API dashboard
+
+Check [console.anthropic.com](https://console.anthropic.com) for:
+- Daily usage
+- Cost breakdown
+- Usage trends
+
+### Set up alerts
+
+Configure alerts before hitting budget limits.
+
+## Cost Optimization Strategies
+
+### 1. Start fresh sessions frequently
+
+Long sessions accumulate history. Fresh sessions reset:
+
+```bash
+# Instead of continuing a 2-hour session
+# Start fresh for new tasks
+claude
+```
+
+### 2. Use /compact
+
+Reduce context without losing essential info:
+
+```
+/compact
+```
+
+### 3. Choose the right model
+
+| Task | Model | Why |
+|------|-------|-----|
+| Quick questions | Haiku | 12x cheaper than Sonnet |
+| Code generation | Sonnet | Good balance |
+| Complex architecture | Opus | Better reasoning |
+
+Switch with:
+```
+/model haiku
+```
+
+### 4. Be specific in prompts
+
+Vague prompts lead to more back-and-forth:
+
+```
+# Expensive: Multiple rounds needed
+Fix the bug
+
+# Cheaper: One-shot completion
+Fix the null pointer error on line 45 of auth.ts
+by adding a null check before accessing user.email
+```
+
+### 5. Read files selectively
+
+```
+# Expensive: Full file read
+Read utils.ts
+
+# Cheaper: Targeted read
+Read the validateEmail function in utils.ts
+```
+
+### 6. Batch related work
+
+```
+# Expensive: 5 separate sessions
+Session 1: Fix typo in file1
+Session 2: Fix typo in file2
+...
+
+# Cheaper: 1 session
+Fix all typos in the auth module
+```
+
+## Daily/Monthly Budgeting
+
+### Solo developer estimates
+
+| Usage Level | Daily | Monthly |
+|-------------|-------|---------|
+| Light | $0.50 | $15 |
+| Moderate | $2 | $60 |
+| Heavy | $5 | $150 |
+
+### Team estimates
+
+Multiply by team size, but expect overlap savings from shared context in CLAUDE.md.
+
+## Hidden Token Costs
+
+### Repeated context
+
+Every message resends conversation history. A 50-message conversation resends earlier messages 50 times.
+
+### Tool overhead
+
+Each tool call adds fixed overhead. Many small reads cost more than one large read.
+
+### Failed attempts
+
+When Claude tries something that fails, you still pay for the attempt.
+
+## Tracking ROI
+
+Consider time saved:
+
+```
+Developer hourly rate: $75
+Time saved per day with Claude: 2 hours
+Value created: $150/day
+
+Claude Code cost: $5/day
+ROI: 30x
+```
+
+Even heavy usage often pays for itself quickly.
+
+## Quick Reference
+
+| Question | Answer |
+|----------|--------|
+| 1 token = | ~4 characters |
+| Reading 500 line file = | ~2,500 tokens |
+| 1 hour session = | $0.50-2.00 (Sonnet) |
+| Cheapest model | Haiku (12x cheaper) |
+| Most capable | Opus (5x more expensive) |
+| Reduce costs | /compact, fresh sessions, specific prompts |
