@@ -1,0 +1,74 @@
+---
+title: "Choosing the Right Confidence Threshold for YOLO"
+description: "The default 0.25 works, but understanding why matters for production apps."
+date: 2026-01-18
+tags: ["yolo", "machine-learning", "ios", "coreml"]
+---
+
+Trained a YOLOv8s-P2 model for four-leaf clover detection. Got 88.8% mAP@0.5. Now the question: what confidence threshold should the iOS app use?
+
+## The trade-off
+
+YOLO outputs a confidence score (0-1) for each detection. The threshold filters what gets shown to users.
+
+| Higher threshold (0.5+) | Lower threshold (0.15) |
+|------------------------|------------------------|
+| Fewer false positives | More detections |
+| Misses some objects | More false positives |
+| "Only show me sure things" | "Show me anything suspicious" |
+
+There's no free lunch. You're trading precision for recall.
+
+## Finding the sweet spot
+
+Tried running validation at multiple thresholds to plot an F1-confidence curve. On Apple Silicon (MPS), this was painfully slow due to NMS timeout at low thresholds - too many candidate boxes to process.
+
+The faster approach: use the F1 curve from training output. YOLO automatically generates `F1_curve.png` showing F1 score at each threshold. The peak is your optimal threshold.
+
+If you don't have that, here's the general pattern:
+
+| Threshold | Use case |
+|-----------|----------|
+| 0.15-0.20 | High recall needed, FP acceptable |
+| **0.25** | **Balanced (YOLO default)** |
+| 0.40-0.50 | High precision, conservative |
+
+## For my clover app
+
+The use case matters. For clover detection:
+- Missing a clover = user disappointment
+- False positive = user taps to dismiss
+
+Users can dismiss FPs, but they can't find missed clovers. So recall matters more.
+
+My pick: **0.25** as default, with a sensitivity slider letting users choose between 0.15 (sensitive) and 0.40 (conservative).
+
+## iOS implementation
+
+```swift
+enum Sensitivity {
+    case low       // 0.40 - sure things only
+    case medium    // 0.25 - balanced
+    case high      // 0.15 - catch everything
+
+    var threshold: Float {
+        switch self {
+        case .low: return 0.40
+        case .medium: return 0.25
+        case .high: return 0.15
+        }
+    }
+}
+
+// Filter Vision framework results
+func filter(_ observations: [VNRecognizedObjectObservation],
+            threshold: Float) -> [VNRecognizedObjectObservation] {
+    observations.filter { $0.confidence >= threshold }
+}
+```
+
+## Takeaway
+
+Start with 0.25. Ship it. Watch user feedback. If "it's missing clovers" comes up, lower it. If "too many false alarms" - raise it.
+
+The right threshold is whatever makes your users happy, not what maximizes F1 on a validation set.
