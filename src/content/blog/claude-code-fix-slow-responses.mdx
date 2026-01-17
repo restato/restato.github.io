@@ -1,0 +1,260 @@
+---
+title: "Fix: Claude Code Slow Responses (30+ Seconds)"
+description: "Diagnose and fix slow response times in Claude Code sessions."
+date: 2026-01-17
+tags: ["claude-code", "troubleshooting", "performance"]
+---
+
+Claude Code responses should be fast. If you're waiting 30+ seconds regularly, something's wrong.
+
+## Common Causes
+
+### 1. Context bloat
+
+The most common cause. Your session has accumulated too much context.
+
+**Symptoms:**
+- Responses get slower over time
+- Started fast, now slow
+- Been in session for 1+ hours
+
+**Fix:**
+```
+/compact
+```
+
+Or start a fresh session.
+
+### 2. Large file reads
+
+Reading huge files slows everything down.
+
+**Symptoms:**
+- Slow after reading specific files
+- Working with large codebases
+
+**Fix:**
+Read selectively:
+```
+# Instead of
+Read the entire database.ts file
+
+# Do this
+Read lines 100-200 of database.ts
+```
+
+### 3. Network issues
+
+Your connection to Anthropic's servers is slow.
+
+**Symptoms:**
+- Slow from session start
+- Other internet services also slow
+- Timeouts
+
+**Fix:**
+```bash
+# Test API directly
+time curl -s https://api.anthropic.com/v1/messages \
+  -H "x-api-key: $ANTHROPIC_API_KEY" \
+  -H "content-type: application/json" \
+  -d '{"model":"claude-sonnet-4-20250514","max_tokens":10,"messages":[{"role":"user","content":"hi"}]}'
+```
+
+If slow, check your network or try a VPN.
+
+### 4. Rate limiting
+
+You're hitting API limits.
+
+**Symptoms:**
+- Intermittent slowness
+- Sometimes fast, sometimes very slow
+- 429 errors appear
+
+**Fix:**
+- Wait and retry
+- Upgrade your plan
+- Reduce request frequency
+
+### 5. Wrong model
+
+Opus is slower than Sonnet, which is slower than Haiku.
+
+**Symptoms:**
+- Consistently slow on all tasks
+- Using Opus for simple questions
+
+**Fix:**
+```
+/model sonnet
+```
+
+Or for simple tasks:
+```
+/model haiku
+```
+
+## Diagnosis Steps
+
+### Step 1: Check context size
+
+Look at the token counter:
+```
+[tokens: 150k/200k]  ← High usage
+```
+
+If above 100k, run `/compact`.
+
+### Step 2: Check session duration
+
+How long have you been in this session?
+
+- Under 30 min: Probably not context bloat
+- Over 1 hour: Likely context bloat
+
+### Step 3: Test with fresh session
+
+```bash
+# Exit current session
+Ctrl+C
+
+# Start fresh
+claude
+```
+
+If fresh session is fast, the old session was bloated.
+
+### Step 4: Test API directly
+
+```bash
+time claude --headless "Say hello"
+```
+
+If this is slow, it's network or rate limiting.
+
+### Step 5: Check model
+
+```
+What model are you using?
+```
+
+If Opus, switch to Sonnet for faster responses.
+
+## Quick Fixes
+
+### Immediate relief
+
+```
+/compact
+```
+
+Reduces context by summarizing history.
+
+### Change model
+
+```
+/model haiku
+```
+
+Fastest responses for simple tasks.
+
+### Start fresh
+
+```bash
+claude --session "new-task"
+```
+
+Clean context, fast responses.
+
+## Prevention
+
+### 1. Compact regularly
+
+Every 30-45 minutes in long sessions:
+```
+/compact
+```
+
+### 2. Use appropriate model
+
+| Task | Model |
+|------|-------|
+| Quick questions | Haiku |
+| Most coding | Sonnet |
+| Complex architecture | Opus |
+
+### 3. Read files selectively
+
+```
+# Good
+Read the handleLogin function in auth.ts
+
+# Avoid
+Read the entire 2000-line auth.ts
+```
+
+### 4. Start fresh for new tasks
+
+Don't continue old sessions for unrelated work.
+
+### 5. Monitor token usage
+
+Watch the status bar. Compact before hitting 70%.
+
+## Measuring Response Time
+
+### In-session timing
+
+Claude shows response time after each message.
+
+### Headless benchmarking
+
+```bash
+# Time a simple task
+time claude --headless "What is 2+2?"
+
+# Expected: Under 5 seconds
+```
+
+### Compare models
+
+```bash
+time claude --headless --model haiku "Simple task"
+time claude --headless --model sonnet "Simple task"
+time claude --headless --model opus "Simple task"
+```
+
+## When Slowness Is Expected
+
+Some operations are legitimately slow:
+
+| Operation | Expected Time |
+|-----------|--------------|
+| Simple question | 2-5 seconds |
+| Code generation | 5-15 seconds |
+| Multi-file refactor | 15-30 seconds |
+| Complex analysis | 30-60 seconds |
+
+If you're within these ranges, it's normal.
+
+## Escalation
+
+If nothing helps:
+
+1. Check [Anthropic status page](https://status.anthropic.com)
+2. Try again later
+3. Contact support with:
+   - Session ID
+   - Approximate time
+   - What you were doing
+
+## Quick Reference
+
+| Symptom | Likely Cause | Fix |
+|---------|--------------|-----|
+| Slow over time | Context bloat | `/compact` |
+| Slow from start | Network/model | Check connection, use Haiku |
+| Intermittently slow | Rate limiting | Wait, upgrade plan |
+| Slow after file read | Large files | Read selectively |
+| Always slow | Wrong model | `/model sonnet` |

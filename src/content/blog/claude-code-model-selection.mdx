@@ -1,0 +1,286 @@
+---
+title: "Claude Code Model Selection for Cost and Speed"
+description: "How to choose between Haiku, Sonnet, and Opus for different tasks."
+date: 2026-01-17
+tags: ["claude-code", "models", "cost", "intermediate"]
+---
+
+Claude Code supports multiple models with different cost/capability tradeoffs. Choosing the right model for each task optimizes both cost and results.
+
+## Available Models
+
+| Model | Speed | Cost | Best For |
+|-------|-------|------|----------|
+| Haiku | Fastest | Cheapest | Simple tasks |
+| Sonnet | Fast | Moderate | General development |
+| Opus | Slower | Expensive | Complex reasoning |
+
+## Cost Comparison
+
+Approximate pricing (per million tokens):
+
+| Model | Input | Output | Relative Cost |
+|-------|-------|--------|---------------|
+| Haiku | $0.25 | $1.25 | 1x |
+| Sonnet | $3 | $15 | 12x |
+| Opus | $15 | $75 | 60x |
+
+A task costing $0.10 with Haiku costs $1.20 with Sonnet and $6.00 with Opus.
+
+## When to Use Haiku
+
+### Simple, well-defined tasks
+
+```
+/model haiku
+
+Add a console.log at the start of each function in utils.ts
+```
+
+### Quick information retrieval
+
+```
+/model haiku
+
+What's the port number in the config file?
+```
+
+### Code formatting
+
+```
+/model haiku
+
+Format this JSON properly
+```
+
+### Mechanical transformations
+
+```
+/model haiku
+
+Convert all var declarations to const in this file
+```
+
+### Haiku limitations
+
+- May miss nuance in complex problems
+- Less reliable with ambiguous requirements
+- Can struggle with multi-step reasoning
+
+## When to Use Sonnet (Default)
+
+### General development
+
+```
+/model sonnet
+
+Implement user authentication with JWT
+```
+
+### Bug fixing
+
+```
+/model sonnet
+
+Debug why the form submission fails on mobile
+```
+
+### Code review
+
+```
+/model sonnet
+
+Review this PR for potential issues
+```
+
+### Moderate refactoring
+
+```
+/model sonnet
+
+Refactor this class to use composition instead of inheritance
+```
+
+### Sonnet is the default because
+
+- Good balance of cost and capability
+- Handles most development tasks well
+- Fast enough for interactive use
+- Accurate enough for production code
+
+## When to Use Opus
+
+### Complex architecture decisions
+
+```
+/model opus
+
+Design the microservices architecture for our payment system
+```
+
+### Difficult debugging
+
+```
+/model opus
+
+There's a race condition somewhere in the async queue processor.
+Here's the code. Find it.
+```
+
+### Large-scale refactoring
+
+```
+/model opus
+
+Plan a migration from Redux to React Query across the entire app
+```
+
+### Novel problem solving
+
+```
+/model opus
+
+We need a caching strategy that handles partial updates
+with eventual consistency. Design the approach.
+```
+
+### When you need confidence
+
+If getting it wrong costs more than Opus:
+
+```
+/model opus
+
+Review this database migration before we run it on production
+```
+
+## Switching Models Mid-Session
+
+You can switch anytime:
+
+```
+/model haiku
+
+What files are in the src/utils folder?
+
+/model sonnet
+
+Now let's refactor the validation logic
+
+/model opus
+
+Actually, let's think through the architecture first
+```
+
+Each command uses the specified model for subsequent messages.
+
+## Cost Optimization Strategy
+
+### Start cheap, escalate if needed
+
+```
+/model haiku
+Explain what this function does
+# If answer is insufficient:
+
+/model sonnet
+I need a more detailed explanation with edge cases
+# If still not enough:
+
+/model opus
+Walk through every code path and explain the state changes
+```
+
+### Model by task phase
+
+| Phase | Model | Why |
+|-------|-------|-----|
+| Exploration | Haiku | Just gathering info |
+| Planning | Opus | Decisions matter |
+| Implementation | Sonnet | Balance needed |
+| Review | Sonnet/Opus | Depends on criticality |
+| Cleanup | Haiku | Mechanical changes |
+
+### Daily workflow example
+
+```
+# Morning: Exploring new feature
+/model haiku
+[read files, understand codebase]
+
+# Design phase
+/model opus
+[architecture decisions]
+
+# Implementation
+/model sonnet
+[writing code]
+
+# End of day: Quick fixes
+/model haiku
+[formatting, small changes]
+```
+
+## Measuring Effectiveness
+
+Track which model works for different tasks:
+
+| Task Type | Haiku Works? | Sonnet Works? | Notes |
+|-----------|-------------|---------------|-------|
+| File reading | Yes | - | Always use Haiku |
+| Simple edits | Yes | - | Haiku sufficient |
+| Bug fixing | Sometimes | Yes | Escalate if stuck |
+| Architecture | No | Sometimes | Often need Opus |
+| Code review | Sometimes | Yes | Depends on complexity |
+
+## Common Mistakes
+
+### Using Opus for everything
+
+"I want the best results"
+
+Reality: Opus costs 60x Haiku. For simple tasks, you're overpaying with no benefit.
+
+### Using Haiku for everything
+
+"I want to save money"
+
+Reality: Haiku's mistakes require more iterations, potentially costing more overall.
+
+### Not switching when stuck
+
+If Haiku gives a wrong answer three times, switch to Sonnet instead of rephrasing.
+
+## Quick Reference
+
+```
+/model haiku   - Simple tasks, exploration, formatting
+/model sonnet  - General coding, bug fixes, moderate tasks
+/model opus    - Architecture, complex debugging, critical decisions
+
+Cost ratio: 1 : 12 : 60
+
+Rule of thumb:
+- Start with Haiku for information gathering
+- Use Sonnet as default for coding
+- Escalate to Opus for difficult problems
+```
+
+## Decision Flowchart
+
+```
+Is it a simple/mechanical task?
+├── Yes → Haiku
+└── No
+    ├── Is it a normal coding task?
+    │   ├── Yes → Sonnet
+    │   └── No
+    │       ├── Does it involve complex reasoning?
+    │       │   ├── Yes → Opus
+    │       │   └── No → Sonnet
+    │       └── Is accuracy critical?
+    │           ├── Yes → Opus
+    │           └── No → Sonnet
+```
+
+The right model isn't always the most capable. It's the one that solves your task at the lowest cost.

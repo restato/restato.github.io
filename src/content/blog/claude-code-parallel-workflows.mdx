@@ -1,0 +1,280 @@
+---
+title: "Parallel Workflows in Claude Code: Running Multiple Tasks at Once"
+description: "How to use subagents and multiple sessions to work on several things simultaneously."
+date: 2026-01-17
+tags: ["claude-code", "parallel", "subagents", "advanced"]
+---
+
+Claude Code can run multiple tasks in parallel using subagents and multiple sessions. This dramatically speeds up complex work.
+
+## Why Parallel Matters
+
+Sequential workflow:
+```
+Research auth patterns    → 15 min
+Research database options → 15 min
+Research caching          → 15 min
+Total: 45 minutes
+```
+
+Parallel workflow:
+```
+Research auth patterns    ┐
+Research database options ├→ 15 min total
+Research caching          ┘
+```
+
+Same work, 3x faster.
+
+## Method 1: Subagents
+
+Subagents are separate Claude instances that run within your session.
+
+### Launching parallel exploration
+
+```
+Launch 3 explore agents in parallel:
+1. Find all authentication-related files
+2. Find all database query patterns
+3. Find all API endpoint definitions
+```
+
+Claude spawns three agents that work simultaneously.
+
+### Viewing results
+
+Results come back as each agent completes. Claude synthesizes them.
+
+### When to use subagents
+
+- Exploring large codebases
+- Searching for patterns across files
+- Independent research tasks
+- Gathering information before implementation
+
+## Method 2: Multiple Terminal Sessions
+
+Run separate Claude Code instances:
+
+### Terminal 1
+```bash
+cd ~/project
+claude --session "feature-auth"
+```
+
+### Terminal 2
+```bash
+cd ~/project
+claude --session "feature-payment"
+```
+
+### Terminal 3
+```bash
+cd ~/project
+claude --session "bug-fixes"
+```
+
+Each session works independently.
+
+## Method 3: Git Worktrees + Sessions
+
+For parallel feature development without conflicts:
+
+### Setup worktrees
+
+```bash
+# Main checkout
+cd ~/project
+
+# Create worktrees for parallel work
+git worktree add ../project-auth feature/auth
+git worktree add ../project-payment feature/payment
+git worktree add ../project-tests test-improvements
+```
+
+### Run sessions in each
+
+```bash
+# Terminal 1
+cd ../project-auth
+claude --session "auth-feature"
+
+# Terminal 2
+cd ../project-payment
+claude --session "payment-feature"
+
+# Terminal 3
+cd ../project-tests
+claude --session "test-work"
+```
+
+No merge conflicts during development. Each worktree is isolated.
+
+## Subagent Patterns
+
+### Pattern 1: Parallel research
+
+```
+I need to understand the codebase before refactoring.
+
+Launch agents to explore:
+1. How authentication works
+2. How API routes are structured
+3. How database queries are organized
+
+Summarize findings when done.
+```
+
+### Pattern 2: Parallel validation
+
+```
+Before deploying, validate in parallel:
+1. Run unit tests
+2. Run integration tests
+3. Check for security issues
+4. Verify build succeeds
+
+Report any failures.
+```
+
+### Pattern 3: Parallel code review
+
+```
+Review these 5 PRs simultaneously:
+1. PR #123 - Auth changes
+2. PR #124 - UI updates
+3. PR #125 - API additions
+4. PR #126 - Database migrations
+5. PR #127 - Config changes
+
+Summarize issues found in each.
+```
+
+## Background Agents
+
+Run agents without waiting:
+
+```
+Run this in the background: Analyze test coverage for the entire project
+
+Continue with current work...
+
+[Later]
+Check on the background analysis
+```
+
+### Headless background tasks
+
+```bash
+# Start a background task
+claude --headless "Analyze and document all API endpoints" &
+
+# Continue with other work
+claude
+```
+
+## Managing Parallel Work
+
+### Avoid conflicts
+
+When running multiple sessions:
+
+1. Work on different files
+2. Use worktrees for isolation
+3. Coordinate through git branches
+4. Merge frequently
+
+### Share context efficiently
+
+Create a shared CLAUDE.md that all sessions read:
+
+```markdown
+# Project Context
+
+## Current Sprint
+- Auth refactor (Alice - Terminal 1)
+- Payment feature (Bob - Terminal 2)
+- Test coverage (CI - Background)
+
+## Shared Conventions
+...
+```
+
+### Monitor resource usage
+
+Multiple sessions = more API calls = higher costs. Watch your token usage.
+
+## Real-World Parallel Workflow
+
+### Scenario: Major feature implementation
+
+```bash
+# Morning: Research phase (parallel)
+# Terminal 1
+claude --session "research-auth"
+# "Explore how similar apps implement OAuth"
+
+# Terminal 2
+claude --session "research-db"
+# "Analyze our database schema for user tables"
+
+# Afternoon: Implementation phase (parallel worktrees)
+git worktree add ../impl-auth feature/oauth
+git worktree add ../impl-db feature/user-schema
+
+# Terminal 1 (auth worktree)
+cd ../impl-auth
+claude --session "impl-auth"
+
+# Terminal 2 (db worktree)
+cd ../impl-db
+claude --session "impl-db"
+
+# Evening: Integration (single session)
+git worktree remove ../impl-auth
+git worktree remove ../impl-db
+git merge feature/oauth feature/user-schema
+claude --session "integration"
+# "Resolve any conflicts and ensure everything works together"
+```
+
+## Limitations
+
+### Subagents
+
+- Share the same context window
+- Can't modify files (exploration only)
+- Limited to ~3 concurrent agents
+
+### Multiple sessions
+
+- Don't share context
+- Can have file conflicts
+- Higher total token usage
+
+### Worktrees
+
+- Require disk space
+- Need manual conflict resolution
+- Git complexity increases
+
+## Quick Reference
+
+| Method | Best For | Limitation |
+|--------|----------|------------|
+| Subagents | Research, exploration | Read-only |
+| Multiple sessions | Independent features | No shared context |
+| Worktrees + sessions | Parallel development | Git complexity |
+| Background agents | Long-running tasks | Async results |
+
+## Parallel Checklist
+
+Before going parallel, verify:
+
+- [ ] Tasks are truly independent
+- [ ] File conflicts won't occur
+- [ ] You have enough API quota
+- [ ] You can track all parallel work
+- [ ] Merge strategy is planned
+
+Parallel execution is powerful but adds complexity. Use it when the time savings justify the coordination overhead.

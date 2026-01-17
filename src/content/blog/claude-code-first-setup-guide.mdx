@@ -1,0 +1,283 @@
+---
+title: "Claude Code First Setup: Complete Beginner Guide"
+description: "Everything you need to know to start using Claude Code effectively."
+date: 2026-01-17
+tags: ["claude-code", "setup", "beginner", "getting-started"]
+---
+
+You've installed Claude Code. Now what? This guide walks you through the first session and essential configuration.
+
+## Starting Your First Session
+
+Open your terminal and run:
+
+```bash
+claude
+```
+
+You'll see an interactive prompt. Type your first message:
+
+```
+Hello! What can you help me with?
+```
+
+Claude will explain its capabilities. Try something practical:
+
+```
+List all files in the current directory
+```
+
+## Understanding the Interface
+
+The Claude Code interface has several parts:
+
+```
+┌─────────────────────────────────────────────┐
+│ Claude Code                    [tokens: 5k] │  ← Status bar
+├─────────────────────────────────────────────┤
+│                                             │
+│ [Your conversation appears here]            │  ← Conversation area
+│                                             │
+├─────────────────────────────────────────────┤
+│ >                                           │  ← Input prompt
+└─────────────────────────────────────────────┘
+```
+
+The status bar shows:
+- Token usage
+- Current model
+- Session info
+
+## First-Time Permissions
+
+Claude Code asks permission before:
+- Reading files
+- Writing files
+- Running commands
+- Accessing the network
+
+For each request, you'll see:
+
+```
+Claude wants to: Read file src/index.ts
+Allow? (y/n/always)
+```
+
+Options:
+- `y` - Allow this one time
+- `n` - Deny this request
+- `always` - Always allow this type of action
+
+For trusted projects, you can be more permissive. For sensitive code, be more careful.
+
+## Essential Slash Commands
+
+Slash commands are shortcuts for common actions:
+
+| Command | What it does |
+|---------|-------------|
+| `/help` | Show all available commands |
+| `/clear` | Clear the conversation |
+| `/compact` | Summarize and reduce context |
+| `/model` | Switch between models |
+| `/exit` | Exit Claude Code |
+
+Try them:
+
+```
+/help
+```
+
+## Setting Up Your Project
+
+Navigate to a project directory and start Claude Code there:
+
+```bash
+cd ~/projects/my-app
+claude
+```
+
+Now Claude can see and work with your project files.
+
+### Create a CLAUDE.md File
+
+This file tells Claude about your project. Create one:
+
+```
+Create a CLAUDE.md file for this project with basic information
+```
+
+Or manually create `CLAUDE.md` in your project root:
+
+```markdown
+# My App
+
+## Tech Stack
+- React 18
+- TypeScript
+- Node.js 20
+
+## Commands
+- `npm run dev` - Start development server
+- `npm run build` - Build for production
+- `npm test` - Run tests
+
+## Code Style
+- Use functional components
+- Prefer named exports
+- Follow existing patterns
+```
+
+Claude will read this automatically and follow your guidelines.
+
+## Basic Workflows
+
+### Read and understand code
+
+```
+Explain what the src/utils/auth.ts file does
+```
+
+### Make changes
+
+```
+Add error handling to the login function in src/auth.ts
+```
+
+### Run commands
+
+```
+Run the tests and show me any failures
+```
+
+### Ask questions
+
+```
+How does the routing work in this app?
+```
+
+## Session Management
+
+### Named sessions
+
+Start a named session:
+
+```bash
+claude --session "fixing-login-bug"
+```
+
+### Resume a session
+
+```bash
+claude --resume
+```
+
+### List sessions
+
+```bash
+claude sessions list
+```
+
+## Choosing the Right Model
+
+Claude Code supports multiple models:
+
+| Model | Best for |
+|-------|---------|
+| Sonnet | General tasks (default) |
+| Haiku | Quick, simple tasks |
+| Opus | Complex reasoning |
+
+Switch models:
+
+```
+/model haiku
+```
+
+Or:
+
+```
+/model opus
+```
+
+## Important Settings
+
+### View current settings
+
+```bash
+claude config show
+```
+
+### Common settings to adjust
+
+**Theme:**
+```bash
+claude config set theme dark
+```
+
+**Default model:**
+```bash
+claude config set model sonnet
+```
+
+## Getting Help
+
+Inside Claude Code:
+```
+/help
+```
+
+For documentation:
+```
+What are all the things you can do?
+```
+
+## Practice Tasks
+
+Try these to get comfortable:
+
+1. **Explore:** "What files are in this project?"
+2. **Read:** "Show me the main entry point"
+3. **Explain:** "How does [some feature] work?"
+4. **Write:** "Add a comment explaining this function"
+5. **Run:** "Run the linter and show any issues"
+
+## Common Beginner Mistakes
+
+### Being too vague
+
+```
+# Too vague
+Fix the bug
+
+# Better
+Fix the null pointer error in the handleSubmit function in Form.tsx
+```
+
+### Not providing context
+
+```
+# Missing context
+Update the API
+
+# Better
+Update the /users endpoint to return pagination metadata
+```
+
+### Forgetting to save work
+
+Claude Code creates git checkpoints, but verify changes are saved:
+
+```
+Show me what files have been modified
+```
+
+## Next Steps
+
+Now that you're set up:
+1. Create a CLAUDE.md for your project
+2. Learn keyboard shortcuts
+3. Try more complex tasks
+4. Explore slash commands
+
+The more you use it, the more natural it becomes.

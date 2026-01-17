@@ -1,0 +1,189 @@
+---
+title: "Fix: Claude Code Rate Limit Exceeded (429 Error)"
+description: "How to handle rate limiting errors and optimize your Claude Code usage."
+date: 2026-01-17
+tags: ["claude-code", "troubleshooting", "api"]
+---
+
+You're in the middle of a productive session when Claude Code stops responding:
+
+```
+Error 429: Rate limit exceeded. Please retry after X seconds.
+```
+
+## Why This Happens
+
+Anthropic enforces rate limits to ensure fair usage across all users. You hit the limit when:
+
+1. Making too many requests in a short time
+2. Sending too many tokens per minute
+3. Your plan's quota is exhausted
+
+Rate limits vary by plan:
+- Free tier: Very limited
+- Pro: Higher limits
+- Max/Team: Highest limits
+
+## Immediate Fix: Wait and Retry
+
+The error message usually tells you how long to wait:
+
+```
+Please retry after 60 seconds
+```
+
+Just wait, then continue. Claude Code often retries automatically.
+
+## Solution 1: Slow Down Your Workflow
+
+If you're hitting limits frequently, you're probably:
+
+**Spamming small requests:**
+```
+# Instead of many small asks
+Fix this typo
+Now fix that typo
+And this one
+
+# Batch them
+Fix all typos in this file
+```
+
+**Requesting too many file reads:**
+```
+# Instead of reading files one by one
+Read file1.ts
+Read file2.ts
+Read file3.ts
+
+# Let Claude read multiple at once
+Read the auth module files
+```
+
+## Solution 2: Use Efficient Prompts
+
+Vague prompts cause more back-and-forth (more requests):
+
+```
+# Inefficient - leads to follow-up questions
+Improve this code
+
+# Efficient - one-shot completion
+Refactor this function to use async/await, add error handling,
+and follow our project's naming convention from CLAUDE.md
+```
+
+## Solution 3: Switch to a Higher Plan
+
+If rate limits are blocking your productivity:
+
+| Plan | Limits | Best For |
+|------|--------|----------|
+| Free | ~10 requests/min | Testing |
+| Pro ($20/mo) | Higher | Individual developers |
+| Max | Much higher | Heavy users |
+| Team | Custom | Organizations |
+
+Check your current usage at [console.anthropic.com](https://console.anthropic.com).
+
+## Solution 4: Batch Operations
+
+Instead of running Claude multiple times:
+
+```bash
+# Inefficient - 5 separate Claude sessions
+claude "fix bug in file1"
+claude "fix bug in file2"
+claude "fix bug in file3"
+claude "fix bug in file4"
+claude "fix bug in file5"
+
+# Efficient - 1 session
+claude "fix the same bug pattern across all files in src/utils/"
+```
+
+## Solution 5: Use Subagents Wisely
+
+Subagents consume quota too. Don't spawn multiple agents for simple tasks:
+
+```
+# Overkill for simple search
+Launch 3 agents to find the login function
+
+# Appropriate
+Search for the login function in src/auth/
+```
+
+Reserve parallel agents for genuinely complex exploration tasks.
+
+## Prevention: Monitor Your Usage
+
+### Check your API usage dashboard
+
+Visit [console.anthropic.com/usage](https://console.anthropic.com) to see:
+- Requests per day
+- Tokens consumed
+- Approaching limits
+
+### Set up alerts
+
+Configure notifications before you hit 80% of your quota.
+
+### Track session token usage
+
+Claude Code shows token consumption. Watch for expensive operations:
+- Reading large files
+- Long conversations
+- Frequent tool calls
+
+## Handling Limits in CI/CD
+
+If using Claude Code in GitHub Actions or GitLab CI:
+
+```yaml
+# Add retry logic
+- name: Run Claude Code
+  run: |
+    for i in {1..3}; do
+      claude --headless "review this PR" && break
+      sleep 60
+    done
+```
+
+And consider:
+- Running on a schedule, not every push
+- Using a dedicated API key with higher limits
+- Caching results to avoid duplicate work
+
+## Cost vs Speed Tradeoff
+
+Higher limits cost more. To stay efficient:
+
+1. Use `/compact` to reduce token usage
+2. Choose appropriate model (Haiku for simple, Opus for complex)
+3. Write clear, complete prompts
+4. Batch related work into single sessions
+
+## Quick Troubleshooting
+
+| Situation | Action |
+|-----------|--------|
+| Occasional 429 | Wait and retry |
+| Frequent 429s | Batch your requests |
+| Daily limit hit | Upgrade plan |
+| CI/CD failures | Add retry logic + schedule |
+| Token limit (not rate) | Use `/compact`, start fresh session |
+
+## Check If It's Actually Rate Limiting
+
+Sometimes 429 errors are confused with other issues:
+
+```bash
+# Test if API is accessible
+curl https://api.anthropic.com/v1/messages \
+  -H "x-api-key: $ANTHROPIC_API_KEY" \
+  -H "content-type: application/json" \
+  -d '{"model":"claude-sonnet-4-20250514","max_tokens":10,"messages":[{"role":"user","content":"hi"}]}'
+```
+
+If this works, the issue is with your usage pattern. If it fails with 429, you've genuinely hit the limit.

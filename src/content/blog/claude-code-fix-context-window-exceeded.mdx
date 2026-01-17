@@ -1,0 +1,149 @@
+---
+title: "Fix: Claude Code Context Window Exceeded Error"
+description: "How to fix context window limit errors and manage long sessions in Claude Code."
+date: 2026-01-17
+tags: ["claude-code", "troubleshooting", "token-management"]
+---
+
+You've been working in Claude Code for a while, and suddenly you see:
+
+```
+Error: Context window limit exceeded
+```
+
+Or Claude's responses start getting cut off, it forgets what you just discussed, or it references files that no longer exist.
+
+## Why This Happens
+
+Claude has a finite context window (the amount of text it can "remember" in a single session). As your conversation grows:
+
+1. Older messages get summarized or dropped
+2. The model struggles to maintain coherence
+3. Eventually, you hit the hard limit
+
+This is more likely when:
+- Sessions run for hours
+- You're reading many large files
+- You're working on a complex multi-file refactor
+
+## Solution 1: Start a Fresh Session
+
+The simplest fix. Close your current session and start new:
+
+```bash
+# Exit current session
+Ctrl+C
+
+# Start fresh
+claude
+```
+
+Fresh sessions read the actual current state of your files, not stale cached versions.
+
+## Solution 2: Use /compact
+
+If you want to continue but need to free up space:
+
+```
+/compact
+```
+
+This summarizes your conversation history, preserving key context while reducing token usage. Use it:
+- Before starting a complex new task
+- When responses start slowing down
+- Every hour or so in long sessions
+
+## Solution 3: Be Selective About File Reading
+
+Don't let Claude read entire large files when you only need a section:
+
+```
+# Instead of this
+Read the entire utils.ts file
+
+# Do this
+Read lines 50-100 of utils.ts
+```
+
+Or ask Claude to read only specific functions:
+
+```
+Read the handleSubmit function in Form.tsx
+```
+
+## Solution 4: Split Large Tasks
+
+Instead of one massive session for a feature:
+
+```
+Session 1: Design the database schema
+Session 2: Implement the API endpoints
+Session 3: Build the frontend components
+Session 4: Write tests
+```
+
+Each session starts clean with only the relevant context.
+
+## Prevention Strategies
+
+### Monitor Your Usage
+
+Claude Code shows context usage in the status line. Watch for it approaching limits.
+
+### Name Sessions Descriptively
+
+```
+claude --session "auth-refactor-jan17"
+```
+
+This helps you track what each session was for and resume if needed.
+
+### Use Subagents for Exploration
+
+When exploring a codebase, use subagents instead of reading everything yourself:
+
+```
+Use an explore agent to find all authentication-related files
+```
+
+Subagents have their own context, so their exploration doesn't bloat your main session.
+
+### Clear Context Strategically
+
+After completing a subtask, you can tell Claude:
+
+```
+We're done with the database migration. You can forget the migration file details.
+Now let's work on the API endpoints.
+```
+
+This hints that older context is less relevant.
+
+## Signs Your Context Is Getting Stale
+
+- Claude suggests code for functions you already deleted
+- It uses old variable names you've since renamed
+- Responses reference outdated project structure
+- The same questions get asked repeatedly
+
+When you notice these, it's time for `/compact` or a fresh session.
+
+## Advanced: Token Budgeting
+
+If you're doing a complex task that needs a long session:
+
+1. Start with `/compact` to baseline
+2. Read only essential files
+3. Use targeted searches instead of broad exploration
+4. Periodically check context usage
+5. `/compact` again when approaching 70% usage
+
+## Quick Reference
+
+| Symptom | Fix |
+|---------|-----|
+| Hard error (limit exceeded) | Start fresh session |
+| Slow responses | `/compact` |
+| Stale suggestions | Start fresh session |
+| Forgotten context | `/compact` or re-read key files |
+| Cut-off responses | `/compact` then retry |

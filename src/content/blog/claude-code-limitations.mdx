@@ -1,0 +1,267 @@
+---
+title: "What Claude Code Cannot Do: Known Limitations"
+description: "Understanding the boundaries of Claude Code to set realistic expectations."
+date: 2026-01-17
+tags: ["claude-code", "limitations", "faq"]
+---
+
+Claude Code is powerful, but it has limits. Knowing them upfront saves frustration.
+
+## Technical Limitations
+
+### No persistent memory
+
+Claude doesn't remember previous sessions:
+
+```
+Session 1: "We decided to use Redis for caching"
+[End session]
+
+Session 2: "What caching solution did we pick?"
+Claude: "I don't have information about previous sessions"
+```
+
+**Workaround:** Document decisions in CLAUDE.md or project docs.
+
+### Context window limit
+
+There's a maximum amount of text Claude can consider at once:
+
+```
+Very long session + many files = context overflow
+```
+
+**Workaround:** Use `/compact`, start fresh sessions, read files selectively.
+
+### No real-time updates
+
+Claude can't watch for file changes or run continuously:
+
+```
+# Not possible
+"Watch for changes and fix any new errors"
+```
+
+**Workaround:** Use hooks or CI/CD for continuous monitoring.
+
+### No GUI interaction
+
+Claude can't click buttons or see screens:
+
+```
+# Not possible
+"Click the submit button in the browser"
+```
+
+**Workaround:** Use browser automation tools (Playwright, Puppeteer).
+
+### No audio/video processing
+
+Claude can't listen or watch:
+
+```
+# Not possible
+"Transcribe this meeting recording"
+```
+
+**Workaround:** Use dedicated transcription services.
+
+## Accuracy Limitations
+
+### Hallucinations
+
+Claude can confidently state incorrect things:
+
+```
+Claude: "The foo.bar() method does X"
+Reality: foo.bar() does Y, or doesn't exist
+```
+
+**Mitigation:** Verify important claims. Run the code. Check documentation.
+
+### Outdated knowledge
+
+Claude's training has a cutoff date:
+
+```
+"What's the latest version of React?"
+# May not know the very latest release
+```
+
+**Mitigation:** Ask Claude to check package.json or search online.
+
+### Library-specific details
+
+Claude may not know every API perfectly:
+
+```
+"Use the new XYZ library"
+# Might mix up old and new API patterns
+```
+
+**Mitigation:** Reference official docs, test the code.
+
+## Scope Limitations
+
+### Can't access external services
+
+Without MCP, Claude can't:
+
+- Query databases
+- Call APIs
+- Access cloud services
+
+**Workaround:** Set up MCP servers for needed integrations.
+
+### Can't access private packages
+
+Claude can't authenticate to private npm registries:
+
+```
+# Claude can't see
+@company/private-package
+```
+
+**Workaround:** Share relevant code directly or document the interfaces.
+
+### Limited network access
+
+Claude can read public URLs but can't:
+
+- Access localhost services
+- Authenticate to sites
+- Access intranet resources
+
+## Behavioral Limitations
+
+### No autonomous operation
+
+Claude needs prompts to act:
+
+```
+# Not possible
+"Work on this for 8 hours while I'm away"
+```
+
+**Workaround:** Use headless mode in scripts/CI for automated tasks.
+
+### Can't learn preferences over time
+
+Each session starts fresh:
+
+```
+"I've told you 100 times to use semicolons"
+# Next session: Doesn't remember
+```
+
+**Workaround:** Put preferences in CLAUDE.md.
+
+### Won't make decisions without input
+
+Claude asks before major changes:
+
+```
+Claude: "Should I use approach A or B?"
+# Won't proceed without answer
+```
+
+This is a safety feature, but can slow things down.
+
+## Safety Limitations
+
+### Won't bypass security
+
+Claude refuses to:
+
+- Disable security features
+- Exploit vulnerabilities (without auth context)
+- Access protected data inappropriately
+
+### Won't generate harmful code
+
+Requests for malware, exploits, or harmful content are refused.
+
+### Respects rate limits
+
+Claude won't try to bypass API rate limits or quotas.
+
+## Environment Limitations
+
+### Platform-specific issues
+
+Some commands differ by OS:
+
+```
+# Works on macOS/Linux
+sed -i '' 's/foo/bar/g' file
+
+# Different on Linux
+sed -i 's/foo/bar/g' file
+```
+
+Claude tries to detect your platform but may get it wrong.
+
+### Shell-specific features
+
+Complex bash features may not work in all environments:
+
+```
+# May fail in some shells
+array=("a" "b" "c")
+```
+
+### IDE integration limits
+
+Claude Code works best in terminal. IDE extensions have fewer features.
+
+## What Claude IS Good At
+
+Despite limitations, Claude excels at:
+
+| Strength | Example |
+|----------|---------|
+| Code generation | "Write a function that..." |
+| Code explanation | "How does this work?" |
+| Refactoring | "Convert to async/await" |
+| Bug finding | "Why might this fail?" |
+| Multi-file changes | "Update all API calls" |
+| Documentation | "Document this module" |
+| Test writing | "Write tests for this" |
+
+## Setting Realistic Expectations
+
+### Claude is a tool, not a replacement
+
+Use Claude for:
+- Accelerating routine work
+- Exploring unfamiliar code
+- Generating boilerplate
+- Reviewing and improving code
+
+Not for:
+- Making all decisions
+- Running autonomously forever
+- Replacing domain expertise
+
+### Verify important output
+
+```
+# Good practice
+Claude writes code → You review → Tests verify → Ship
+```
+
+### Start with smaller tasks
+
+Build trust through small wins before attempting large autonomous tasks.
+
+## Summary
+
+| Category | Can't Do | Workaround |
+|----------|----------|------------|
+| Memory | Remember past sessions | CLAUDE.md |
+| Context | Handle infinite context | /compact, fresh sessions |
+| Watching | Monitor continuously | Hooks, CI/CD |
+| GUI | Click buttons | Browser automation |
+| Accuracy | Be 100% correct | Verify, test |
+| External | Access services | MCP servers |
+| Autonomy | Work forever alone | Headless in scripts |

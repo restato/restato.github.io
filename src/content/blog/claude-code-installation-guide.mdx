@@ -1,0 +1,229 @@
+---
+title: "How to Install Claude Code on Mac, Windows, and Linux"
+description: "Complete installation guide for Claude Code across all major operating systems."
+date: 2026-01-17
+tags: ["claude-code", "installation", "setup", "beginner"]
+---
+
+Claude Code runs in your terminal and works on macOS, Windows, and Linux. Here's how to install it on each platform.
+
+## Prerequisites
+
+Before installing Claude Code, you need:
+
+1. **Node.js 18+** - Check with `node --version`
+2. **An Anthropic API key** - Get one at [console.anthropic.com](https://console.anthropic.com)
+
+## macOS Installation
+
+### Using npm (Recommended)
+
+```bash
+npm install -g @anthropic-ai/claude-code
+```
+
+### Using Homebrew
+
+```bash
+brew install claude-code
+```
+
+### Verify Installation
+
+```bash
+claude --version
+```
+
+### Set Your API Key
+
+```bash
+echo 'export ANTHROPIC_API_KEY="your-key-here"' >> ~/.zshrc
+source ~/.zshrc
+```
+
+## Windows Installation
+
+### Using npm
+
+Open PowerShell as Administrator:
+
+```powershell
+npm install -g @anthropic-ai/claude-code
+```
+
+### Set Your API Key
+
+```powershell
+[System.Environment]::SetEnvironmentVariable('ANTHROPIC_API_KEY', 'your-key-here', 'User')
+```
+
+Restart your terminal after setting the environment variable.
+
+### Verify Installation
+
+```powershell
+claude --version
+```
+
+### Windows Subsystem for Linux (WSL)
+
+For a better experience on Windows, consider using WSL:
+
+```bash
+# In WSL
+npm install -g @anthropic-ai/claude-code
+echo 'export ANTHROPIC_API_KEY="your-key-here"' >> ~/.bashrc
+source ~/.bashrc
+```
+
+## Linux Installation
+
+### Using npm
+
+```bash
+npm install -g @anthropic-ai/claude-code
+```
+
+### Set Your API Key
+
+For bash:
+```bash
+echo 'export ANTHROPIC_API_KEY="your-key-here"' >> ~/.bashrc
+source ~/.bashrc
+```
+
+For zsh:
+```bash
+echo 'export ANTHROPIC_API_KEY="your-key-here"' >> ~/.zshrc
+source ~/.zshrc
+```
+
+### Verify Installation
+
+```bash
+claude --version
+```
+
+## Common Installation Issues
+
+### EACCES Permission Error
+
+If you see permission errors with npm:
+
+```bash
+# Option 1: Use a node version manager
+curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.0/install.sh | bash
+nvm install 20
+nvm use 20
+npm install -g @anthropic-ai/claude-code
+
+# Option 2: Change npm's default directory
+mkdir ~/.npm-global
+npm config set prefix '~/.npm-global'
+echo 'export PATH=~/.npm-global/bin:$PATH' >> ~/.bashrc
+source ~/.bashrc
+npm install -g @anthropic-ai/claude-code
+```
+
+### Command Not Found
+
+If `claude` command isn't found after installation:
+
+1. Check if npm global bin is in your PATH:
+```bash
+npm bin -g
+```
+
+2. Add it to your PATH if missing:
+```bash
+echo 'export PATH="$(npm bin -g):$PATH"' >> ~/.bashrc
+source ~/.bashrc
+```
+
+### Node.js Version Too Old
+
+Claude Code requires Node.js 18 or later:
+
+```bash
+# Check your version
+node --version
+
+# If too old, update using nvm
+nvm install 20
+nvm use 20
+```
+
+### SSL Certificate Errors
+
+On corporate networks with SSL inspection:
+
+```bash
+npm config set strict-ssl false
+npm install -g @anthropic-ai/claude-code
+npm config set strict-ssl true
+```
+
+## First Run
+
+After installation, start Claude Code:
+
+```bash
+claude
+```
+
+On first run, Claude will:
+1. Verify your API key
+2. Ask about permissions
+3. Show the interactive prompt
+
+Try a simple command:
+
+```
+Hello, can you tell me what directory I'm in?
+```
+
+## Updating Claude Code
+
+To update to the latest version:
+
+```bash
+npm update -g @anthropic-ai/claude-code
+```
+
+Or reinstall:
+
+```bash
+npm install -g @anthropic-ai/claude-code@latest
+```
+
+## Uninstalling
+
+If you need to remove Claude Code:
+
+```bash
+npm uninstall -g @anthropic-ai/claude-code
+```
+
+## IDE Integration (Optional)
+
+### VS Code
+
+Install the Claude Code extension from the VS Code marketplace:
+1. Open VS Code
+2. Go to Extensions (Cmd+Shift+X)
+3. Search for "Claude Code"
+4. Install
+
+### JetBrains
+
+1. Open Settings/Preferences
+2. Go to Plugins
+3. Search for "Claude Code"
+4. Install and restart
+
+## Next Steps
+
+After installation:
+1. [Set up your first CLAUDE.md](/blog/claude-code-writing-claudemd)
+2. [Learn the keyboard shortcuts](/blog/claude-code-keyboard-shortcuts)
+3. [Understand the permission system](/blog/claude-code-permissions-explained)

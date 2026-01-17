@@ -1,0 +1,272 @@
+---
+title: "Claude Code Compact Strategy: When and How"
+description: "Master the /compact command to manage context and save tokens in long sessions."
+date: 2026-01-17
+tags: ["claude-code", "compact", "tokens", "intermediate"]
+---
+
+The `/compact` command summarizes your conversation, freeing up context window space. Knowing when and how to use it makes long sessions more effective.
+
+## What /compact Does
+
+When you run `/compact`:
+
+1. Claude summarizes the conversation so far
+2. Previous messages are condensed into a summary
+3. Context window usage drops
+4. Key information is preserved
+
+Before:
+```
+[Message 1: 500 tokens]
+[Message 2: 800 tokens]
+[Message 3: 1200 tokens]
+...
+[Message 50: 600 tokens]
+Total: 45,000 tokens
+```
+
+After:
+```
+[Summary: 2,000 tokens]
+Total: 2,000 tokens
+```
+
+## When to Use /compact
+
+### 1. Before starting a new task
+
+```
+/compact
+
+Now let's work on the payment feature
+```
+
+Clear out context from the previous task.
+
+### 2. When responses slow down
+
+If Claude takes longer to respond, context might be bloated:
+
+```
+/compact
+```
+
+### 3. Approaching context limits
+
+Watch the token counter:
+```
+[tokens: 150k/200k]  ← Getting full
+```
+
+Time to compact.
+
+### 4. After exploration phase
+
+You've read many files to understand the codebase:
+
+```
+# After reading 20 files
+/compact
+
+# Now work with a clean context
+Implement the authentication flow
+```
+
+### 5. Before complex reasoning
+
+Free up space for Claude to think:
+
+```
+/compact
+
+Design the database schema for the new feature
+```
+
+## What Gets Preserved
+
+The summary keeps:
+- Key decisions made
+- Important file paths mentioned
+- Technical context established
+- Current task focus
+
+What's lost:
+- Exact code snippets from earlier
+- Detailed back-and-forth
+- Superseded information
+
+## Compact Workflow Patterns
+
+### Pattern 1: Explore-Compact-Execute
+
+```
+# Explore
+Read the auth module
+Show me how login works
+What about password reset?
+
+# Compact
+/compact
+
+# Execute with clean context
+Now implement two-factor authentication
+```
+
+### Pattern 2: Periodic Compacting
+
+Every 30-45 minutes in a long session:
+
+```
+[Work for 30 minutes]
+/compact
+[Work for 30 minutes]
+/compact
+[Continue...]
+```
+
+### Pattern 3: Task Boundaries
+
+```
+# Task 1
+Fix the login bug
+[done]
+
+/compact
+
+# Task 2
+Add the logout button
+[done]
+
+/compact
+
+# Task 3
+Write tests for auth
+```
+
+## Before vs After Comparison
+
+### Without compacting
+
+Session start: 5k tokens
+After 1 hour: 80k tokens
+After 2 hours: 150k tokens
+Quality: Degrading (stale context, slower)
+
+### With strategic compacting
+
+Session start: 5k tokens
+After 1 hour: 20k tokens (compacted at 30 min)
+After 2 hours: 25k tokens (compacted at 90 min)
+Quality: Maintained
+
+## What Can Go Wrong
+
+### Compacting too early
+
+If you compact before Claude has enough context:
+
+```
+Read file1.ts
+/compact  ← Too soon, file details lost
+What's the function signature?  ← Can't answer
+```
+
+Fix: Let context build before compacting.
+
+### Compacting mid-task
+
+```
+Start refactoring the auth module
+/compact  ← Lost track of what we're doing
+Continue  ← Claude may restart incorrectly
+```
+
+Fix: Complete the current task first.
+
+### Over-relying on compact
+
+Compact doesn't save specific code. If you need exact snippets:
+
+```
+/compact
+Show me the code from earlier  ← It's summarized, not stored
+```
+
+Fix: Re-read files when needed after compact.
+
+## Manual Context Setting
+
+After compacting, you can re-establish important context:
+
+```
+/compact
+
+Key context for this session:
+- We're working on the auth module
+- Using JWT for tokens
+- Files: src/auth/login.ts, src/auth/token.ts
+- Pattern: all functions return Result<T, Error>
+```
+
+This primes Claude without bloating context.
+
+## Compact vs Fresh Session
+
+| Situation | Use /compact | Use Fresh Session |
+|-----------|-------------|-------------------|
+| Same task, need some history | Yes | No |
+| Completely new task | Either | Yes |
+| Context is corrupted | No | Yes |
+| Claude is confused | No | Yes |
+| Want to preserve key decisions | Yes | No |
+
+## Monitoring When to Compact
+
+### Token usage indicator
+
+```
+[tokens: 80k/200k]   ← 40% - Fine
+[tokens: 140k/200k]  ← 70% - Consider compacting
+[tokens: 180k/200k]  ← 90% - Compact now
+```
+
+### Response quality
+
+Signs you need to compact:
+- Claude references old code that's changed
+- Responses are slower
+- Answers become less focused
+- Repeated questions about established facts
+
+## Compact Timing Rules
+
+| Session Duration | Compact Every |
+|-----------------|---------------|
+| 0-30 min | Don't need |
+| 30-60 min | Once at 30 min |
+| 1-2 hours | Every 30-45 min |
+| 2+ hours | Every 30 min |
+
+## Quick Reference
+
+```
+/compact
+
+When:
+- Before new tasks
+- At 70% context usage
+- Every 30-45 minutes
+- After heavy exploration
+
+Not when:
+- Mid-task
+- Context is fresh
+- You need exact previous code
+- Claude is confused (start fresh instead)
+
+After:
+- Re-read key files if needed
+- State important context
+- Continue with clean slate
+```

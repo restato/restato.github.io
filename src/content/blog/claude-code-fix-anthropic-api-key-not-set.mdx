@@ -1,0 +1,136 @@
+---
+title: "Fix: Claude Code ANTHROPIC_API_KEY Not Set Error"
+description: "How to fix the ANTHROPIC_API_KEY environment variable not set error in Claude Code."
+date: 2026-01-17
+tags: ["claude-code", "troubleshooting", "setup"]
+---
+
+You just installed Claude Code, ran `claude` in your terminal, and got this error:
+
+```
+Error: ANTHROPIC_API_KEY environment variable is not set
+```
+
+This is the most common first-time setup issue. Here's how to fix it.
+
+## Why This Happens
+
+Claude Code needs an API key to authenticate with Anthropic's servers. Without it, the CLI cannot make any requests. The error means either:
+
+1. You haven't set the environment variable yet
+2. You set it in a different terminal session
+3. Your shell configuration isn't loading properly
+
+## Solution
+
+### Step 1: Get Your API Key
+
+1. Go to [console.anthropic.com](https://console.anthropic.com)
+2. Sign in or create an account
+3. Navigate to API Keys section
+4. Create a new key and copy it
+
+### Step 2: Set the Environment Variable
+
+**For macOS/Linux (zsh):**
+
+```bash
+echo 'export ANTHROPIC_API_KEY="your-key-here"' >> ~/.zshrc
+source ~/.zshrc
+```
+
+**For macOS/Linux (bash):**
+
+```bash
+echo 'export ANTHROPIC_API_KEY="your-key-here"' >> ~/.bashrc
+source ~/.bashrc
+```
+
+**For Windows (PowerShell):**
+
+```powershell
+[System.Environment]::SetEnvironmentVariable('ANTHROPIC_API_KEY', 'your-key-here', 'User')
+```
+
+Then restart your terminal.
+
+### Step 3: Verify
+
+```bash
+echo $ANTHROPIC_API_KEY
+```
+
+You should see your key (or at least the first few characters). Now run `claude` again.
+
+## Common Mistakes
+
+### Wrong shell config file
+
+Check which shell you're using:
+
+```bash
+echo $SHELL
+```
+
+- `/bin/zsh` → use `.zshrc`
+- `/bin/bash` → use `.bashrc`
+
+### Typo in variable name
+
+It must be exactly `ANTHROPIC_API_KEY`. Not `ANTHROPIC_KEY`, not `CLAUDE_API_KEY`.
+
+### Forgot to source
+
+After editing your shell config, either:
+- Run `source ~/.zshrc` (or `.bashrc`)
+- Or open a new terminal window
+
+### Key has extra spaces
+
+Make sure there are no spaces around the equals sign or inside the quotes:
+
+```bash
+# Wrong
+export ANTHROPIC_API_KEY = "sk-..."
+export ANTHROPIC_API_KEY="sk-... "
+
+# Correct
+export ANTHROPIC_API_KEY="sk-..."
+```
+
+## Using a .env File (Alternative)
+
+If you prefer not to set a global environment variable, you can use a `.env` file in your project:
+
+```bash
+# .env
+ANTHROPIC_API_KEY=your-key-here
+```
+
+Then run Claude Code with:
+
+```bash
+source .env && claude
+```
+
+Or use a tool like `direnv` to auto-load it.
+
+## Security Note
+
+Never commit your API key to git. Add `.env` to your `.gitignore`:
+
+```bash
+echo ".env" >> .gitignore
+```
+
+If you accidentally exposed your key, revoke it immediately in the Anthropic console and create a new one.
+
+## Still Not Working?
+
+If the error persists after following these steps:
+
+1. Open a completely new terminal window
+2. Check if the variable is set: `printenv | grep ANTHROPIC`
+3. Try setting it inline: `ANTHROPIC_API_KEY="your-key" claude`
+
+If inline works but the export doesn't, your shell config file isn't being loaded. Check if you have a `.zprofile` or `.bash_profile` that might be conflicting.
