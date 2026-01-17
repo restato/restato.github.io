@@ -1,0 +1,82 @@
+---
+title: "Adding Share Buttons to 20 Game Pages with One File"
+description: "Used Astro's dynamic routing to add multilingual share buttons to all game pages by editing just one file."
+pubDate: 2026-01-17
+tags: ["astro", "react", "i18n"]
+---
+
+Wanted to add share buttons to all my game pages today. Initially overthought it with result-sharing, image cards, SDK integrations... then realized I just needed a simple "share this game" button.
+
+## The setup
+
+My blog has 20 mini-games (Snake, 2048, Flappy Bird, etc.) served through Astro's dynamic routing:
+
+```
+src/pages/[lang]/games/[slug].astro
+```
+
+One file generates all 60 pages (20 games × 3 languages).
+
+## Making ShareButton multilingual
+
+Already had a `ShareButton.tsx` but it was Korean-only. Added a simple translation object:
+
+```tsx
+type Language = 'ko' | 'en' | 'ja';
+
+const translations = {
+  ko: { share: '공유', copied: '복사됨!', copyLink: '링크 복사', kakao: '카카오톡' },
+  en: { share: 'Share', copied: 'Copied!', copyLink: 'Copy Link', kakao: 'KakaoTalk' },
+  ja: { share: 'シェア', copied: 'コピー!', copyLink: 'リンクコピー', kakao: 'カカオトーク' },
+};
+
+interface ShareButtonProps {
+  title: string;
+  description: string;
+  url?: string;
+  lang?: Language;  // added this
+}
+```
+
+Then replaced hardcoded strings with `{t.share}`, `{t.copied}`, etc.
+
+## Adding to all games at once
+
+Since all games use `[slug].astro`, I just added the import and component once:
+
+```astro
+---
+import ShareButton from '../../../components/tools/ShareButton';
+---
+
+<div class="flex items-center justify-center gap-3 mb-2">
+  <h1 class="text-3xl md:text-4xl font-bold">
+    {seo.title.split(' - ')[0]}
+  </h1>
+  <ShareButton
+    client:load
+    title={seo.title}
+    description={seo.description}
+    lang={lang}
+  />
+</div>
+```
+
+That's it. All 20 games now have share buttons in 3 languages.
+
+## Quick test
+
+```bash
+curl -s http://localhost:4321/ko/games/snake | grep -o '공유'
+# 공유
+
+curl -s http://localhost:4321/en/games/snake | grep -o 'Share'
+# Share
+
+curl -s http://localhost:4321/ja/games/snake | grep -o 'シェア'
+# シェア
+```
+
+## Takeaway
+
+Dynamic routing is great for this stuff. Instead of editing 20 files, I edited 2 (ShareButton + [slug].astro) and got multilingual share buttons everywhere.
