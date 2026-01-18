@@ -1,0 +1,67 @@
+---
+title: "Fixing tmux Scroll Jumping on Typing"
+description: "My tmux kept scrolling up while typing. Turns out the status bar was refreshing too often."
+date: 2026-01-18
+tags: ["tmux", "troubleshooting"]
+---
+
+Super annoying issue today. Every time I typed in tmux, the scroll position kept jumping up randomly.
+
+## The problem
+
+Typing anything would cause the terminal to flicker and scroll position to jump. Made it impossible to work comfortably.
+
+## Finding the cause
+
+Dug through my `.tmux.conf` and found the culprit:
+
+```bash
+set -g status-interval 1
+```
+
+Status bar was refreshing every single second. Combined with Catppuccin theme showing `cpu`, `weather`, `battery`, and `directory` - that's a lot of refreshing.
+
+```bash
+set -g @catppuccin_status_modules_right "directory cpu weather battery date_time"
+```
+
+Each refresh was causing the terminal to redraw, which messed with scroll position.
+
+## The fix
+
+1. Bumped status interval to 60 seconds (only showing time anyway):
+
+```bash
+set -g status-interval 60
+```
+
+2. Removed cpu/weather/battery from status bar:
+
+```bash
+set -g @catppuccin_status_modules_right "directory date_time"
+```
+
+3. Removed unused plugins:
+
+```bash
+# Removed these lines
+set -g @plugin 'tmux-plugins/tmux-cpu'
+set -g @plugin 'tmux-plugins/tmux-battery'
+set -g @plugin 'Morantron/tmux-fingers'
+```
+
+4. Turned off monitor-activity:
+
+```bash
+setw -g monitor-activity off
+```
+
+## Gotchas
+
+`tmux source-file ~/.tmux.conf` wasn't enough. Had to kill the entire tmux server:
+
+```bash
+tmux kill-server && tmux
+```
+
+Plugins stay loaded in memory even after config reload. Full restart was needed to actually remove them.
