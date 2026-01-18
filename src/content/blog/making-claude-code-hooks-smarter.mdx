@@ -1,0 +1,74 @@
+---
+title: "Making Claude Code Hooks Smarter"
+description: "Added project detection so iOS hooks don't run in Python projects anymore."
+date: 2026-01-18
+tags: ["claude-code", "dotfiles", "shell-scripting"]
+---
+
+Got annoyed today. Every time I opened Claude Code in a Python project, it would run iOS environment checks. "Checking Xcode... Checking SwiftLint..." Like, I'm working on a FastAPI app here.
+
+## The problem
+
+My global Claude Code config had iOS hooks that ran on every session start:
+
+```json
+"SessionStart": [
+  { "command": "~/.claude/hooks/ios-env-check.sh" },
+  { "command": "~/.claude/hooks/worktree-status.sh" }
+]
+```
+
+These hooks don't know what kind of project they're in. They just run.
+
+## What I changed
+
+Added project detection at the top of `ios-env-check.sh`:
+
+```bash
+is_ios_project() {
+  ls *.xcodeproj &>/dev/null || \
+  ls *.xcworkspace &>/dev/null || \
+  [ -f "Package.swift" ] || \
+  ls *.swift &>/dev/null 2>&1
+}
+
+if ! is_ios_project; then
+  exit 0  # Silent exit
+fi
+```
+
+Now it checks for Xcode project files or Swift files before running any checks. If it's not an iOS project, it exits silently.
+
+## Other fixes while I was at it
+
+Since I was already in there:
+
+1. **Converted all hooks to English** - Korean output was using 7x more tokens. My `CLAUDE.md` already said "write skills in English" but I hadn't followed my own advice.
+
+2. **Added worktree cleanup hints** - I kept forgetting to clean up old worktrees. Now if you have more than 3, you get a reminder:
+   ```
+   ⚠️  You have 5 worktrees. Consider cleaning up:
+      Remove worktree: claude-worktree remove
+      Prune stale:     git worktree prune
+   ```
+
+3. **Fixed `install.sh`** - The `claude-worktree` CLI wasn't being installed globally. Added symlink creation:
+   ```bash
+   mkdir -p ~/.local/bin
+   ln -sf "$DOTFILES/scripts/claude-worktree" ~/.local/bin/claude-worktree
+   ```
+
+4. **Added Slack webhook check** - `slack-notify.sh` would fail if `SLACK_WEBHOOK_URL` wasn't set. Now it just exits silently.
+
+## The full list
+
+| File | Change |
+|------|--------|
+| `ios-env-check.sh` | Project detection + English |
+| `spm-check.sh` | English output |
+| `worktree-status.sh` | Cleanup hints + English |
+| `slack-notify.sh` | Webhook URL check |
+| `install.sh` | CLI symlink + PATH warning |
+| `settings.json` | Added `spm-check.sh` |
+
+Now my Python and Next.js projects start clean, and iOS projects still get the full environment check.
