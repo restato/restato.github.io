@@ -1,0 +1,131 @@
+---
+title: "Building a Git Worktree Tool for Claude Code"
+description: "Made a CLI tool to run parallel Claude Code sessions with auto permission skipping."
+date: 2026-01-18
+tags: ["claude-code", "bash", "git-worktree", "productivity"]
+---
+
+Spent some time today building a CLI tool to make running multiple Claude Code sessions easier.
+
+## The problem
+
+When working on complex features, I often want to:
+1. Keep working on the main branch
+2. Spin up a separate Claude session for a bug fix
+3. Maybe start another one for a quick experiment
+
+Git worktrees are perfect for this - separate directories, same repo. But the manual workflow was annoying:
+
+```bash
+git worktree add .worktrees/feat-auth -b feat-auth
+cd .worktrees/feat-auth
+claude --dangerously-skip-permissions
+```
+
+Three commands every time. And I kept forgetting that `--dangerously-skip-permissions` flag.
+
+## What I built
+
+A bash script called `claude-worktree` that does everything in one command:
+
+```bash
+# Create worktree + start Claude (permissions skipped by default)
+claude-worktree create -n feat-auth
+
+# Start with a prompt
+claude-worktree create -n fix-bug -p "Fix the null pointer bug in user service"
+
+# If you actually want permission checks
+claude-worktree create -n experiment --with-permissions
+
+# Just create the worktree, don't start Claude
+claude-worktree create -n test-branch --no-run
+```
+
+The key decision: **default to skipping permissions**. When I'm spinning up a parallel session, I almost always want it to just work without interruption.
+
+## Implementation highlights
+
+The script parses `git worktree list --porcelain` output for reliable worktree info:
+
+```bash
+read_worktrees_porcelain() {
+  local out
+  out="$(git worktree list --porcelain)"
+
+  WORKTREE_PATHS=()
+  WORKTREE_BRANCHREFS=()
+
+  local path="" branch=""
+  while IFS= read -r line; do
+    if [[ "$line" == worktree\ * ]]; then
+      if [[ -n "$path" ]]; then
+        WORKTREE_PATHS+=("$path")
+        WORKTREE_BRANCHREFS+=("$branch")
+      fi
+      path="${line#worktree }"
+      branch=""
+    elif [[ "$line" == branch\ * ]]; then
+      branch="${line#branch }"
+    fi
+  done <<< "$out"
+  # ...
+}
+```
+
+Safety features:
+- Won't delete the main worktree (repo root)
+- Asks before deleting local branches
+- Handles existing vs new branches automatically
+
+## Managing it with dotfiles
+
+Put the script in my `claude-dotfiles` repo under `scripts/`:
+
+```
+claude-dotfiles/
+├── scripts/
+│   └── claude-worktree    # the tool
+├── skills/
+│   └── worktree/          # Claude /worktree skill
+├── install.sh             # updated to handle scripts/
+└── ...
+```
+
+The install script creates symlinks to `~/.local/bin/`:
+
+```bash
+for script in "$DOTFILES_DIR/scripts"/*; do
+  if [ -f "$script" ]; then
+    script_name=$(basename "$script")
+    ln -sf "$script" "$HOME/.local/bin/$script_name"
+    chmod +x "$script"
+  fi
+done
+```
+
+Now `claude-worktree` is available globally, and updates to the dotfiles repo automatically apply.
+
+## Usage
+
+```bash
+# List current worktrees
+claude-worktree list
+
+# Output:
+# IDX  MAIN   PATH                                          BRANCH
+# 0    YES    /Users/dev/myproject                          main
+# 1    NO     /Users/dev/myproject/.worktrees/feat-map      feat-map
+
+# Create and enter new worktree
+claude-worktree create -n feat-api
+
+# Clean up when done
+claude-worktree remove  # interactive selection
+```
+
+## Gotchas
+
+Had to use `"$CLAUDE_CMD" $CLAUDE_OPTS` without quotes around `$CLAUDE_OPTS` - otherwise an empty string becomes an empty argument and claude complains about unknown option "".
+
+Also, the shebang needs to be `#!/usr/bin/env bash` not `#!/bin/bash` for portability.
