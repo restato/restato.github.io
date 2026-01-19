@@ -1,0 +1,81 @@
+---
+title: "Fixing API Response Format Mismatch in Next.js"
+description: "Search wasn't showing results. Turned out frontend expected an array but got an object wrapper."
+date: 2026-01-20
+tags: ["nextjs", "typescript", "debugging", "api"]
+---
+
+Added an inline search feature to my apartment data app today. Everything looked good - the UI worked, API calls were firing. But typing "이매" returned nothing. Zero results.
+
+## The problem
+
+I had a GlobalSearch component calling my backend API:
+
+```typescript
+const results = await searchDanjis(debouncedQuery, 10);
+setDanjiResults(results || []);
+```
+
+And rendering like this:
+
+```tsx
+{danjiResults.length > 0 && (
+  <CommandGroup heading="검색 결과">
+    {danjiResults.map((result, idx) => (
+      // ... render items
+    ))}
+  </CommandGroup>
+)}
+```
+
+No errors in console. API was returning 200. But nothing showed up.
+
+## Finding the issue
+
+Checked the Network tab. The API was returning:
+
+```json
+{
+  "danjis": [
+    { "danji": "이매촌", "sigungu": "경기도 성남시 분당구", "road": "..." }
+  ],
+  "count": 1
+}
+```
+
+But my frontend expected a raw array:
+
+```typescript
+interface DanjiSearchResult {
+  danji: string;
+  sigungu: string;
+  road?: string;
+  trade_count: number;
+}
+// Expected: DanjiSearchResult[]
+```
+
+When I set state to `{ danjis: [...], count: 1 }`, the `.length` check was `undefined` (objects don't have length), so the results never rendered.
+
+## The fix
+
+One line change in the API wrapper:
+
+```typescript
+// Before
+return response.data;
+
+// After
+return response.data.danjis || [];
+```
+
+That's it. Search works now.
+
+## Takeaway
+
+When debugging "data shows in network tab but not UI":
+1. Check what shape the API actually returns
+2. Check what shape your component expects
+3. Don't assume - `console.log` the actual value
+
+The error was silent because JavaScript happily assigns an object where you expect an array. TypeScript would've caught this if I'd typed the API response properly.
