@@ -1,0 +1,87 @@
+---
+title: "Replacing Command Palette with Inline Search"
+description: "Switched from a modal dialog to an expandable search bar in the header. Less clicks, better UX."
+date: 2026-01-20
+tags: ["react", "nextjs", "shadcn-ui", "ux"]
+---
+
+Had a Command Palette style search working - press ⌘K, modal pops up, type to search. Classic pattern. But for an apartment search app where users search constantly, that extra click to open the dialog felt unnecessary.
+
+## What I wanted
+
+Instead of:
+```
+[🔍] → click → [modal opens] → type → results
+```
+
+Just:
+```
+[🔍 검색 ⌘K] → click → [expands inline] → type → dropdown results
+```
+
+Search stays in the header. No modal overlay. Feels faster.
+
+## The change
+
+Swapped `CommandDialog` (shadcn's modal wrapper) for `Popover` + `Command`:
+
+```tsx
+// Before: Modal dialog
+<CommandDialog open={open} onOpenChange={onOpenChange}>
+  <CommandInput placeholder="검색..." />
+  <CommandList>
+    {/* results */}
+  </CommandList>
+</CommandDialog>
+
+// After: Inline with dropdown
+<Popover open={open} onOpenChange={onOpenChange}>
+  <PopoverTrigger asChild>
+    <div className="flex items-center">
+      <input
+        ref={inputRef}
+        placeholder="단지명 검색..."
+        className="h-9 w-[180px] sm:w-[240px] pl-8 pr-8 ..."
+      />
+      <button onClick={() => onOpenChange(false)}>
+        <X className="h-4 w-4" />
+      </button>
+    </div>
+  </PopoverTrigger>
+  <PopoverContent className="w-[280px] p-0">
+    <Command>
+      <CommandList>
+        {/* same results rendering */}
+      </CommandList>
+    </Command>
+  </PopoverContent>
+</Popover>
+```
+
+The Command component still handles keyboard navigation and filtering. Just moved it from inside a Dialog to inside a Popover.
+
+## Navigation integration
+
+In the header, conditionally render either the button or the expanded search:
+
+```tsx
+{globalSearchOpen ? (
+  <GlobalSearch open={globalSearchOpen} onOpenChange={setGlobalSearchOpen} />
+) : (
+  <button onClick={() => setGlobalSearchOpen(true)}>
+    <Search className="h-4 w-4" />
+    <span>검색</span>
+    <kbd>⌘K</kbd>
+  </button>
+)}
+```
+
+⌘K shortcut still works - it just expands the search inline instead of opening a modal.
+
+## Small details that mattered
+
+1. **Auto-focus on open**: Added a ref to the input and focused it when `open` becomes true
+2. **Prevent Popover stealing focus**: Used `onOpenAutoFocus={(e) => e.preventDefault()}` on PopoverContent
+3. **ESC to close**: Handle keydown on the input to close on Escape
+
+The result feels much snappier. One less layer between the user and their search results.
