@@ -11,6 +11,7 @@ const navItems = [
   { href: '/jobs', labelKey: 'jobs' as const },
   { href: '/tools', labelKey: 'tools' as const },
   { href: '/games', labelKey: 'games' as const },
+  { href: '/projects', labelKey: 'projects' as const },
   { href: '/about', labelKey: 'about' as const },
 ];
 

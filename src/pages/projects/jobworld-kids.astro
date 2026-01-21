@@ -1,0 +1,418 @@
+---
+import MainLayout from '../../layouts/MainLayout.astro';
+
+const pageTitle = "잡월드 키즈 플래너 - 한국잡월드 어린이체험관 일정 계획 도우미";
+const pageDescription = "한국잡월드 어린이체험관 방문 계획을 쉽게! 42개 체험실 시간표, 층별 지도, 일정 플래너를 무료로 제공합니다. PWA로 오프라인에서도 사용 가능.";
+
+const appUrl = "https://jobworld-kids.vercel.app";
+
+const faqs = [
+  {
+    question: "무료인가요?",
+    answer: "네, 완전 무료입니다. 광고도 없고, 가입도 필요 없어요. 바로 접속해서 사용하시면 됩니다."
+  },
+  {
+    question: "어떤 기기에서 사용할 수 있나요?",
+    answer: "스마트폰, 태블릿, PC 등 웹 브라우저가 있는 모든 기기에서 사용할 수 있어요. 모바일에 최적화되어 있어 현장에서 사용하기 편리합니다."
+  },
+  {
+    question: "인터넷 없이도 사용할 수 있나요?",
+    answer: "한 번 접속하면 PWA로 설치되어 오프라인에서도 기본 기능을 사용할 수 있어요. 체험관 내에서 인터넷이 불안정해도 걱정 없습니다."
+  },
+  {
+    question: "한국잡월드 1부/2부 운영시간이 어떻게 되나요?",
+    answer: "1부는 09:30~13:30, 2부는 14:30~18:30입니다. 점심시간(13:30~14:30)에는 휴식 시간이에요. 앱에서 현재 시간 기준 체험 가능한 방을 자동으로 보여드립니다."
+  },
+  {
+    question: "조이포인트가 뭔가요?",
+    answer: "체험 후 받는 가상 화폐예요. 체험관 내 상점에서 사용할 수 있습니다. 각 체험실마다 받을 수 있는 조이포인트가 다르며, 앱에서 확인할 수 있어요."
+  }
+];
+
+// JSON-LD for FAQ
+const faqSchema = {
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": faqs.map(faq => ({
+    "@type": "Question",
+    "name": faq.question,
+    "acceptedAnswer": {
+      "@type": "Answer",
+      "text": faq.answer
+    }
+  }))
+};
+
+// JSON-LD for Software Application
+const appSchema = {
+  "@context": "https://schema.org",
+  "@type": "SoftwareApplication",
+  "name": "잡월드 키즈 플래너",
+  "description": pageDescription,
+  "applicationCategory": "UtilitiesApplication",
+  "operatingSystem": "Web Browser",
+  "offers": {
+    "@type": "Offer",
+    "price": "0",
+    "priceCurrency": "KRW"
+  },
+  "featureList": [
+    "42개 체험실 시간표 확인",
+    "층별 인터랙티브 지도",
+    "즐겨찾기 기능",
+    "체험 기록 관리",
+    "PWA 오프라인 지원"
+  ]
+};
+
+// JSON-LD for Breadcrumb
+const breadcrumbSchema = {
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    {
+      "@type": "ListItem",
+      "position": 1,
+      "name": "홈",
+      "item": "https://restato.github.io/"
+    },
+    {
+      "@type": "ListItem",
+      "position": 2,
+      "name": "프로젝트",
+      "item": "https://restato.github.io/projects/"
+    },
+    {
+      "@type": "ListItem",
+      "position": 3,
+      "name": "잡월드 키즈 플래너",
+      "item": "https://restato.github.io/projects/jobworld-kids"
+    }
+  ]
+};
+
+const features = [
+  {
+    icon: "🏠",
+    title: "홈",
+    subtitle: "실시간 시간표",
+    description: "현재 시간 기준 체험 가능한 방을 한눈에 확인하세요. 즐겨찾기한 체험실이 우선 표시됩니다.",
+    image: "/images/projects/jobworld/feature-home.png"
+  },
+  {
+    icon: "🧭",
+    title: "탐색",
+    subtitle: "검색 & 지도",
+    description: "42개 체험실을 층별, 카테고리별로 검색하고 인터랙티브 지도에서 위치를 확인하세요.",
+    image: "/images/projects/jobworld/feature-explore.png"
+  },
+  {
+    icon: "📋",
+    title: "기록",
+    subtitle: "체험 히스토리",
+    description: "완료한 체험을 날짜별로 기록하고, 총 체험 횟수와 조이포인트를 확인하세요.",
+    image: "/images/projects/jobworld/feature-history.png"
+  }
+];
+
+const steps = [
+  {
+    number: "1",
+    title: "체험실 둘러보기",
+    description: "탐색 탭에서 42개 체험실 정보를 확인하세요"
+  },
+  {
+    number: "2",
+    title: "관심 체험실 저장",
+    description: "마음에 드는 체험실을 ⭐ 버튼으로 저장하세요"
+  },
+  {
+    number: "3",
+    title: "시간표 확인",
+    description: "홈 탭에서 현재 체험 가능한 방을 확인하세요"
+  },
+  {
+    number: "4",
+    title: "체험 시작!",
+    description: "현장에서 체험을 시작하고 기록을 남기세요"
+  }
+];
+---
+
+<MainLayout
+  title={pageTitle}
+  description={pageDescription}
+  image="/images/projects/jobworld/hero.png"
+>
+  <!-- JSON-LD Schemas -->
+  <script type="application/ld+json" set:html={JSON.stringify(faqSchema)} />
+  <script type="application/ld+json" set:html={JSON.stringify(appSchema)} />
+  <script type="application/ld+json" set:html={JSON.stringify(breadcrumbSchema)} />
+
+  <!-- Hero Section -->
+  <section class="py-16 px-4 bg-gradient-to-b from-blue-500/5 to-transparent">
+    <div class="max-w-6xl mx-auto">
+      <div class="grid lg:grid-cols-2 gap-12 items-center">
+        <div>
+          <span class="inline-block px-3 py-1 text-sm font-medium bg-blue-500/10 text-blue-600 dark:text-blue-400 rounded-full mb-4">
+            한국잡월드 어린이체험관
+          </span>
+          <h1 class="text-4xl md:text-5xl font-bold mb-4">
+            잡월드 키즈 플래너
+          </h1>
+          <p class="text-xl text-[var(--color-text-muted)] mb-4">
+            42개 체험실, 쉽고 빠른 일정 계획
+          </p>
+          <p class="text-[var(--color-text-muted)] mb-8">
+            한국잡월드 어린이체험관 방문이 처음이신가요?<br />
+            복잡한 시간표와 동선, 이제 걱정 마세요.<br />
+            잡월드 키즈 플래너로 완벽한 체험 일정을 계획하세요.
+          </p>
+          <div class="flex flex-wrap gap-4">
+            <a
+              href={appUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              class="inline-flex items-center px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-xl transition-colors"
+            >
+              지금 시작하기
+              <svg class="w-5 h-5 ml-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+              </svg>
+            </a>
+            <a
+              href="#features"
+              class="inline-flex items-center px-6 py-3 border border-[var(--color-border)] hover:bg-[var(--color-card-hover)] font-medium rounded-xl transition-colors"
+            >
+              기능 살펴보기
+              <svg class="w-5 h-5 ml-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+              </svg>
+            </a>
+          </div>
+        </div>
+        <div class="relative">
+          <div class="relative mx-auto w-[280px] md:w-[320px]">
+            <!-- Phone Frame -->
+            <div class="relative bg-gray-900 rounded-[3rem] p-3 shadow-2xl">
+              <div class="absolute top-0 left-1/2 transform -translate-x-1/2 w-32 h-6 bg-gray-900 rounded-b-2xl"></div>
+              <img
+                src="/images/projects/jobworld/hero.png"
+                alt="잡월드 키즈 플래너 앱 화면"
+                class="rounded-[2.5rem] w-full"
+                loading="eager"
+              />
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Pain Points Section -->
+  <section class="py-16 px-4">
+    <div class="max-w-4xl mx-auto">
+      <h2 class="text-3xl font-bold text-center mb-12">이런 고민 있으셨나요?</h2>
+      <div class="grid md:grid-cols-3 gap-6">
+        <div class="p-6 bg-[var(--color-card)] rounded-xl border border-[var(--color-border)]">
+          <div class="text-4xl mb-4">😵</div>
+          <h3 class="font-bold mb-2">42개 체험실, 어디부터?</h3>
+          <p class="text-sm text-[var(--color-text-muted)]">
+            "처음 가는데 뭘 해야 할지 모르겠어요"
+          </p>
+        </div>
+        <div class="p-6 bg-[var(--color-card)] rounded-xl border border-[var(--color-border)]">
+          <div class="text-4xl mb-4">⏰</div>
+          <h3 class="font-bold mb-2">시간표 확인이 번거로워요</h3>
+          <p class="text-sm text-[var(--color-text-muted)]">
+            "체험실마다 시작 시간이 달라서 헷갈려요"
+          </p>
+        </div>
+        <div class="p-6 bg-[var(--color-card)] rounded-xl border border-[var(--color-border)]">
+          <div class="text-4xl mb-4">🗺️</div>
+          <h3 class="font-bold mb-2">동선 계획이 어려워요</h3>
+          <p class="text-sm text-[var(--color-text-muted)]">
+            "3층, M층 왔다 갔다... 아이가 지쳐요"
+          </p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Solution Banner -->
+  <section class="py-8 px-4">
+    <div class="max-w-4xl mx-auto">
+      <div class="p-8 bg-gradient-to-r from-blue-500/10 to-cyan-500/10 rounded-2xl border border-blue-500/20 text-center">
+        <h3 class="text-2xl font-bold mb-2">잡월드 키즈 플래너로 해결하세요!</h3>
+        <p class="text-[var(--color-text-muted)]">
+          시간표 확인부터 체험 기록까지, 한 곳에서 편리하게
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Features Section -->
+  <section id="features" class="py-16 px-4">
+    <div class="max-w-6xl mx-auto">
+      <h2 class="text-3xl font-bold text-center mb-4">주요 기능</h2>
+      <p class="text-center text-[var(--color-text-muted)] mb-12">
+        직관적인 3탭 구조로 필요한 정보를 빠르게 찾으세요
+      </p>
+      <div class="grid md:grid-cols-3 gap-8">
+        {features.map((feature) => (
+          <div class="bg-[var(--color-card)] rounded-2xl border border-[var(--color-border)] overflow-hidden hover:shadow-xl transition-shadow">
+            <div class="aspect-[9/16] overflow-hidden bg-gray-100 dark:bg-gray-800">
+              <img
+                src={feature.image}
+                alt={`${feature.title} 화면`}
+                class="w-full h-full object-cover object-top"
+                loading="lazy"
+              />
+            </div>
+            <div class="p-6">
+              <div class="flex items-center gap-3 mb-3">
+                <span class="text-3xl">{feature.icon}</span>
+                <div>
+                  <h3 class="font-bold text-lg">{feature.title}</h3>
+                  <p class="text-sm text-blue-600 dark:text-blue-400">{feature.subtitle}</p>
+                </div>
+              </div>
+              <p class="text-[var(--color-text-muted)]">
+                {feature.description}
+              </p>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <!-- How It Works Section -->
+  <section class="py-16 px-4 bg-[var(--color-card)]">
+    <div class="max-w-4xl mx-auto">
+      <h2 class="text-3xl font-bold text-center mb-12">이렇게 사용하세요</h2>
+      <div class="grid md:grid-cols-4 gap-6">
+        {steps.map((step, index) => (
+          <div class="text-center">
+            <div class="w-12 h-12 mx-auto mb-4 bg-blue-600 text-white rounded-full flex items-center justify-center text-xl font-bold">
+              {step.number}
+            </div>
+            <h3 class="font-bold mb-2">{step.title}</h3>
+            <p class="text-sm text-[var(--color-text-muted)]">
+              {step.description}
+            </p>
+            {index < steps.length - 1 && (
+              <div class="hidden md:block absolute right-0 top-1/2 transform translate-x-1/2 -translate-y-1/2">
+                <svg class="w-6 h-6 text-[var(--color-border)]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                </svg>
+              </div>
+            )}
+          </div>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <!-- Benefits Section -->
+  <section class="py-16 px-4">
+    <div class="max-w-4xl mx-auto">
+      <div class="grid md:grid-cols-3 gap-6">
+        <div class="text-center p-6 bg-[var(--color-card)] rounded-xl border border-[var(--color-border)]">
+          <div class="text-4xl mb-4">💰</div>
+          <h3 class="font-bold mb-2">100% 무료</h3>
+          <p class="text-sm text-[var(--color-text-muted)]">광고 없이 모든 기능 무료 이용</p>
+        </div>
+        <div class="text-center p-6 bg-[var(--color-card)] rounded-xl border border-[var(--color-border)]">
+          <div class="text-4xl mb-4">📱</div>
+          <h3 class="font-bold mb-2">설치 없이 바로 사용</h3>
+          <p class="text-sm text-[var(--color-text-muted)]">웹 브라우저에서 바로 접속</p>
+        </div>
+        <div class="text-center p-6 bg-[var(--color-card)] rounded-xl border border-[var(--color-border)]">
+          <div class="text-4xl mb-4">🌐</div>
+          <h3 class="font-bold mb-2">오프라인 지원</h3>
+          <p class="text-sm text-[var(--color-text-muted)]">PWA로 인터넷 없이도 사용 가능</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- FAQ Section -->
+  <section class="py-16 px-4 bg-[var(--color-card)]">
+    <div class="max-w-3xl mx-auto">
+      <h2 class="text-3xl font-bold text-center mb-12">자주 묻는 질문</h2>
+      <div class="space-y-4">
+        {faqs.map((faq) => (
+          <details class="group bg-[var(--color-bg)] rounded-xl border border-[var(--color-border)] overflow-hidden">
+            <summary class="flex items-center justify-between p-5 cursor-pointer hover:bg-[var(--color-card-hover)] transition-colors">
+              <span class="font-medium pr-4">{faq.question}</span>
+              <svg class="w-5 h-5 text-[var(--color-text-muted)] transform group-open:rotate-180 transition-transform flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+              </svg>
+            </summary>
+            <div class="px-5 pb-5 text-[var(--color-text-muted)]">
+              {faq.answer}
+            </div>
+          </details>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <!-- Operating Hours Info -->
+  <section class="py-12 px-4">
+    <div class="max-w-3xl mx-auto">
+      <div class="p-6 bg-gradient-to-r from-amber-500/10 to-orange-500/10 rounded-xl border border-amber-500/20">
+        <div class="flex items-start gap-4">
+          <span class="text-3xl">⏰</span>
+          <div>
+            <h3 class="font-bold mb-2">한국잡월드 어린이체험관 운영시간</h3>
+            <div class="text-sm text-[var(--color-text-muted)] space-y-1">
+              <p><strong>1부:</strong> 09:30 ~ 13:30</p>
+              <p><strong>2부:</strong> 14:30 ~ 18:30</p>
+              <p><strong>점심시간:</strong> 13:30 ~ 14:30 (휴식)</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Final CTA Section -->
+  <section class="py-16 px-4">
+    <div class="max-w-3xl mx-auto text-center">
+      <h2 class="text-3xl font-bold mb-4">지금 바로 일정을 계획해보세요</h2>
+      <p class="text-[var(--color-text-muted)] mb-8">
+        가입 없이, 무료로, 바로 시작하세요
+      </p>
+      <a
+        href={appUrl}
+        target="_blank"
+        rel="noopener noreferrer"
+        class="inline-flex items-center px-8 py-4 bg-blue-600 hover:bg-blue-700 text-white text-lg font-medium rounded-xl transition-colors shadow-lg hover:shadow-xl"
+      >
+        앱 사용하기
+        <svg class="w-6 h-6 ml-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+        </svg>
+      </a>
+    </div>
+  </section>
+
+  <!-- Breadcrumb -->
+  <nav class="py-4 px-4 border-t border-[var(--color-border)]">
+    <div class="max-w-6xl mx-auto">
+      <ol class="flex items-center text-sm text-[var(--color-text-muted)]">
+        <li>
+          <a href="/" class="hover:text-[var(--color-text)]">홈</a>
+        </li>
+        <li class="mx-2">/</li>
+        <li>
+          <a href="/projects" class="hover:text-[var(--color-text)]">프로젝트</a>
+        </li>
+        <li class="mx-2">/</li>
+        <li class="text-[var(--color-text)]">잡월드 키즈 플래너</li>
+      </ol>
+    </div>
+  </nav>
+</MainLayout>
