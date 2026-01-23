@@ -1,0 +1,198 @@
+---
+title: "Claude Code 워크플로우 개선 전략"
+description: "계획-구현-추적을 하나로 연결하고 병렬 처리로 생산성 올리기"
+date: 2026-01-23
+tags: ["claude-code", "productivity", "workflow", "git"]
+---
+
+Claude Code를 쓰면서 느낀 점: 계획 세우고 구현하는 건 좋은데, 그 계획이 구현과 따로 놀고, 작업 시키고 대기하는 시간이 생각보다 길다.
+
+## 겪었던 문제들
+
+1. **계획과 구현이 따로 논다**
+   - 처음에 "이렇게 하자" 계획 세우면
+   - 구현하다 보면 계획이 업데이트 안 됨
+   - 나중에 뭘 했는지 추적 어려움
+
+2. **순차 처리로 인한 대기 시간**
+   - "A 기능 만들어줘" → 15분 대기
+   - "B 기능 만들어줘" → 또 15분 대기
+   - 45분 걸릴 걸 병렬로 하면 15-20분이면 끝나는데
+
+3. **Worktree 관리 복잡**
+   - 여러 개 만들면 어떤 게 뭔지 헷갈림
+   - 에러 나면 어느 worktree였는지 기억 안 남
+   - 정리 안 하면 계속 쌓임
+
+4. **커밋이 가끔 꼬임**
+   - 여러 브랜치에서 작업하다 보면
+   - 어디에 뭘 커밋했는지 헷갈림
+
+## TodoWrite를 살아있는 문서처럼
+
+Claude한테 이렇게 시키면:
+
+```bash
+"JSON Formatter 도구 만들기 시작.
+TodoWrite로 전체 계획 세우고,
+각 단계마다 상태 업데이트해줘.
+블로커 생기면 내용 수정해서 알려줘"
+```
+
+Claude가 자동으로:
+- 작업 시작: `pending → in_progress`
+- 블로커 발견: 새 todo 추가하거나 기존 todo 수정
+- 완료: `in_progress → completed`
+- 예상 못한 작업: 새 todo 추가
+
+계획이 곧 실행 상태가 됨. 따로 노는 게 아니라.
+
+## 병렬 처리로 생산성 올리기
+
+### 잘못된 방법 (순차)
+```bash
+"Base64 도구 만들어줘"           # 15분 대기
+"완료? URL Encoder 만들어줘"     # 15분 대기
+"완료? Hash Generator 만들어줘"   # 15분 대기
+# 총 45분
+```
+
+### 올바른 방법 (병렬)
+```bash
+"다음 3개 도구를 동시에 만들어줘.
+각각 독립적인 worktree에서:
+
+Issue #201: Base64 인코더/디코더
+Issue #202: URL 인코더/디코더
+Issue #203: Hash Generator
+
+병렬로 처리하되 TodoWrite로 실시간 추적해줘"
+# 총 15-20분
+```
+
+차이가 확실함.
+
+## Worktree는 최소한으로
+
+처음엔 "병렬 처리 = worktree 많이" 라고 생각했는데, 실전에서는:
+
+### ❌ 나쁜 예
+```bash
+/worktree new feature-a
+/worktree new feature-b
+/worktree new feature-c
+/worktree new bugfix-1
+/worktree new bugfix-2
+# 5개 추적... 머리 아픔
+```
+
+### ✅ 좋은 예
+```bash
+# 평소: 그냥 브랜치 전환
+git checkout -b feature-new-tool
+# 작업...
+/commit && /pr
+
+# 큰 작업만 worktree (최대 2개)
+/worktree new feature-big-refactor
+# 이 작업 하는 동안 main에서 hotfix 가능
+```
+
+**Worktree는 이럴 때만:**
+- 긴 CI 빌드 기다리면서 다른 작업 필요
+- 완전히 독립적인 2개 작업 병렬 처리
+- Hotfix하면서 feature 작업 유지
+
+대부분은 그냥 브랜치 전환이 더 편함.
+
+## 에러 복구 전략
+
+Worktree에서 에러 나면:
+
+```bash
+# 1. 상태 확인
+/worktree
+
+# 2. Claude에게 경로 명시
+"feature-json-parser worktree에서
+TypeScript 에러 수정해줘.
+경로: ~/ww/restato-json-parser"
+```
+
+또는 귀찮으면:
+
+```bash
+# 그냥 main에서 브랜치 전환
+git checkout feature-json-parser
+"현재 브랜치에서 에러 수정해줘"
+```
+
+Worktree 복잡하게 안 해도 됨.
+
+## TodoWrite에 경로 포함시키기
+
+Claude한테 이렇게 시키면 추적 쉬워짐:
+
+```bash
+"작업 시작할 때 todo에 worktree 경로 포함시켜줘:
+
+✅ #123: JSON Parser
+   Location: ~/ww/restato-json-parser
+   Status: completed
+
+🔄 #124: UI Component
+   Location: main branch
+   Status: in_progress"
+```
+
+나중에 "어디서 작업 중이었지?" 할 필요 없음.
+
+## 실전 워크플로우
+
+### 아침: 병렬 작업 시작
+```bash
+"다음 이슈들을 동시에 처리해줘:
+- #123: JSON parser 구현
+- #124: UI 컴포넌트
+- #125: 테스트 추가
+
+각 작업 완료되면:
+1. 테스트 실행
+2. /commit으로 커밋
+3. /pr로 PR 생성"
+```
+
+### 중간: 진행 상황 확인 (1-2시간마다)
+```bash
+"현재 TodoList 상태 알려줘.
+블로커 있으면 해결 방법 제시해줘"
+```
+
+### 저녁: 정리
+```bash
+"오늘 완료 못한 작업들 정리하고,
+내일 우선순위 순으로 이슈 리스트 만들어줘"
+```
+
+## 핵심 원칙
+
+1. **작업은 항상 이슈 단위로** - 3시간 이내 완료 가능한 크기
+2. **Worktree는 최소한으로** - 대부분 브랜치 전환으로 충분
+3. **병렬 처리 최대화** - 의존성 없는 작업은 동시에
+4. **TodoWrite는 살아있는 문서** - 계획이 곧 실행 상태
+5. **커밋은 자동화** - `/commit`, `/pr` skill 활용
+
+## 결과
+
+이렇게 바꾸고 나니:
+- ✅ 계획-구현 자동 동기화 (TodoWrite 덕분)
+- ✅ 병렬 처리로 생산성 3-5배 향상
+- ✅ 커밋 충돌 없음 (브랜치/worktree 전략)
+- ✅ 대기 시간 최소화
+
+Claude Code를 단순 코딩 도구가 아니라 프로젝트 관리 도구처럼 쓰게 됨.
+
+## Gotchas
+
+처음엔 "worktree 많이 = 생산성 높음"이라고 착각했는데, 오히려 추적이 어려워져서 역효과.
+**단순함이 이김.** 대부분은 브랜치 전환으로 충분하고, worktree는 정말 필요할 때만.
