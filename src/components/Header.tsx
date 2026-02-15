@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { getLanguage, type Language } from '../i18n';
 import { commonTranslations } from '../i18n/translations/common';
 import LanguageSelector from './LanguageSelector';
-import { getBasePathFromUrl, getLanguageFromUrl, buildLanguageUrl, supportsLanguageRouting } from '../i18n/urlUtils';
+import { getBasePathFromUrl, buildLanguageUrl, supportsLanguageRouting } from '../i18n/urlUtils';
 
 interface NavItem {
   href: string;
@@ -17,7 +17,6 @@ const navItems: NavItem[] = [
   { href: '/tools', labelKey: 'tools' },
   { href: '/games', labelKey: 'games' },
   { href: '/projects', labelKey: 'projects' },
-  { href: '/about', labelKey: 'about' },
 ];
 
 export default function Header() {

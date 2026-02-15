@@ -38,6 +38,27 @@ export default function Footer() {
           {/* Social Links */}
           <div className="flex items-center gap-2">
             <a
+              href="https://www.linkedin.com/in/direcision/"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="p-2.5 rounded-lg text-[var(--color-text-muted)] hover:text-[var(--color-text)] hover:bg-[var(--color-card-hover)] transition-colors"
+              aria-label="LinkedIn"
+            >
+              <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                <path d="M4.98 3.5A2.5 2.5 0 1 0 5 8.5 2.5 2.5 0 0 0 4.98 3.5zM3 9h4v12H3zm7 0h3.8v1.7h.1c.5-.9 1.8-1.9 3.7-1.9 4 0 4.7 2.5 4.7 5.8V21h-4v-5.6c0-1.3 0-3.1-1.9-3.1s-2.2 1.5-2.2 3V21h-4z" />
+              </svg>
+            </a>
+            <a
+              href="mailto:direcision@gmail.com"
+              className="p-2.5 rounded-lg text-[var(--color-text-muted)] hover:text-[var(--color-text)] hover:bg-[var(--color-card-hover)] transition-colors"
+              aria-label="Email"
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M3 7h18v10H3V7z" />
+                <path strokeLinecap="round" strokeLinejoin="round" d="m3 8 9 6 9-6" />
+              </svg>
+            </a>
+            <a
               href="https://github.com/restato"
               target="_blank"
               rel="noopener noreferrer"

@@ -3,7 +3,7 @@
  * Run after Astro build: node scripts/generate-sitemaps.mjs
  *
  * Features:
- * - Excludes redirect URLs (legacy /tools/xxx, /anonymous-chat without lang prefix)
+ * - Excludes non-canonical URLs (legacy redirects + noindex admin pages)
  * - Uses actual blog post dates for lastmod
  * - Proper URL categorization
  */
@@ -18,13 +18,15 @@ const CONTENT_DIR = path.join(__dirname, '../src/content/blog');
 const SITE_URL = 'https://restato.github.io';
 
 /**
- * URLs to exclude from sitemap (redirect pages)
- * These pages redirect to language-prefixed versions
+ * URLs to exclude from sitemap
  */
 const REDIRECT_PATTERNS = [
   /^\/tools\/[^/]+\/?$/, // /tools/xxx (without lang prefix)
   /^\/tools\/?$/, // /tools/ (without lang prefix)
   /^\/anonymous-chat\/?$/, // /anonymous-chat (without lang prefix)
+  /^\/games\/?$/, // /games (without lang prefix)
+  /^\/about\/?$/, // /about redirect page
+  /^\/articles\/admin\/?$/, // admin page
 ];
 
 /**
