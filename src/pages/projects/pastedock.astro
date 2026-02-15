@@ -1,0 +1,191 @@
+---
+import MainLayout from '../../layouts/MainLayout.astro';
+
+const pageTitle = 'PasteDock | macOS Menu Bar Clipboard Manager';
+const pageDescription = 'PasteDock is a clipboard manager for macOS 14+ that lets you quickly search and restore recent clipboard history from the menu bar.';
+
+const dmgUrl = 'https://github.com/restato/PasteDock/releases/latest/download/PasteDock.dmg';
+const checksumUrl = 'https://github.com/restato/PasteDock/releases/latest/download/PasteDock.dmg.sha256';
+const githubUrl = 'https://github.com/restato/PasteDock';
+
+const features = [
+  {
+    title: 'Menu Bar Quick Picker',
+    description: 'Open the quick picker with a shortcut and instantly find the clipboard item you need.',
+  },
+  {
+    title: 'Text, Image, and File Support',
+    description: 'Capture core clipboard types with type-specific previews and restore behavior.',
+  },
+  {
+    title: 'Reliable Local Storage',
+    description: 'Store clipboard history locally with SQLite and auto-trim old items using retention policies.',
+  },
+  {
+    title: 'macOS Release Automation',
+    description: 'Use a release pipeline with Developer ID signing, notarization, and DMG distribution.',
+  },
+];
+
+const appSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'SoftwareApplication',
+  name: 'PasteDock',
+  description: pageDescription,
+  applicationCategory: 'UtilitiesApplication',
+  operatingSystem: 'macOS 14+',
+  offers: {
+    '@type': 'Offer',
+    price: '0',
+    priceCurrency: 'USD',
+  },
+  url: dmgUrl,
+  sameAs: [githubUrl],
+};
+
+const breadcrumbSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'BreadcrumbList',
+  itemListElement: [
+    {
+      '@type': 'ListItem',
+      position: 1,
+      name: 'Home',
+      item: 'https://restato.github.io/',
+    },
+    {
+      '@type': 'ListItem',
+      position: 2,
+      name: 'Projects',
+      item: 'https://restato.github.io/projects/',
+    },
+    {
+      '@type': 'ListItem',
+      position: 3,
+      name: 'PasteDock',
+      item: 'https://restato.github.io/projects/pastedock',
+    },
+  ],
+};
+---
+
+<MainLayout title={pageTitle} description={pageDescription}>
+  <script type="application/ld+json" set:html={JSON.stringify(appSchema)} />
+  <script type="application/ld+json" set:html={JSON.stringify(breadcrumbSchema)} />
+
+  <section class="py-16 px-4 bg-gradient-to-b from-emerald-500/10 to-transparent">
+    <div class="max-w-5xl mx-auto">
+      <div class="mb-6 text-sm text-[var(--color-text-muted)] flex items-center gap-2">
+        <a href="/" class="hover:text-[var(--color-text)]">Home</a>
+        <span>/</span>
+        <a href="/projects" class="hover:text-[var(--color-text)]">Projects</a>
+        <span>/</span>
+        <span class="text-[var(--color-text)]">PasteDock</span>
+      </div>
+
+      <div class="max-w-3xl">
+        <span class="inline-flex items-center px-3 py-1 text-sm font-medium rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 mb-4">
+          macOS Utility
+        </span>
+        <h1 class="flex items-center gap-3 text-4xl md:text-5xl font-bold mb-4">
+          <img
+            src="/images/projects/pastedock/hero.png"
+            alt="PasteDock icon"
+            class="w-12 h-12 rounded-xl object-cover border border-[var(--color-border)]"
+            loading="eager"
+          />
+          <span>PasteDock</span>
+        </h1>
+        <p class="text-xl text-[var(--color-text-muted)] mb-8">
+          A menu bar clipboard manager that helps you search and restore copied content in seconds.
+        </p>
+
+        <div class="flex flex-wrap gap-4 mb-8">
+          <a
+            href={dmgUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            class="inline-flex items-center px-6 py-3 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-medium transition-colors"
+          >
+            Download DMG
+            <svg class="w-5 h-5 ml-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2M7 10l5 5m0 0 5-5m-5 5V3" />
+            </svg>
+          </a>
+          <a
+            href={checksumUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            class="inline-flex items-center px-6 py-3 rounded-xl border border-[var(--color-border)] hover:bg-[var(--color-card-hover)] font-medium transition-colors"
+          >
+            Download SHA256
+            <svg class="w-5 h-5 ml-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6M9 16h6M9 8h6M5 4h14v16H5z" />
+            </svg>
+          </a>
+        </div>
+
+        <div class="grid sm:grid-cols-3 gap-3">
+          <div class="p-4 rounded-xl border border-[var(--color-border)] bg-[var(--color-card)]">
+            <p class="text-xs uppercase tracking-wide text-[var(--color-text-muted)] mb-1">Platform</p>
+            <p class="font-semibold">macOS 14+</p>
+          </div>
+          <div class="p-4 rounded-xl border border-[var(--color-border)] bg-[var(--color-card)]">
+            <p class="text-xs uppercase tracking-wide text-[var(--color-text-muted)] mb-1">Release Channel</p>
+            <p class="font-semibold">GitHub Releases</p>
+          </div>
+          <div class="p-4 rounded-xl border border-[var(--color-border)] bg-[var(--color-card)]">
+            <p class="text-xs uppercase tracking-wide text-[var(--color-text-muted)] mb-1">Source</p>
+            <p class="font-semibold">Open Repository</p>
+          </div>
+        </div>
+
+        <div class="mt-8 p-3 rounded-2xl border border-[var(--color-border)] bg-[var(--color-card)]">
+          <img
+            src="/images/projects/pastedock/hero.png"
+            alt="PasteDock project preview"
+            class="w-full h-auto rounded-xl"
+            loading="eager"
+          />
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="py-16 px-4">
+    <div class="max-w-5xl mx-auto">
+      <h2 class="text-3xl font-bold mb-8">Core Features</h2>
+      <div class="grid md:grid-cols-2 gap-6">
+        {features.map((feature) => (
+          <div class="p-6 rounded-2xl border border-[var(--color-border)] bg-[var(--color-card)]">
+            <h3 class="text-xl font-semibold mb-2">{feature.title}</h3>
+            <p class="text-[var(--color-text-muted)]">{feature.description}</p>
+          </div>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <section class="py-16 px-4 border-t border-[var(--color-border)]">
+    <div class="max-w-5xl mx-auto">
+      <h2 class="text-3xl font-bold mb-8">Installation</h2>
+      <ol class="grid md:grid-cols-3 gap-4">
+        <li class="p-6 rounded-2xl border border-[var(--color-border)] bg-[var(--color-card)]">
+          <p class="text-sm text-[var(--color-text-muted)] mb-2">STEP 1</p>
+          <p class="font-semibold mb-1">Open the release page</p>
+          <p class="text-sm text-[var(--color-text-muted)]">Download the latest DMG from GitHub Releases.</p>
+        </li>
+        <li class="p-6 rounded-2xl border border-[var(--color-border)] bg-[var(--color-card)]">
+          <p class="text-sm text-[var(--color-text-muted)] mb-2">STEP 2</p>
+          <p class="font-semibold mb-1">Move to Applications</p>
+          <p class="text-sm text-[var(--color-text-muted)]">Drag `PasteDock.app` into the `Applications` folder.</p>
+        </li>
+        <li class="p-6 rounded-2xl border border-[var(--color-border)] bg-[var(--color-card)]">
+          <p class="text-sm text-[var(--color-text-muted)] mb-2">STEP 3</p>
+          <p class="font-semibold mb-1">Launch and grant permissions</p>
+          <p class="text-sm text-[var(--color-text-muted)]">Allow accessibility permissions to enable auto-paste features.</p>
+        </li>
+      </ol>
+    </div>
+  </section>
+</MainLayout>

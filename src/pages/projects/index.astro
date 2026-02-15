@@ -1,40 +1,48 @@
 ---
 import MainLayout from '../../layouts/MainLayout.astro';
 
-const pageDescription = "개인 프로젝트 모음 - 실용적인 앱과 도구들을 소개합니다. 잡월드 키즈 플래너, 미니게임 등 다양한 프로젝트를 확인해보세요.";
+const pageDescription = "A collection of personal projects, practical apps, and tools including PasteDock, JobWorld Kids Planner, and mini games.";
 
 const projects = [
   {
+    slug: 'pastedock',
+    title: 'PasteDock',
+    description: 'Menu bar clipboard manager for macOS',
+    icon: '📋',
+    color: 'from-emerald-500 to-teal-500',
+    badge: 'NEW',
+  },
+  {
     slug: 'jobworld-kids',
-    title: '잡월드 키즈 플래너',
-    description: '한국잡월드 어린이체험관 일정 계획 도우미',
+    title: 'JobWorld Kids Planner',
+    description: 'Schedule planner for the Korea JobWorld Kids Experience Center',
     icon: '🎪',
     color: 'from-blue-500 to-cyan-500',
     badge: 'NEW',
   },
   {
     slug: 'games',
-    title: '게임센터',
-    description: '무료 온라인 미니게임 모음',
+    title: 'Game Center',
+    description: 'Collection of free online mini games',
     icon: '🎮',
     color: 'from-purple-500 to-pink-500',
   },
 ];
 ---
 
-<MainLayout title="프로젝트 | Restato" description={pageDescription}>
+<MainLayout title="Projects | Restato" description={pageDescription}>
   <section class="py-16 px-4">
     <div class="max-w-5xl mx-auto">
       <!-- Header -->
       <div class="text-center mb-12">
-        <h1 class="text-4xl font-bold mb-4">프로젝트</h1>
+        <h1 class="text-4xl font-bold mb-4">Projects</h1>
         <p class="text-xl text-[var(--color-text-muted)]">
-          직접 만든 앱과 도구들을 소개합니다
+          Apps and tools I have built
         </p>
       </div>
 
       <!-- Projects Grid -->
-      <div class="grid md:grid-cols-2 gap-6">
+      <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
         {projects.map((project) => (
           <a
             href={`/projects/${project.slug}`}
@@ -57,7 +65,7 @@ const projects = [
                 {project.description}
               </p>
               <div class="mt-6 flex items-center text-primary-500 opacity-0 group-hover:opacity-100 transition-opacity">
-                <span>자세히 보기</span>
+                <span>View details</span>
                 <svg class="w-5 h-5 ml-1 transform group-hover:translate-x-1 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
                 </svg>
