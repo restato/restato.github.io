@@ -55,7 +55,7 @@ export const commonTranslations = {
   // Projects page
   projects: {
     title: { ko: '프로젝트', en: 'Projects', ja: 'プロジェクト' },
-    description: { ko: 'Claude와 함께 만든 다양한 프로젝트들', en: 'Various projects created with Claude', ja: 'Claudeと一緒に作った様々なプロジェクト' },
+    description: { ko: '다양한 프로젝트와 실험들', en: 'Various projects and experiments', ja: 'さまざまなプロジェクトと実験' },
     viewProject: { ko: '프로젝트 보기', en: 'View Project', ja: 'プロジェクトを見る' },
     allProjects: { ko: '전체 프로젝트', en: 'All Projects', ja: 'すべてのプロジェクト' },
     newProject: { ko: '새 프로젝트', en: 'New Project', ja: '新しいプロジェクト' },
@@ -96,9 +96,9 @@ export const commonTranslations = {
     subtitle: { ko: 'Developer & Vibe Coder', en: 'Developer & Vibe Coder', ja: 'Developer & Vibe Coder' },
     greeting: { ko: '안녕하세요! 👋', en: 'Hello! 👋', ja: 'こんにちは！👋' },
     intro: {
-      ko: 'Claude와 함께 <strong>Vibe Coding</strong>을 하며 다양한 프로젝트를 만들고 있습니다. 이 블로그는 그 과정에서 배운 것들, 만든 것들, 그리고 생각들을 기록하는 공간입니다.',
-      en: "I'm creating various projects with Claude through <strong>Vibe Coding</strong>. This blog is a space to record what I've learned, what I've made, and my thoughts along the way.",
-      ja: 'Claudeと一緒に<strong>Vibe Coding</strong>をしながら様々なプロジェクトを作っています。このブログは、その過程で学んだこと、作ったもの、そして考えを記録する場所です。'
+      ko: '<strong>Vibe Coding</strong>으로 다양한 프로젝트를 만들고 있습니다. 이 블로그는 그 과정에서 배운 것들, 만든 것들, 그리고 생각들을 기록하는 공간입니다.',
+      en: "I'm creating various projects through <strong>Vibe Coding</strong>. This blog is a space to record what I've learned, what I've made, and my thoughts along the way.",
+      ja: '<strong>Vibe Coding</strong>でさまざまなプロジェクトを作っています。このブログは、その過程で学んだこと、作ったもの、そして考えを記録する場所です。'
     },
     whatIsVibeCoding: { ko: 'Vibe Coding이란?', en: 'What is Vibe Coding?', ja: 'Vibe Codingとは？' },
     vibeCodingDesc: {
@@ -111,7 +111,7 @@ export const commonTranslations = {
     devLogDesc: { ko: '프로젝트 진행 과정과 삽질기', en: 'Project progress and troubleshooting', ja: 'プロジェクトの進行過程とトラブルシューティング' },
     til: { ko: 'TIL', en: 'TIL', ja: 'TIL' },
     tilDesc: { ko: '오늘 배운 것들', en: 'Today I Learned', ja: '今日学んだこと' },
-    claudeUsage: { ko: 'Claude 활용법', en: 'Claude Usage', ja: 'Claude活用法' },
+    claudeUsage: { ko: 'AI 활용법', en: 'AI Usage', ja: 'AI活用法' },
     claudeUsageDesc: { ko: 'AI와 효과적으로 협업하는 방법', en: 'How to collaborate effectively with AI', ja: 'AIと効果的に協力する方法' },
     showcase: { ko: '프로젝트 쇼케이스', en: 'Project Showcase', ja: 'プロジェクトショーケース' },
     showcaseDesc: { ko: '만든 것들 소개', en: 'Introduction to creations', ja: '作ったものの紹介' },

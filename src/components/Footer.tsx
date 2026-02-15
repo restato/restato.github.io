@@ -61,7 +61,7 @@ export default function Footer() {
 
           {/* Copyright */}
           <p className="text-sm text-[var(--color-text-muted)]">
-            &copy; {currentYear} Restato. {t(commonTranslations.footer.builtWith)} Astro & Claude.
+            &copy; {currentYear} Restato. {t(commonTranslations.footer.builtWith)} Astro.
           </p>
         </div>
       </div>

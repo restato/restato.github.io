@@ -7,7 +7,7 @@ export async function GET(context: APIContext) {
 
   return rss({
     title: 'Restato | 개발 일지',
-    description: 'Claude와 함께하는 개발 일지 - Vibe Coding으로 배우고 만드는 것들',
+    description: '개발 일지 - Vibe Coding으로 배우고 만드는 것들',
     site: context.site!,
     items: posts.map((post) => ({
       title: post.data.title,
