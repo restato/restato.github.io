@@ -9,7 +9,6 @@ export const commonTranslations = {
     articles: { ko: '아티클', en: 'Articles', ja: '記事' },
     jobs: { ko: '채용', en: 'Jobs', ja: '採用' },
     projects: { ko: '프로젝트', en: 'Projects', ja: 'プロジェクト' },
-    about: { ko: '소개', en: 'About', ja: '紹介' },
     tools: { ko: '도구', en: 'Tools', ja: 'ツール' },
     games: { ko: '게임', en: 'Games', ja: 'ゲーム' },
   },
@@ -87,36 +86,6 @@ export const commonTranslations = {
     tags: { ko: '태그', en: 'Tags', ja: 'タグ' },
     noPosts: { ko: '게시물이 없습니다', en: 'No posts yet', ja: '投稿がありません' },
     minuteRead: { ko: '분 읽기', en: 'min read', ja: '分で読めます' },
-  },
-
-  // About
-  about: {
-    title: { ko: '소개', en: 'About', ja: '紹介' },
-    description: { ko: '안녕하세요, 개발자입니다', en: 'Hello, I am a developer', ja: 'こんにちは、開発者です' },
-    subtitle: { ko: 'Developer & Vibe Coder', en: 'Developer & Vibe Coder', ja: 'Developer & Vibe Coder' },
-    greeting: { ko: '안녕하세요! 👋', en: 'Hello! 👋', ja: 'こんにちは！👋' },
-    intro: {
-      ko: '<strong>Vibe Coding</strong>으로 다양한 프로젝트를 만들고 있습니다. 이 블로그는 그 과정에서 배운 것들, 만든 것들, 그리고 생각들을 기록하는 공간입니다.',
-      en: "I'm creating various projects through <strong>Vibe Coding</strong>. This blog is a space to record what I've learned, what I've made, and my thoughts along the way.",
-      ja: '<strong>Vibe Coding</strong>でさまざまなプロジェクトを作っています。このブログは、その過程で学んだこと、作ったもの、そして考えを記録する場所です。'
-    },
-    whatIsVibeCoding: { ko: 'Vibe Coding이란?', en: 'What is Vibe Coding?', ja: 'Vibe Codingとは？' },
-    vibeCodingDesc: {
-      ko: 'AI와 함께 코딩하며 아이디어를 빠르게 구현하는 방식입니다. 완벽한 코드보다는 <em>동작하는 것</em>을 우선으로, 배움의 과정 자체를 즐기는 개발 스타일이에요.',
-      en: "It's a way of coding with AI to quickly implement ideas. It's a development style that prioritizes <em>working code</em> over perfect code and enjoys the learning process itself.",
-      ja: 'AIと一緒にコーディングしてアイデアを素早く実装する方式です。完璧なコードよりも<em>動くこと</em>を優先し、学びのプロセス自体を楽しむ開発スタイルです。'
-    },
-    whatWeCover: { ko: '이 블로그에서 다루는 것들', en: 'What We Cover', ja: 'このブログで扱う内容' },
-    devLog: { ko: '개발 일지', en: 'Dev Log', ja: '開発日誌' },
-    devLogDesc: { ko: '프로젝트 진행 과정과 삽질기', en: 'Project progress and troubleshooting', ja: 'プロジェクトの進行過程とトラブルシューティング' },
-    til: { ko: 'TIL', en: 'TIL', ja: 'TIL' },
-    tilDesc: { ko: '오늘 배운 것들', en: 'Today I Learned', ja: '今日学んだこと' },
-    claudeUsage: { ko: 'AI 활용법', en: 'AI Usage', ja: 'AI活用法' },
-    claudeUsageDesc: { ko: 'AI와 효과적으로 협업하는 방법', en: 'How to collaborate effectively with AI', ja: 'AIと効果的に協力する方法' },
-    showcase: { ko: '프로젝트 쇼케이스', en: 'Project Showcase', ja: 'プロジェクトショーケース' },
-    showcaseDesc: { ko: '만든 것들 소개', en: 'Introduction to creations', ja: '作ったものの紹介' },
-    contact: { ko: '연락처', en: 'Contact', ja: '連絡先' },
-    contactDesc: { ko: '궁금한 점이나 피드백이 있으시면 언제든 연락주세요!', en: 'Feel free to reach out if you have questions or feedback!', ja: 'ご質問やフィードバックがあればいつでもご連絡ください！' },
   },
 
   // 404 Page

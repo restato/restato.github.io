@@ -16,7 +16,7 @@ interface Props {
 
 const { title, description, slug, icon, category, keywords = [] } = Astro.props;
 const pageTitle = `${title} | Restato`;
-const canonicalUrl = `https://restato.github.io/tools/${slug}`;
+const canonicalUrl = `https://restato.github.io/en/tools/${slug}/`;
 
 // FAQ Schema
 const faqSchema = {
@@ -74,7 +74,15 @@ const appSchema = {
 <MainLayout
   title={pageTitle}
   description={description}
+  robots="noindex, follow"
+  canonical={canonicalUrl}
 >
+  <Fragment slot="head">
+    <noscript>
+      <meta http-equiv="refresh" content={`0;url=/en/tools/${slug}/`} />
+    </noscript>
+  </Fragment>
+
   <script type="application/ld+json" set:html={JSON.stringify(faqSchema)} />
   <script type="application/ld+json" set:html={JSON.stringify(appSchema)} />
 
@@ -174,7 +182,7 @@ const appSchema = {
         let lang = localStorage.getItem('lang');
         if (!lang || !supportedLangs.includes(lang)) {
           const browserLang = navigator.language.split('-')[0];
-          lang = supportedLangs.includes(browserLang) ? browserLang : 'ko';
+          lang = supportedLangs.includes(browserLang) ? browserLang : 'en';
         }
 
         // Redirect to language-specific URL

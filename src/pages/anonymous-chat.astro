@@ -2,7 +2,17 @@
 import MainLayout from '../layouts/MainLayout.astro';
 ---
 
-<MainLayout title="Redirecting... | Restato">
+<MainLayout
+  title="Redirecting... | Restato"
+  robots="noindex, follow"
+  canonical="https://restato.github.io/en/anonymous-chat/"
+>
+  <Fragment slot="head">
+    <noscript>
+      <meta http-equiv="refresh" content="0;url=/en/anonymous-chat/" />
+    </noscript>
+  </Fragment>
+
   <div class="flex items-center justify-center h-64">
     <div class="flex items-center gap-2 text-[var(--color-text-muted)]">
       <svg class="animate-spin h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
@@ -23,7 +33,7 @@ import MainLayout from '../layouts/MainLayout.astro';
         let lang = localStorage.getItem('lang');
         if (!lang || !supportedLangs.includes(lang)) {
           const browserLang = navigator.language.split('-')[0];
-          lang = supportedLangs.includes(browserLang) ? browserLang : 'ko';
+          lang = supportedLangs.includes(browserLang) ? browserLang : 'en';
         }
         // hash 보존하여 리다이렉트
         window.location.replace('/' + lang + '/anonymous-chat' + window.location.hash);

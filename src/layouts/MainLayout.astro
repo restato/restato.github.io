@@ -1,7 +1,7 @@
 ---
 import BaseLayout from './BaseLayout.astro';
-import Header from '../components/Header';
-import Footer from '../components/Footer';
+import Header from '../components/Header.astro';
+import Footer from '../components/Footer.astro';
 
 interface AlternateUrl {
   lang: string;
@@ -16,17 +16,20 @@ interface Props {
   publishedTime?: Date;
   modifiedTime?: Date;
   author?: string;
+  robots?: string;
+  canonical?: string;
   lang?: 'ko' | 'en' | 'ja';
   alternateUrls?: AlternateUrl[];
 }
 
-const { title, description, image, type, publishedTime, modifiedTime, author, lang, alternateUrls } = Astro.props;
+const { title, description, image, type, publishedTime, modifiedTime, author, robots, canonical, lang, alternateUrls } = Astro.props;
 ---
 
-<BaseLayout title={title} description={description} image={image} type={type} publishedTime={publishedTime} modifiedTime={modifiedTime} author={author} lang={lang} alternateUrls={alternateUrls}>
-  <Header client:load />
+<BaseLayout title={title} description={description} image={image} type={type} publishedTime={publishedTime} modifiedTime={modifiedTime} author={author} robots={robots} canonical={canonical} lang={lang} alternateUrls={alternateUrls}>
+  <slot name="head" slot="head" />
+  <Header />
   <main class="flex-1">
     <slot />
   </main>
-  <Footer client:load />
+  <Footer />
 </BaseLayout>

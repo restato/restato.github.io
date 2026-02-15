@@ -1,0 +1,373 @@
+---
+import { commonTranslations } from '../i18n/translations/common';
+import { languages, type Language } from '../i18n';
+import { getBasePathFromUrl, buildLanguageUrl, supportsLanguageRouting } from '../i18n/urlUtils';
+
+interface NavItem {
+  href: string;
+  labelKey: keyof typeof commonTranslations.nav;
+}
+
+const navItems: NavItem[] = [
+  { href: '/', labelKey: 'home' },
+  { href: '/blog', labelKey: 'blog' },
+  { href: '/articles', labelKey: 'articles' },
+  { href: '/jobs', labelKey: 'jobs' },
+  { href: '/tools', labelKey: 'tools' },
+  { href: '/games', labelKey: 'games' },
+  { href: '/projects', labelKey: 'projects' },
+];
+
+const currentPath = Astro.url.pathname;
+const initialLang: Language = 'ko';
+
+const isActive = (href: string): boolean => {
+  const normalizedCurrent = getBasePathFromUrl(currentPath);
+  const normalizedHref = getBasePathFromUrl(href);
+  return normalizedCurrent === normalizedHref ||
+    (normalizedHref !== '/' && normalizedCurrent.startsWith(normalizedHref));
+};
+
+const getNavHref = (baseHref: string): string => {
+  if (supportsLanguageRouting(baseHref)) {
+    return buildLanguageUrl(baseHref, initialLang);
+  }
+  return baseHref;
+};
+
+const navTranslations = commonTranslations.nav;
+const darkModeTranslations = commonTranslations.ui.darkMode;
+---
+
+<header class="sticky top-0 z-50 bg-[var(--color-bg)]/80 backdrop-blur-lg border-b border-[var(--color-border)]">
+  <nav class="max-w-4xl mx-auto px-6 h-16 flex items-center justify-between">
+    <a href="/" class="flex items-center gap-3 font-bold text-lg group">
+      <span class="w-8 h-8 rounded-lg gradient-bg flex items-center justify-center text-white text-sm shadow-lg shadow-primary-500/20 group-hover:shadow-primary-500/40 transition-shadow">
+        R
+      </span>
+      <span class="hidden sm:inline text-[var(--color-text)]">Restato</span>
+    </a>
+
+    <div class="flex items-center gap-1">
+      <ul class="hidden sm:flex items-center">
+        {navItems.map((item) => (
+          <li>
+            <a
+              href={getNavHref(item.href)}
+              data-base-href={item.href}
+              data-nav-key={item.labelKey}
+              class={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                isActive(item.href)
+                  ? 'text-primary-600 dark:text-primary-400 bg-primary-500/10'
+                  : 'text-[var(--color-text-muted)] hover:text-[var(--color-text)] hover:bg-[var(--color-card-hover)]'
+              }`}
+            >
+              {navTranslations[item.labelKey].ko}
+            </a>
+          </li>
+        ))}
+      </ul>
+
+      <div class="hidden sm:block ml-2">
+        <div class="relative" id="lang-selector">
+          <button
+            id="lang-trigger"
+            type="button"
+            class="flex items-center gap-1 px-2 py-1 rounded-lg text-sm bg-[var(--color-card)] hover:bg-[var(--color-card-hover)] border border-[var(--color-border)] transition-colors"
+            aria-label="Select language"
+            aria-expanded="false"
+          >
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9"></path>
+            </svg>
+            <span id="lang-current-label">{languages.ko}</span>
+            <svg id="lang-chevron" class="w-3 h-3 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+            </svg>
+          </button>
+
+          <div
+            id="lang-menu"
+            class="absolute right-0 mt-1 py-1 min-w-[100px] rounded-lg shadow-lg z-50 bg-[var(--color-card)] border border-[var(--color-border)] hidden"
+          >
+            {(Object.entries(languages) as [Language, string][]).map(([code, name]) => (
+              <button
+                type="button"
+                data-lang-option={code}
+                class={`w-full px-3 py-1.5 text-left text-sm hover:bg-[var(--color-card-hover)] transition-colors ${
+                  code === 'ko' ? 'text-primary-500 font-medium' : 'text-[var(--color-text)]'
+                }`}
+              >
+                {name}
+              </button>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      <button
+        id="theme-toggle-btn"
+        type="button"
+        class="ml-2 p-2 rounded-lg text-[var(--color-text-muted)] hover:text-[var(--color-text)] hover:bg-[var(--color-card-hover)] transition-colors"
+        aria-label={darkModeTranslations.ko}
+      >
+        <svg class="w-5 h-5 hidden dark:block" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"></path>
+        </svg>
+        <svg class="w-5 h-5 block dark:hidden" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"></path>
+        </svg>
+      </button>
+
+      <button
+        id="mobile-menu-btn"
+        type="button"
+        class="sm:hidden p-2 rounded-lg text-[var(--color-text-muted)] hover:text-[var(--color-text)] hover:bg-[var(--color-card-hover)] transition-colors"
+        aria-label="Toggle menu"
+      >
+        <svg id="menu-open-icon" class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16"></path>
+        </svg>
+        <svg id="menu-close-icon" class="w-5 h-5 hidden" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"></path>
+        </svg>
+      </button>
+    </div>
+  </nav>
+
+  <div id="mobile-menu" class="sm:hidden border-t border-[var(--color-border)] bg-[var(--color-bg)] hidden">
+    <ul class="px-4 py-3 space-y-1">
+      {navItems.map((item) => (
+        <li>
+          <a
+            href={getNavHref(item.href)}
+            data-base-href={item.href}
+            data-mobile-nav-key={item.labelKey}
+            class={`block py-2.5 px-4 rounded-lg font-medium transition-colors ${
+              isActive(item.href)
+                ? 'bg-primary-500/10 text-primary-600 dark:text-primary-400'
+                : 'text-[var(--color-text-muted)] hover:bg-[var(--color-card-hover)] hover:text-[var(--color-text)]'
+            }`}
+          >
+            {navTranslations[item.labelKey].ko}
+          </a>
+        </li>
+      ))}
+    </ul>
+    <div class="px-4 pb-3">
+      <div class="flex items-center gap-2">
+        {(Object.entries(languages) as [Language, string][]).map(([code, name]) => (
+          <button
+            type="button"
+            data-lang-mobile-option={code}
+            class={`px-3 py-1.5 rounded-lg text-sm border border-[var(--color-border)] transition-colors ${
+              code === 'ko'
+                ? 'text-primary-500 font-medium bg-primary-500/10'
+                : 'text-[var(--color-text-muted)] hover:text-[var(--color-text)] hover:bg-[var(--color-card-hover)]'
+            }`}
+          >
+            {name}
+          </button>
+        ))}
+      </div>
+    </div>
+  </div>
+</header>
+
+<script define:vars={{ navTranslations, darkModeTranslations, languages }} is:inline>
+  (() => {
+    const langSupportedPaths = ['/tools', '/anonymous-chat', '/games'];
+
+    function getBasePath(pathname) {
+      return pathname.replace(/^\/(ko|en|ja)(\/|$)/, '/');
+    }
+
+    function supportsLangRouting(pathname) {
+      const basePath = getBasePath(pathname);
+      return langSupportedPaths.some((path) => basePath === path || basePath.startsWith(path + '/'));
+    }
+
+    function buildLangUrl(pathname, lang) {
+      const basePath = getBasePath(pathname);
+      if (!supportsLangRouting(basePath)) return basePath;
+      return '/' + lang + basePath;
+    }
+
+    function getCurrentLanguage() {
+      const urlMatch = window.location.pathname.match(/^\/(ko|en|ja)(\/|$)/);
+      if (urlMatch && languages[urlMatch[1]]) {
+        localStorage.setItem('lang', urlMatch[1]);
+        return urlMatch[1];
+      }
+
+      const stored = localStorage.getItem('lang');
+      if (stored && languages[stored]) return stored;
+
+      const browserLang = navigator.language.split('-')[0];
+      if (languages[browserLang]) return browserLang;
+
+      return 'ko';
+    }
+
+    function updateNavLabels(lang) {
+      document.querySelectorAll('[data-nav-key]').forEach((element) => {
+        const key = element.getAttribute('data-nav-key');
+        if (!key || !navTranslations[key]) return;
+        element.textContent = navTranslations[key][lang] || navTranslations[key].ko;
+      });
+
+      document.querySelectorAll('[data-mobile-nav-key]').forEach((element) => {
+        const key = element.getAttribute('data-mobile-nav-key');
+        if (!key || !navTranslations[key]) return;
+        element.textContent = navTranslations[key][lang] || navTranslations[key].ko;
+      });
+    }
+
+    function updateNavHrefs(lang) {
+      document.querySelectorAll('a[data-base-href]').forEach((element) => {
+        const baseHref = element.getAttribute('data-base-href');
+        if (!baseHref) return;
+        element.setAttribute('href', buildLangUrl(baseHref, lang));
+      });
+    }
+
+    function updateLanguageUi(lang) {
+      const langCurrentLabel = document.getElementById('lang-current-label');
+      if (langCurrentLabel) {
+        langCurrentLabel.textContent = languages[lang] || languages.ko;
+      }
+
+      const themeToggleBtn = document.getElementById('theme-toggle-btn');
+      if (themeToggleBtn) {
+        themeToggleBtn.setAttribute('aria-label', darkModeTranslations[lang] || darkModeTranslations.ko);
+      }
+
+      document.querySelectorAll('[data-lang-option]').forEach((button) => {
+        const code = button.getAttribute('data-lang-option');
+        if (code === lang) {
+          button.classList.add('text-primary-500', 'font-medium');
+          button.classList.remove('text-[var(--color-text)]');
+        } else {
+          button.classList.remove('text-primary-500', 'font-medium');
+          button.classList.add('text-[var(--color-text)]');
+        }
+      });
+
+      document.querySelectorAll('[data-lang-mobile-option]').forEach((button) => {
+        const code = button.getAttribute('data-lang-mobile-option');
+        if (code === lang) {
+          button.classList.add('text-primary-500', 'font-medium', 'bg-primary-500/10');
+          button.classList.remove('text-[var(--color-text-muted)]');
+        } else {
+          button.classList.remove('text-primary-500', 'font-medium', 'bg-primary-500/10');
+          button.classList.add('text-[var(--color-text-muted)]');
+        }
+      });
+    }
+
+    function closeLanguageMenu() {
+      const langMenu = document.getElementById('lang-menu');
+      const langChevron = document.getElementById('lang-chevron');
+      const langTrigger = document.getElementById('lang-trigger');
+      if (langMenu) langMenu.classList.add('hidden');
+      if (langChevron) langChevron.classList.remove('rotate-180');
+      if (langTrigger) langTrigger.setAttribute('aria-expanded', 'false');
+    }
+
+    function closeMobileMenu() {
+      const mobileMenu = document.getElementById('mobile-menu');
+      const menuOpenIcon = document.getElementById('menu-open-icon');
+      const menuCloseIcon = document.getElementById('menu-close-icon');
+      if (mobileMenu) mobileMenu.classList.add('hidden');
+      if (menuOpenIcon) menuOpenIcon.classList.remove('hidden');
+      if (menuCloseIcon) menuCloseIcon.classList.add('hidden');
+    }
+
+    function applyLanguage(lang) {
+      localStorage.setItem('lang', lang);
+      updateNavLabels(lang);
+      updateNavHrefs(lang);
+      updateLanguageUi(lang);
+      window.dispatchEvent(new CustomEvent('languageChange', { detail: lang }));
+
+      const currentPath = window.location.pathname;
+      if (supportsLangRouting(currentPath)) {
+        const newUrl = buildLangUrl(currentPath, lang);
+        if (newUrl !== currentPath) {
+          window.location.href = newUrl;
+        }
+      }
+    }
+
+    const initialLang = getCurrentLanguage();
+    updateNavLabels(initialLang);
+    updateNavHrefs(initialLang);
+    updateLanguageUi(initialLang);
+
+    const langTrigger = document.getElementById('lang-trigger');
+    const langMenu = document.getElementById('lang-menu');
+    const langChevron = document.getElementById('lang-chevron');
+    const langSelector = document.getElementById('lang-selector');
+
+    if (langTrigger && langMenu) {
+      langTrigger.addEventListener('click', (event) => {
+        event.preventDefault();
+        langMenu.classList.toggle('hidden');
+        if (langChevron) langChevron.classList.toggle('rotate-180');
+        langTrigger.setAttribute('aria-expanded', String(!langMenu.classList.contains('hidden')));
+      });
+    }
+
+    document.addEventListener('click', (event) => {
+      if (!langSelector || !langMenu || langMenu.classList.contains('hidden')) return;
+      if (!langSelector.contains(event.target)) {
+        closeLanguageMenu();
+      }
+    });
+
+    document.querySelectorAll('[data-lang-option]').forEach((button) => {
+      button.addEventListener('click', () => {
+        const code = button.getAttribute('data-lang-option');
+        if (!code || !languages[code]) return;
+        closeLanguageMenu();
+        applyLanguage(code);
+      });
+    });
+
+    document.querySelectorAll('[data-lang-mobile-option]').forEach((button) => {
+      button.addEventListener('click', () => {
+        const code = button.getAttribute('data-lang-mobile-option');
+        if (!code || !languages[code]) return;
+        closeMobileMenu();
+        applyLanguage(code);
+      });
+    });
+
+    const mobileMenuBtn = document.getElementById('mobile-menu-btn');
+    const mobileMenu = document.getElementById('mobile-menu');
+    const menuOpenIcon = document.getElementById('menu-open-icon');
+    const menuCloseIcon = document.getElementById('menu-close-icon');
+
+    if (mobileMenuBtn && mobileMenu) {
+      mobileMenuBtn.addEventListener('click', () => {
+        const isHidden = mobileMenu.classList.toggle('hidden');
+        if (menuOpenIcon) menuOpenIcon.classList.toggle('hidden', !isHidden);
+        if (menuCloseIcon) menuCloseIcon.classList.toggle('hidden', isHidden);
+      });
+    }
+
+    document.querySelectorAll('#mobile-menu a[data-base-href]').forEach((link) => {
+      link.addEventListener('click', () => {
+        closeMobileMenu();
+      });
+    });
+
+    const themeToggleBtn = document.getElementById('theme-toggle-btn');
+    if (themeToggleBtn) {
+      themeToggleBtn.addEventListener('click', () => {
+        const isDark = document.documentElement.classList.toggle('dark');
+        localStorage.setItem('theme', isDark ? 'dark' : 'light');
+      });
+    }
+  })();
+</script>

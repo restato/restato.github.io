@@ -14,22 +14,16 @@ import {
 const posts = (await getCollection('blog', ({ data }) => !data.draft))
   .sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf())
   .slice(0, 6);
-
-const projects = await getCollection('projects');
-const featuredProjects = projects
-  .filter(p => p.data.featured)
-  .sort((a, b) => a.data.order - b.data.order)
-  .slice(0, 3);
 ---
 
 <MainLayout title="Restato | Developer Blog">
   <!-- Hero Section -->
-  <HeroSection client:load />
+  <HeroSection client:idle />
 
   <!-- Recent Posts -->
   <section class="py-20 px-6 border-t border-[var(--color-border)]">
     <div class="max-w-4xl mx-auto">
-      <RecentPostsHeader client:load />
+      <RecentPostsHeader client:idle />
 
       {posts.length > 0 ? (
         <div class="grid md:grid-cols-2 gap-6">
@@ -45,17 +39,17 @@ const featuredProjects = projects
           ))}
         </div>
       ) : (
-        <NoPostsMessage client:load />
+        <NoPostsMessage client:idle />
       )}
     </div>
   </section>
 
   <!-- Popular Tools Section -->
-  <PopularToolsSection client:load />
+  <PopularToolsSection client:visible />
 
   <!-- Game Center Banner -->
-  <GameCenterBanner client:load />
+  <GameCenterBanner client:visible />
 
   <!-- Projects Section -->
-  <ProjectsSection client:load />
+  <ProjectsSection client:visible />
 </MainLayout>
