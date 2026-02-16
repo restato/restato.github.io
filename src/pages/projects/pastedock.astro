@@ -7,6 +7,7 @@ const pageDescription = 'PasteDock is a clipboard manager for macOS 14+ that let
 const dmgUrl = 'https://github.com/restato/PasteDock/releases/latest/download/PasteDock.dmg';
 const checksumUrl = 'https://github.com/restato/PasteDock/releases/latest/download/PasteDock.dmg.sha256';
 const githubUrl = 'https://github.com/restato/PasteDock';
+const screenshotUrl = 'https://github.com/restato/PasteDock/raw/main/docs/pastedock-clipboard-screenshot.png';
 
 const features = [
   {
@@ -150,6 +151,20 @@ const breadcrumbSchema = {
             <p class="text-[var(--color-text-muted)]">{feature.description}</p>
           </div>
         ))}
+      </div>
+    </div>
+  </section>
+
+  <section class="py-16 px-4">
+    <div class="max-w-5xl mx-auto">
+      <h2 class="text-3xl font-bold mb-8">App Screenshot</h2>
+      <div class="p-4 md:p-6 rounded-2xl border border-[var(--color-border)] bg-[var(--color-card)]">
+        <img
+          src={screenshotUrl}
+          alt="PasteDock clipboard history screenshot"
+          class="w-full rounded-xl border border-[var(--color-border)]"
+          loading="lazy"
+        />
       </div>
     </div>
   </section>
