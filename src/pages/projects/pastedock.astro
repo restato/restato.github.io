@@ -8,6 +8,10 @@ const dmgUrl = 'https://github.com/restato/PasteDock/releases/latest/download/Pa
 const checksumUrl = 'https://github.com/restato/PasteDock/releases/latest/download/PasteDock.dmg.sha256';
 const githubUrl = 'https://github.com/restato/PasteDock';
 const screenshotUrl = 'https://github.com/restato/PasteDock/raw/main/docs/pastedock-clipboard-screenshot.png';
+const termsUrl = '/projects/pastedock/terms';
+const privacyUrl = '/projects/pastedock/privacy';
+const refundUrl = '/projects/pastedock/refund';
+const supportEmail = 'direcision@gmail.com';
 
 const features = [
   {
@@ -97,7 +101,7 @@ const breadcrumbSchema = {
           A menu bar clipboard manager that helps you search and restore copied content in seconds.
         </p>
 
-        <div class="flex flex-wrap gap-4 mb-8">
+        <div class="flex flex-wrap gap-4 mb-4">
           <a
             href={dmgUrl}
             target="_blank"
@@ -121,6 +125,18 @@ const breadcrumbSchema = {
             </svg>
           </a>
         </div>
+
+        <p class="text-sm text-[var(--color-text-muted)] mb-8">
+          Policies:
+          <a href={termsUrl} class="underline hover:text-[var(--color-text)] ml-1">Terms</a>
+          <span class="mx-1">·</span>
+          <a href={privacyUrl} class="underline hover:text-[var(--color-text)]">Privacy</a>
+          <span class="mx-1">·</span>
+          <a href={refundUrl} class="underline hover:text-[var(--color-text)]">Refund</a>
+          <span class="mx-2">·</span>
+          Support:
+          <a href={`mailto:${supportEmail}`} class="underline hover:text-[var(--color-text)] ml-1">{supportEmail}</a>
+        </p>
 
         <div class="grid sm:grid-cols-3 gap-3">
           <div class="p-4 rounded-xl border border-[var(--color-border)] bg-[var(--color-card)]">
