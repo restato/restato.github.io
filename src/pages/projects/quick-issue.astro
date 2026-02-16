@@ -1,0 +1,181 @@
+---
+import MainLayout from '../../layouts/MainLayout.astro';
+
+const pageTitle = 'Quick Issue | Mobile-First GitHub Issue Creator';
+const pageDescription = 'Quick Issue is a PWA that helps you create GitHub issues in seconds from mobile with OAuth login, offline support, and automatic sync.';
+
+const appUrl = 'https://quick-issue.vercel.app/';
+const githubUrl = 'https://github.com/restato/quick-issue';
+
+const features = [
+  {
+    title: 'Fast Issue Creation',
+    description: 'Capture and submit issues in a few taps with a mobile-first form flow built for speed.',
+  },
+  {
+    title: 'GitHub OAuth Login',
+    description: 'Sign in with GitHub OAuth without managing personal access tokens manually.',
+  },
+  {
+    title: 'Offline-First Workflow',
+    description: 'Keep writing even without network access and sync queued issues automatically when online.',
+  },
+  {
+    title: 'Touch-Friendly Labels',
+    description: 'Use swipe-based label selection to quickly tag issues on small screens.',
+  },
+];
+
+const techStack = [
+  { label: 'Framework', value: 'Next.js App Router' },
+  { label: 'Styling', value: 'Tailwind CSS' },
+  { label: 'State Management', value: 'Zustand' },
+  { label: 'PWA', value: 'next-pwa + Service Worker' },
+  { label: 'Testing', value: 'Jest, Testing Library, Playwright' },
+];
+
+const appSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'SoftwareApplication',
+  name: 'Quick Issue',
+  description: pageDescription,
+  applicationCategory: 'DeveloperApplication',
+  operatingSystem: 'Web Browser',
+  offers: {
+    '@type': 'Offer',
+    price: '0',
+    priceCurrency: 'USD',
+  },
+  url: appUrl,
+  sameAs: [githubUrl],
+};
+
+const breadcrumbSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'BreadcrumbList',
+  itemListElement: [
+    {
+      '@type': 'ListItem',
+      position: 1,
+      name: 'Home',
+      item: 'https://restato.github.io/',
+    },
+    {
+      '@type': 'ListItem',
+      position: 2,
+      name: 'Projects',
+      item: 'https://restato.github.io/projects/',
+    },
+    {
+      '@type': 'ListItem',
+      position: 3,
+      name: 'Quick Issue',
+      item: 'https://restato.github.io/projects/quick-issue',
+    },
+  ],
+};
+---
+
+<MainLayout title={pageTitle} description={pageDescription}>
+  <script type="application/ld+json" set:html={JSON.stringify(appSchema)} />
+  <script type="application/ld+json" set:html={JSON.stringify(breadcrumbSchema)} />
+
+  <section class="py-16 px-4 bg-gradient-to-b from-indigo-500/10 to-transparent">
+    <div class="max-w-5xl mx-auto">
+      <div class="mb-6 text-sm text-[var(--color-text-muted)] flex items-center gap-2">
+        <a href="/" class="hover:text-[var(--color-text)]">Home</a>
+        <span>/</span>
+        <a href="/projects" class="hover:text-[var(--color-text)]">Projects</a>
+        <span>/</span>
+        <span class="text-[var(--color-text)]">Quick Issue</span>
+      </div>
+
+      <div class="max-w-3xl">
+        <div class="flex flex-wrap gap-2 mb-4">
+          <span class="inline-flex items-center px-3 py-1 text-sm font-medium rounded-full bg-indigo-500/10 text-indigo-600 dark:text-indigo-400">
+            PWA
+          </span>
+          <span class="inline-flex items-center px-3 py-1 text-sm font-medium rounded-full bg-sky-500/10 text-sky-600 dark:text-sky-400">
+            Mobile-first
+          </span>
+          <span class="inline-flex items-center px-3 py-1 text-sm font-medium rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400">
+            Open Source
+          </span>
+        </div>
+
+        <h1 class="text-4xl md:text-5xl font-bold mb-4">Quick Issue</h1>
+        <p class="text-xl text-[var(--color-text-muted)] mb-8">
+          Create GitHub issues in seconds from your phone with a fast workflow, offline support, and reliable sync.
+        </p>
+
+        <div class="flex flex-wrap gap-4 mb-8">
+          <a
+            href={appUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            class="inline-flex items-center px-6 py-3 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-medium transition-colors"
+          >
+            Open Live App
+            <svg class="w-5 h-5 ml-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 4h6m0 0v6m0-6L10 14M5 8v11h11" />
+            </svg>
+          </a>
+          <a
+            href={githubUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            class="inline-flex items-center px-6 py-3 rounded-xl border border-[var(--color-border)] hover:bg-[var(--color-card-hover)] font-medium transition-colors"
+          >
+            View on GitHub
+            <svg class="w-5 h-5 ml-2" fill="currentColor" viewBox="0 0 24 24">
+              <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z" />
+            </svg>
+          </a>
+        </div>
+
+        <div class="grid sm:grid-cols-3 gap-3">
+          <div class="p-4 rounded-xl border border-[var(--color-border)] bg-[var(--color-card)]">
+            <p class="text-xs uppercase tracking-wide text-[var(--color-text-muted)] mb-1">Platform</p>
+            <p class="font-semibold">Web PWA</p>
+          </div>
+          <div class="p-4 rounded-xl border border-[var(--color-border)] bg-[var(--color-card)]">
+            <p class="text-xs uppercase tracking-wide text-[var(--color-text-muted)] mb-1">Focus</p>
+            <p class="font-semibold">GitHub Issue Workflow</p>
+          </div>
+          <div class="p-4 rounded-xl border border-[var(--color-border)] bg-[var(--color-card)]">
+            <p class="text-xs uppercase tracking-wide text-[var(--color-text-muted)] mb-1">Target Device</p>
+            <p class="font-semibold">Mobile and Desktop</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="py-16 px-4">
+    <div class="max-w-5xl mx-auto">
+      <h2 class="text-3xl font-bold mb-8">Core Features</h2>
+      <div class="grid md:grid-cols-2 gap-6">
+        {features.map((feature) => (
+          <div class="p-6 rounded-2xl border border-[var(--color-border)] bg-[var(--color-card)]">
+            <h3 class="text-xl font-semibold mb-2">{feature.title}</h3>
+            <p class="text-[var(--color-text-muted)]">{feature.description}</p>
+          </div>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <section class="py-16 px-4 border-t border-[var(--color-border)]">
+    <div class="max-w-5xl mx-auto">
+      <h2 class="text-3xl font-bold mb-8">Tech Stack</h2>
+      <div class="grid md:grid-cols-2 gap-4">
+        {techStack.map((item) => (
+          <div class="p-5 rounded-xl border border-[var(--color-border)] bg-[var(--color-card)]">
+            <p class="text-sm uppercase tracking-wide text-[var(--color-text-muted)] mb-2">{item.label}</p>
+            <p class="font-semibold">{item.value}</p>
+          </div>
+        ))}
+      </div>
+    </div>
+  </section>
+</MainLayout>
