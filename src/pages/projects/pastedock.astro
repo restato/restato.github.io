@@ -11,7 +11,9 @@ const screenshotUrl = 'https://github.com/restato/PasteDock/raw/main/docs/pasted
 const termsUrl = '/projects/pastedock/terms';
 const privacyUrl = '/projects/pastedock/privacy';
 const refundUrl = '/projects/pastedock/refund';
+const pricingUrl = '/projects/pastedock/pricing';
 const supportEmail = 'direcision@gmail.com';
+const priceDisplay = 'US$4.99 one-time';
 
 const features = [
   {
@@ -37,7 +39,7 @@ const appSchema = {
   operatingSystem: 'macOS 14+',
   offers: {
     '@type': 'Offer',
-    price: '0',
+    price: '4.99',
     priceCurrency: 'USD',
   },
   url: dmgUrl,
@@ -124,6 +126,12 @@ const breadcrumbSchema = {
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6M9 16h6M9 8h6M5 4h14v16H5z" />
             </svg>
           </a>
+          <a
+            href={pricingUrl}
+            class="inline-flex items-center px-6 py-3 rounded-xl border border-emerald-500/40 text-emerald-700 dark:text-emerald-300 hover:bg-emerald-500/10 font-medium transition-colors"
+          >
+            View Pricing
+          </a>
         </div>
 
         <p class="text-sm text-[var(--color-text-muted)] mb-8">
@@ -136,6 +144,8 @@ const breadcrumbSchema = {
           <span class="mx-2">·</span>
           Support:
           <a href={`mailto:${supportEmail}`} class="underline hover:text-[var(--color-text)] ml-1">{supportEmail}</a>
+          <span class="mx-2">·</span>
+          <a href={pricingUrl} class="underline hover:text-[var(--color-text)]">{priceDisplay}</a>
         </p>
 
         <div class="grid sm:grid-cols-3 gap-3">

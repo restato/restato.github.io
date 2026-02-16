@@ -1,0 +1,71 @@
+---
+import MainLayout from '../../../layouts/MainLayout.astro';
+
+const pageTitle = 'PasteDock Pricing | US$4.99 One-Time';
+const pageDescription = 'PasteDock pricing: US$4.99 one-time purchase for macOS 14+.';
+const canonical = '/projects/pastedock/pricing';
+const lastUpdated = 'February 16, 2026';
+const priceDisplay = 'US$4.99';
+const supportEmail = 'direcision@gmail.com';
+const termsUrl = '/projects/pastedock/terms';
+const privacyUrl = '/projects/pastedock/privacy';
+const refundUrl = '/projects/pastedock/refund';
+const productUrl = '/projects/pastedock';
+---
+
+<MainLayout title={pageTitle} description={pageDescription} canonical={canonical}>
+  <section class="py-16 px-4 bg-gradient-to-b from-emerald-500/10 to-transparent">
+    <div class="max-w-4xl mx-auto">
+      <div class="mb-6 text-sm text-[var(--color-text-muted)] flex items-center gap-2">
+        <a href="/" class="hover:text-[var(--color-text)]">Home</a>
+        <span>/</span>
+        <a href="/projects" class="hover:text-[var(--color-text)]">Projects</a>
+        <span>/</span>
+        <a href={productUrl} class="hover:text-[var(--color-text)]">PasteDock</a>
+        <span>/</span>
+        <span class="text-[var(--color-text)]">Pricing</span>
+      </div>
+
+      <h1 class="text-4xl md:text-5xl font-bold mb-4">PasteDock Pricing</h1>
+      <p class="text-[var(--color-text-muted)]">Last updated: {lastUpdated}</p>
+    </div>
+  </section>
+
+  <section class="py-16 px-4">
+    <div class="max-w-4xl mx-auto space-y-6">
+      <article class="p-8 rounded-2xl border border-[var(--color-border)] bg-[var(--color-card)]">
+        <p class="text-sm uppercase tracking-wide text-[var(--color-text-muted)] mb-2">One-time purchase</p>
+        <h2 class="text-4xl font-bold mb-2">{priceDisplay}</h2>
+        <p class="text-[var(--color-text-muted)] mb-4">Single payment. No subscription.</p>
+        <p class="text-sm text-[var(--color-text-muted)]">Checkout will be provided through Paddle once domain approval is complete.</p>
+      </article>
+
+      <article class="p-6 rounded-2xl border border-[var(--color-border)] bg-[var(--color-card)] space-y-3">
+        <h2 class="text-xl font-semibold">What is included</h2>
+        <ul class="list-disc pl-5 text-[var(--color-text-muted)] space-y-2">
+          <li>Full access to PasteDock for macOS 14+</li>
+          <li>Updates according to current release policy</li>
+          <li>Email support at <a class="underline" href={`mailto:${supportEmail}`}>{supportEmail}</a></li>
+        </ul>
+      </article>
+
+      <article class="p-6 rounded-2xl border border-[var(--color-border)] bg-[var(--color-card)] space-y-3">
+        <h2 class="text-xl font-semibold">Refund</h2>
+        <p class="text-[var(--color-text-muted)]">Full refund is available within 7 days of purchase. See <a class="underline" href={refundUrl}>Refund Policy</a> for details.</p>
+      </article>
+
+      <article class="p-6 rounded-2xl border border-[var(--color-border)] bg-[var(--color-card)] space-y-3">
+        <h2 class="text-xl font-semibold">Legal and support</h2>
+        <p class="text-[var(--color-text-muted)]">
+          <a class="underline" href={termsUrl}>Terms</a>
+          <span class="mx-2">·</span>
+          <a class="underline" href={privacyUrl}>Privacy</a>
+          <span class="mx-2">·</span>
+          <a class="underline" href={refundUrl}>Refund</a>
+          <span class="mx-2">·</span>
+          <a class="underline" href={`mailto:${supportEmail}`}>Contact support</a>
+        </p>
+      </article>
+    </div>
+  </section>
+</MainLayout>

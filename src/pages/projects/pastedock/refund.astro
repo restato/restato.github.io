@@ -5,6 +5,7 @@ const pageTitle = 'PasteDock Refund Policy';
 const pageDescription = 'Refund Policy for PasteDock purchases.';
 const canonical = '/projects/pastedock/refund';
 const lastUpdated = 'February 16, 2026';
+const pricingUrl = '/projects/pastedock/pricing';
 ---
 
 <MainLayout title={pageTitle} description={pageDescription} canonical={canonical}>
@@ -22,6 +23,7 @@ const lastUpdated = 'February 16, 2026';
 
       <h1 class="text-4xl md:text-5xl font-bold mb-4">Refund Policy</h1>
       <p class="text-[var(--color-text-muted)]">Last updated: {lastUpdated}</p>
+      <p class="text-sm text-[var(--color-text-muted)] mt-2">Pricing: <a href={pricingUrl} class="underline hover:text-[var(--color-text)]">US$4.99 one-time</a></p>
     </div>
   </section>
 
