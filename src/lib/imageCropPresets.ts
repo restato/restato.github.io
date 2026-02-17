@@ -42,9 +42,14 @@ export function getCropRectFromPercent(
   const maxX = sourceWidth - width;
   const maxY = sourceHeight - height;
 
-  const x = Math.min(Math.max(cropXPercent, 0), 100) / 100 * maxX;
-  const y = Math.min(Math.max(cropYPercent, 0), 100) / 100 * maxY;
+  const clampedXPercent = Math.min(Math.max(cropXPercent, 0), 100);
+  const clampedYPercent = Math.min(Math.max(cropYPercent, 0), 100);
 
+  let x = (clampedXPercent / 100) * sourceWidth;
+  let y = (clampedYPercent / 100) * sourceHeight;
+
+  x = Math.min(Math.max(x, 0), maxX);
+  y = Math.min(Math.max(y, 0), maxY);
   return { x, y, width, height };
 }
 
