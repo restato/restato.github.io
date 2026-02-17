@@ -559,6 +559,29 @@ export const toolsConfig: ToolConfig[] = [
     },
   },
   {
+    slug: 'image-crop-resizer',
+    icon: '✂️',
+    category: 'image',
+    component: 'ImageCropResizer',
+    seo: {
+      ko: {
+        title: '이미지 크롭 & 리사이즈 - 무료 프리셋 크기 조절',
+        description: '무료 온라인 이미지 크롭 & 리사이즈 도구. Slack, iPhone App Store, YouTube 썸네일 등 프리셋으로 한 번에 이미지 크롭과 리사이즈.',
+        keywords: ['이미지 크롭', '이미지 리사이즈', '슬랙 이미지', '아이폰 썸네일', '유튜브 썸네일', ...seoKeywords.ko],
+      },
+      en: {
+        title: 'Image Crop & Resize - Free Preset Size Tool',
+        description: 'Free online image crop and resize tool. Resize for Slack, iPhone App Store, YouTube thumbnails, and more with presets.',
+        keywords: ['image crop', 'image resize', 'slack image', 'iphone screenshot size', 'youtube thumbnail', ...seoKeywords.en],
+      },
+      ja: {
+        title: '画像クロップ & リサイズ - 無料プリセットサイズ調整',
+        description: '無料オンライン画像クロップ＆リサイズツール。Slack、iPhone App Store、YouTubeサムネイルなどのプリセットに対応。',
+        keywords: ['画像クロップ', '画像リサイズ', 'slack画像', 'iphoneスクリーンショット', 'youtubeサムネイル', ...seoKeywords.ja],
+      },
+    },
+  },
+  {
     slug: 'exif',
     icon: '📷',
     category: 'image',

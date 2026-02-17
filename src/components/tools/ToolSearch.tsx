@@ -37,6 +37,7 @@ const tools: Tool[] = [
   { slug: 'box-shadow', title: 'CSS Box Shadow 생성기', description: 'CSS box-shadow 시각적 생성', icon: '🎭', category: 'designer', keywords: ['css', 'shadow', 'box-shadow', '그림자'] },
   // Photographer
   { slug: 'image-resizer', title: '이미지 리사이저', description: '이미지 크기 조절 및 압축', icon: '📐', category: 'image', keywords: ['image', 'resize', 'compress', '이미지', '크기', '리사이즈', '압축'] },
+  { slug: 'image-crop-resizer', title: '이미지 크롭 & 리사이즈', description: '슬랙/아이폰/썸네일 프리셋 변환', icon: '✂️', category: 'image', keywords: ['image', 'crop', 'resize', 'slack', 'iphone', 'thumbnail', '이미지', '크롭', '썸네일'] },
   { slug: 'exif', title: 'EXIF 정보 뷰어', description: '사진 EXIF 메타데이터 확인', icon: '📷', category: 'image', keywords: ['exif', 'metadata', 'photo', '사진', '메타데이터'] },
   // Marketer
   { slug: 'utm', title: 'UTM 링크 생성기', description: '캠페인 추적용 UTM 링크 생성', icon: '📊', category: 'marketer', keywords: ['utm', 'campaign', 'tracking', '캠페인', '마케팅', '추적'] },
