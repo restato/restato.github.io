@@ -218,13 +218,13 @@ export default function ImageCropResizer() {
               <>
                 <div className="space-y-2">
                   <label className="text-sm text-[var(--color-text)]">
-                    {t({ ko: '크롭 시작 X', en: 'Crop start X', ja: 'クロップ開始X' })}: {cropX}%
+                    {t({ ko: '가로 위치', en: 'Horizontal position', ja: '横位置' })}: {cropX}%
                   </label>
                   <input type="range" min="0" max="100" value={cropX} onChange={(e) => setCropX(Number(e.target.value))} className="w-full accent-primary-500" />
                 </div>
                 <div className="space-y-2">
                   <label className="text-sm text-[var(--color-text)]">
-                    {t({ ko: '크롭 시작 Y', en: 'Crop start Y', ja: 'クロップ開始Y' })}: {cropY}%
+                    {t({ ko: '세로 위치', en: 'Vertical position', ja: '縦位置' })}: {cropY}%
                   </label>
                   <input type="range" min="0" max="100" value={cropY} onChange={(e) => setCropY(Number(e.target.value))} className="w-full accent-primary-500" />
                 </div>
