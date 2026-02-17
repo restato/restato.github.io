@@ -39,6 +39,17 @@ export default function ImageCropResizer() {
       setResult(null);
     };
 
+    img.onerror = () => {
+      // Clear any potentially stale state and inform the user
+      setOriginal(null);
+      setResult(null);
+      try {
+        URL.revokeObjectURL(url);
+      } catch {
+        // Ignore revoke errors
+      }
+      window.alert('Failed to load image. The file may be corrupted or use an unsupported format.');
+    };
     img.src = url;
   }, []);
 
