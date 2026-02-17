@@ -8,6 +8,7 @@ import type { Language } from '../../../i18n/index';
 import SnakeGame from '../../../components/games/SnakeGame';
 import Game2048 from '../../../components/games/Game2048';
 import TypingGame from '../../../components/games/TypingGame';
+import HangmanGame from '../../../components/games/HangmanGame';
 import DinoRunner from '../../../components/games/DinoRunner';
 import FlappyBird from '../../../components/games/FlappyBird';
 import Breakout from '../../../components/games/Breakout';
@@ -156,6 +157,7 @@ const gameSchema = {
         {slug === 'snake' && <SnakeGame client:load />}
         {slug === '2048' && <Game2048 client:load />}
         {slug === 'typing' && <TypingGame client:load />}
+        {slug === 'hangman' && <HangmanGame client:load />}
         {slug === 'dino-runner' && <DinoRunner client:load />}
         {slug === 'flappy' && <FlappyBird client:load />}
         {slug === 'breakout' && <Breakout client:load />}

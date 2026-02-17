@@ -71,6 +71,29 @@ export const gamesConfig: GameConfig[] = [
     },
   },
   {
+    slug: 'hangman',
+    icon: '🪢',
+    category: 'puzzle',
+    featured: true,
+    seo: {
+      ko: {
+        title: '행맨 게임 - 무료 온라인 단어 맞추기',
+        description: '무료 온라인 행맨 게임. 알파벳을 추리해 숨겨진 단어를 맞춰보세요. 간단하지만 중독성 있는 단어 게임.',
+        keywords: ['행맨', '단어 맞추기', '영단어 게임', '스펠링 게임', ...seoKeywords.ko],
+      },
+      en: {
+        title: 'Hangman Game - Free Online Word Guess',
+        description: 'Free online hangman game. Guess letters and solve the hidden word. Simple but addictive word puzzle.',
+        keywords: ['hangman', 'word guess', 'spelling game', 'word puzzle', ...seoKeywords.en],
+      },
+      ja: {
+        title: 'ハングマンゲーム - 無料オンライン単語当て',
+        description: '無料オンラインハングマンゲーム。文字を推理して隠れた単語を当てよう。シンプルで中毒性のある単語パズル。',
+        keywords: ['ハングマン', '単語当て', 'スペルゲーム', '単語パズル', ...seoKeywords.ja],
+      },
+    },
+  },
+  {
     slug: 'typing',
     icon: '⌨️',
     category: 'arcade',
