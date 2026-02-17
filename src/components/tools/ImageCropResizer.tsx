@@ -92,7 +92,7 @@ export default function ImageCropResizer() {
         selectedPreset.height
       );
 
-      setResult(canvas.toDataURL('image/png', 1.0));
+      setResult(canvas.toDataURL('image/png'));
     };
     img.src = original.url;
   }, [original, selectedPreset, focusX, focusY]);
