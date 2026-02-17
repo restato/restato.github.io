@@ -271,6 +271,29 @@ export const gamesConfig: GameConfig[] = [
       },
     },
   },
+  {
+    slug: 'whack-a-mole',
+    icon: '🔨',
+    category: 'arcade',
+    featured: true,
+    seo: {
+      ko: {
+        title: '두더지 잡기 - 무료 온라인 순발력 게임',
+        description: '무료 온라인 두더지 잡기 게임. 30초 동안 최대한 많이 두더지를 잡아 점수를 올려보세요.',
+        keywords: ['두더지 잡기', '순발력 게임', '클릭 게임', ...seoKeywords.ko],
+      },
+      en: {
+        title: 'Whack-a-Mole - Free Online Reflex Game',
+        description: 'Free online whack-a-mole game. Catch as many moles as possible in 30 seconds.',
+        keywords: ['whack a mole', 'reflex game', 'click game', ...seoKeywords.en],
+      },
+      ja: {
+        title: 'モグラたたき - 無料オンライン反射神経ゲーム',
+        description: '無料オンラインモグラたたきゲーム。30秒でできるだけ多くモグラを叩いてスコアを伸ばそう。',
+        keywords: ['モグラたたき', '反射神経ゲーム', 'クリックゲーム', ...seoKeywords.ja],
+      },
+    },
+  },
   // Event/Raffle Games
   {
     slug: 'roulette',

@@ -16,6 +16,7 @@ import Minesweeper from '../../../components/games/Minesweeper';
 import TicTacToe from '../../../components/games/TicTacToe';
 import ColorMatch from '../../../components/games/ColorMatch';
 import MathQuiz from '../../../components/games/MathQuiz';
+import WhackAMole from '../../../components/games/WhackAMole';
 import LadderGame from '../../../components/games/LadderGame';
 import TeamRandomizer from '../../../components/games/TeamRandomizer';
 import BingoGame from '../../../components/games/BingoGame';
@@ -165,6 +166,7 @@ const gameSchema = {
         {slug === 'tic-tac-toe' && <TicTacToe client:load />}
         {slug === 'color-match' && <ColorMatch client:load />}
         {slug === 'math-quiz' && <MathQuiz client:load />}
+        {slug === 'whack-a-mole' && <WhackAMole client:load />}
         {slug === 'ladder' && <LadderGame client:load />}
         {slug === 'team-randomizer' && <TeamRandomizer client:load />}
         {slug === 'bingo' && <BingoGame client:load />}
