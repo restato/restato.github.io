@@ -1,0 +1,14 @@
+---
+import ToolLayout from '../../layouts/ToolLayout.astro';
+import ImageCropResizer from '../../components/tools/ImageCropResizer';
+---
+
+<ToolLayout
+  title="이미지 크롭 & 리사이즈"
+  description="이미지를 업로드하고 프리셋(슬랙, 아이폰, 썸네일)에 맞게 크롭과 리사이즈를 한 번에 처리합니다."
+  slug="image-crop-resizer"
+  icon="✂️"
+  category="image"
+>
+  <ImageCropResizer client:load />
+</ToolLayout>
