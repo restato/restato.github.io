@@ -103,7 +103,11 @@ export default function WhackAMole() {
       <div className="text-center">
         {!isPlaying && timeLeft > 0 && (
           <p className="text-[var(--color-text-muted)] mb-4">
-            {t({ ko: '30초 동안 두더지를 최대한 많이 잡아보세요!', en: 'Catch as many moles as you can in 30 seconds!', ja: '30秒でできるだけ多くモグラを捕まえよう！' })}
+            {t({
+              ko: `${GAME_DURATION}초 동안 두더지를 최대한 많이 잡아보세요!`,
+              en: `Catch as many moles as you can in ${GAME_DURATION} seconds!`,
+              ja: `${GAME_DURATION}秒でできるだけ多くモグラを捕まえよう！`,
+            })}
           </p>
         )}
 
