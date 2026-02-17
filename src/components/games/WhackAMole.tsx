@@ -63,10 +63,16 @@ export default function WhackAMole() {
   };
 
   const hitMole = (index: number) => {
-    if (!isPlaying || moleIndex !== index) return;
+    if (!isPlaying) return;
 
-    setScore(prev => prev + 1);
-    setMoleIndex(Math.floor(Math.random() * GRID_SIZE));
+    setMoleIndex(prevIndex => {
+      if (prevIndex !== index) {
+        return prevIndex;
+      }
+
+      setScore(prev => prev + 1);
+      return Math.floor(Math.random() * GRID_SIZE);
+    });
   };
 
   return (
