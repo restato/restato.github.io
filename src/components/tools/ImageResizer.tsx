@@ -1,4 +1,6 @@
-import { useState, useRef, useCallback } from 'react';
+import { useState, useRef, useCallback, useEffect } from 'react';
+import ReactCrop, { type Crop, centerCrop, makeAspectCrop } from 'react-image-crop';
+import 'react-image-crop/dist/ReactCrop.css';
 import { useTranslation } from '../../i18n/useTranslation';
 
 interface ImageInfo {
@@ -7,6 +9,21 @@ interface ImageInfo {
   width: number;
   height: number;
 }
+
+type CropMode = 'free' | 'output';
+
+const DEFAULT_CROP: Crop = {
+  unit: '%',
+  x: 5,
+  y: 5,
+  width: 90,
+  height: 90,
+};
+
+const clampDimension = (value: number) => {
+  if (!Number.isFinite(value)) return 1;
+  return Math.min(10000, Math.max(1, Math.round(value)));
+};
 
 export default function ImageResizer() {
   const { t, translations } = useTranslation();
@@ -22,10 +39,25 @@ export default function ImageResizer() {
     quality: 80,
     format: 'jpeg' as 'jpeg' | 'png' | 'webp',
   });
+  const [crop, setCrop] = useState<Crop | undefined>();
+  const [cropMode, setCropMode] = useState<CropMode>('free');
+  const [resizedSize, setResizedSize] = useState<number | null>(null);
   const [isDragging, setIsDragging] = useState(false);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const sourceImageRef = useRef<HTMLImageElement | null>(null);
+  const renderVersionRef = useRef(0);
+
+  const outputAspect = settings.width / settings.height;
+
+  const createCenteredAspectCrop = useCallback((aspect: number, width: number, height: number) => {
+    return centerCrop(
+      makeAspectCrop({ unit: '%', width: 90 }, aspect, width, height),
+      width,
+      height
+    );
+  }, []);
 
   const loadImage = useCallback((file: File) => {
     const url = URL.createObjectURL(file);
@@ -43,7 +75,11 @@ export default function ImageResizer() {
         width: img.width,
         height: img.height,
       }));
+      sourceImageRef.current = null;
+      setCrop(undefined);
+      setCropMode('free');
       setResized(null);
+      setResizedSize(null);
     };
 
     img.src = url;
@@ -76,45 +112,129 @@ export default function ImageResizer() {
   };
 
   const handleWidthChange = (value: number) => {
+    const nextWidth = clampDimension(value);
+
     if (settings.keepAspectRatio && original) {
       const ratio = original.height / original.width;
-      setSettings({ ...settings, width: value, height: Math.round(value * ratio) });
+      setSettings((prev) => ({
+        ...prev,
+        width: nextWidth,
+        height: clampDimension(nextWidth * ratio),
+      }));
     } else {
-      setSettings({ ...settings, width: value });
+      setSettings((prev) => ({ ...prev, width: nextWidth }));
     }
   };
 
   const handleHeightChange = (value: number) => {
+    const nextHeight = clampDimension(value);
+
     if (settings.keepAspectRatio && original) {
       const ratio = original.width / original.height;
-      setSettings({ ...settings, height: value, width: Math.round(value * ratio) });
+      setSettings((prev) => ({
+        ...prev,
+        height: nextHeight,
+        width: clampDimension(nextHeight * ratio),
+      }));
     } else {
-      setSettings({ ...settings, height: value });
+      setSettings((prev) => ({ ...prev, height: nextHeight }));
     }
   };
 
-  const resize = useCallback(() => {
-    if (!original || !canvasRef.current) return;
+  const onSourceImageLoad = useCallback((event: React.SyntheticEvent<HTMLImageElement>) => {
+    const img = event.currentTarget;
+    sourceImageRef.current = img;
+
+    if (crop) return;
+
+    if (cropMode === 'output') {
+      setCrop(createCenteredAspectCrop(outputAspect, img.width, img.height));
+      return;
+    }
+
+    setCrop(DEFAULT_CROP);
+  }, [crop, cropMode, createCenteredAspectCrop, outputAspect]);
+
+  useEffect(() => {
+    if (!original) return;
+
+    if (cropMode === 'output') {
+      const nextCrop = createCenteredAspectCrop(outputAspect, original.width, original.height);
+      setCrop((prev) => {
+        if (
+          prev &&
+          prev.unit === nextCrop.unit &&
+          prev.x === nextCrop.x &&
+          prev.y === nextCrop.y &&
+          prev.width === nextCrop.width &&
+          prev.height === nextCrop.height
+        ) {
+          return prev;
+        }
+        return nextCrop;
+      });
+      return;
+    }
+
+    setCrop((prev) => prev ?? DEFAULT_CROP);
+  }, [cropMode, createCenteredAspectCrop, original, outputAspect]);
+
+  const renderPreview = useCallback(() => {
+    if (!original || !crop || !sourceImageRef.current || !canvasRef.current) return;
+    if (!crop.width || !crop.height) return;
 
     const canvas = canvasRef.current;
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
 
+    const image = sourceImageRef.current;
+    const naturalWidth = image.naturalWidth || original.width;
+    const naturalHeight = image.naturalHeight || original.height;
+    const cropX = ((crop.x ?? 0) / 100) * naturalWidth;
+    const cropY = ((crop.y ?? 0) / 100) * naturalHeight;
+    const cropWidth = (crop.width / 100) * naturalWidth;
+    const cropHeight = (crop.height / 100) * naturalHeight;
+
+    if (cropWidth <= 0 || cropHeight <= 0) return;
+
     canvas.width = settings.width;
     canvas.height = settings.height;
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    ctx.drawImage(
+      image,
+      cropX,
+      cropY,
+      cropWidth,
+      cropHeight,
+      0,
+      0,
+      settings.width,
+      settings.height
+    );
 
-    const img = new Image();
-    img.onload = () => {
-      ctx.drawImage(img, 0, 0, settings.width, settings.height);
+    const mimeType = `image/${settings.format}`;
+    const quality = settings.format === 'png' ? undefined : settings.quality / 100;
+    const renderVersion = ++renderVersionRef.current;
+    const dataUrl = canvas.toDataURL(mimeType, quality);
 
-      const mimeType = `image/${settings.format}`;
-      const quality = settings.format === 'png' ? undefined : settings.quality / 100;
-      const dataUrl = canvas.toDataURL(mimeType, quality);
+    setResized(dataUrl);
+    canvas.toBlob((blob) => {
+      if (renderVersion !== renderVersionRef.current) return;
+      setResizedSize(blob ? blob.size : null);
+    }, mimeType, quality);
+  }, [crop, original, settings]);
 
-      setResized(dataUrl);
+  useEffect(() => {
+    renderPreview();
+  }, [renderPreview]);
+
+  useEffect(() => {
+    return () => {
+      if (original) {
+        URL.revokeObjectURL(original.url);
+      }
     };
-    img.src = original.url;
-  }, [original, settings]);
+  }, [original]);
 
   const download = () => {
     if (!resized) return;
@@ -218,7 +338,7 @@ export default function ImageResizer() {
               <input
                 type="checkbox"
                 checked={settings.keepAspectRatio}
-                onChange={(e) => setSettings({ ...settings, keepAspectRatio: e.target.checked })}
+                onChange={(e) => setSettings((prev) => ({ ...prev, keepAspectRatio: e.target.checked }))}
                 className="w-4 h-4 rounded border-[var(--color-border)] text-primary-500
                   focus:ring-primary-500"
               />
@@ -234,7 +354,7 @@ export default function ImageResizer() {
                   min="10"
                   max="100"
                   value={settings.quality}
-                  onChange={(e) => setSettings({ ...settings, quality: Number(e.target.value) })}
+                  onChange={(e) => setSettings((prev) => ({ ...prev, quality: Number(e.target.value) }))}
                   className="w-24 accent-primary-500"
                 />
                 <span className="text-sm text-[var(--color-text-muted)]">{settings.quality}%</span>
@@ -246,7 +366,10 @@ export default function ImageResizer() {
               <label className="text-sm text-[var(--color-text)]">{t(tt.format)}:</label>
               <select
                 value={settings.format}
-                onChange={(e) => setSettings({ ...settings, format: e.target.value as typeof settings.format })}
+                onChange={(e) => setSettings((prev) => ({
+                  ...prev,
+                  format: e.target.value as typeof settings.format,
+                }))}
                 className="px-3 py-1 rounded border border-[var(--color-border)]
                   bg-[var(--color-card)] text-[var(--color-text)]"
               >
@@ -255,6 +378,34 @@ export default function ImageResizer() {
                 <option value="webp">WebP</option>
               </select>
             </div>
+          </div>
+
+          {/* Crop Mode */}
+          <div className="space-y-2">
+            <span className="text-sm text-[var(--color-text)]">{t(tt.crop)}:</span>
+            <div className="flex gap-2">
+              <button
+                onClick={() => setCropMode('free')}
+                className={`px-3 py-1 text-sm rounded-lg border transition-colors
+                  ${cropMode === 'free'
+                    ? 'bg-primary-500 text-white border-primary-500'
+                    : 'bg-[var(--color-card)] border-[var(--color-border)] hover:bg-[var(--color-card-hover)]'
+                  }`}
+              >
+                {t(tt.cropFree)}
+              </button>
+              <button
+                onClick={() => setCropMode('output')}
+                className={`px-3 py-1 text-sm rounded-lg border transition-colors
+                  ${cropMode === 'output'
+                    ? 'bg-primary-500 text-white border-primary-500'
+                    : 'bg-[var(--color-card)] border-[var(--color-border)] hover:bg-[var(--color-card-hover)]'
+                  }`}
+              >
+                {t(tt.cropLocked)}
+              </button>
+            </div>
+            <p className="text-xs text-[var(--color-text-muted)]">{t(tt.autoApplied)}</p>
           </div>
 
           {/* Quick Presets */}
@@ -269,11 +420,11 @@ export default function ImageResizer() {
               <button
                 key={label}
                 onClick={() => {
-                  setSettings({
-                    ...settings,
+                  setSettings((prev) => ({
+                    ...prev,
                     width: Math.round(original.width * factor),
                     height: Math.round(original.height * factor),
-                  });
+                  }));
                 }}
                 className="px-3 py-1 text-sm bg-[var(--color-card)] hover:bg-[var(--color-card-hover)]
                   border border-[var(--color-border)] rounded transition-colors"
@@ -281,27 +432,6 @@ export default function ImageResizer() {
                 {label}
               </button>
             ))}
-          </div>
-
-          {/* Actions */}
-          <div className="flex gap-2">
-            <button
-              onClick={resize}
-              className="flex-1 py-3 bg-primary-500 hover:bg-primary-600 text-white rounded-lg
-                font-medium transition-colors"
-            >
-              {t({ ko: '리사이즈', en: 'Resize', ja: 'リサイズ' })}
-            </button>
-            <button
-              onClick={() => {
-                setOriginal(null);
-                setResized(null);
-              }}
-              className="px-4 py-3 bg-[var(--color-card)] hover:bg-[var(--color-card-hover)]
-                border border-[var(--color-border)] rounded-lg transition-colors"
-            >
-              {t(tc.reset)}
-            </button>
           </div>
 
           {/* Preview */}
@@ -314,12 +444,22 @@ export default function ImageResizer() {
                   {original.width} x {original.height} • {formatBytes(original.file.size)}
                 </span>
               </div>
-              <div className="border border-[var(--color-border)] rounded-lg overflow-hidden bg-[var(--color-bg)]">
-                <img
-                  src={original.url}
-                  alt="Original"
-                  className="w-full h-auto max-h-64 object-contain"
-                />
+              <div className="border border-[var(--color-border)] rounded-lg overflow-hidden bg-[var(--color-bg)] p-3">
+                <div className="flex justify-center">
+                  <ReactCrop
+                    crop={crop}
+                    onChange={(_pixelCrop, percentCrop) => setCrop(percentCrop)}
+                    aspect={cropMode === 'output' ? outputAspect : undefined}
+                    ruleOfThirds
+                  >
+                    <img
+                      src={original.url}
+                      alt="Original"
+                      onLoad={onSourceImageLoad}
+                      className="w-full h-auto max-h-72 object-contain"
+                    />
+                  </ReactCrop>
+                </div>
               </div>
             </div>
 
@@ -329,7 +469,8 @@ export default function ImageResizer() {
                 <span className="text-sm font-medium text-[var(--color-text)]">{t(tt.resized)}</span>
                 {resized && (
                   <span className="text-xs text-[var(--color-text-muted)]">
-                    {settings.width} x {settings.height}
+                    {t(tt.outputSize)}: {settings.width} x {settings.height}
+                    {resizedSize ? ` • ${formatBytes(resizedSize)}` : ''}
                   </span>
                 )}
               </div>
@@ -342,12 +483,28 @@ export default function ImageResizer() {
                   />
                 ) : (
                   <span className="text-[var(--color-text-muted)] text-sm">
-                    {t({ ko: '리사이즈 버튼을 클릭하세요', en: 'Click resize button', ja: 'リサイズボタンをクリック' })}
+                    {t(tt.livePreview)}
                   </span>
                 )}
               </div>
             </div>
           </div>
+
+          {/* Actions */}
+          <button
+            onClick={() => {
+              setOriginal(null);
+              setCrop(undefined);
+              setResized(null);
+              setResizedSize(null);
+              sourceImageRef.current = null;
+              setCropMode('free');
+            }}
+            className="w-full py-3 bg-[var(--color-card)] hover:bg-[var(--color-card-hover)]
+              border border-[var(--color-border)] rounded-lg transition-colors"
+          >
+            {t(tc.reset)}
+          </button>
 
           {/* Download */}
           {resized && (

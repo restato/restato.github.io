@@ -146,6 +146,22 @@ vi.mock('../../../i18n/useTranslation', () => ({
           keepAspectRatio: { ko: '비율 유지', en: 'Keep aspect ratio', ja: '比率を維持' },
           quality: { ko: '품질', en: 'Quality', ja: '品質' },
           format: { ko: '포맷', en: 'Format', ja: 'フォーマット' },
+          crop: { ko: '크롭', en: 'Crop', ja: 'クロップ' },
+          cropFree: { ko: '자유 비율', en: 'Free Ratio', ja: '自由比率' },
+          cropLocked: { ko: '출력 비율 잠금', en: 'Lock to Output Ratio', ja: '出力比率に固定' },
+          autoApplied: {
+            ko: '크롭/설정 변경 사항이 결과 미리보기에 자동 적용됩니다.',
+            en: 'Crop and setting changes are automatically applied to the preview.',
+            ja: 'クロップと設定の変更はプレビューに自動反映されます。',
+          },
+          livePreview: {
+            ko: '크롭하거나 설정을 변경하면 결과가 실시간으로 반영됩니다.',
+            en: 'Adjust crop or settings to update the result in real time.',
+            ja: 'クロップや設定を変更すると結果がリアルタイムで更新されます。',
+          },
+          outputSize: { ko: '출력 크기', en: 'Output Size', ja: '出力サイズ' },
+          original: { ko: '원본', en: 'Original', ja: 'オリジナル' },
+          resized: { ko: '리사이즈됨', en: 'Resized', ja: 'リサイズ済み' },
         },
         backgroundRemover: {
           title: { ko: '배경 제거기 (누끼)', en: 'Background Remover', ja: '背景除去ツール' },
