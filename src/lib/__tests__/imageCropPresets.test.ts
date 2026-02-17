@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { IMAGE_CROP_PRESETS, getCoverCropRect } from '../imageCropPresets';
+import { IMAGE_CROP_PRESETS, getCoverCropRect, getCropRectFromPercent } from '../imageCropPresets';
 
 describe('imageCropPresets', () => {
   it('provides 10 curated presets', () => {
@@ -24,5 +24,24 @@ describe('imageCropPresets', () => {
     expect(crop.height).toBe(1000);
     expect(crop.x).toBe(0);
     expect(crop.y).toBe(1000);
+  });
+
+
+  it('calculates crop area from percentage inputs', () => {
+    const crop = getCropRectFromPercent(1000, 500, 50, 50, 60, 40);
+
+    expect(crop.width).toBe(600);
+    expect(crop.height).toBe(200);
+    expect(crop.x).toBe(200);
+    expect(crop.y).toBe(150);
+  });
+
+  it('clamps crop values to valid ranges', () => {
+    const crop = getCropRectFromPercent(1000, 1000, -20, 300, 0, 150);
+
+    expect(crop.width).toBe(10);
+    expect(crop.height).toBe(1000);
+    expect(crop.x).toBe(0);
+    expect(crop.y).toBe(0);
   });
 });

@@ -1,6 +1,6 @@
 import { useState, useRef, useCallback } from 'react';
 import { useTranslation } from '../../i18n/useTranslation';
-import { IMAGE_CROP_PRESETS, getCoverCropRect } from '../../lib/imageCropPresets';
+import { IMAGE_CROP_PRESETS, getCoverCropRect, getCropRectFromPercent } from '../../lib/imageCropPresets';
 
 interface ImageInfo {
   file: File;
@@ -18,6 +18,11 @@ export default function ImageCropResizer() {
   const [selectedPresetId, setSelectedPresetId] = useState(IMAGE_CROP_PRESETS[0].id);
   const [focusX, setFocusX] = useState(50);
   const [focusY, setFocusY] = useState(50);
+  const [useCustomArea, setUseCustomArea] = useState(false);
+  const [cropX, setCropX] = useState(0);
+  const [cropY, setCropY] = useState(0);
+  const [cropWidthPercent, setCropWidthPercent] = useState(100);
+  const [cropHeightPercent, setCropHeightPercent] = useState(100);
   const [isDragging, setIsDragging] = useState(false);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -82,14 +87,23 @@ export default function ImageCropResizer() {
 
     const img = new Image();
     img.onload = () => {
-      const crop = getCoverCropRect(
-        img.naturalWidth,
-        img.naturalHeight,
-        selectedPreset.width,
-        selectedPreset.height,
-        focusX,
-        focusY
-      );
+      const crop = useCustomArea
+        ? getCropRectFromPercent(
+          img.naturalWidth,
+          img.naturalHeight,
+          cropX,
+          cropY,
+          cropWidthPercent,
+          cropHeightPercent
+        )
+        : getCoverCropRect(
+          img.naturalWidth,
+          img.naturalHeight,
+          selectedPreset.width,
+          selectedPreset.height,
+          focusX,
+          focusY
+        );
 
       ctx.drawImage(
         img,
@@ -106,7 +120,7 @@ export default function ImageCropResizer() {
       setResult(canvas.toDataURL('image/png'));
     };
     img.src = original.url;
-  }, [original, selectedPreset, focusX, focusY]);
+  }, [original, selectedPreset, focusX, focusY, useCustomArea, cropX, cropY, cropWidthPercent, cropHeightPercent]);
 
   const download = () => {
     if (!result) return;
@@ -188,19 +202,68 @@ export default function ImageCropResizer() {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <label className="text-sm text-[var(--color-text)]">
-                {t({ ko: '가로 포커스', en: 'Horizontal focus', ja: '横フォーカス' })}: {focusX}%
+            <div className="md:col-span-2">
+              <label className="flex items-center gap-2 text-sm text-[var(--color-text)]">
+                <input
+                  type="checkbox"
+                  checked={useCustomArea}
+                  onChange={(e) => setUseCustomArea(e.target.checked)}
+                  className="accent-primary-500"
+                />
+                {t({ ko: '직접 크롭 영역 설정', en: 'Set custom crop area', ja: 'カスタムクロップ領域を設定' })}
               </label>
-              <input type="range" min="0" max="100" value={focusX} onChange={(e) => setFocusX(Number(e.target.value))} className="w-full accent-primary-500" />
             </div>
-            <div className="space-y-2">
-              <label className="text-sm text-[var(--color-text)]">
-                {t({ ko: '세로 포커스', en: 'Vertical focus', ja: '縦フォーカス' })}: {focusY}%
-              </label>
-              <input type="range" min="0" max="100" value={focusY} onChange={(e) => setFocusY(Number(e.target.value))} className="w-full accent-primary-500" />
-            </div>
+
+            {useCustomArea ? (
+              <>
+                <div className="space-y-2">
+                  <label className="text-sm text-[var(--color-text)]">
+                    {t({ ko: '크롭 시작 X', en: 'Crop start X', ja: 'クロップ開始X' })}: {cropX}%
+                  </label>
+                  <input type="range" min="0" max="100" value={cropX} onChange={(e) => setCropX(Number(e.target.value))} className="w-full accent-primary-500" />
+                </div>
+                <div className="space-y-2">
+                  <label className="text-sm text-[var(--color-text)]">
+                    {t({ ko: '크롭 시작 Y', en: 'Crop start Y', ja: 'クロップ開始Y' })}: {cropY}%
+                  </label>
+                  <input type="range" min="0" max="100" value={cropY} onChange={(e) => setCropY(Number(e.target.value))} className="w-full accent-primary-500" />
+                </div>
+                <div className="space-y-2">
+                  <label className="text-sm text-[var(--color-text)]">
+                    {t({ ko: '크롭 너비', en: 'Crop width', ja: 'クロップ幅' })}: {cropWidthPercent}%
+                  </label>
+                  <input type="range" min="1" max="100" value={cropWidthPercent} onChange={(e) => setCropWidthPercent(Number(e.target.value))} className="w-full accent-primary-500" />
+                </div>
+                <div className="space-y-2">
+                  <label className="text-sm text-[var(--color-text)]">
+                    {t({ ko: '크롭 높이', en: 'Crop height', ja: 'クロップ高さ' })}: {cropHeightPercent}%
+                  </label>
+                  <input type="range" min="1" max="100" value={cropHeightPercent} onChange={(e) => setCropHeightPercent(Number(e.target.value))} className="w-full accent-primary-500" />
+                </div>
+              </>
+            ) : (
+              <>
+                <div className="space-y-2">
+                  <label className="text-sm text-[var(--color-text)]">
+                    {t({ ko: '가로 포커스', en: 'Horizontal focus', ja: '横フォーカス' })}: {focusX}%
+                  </label>
+                  <input type="range" min="0" max="100" value={focusX} onChange={(e) => setFocusX(Number(e.target.value))} className="w-full accent-primary-500" />
+                </div>
+                <div className="space-y-2">
+                  <label className="text-sm text-[var(--color-text)]">
+                    {t({ ko: '세로 포커스', en: 'Vertical focus', ja: '縦フォーカス' })}: {focusY}%
+                  </label>
+                  <input type="range" min="0" max="100" value={focusY} onChange={(e) => setFocusY(Number(e.target.value))} className="w-full accent-primary-500" />
+                </div>
+              </>
+            )}
           </div>
+
+          <div className="text-xs text-[var(--color-text-muted)]">
+            {useCustomArea
+              ? t({ ko: '직접 지정한 원본 영역을 선택한 출력 크기로 맞춰 변환합니다.', en: 'Your selected source area will be resized to the preset output size.', ja: '選択した元画像領域をプリセット出力サイズにリサイズします。' })
+              : t({ ko: '포커스를 기준으로 자동 크롭 후 출력 크기로 변환합니다.', en: 'The image is auto-cropped around the focus and resized to the preset output size.', ja: 'フォーカス位置を基準に自動クロップし、プリセット出力サイズにリサイズします。' })}
+            </div>
 
           <div className="flex gap-2">
             <button

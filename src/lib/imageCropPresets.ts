@@ -13,17 +13,40 @@ export interface CropRect {
 }
 
 export const IMAGE_CROP_PRESETS: ImagePreset[] = [
-  { id: 'slack-avatar', label: 'Slack 프로필 (512×512)', width: 512, height: 512 },
-  { id: 'slack-emoji', label: 'Slack 커스텀 이모지 (128×128)', width: 128, height: 128 },
+  { id: 'slack-avatar', label: 'Slack Profile (512×512)', width: 512, height: 512 },
+  { id: 'slack-emoji', label: 'Slack Custom Emoji (128×128)', width: 128, height: 128 },
   { id: 'iphone-6-9', label: 'iPhone 6.9" App Store (1290×2796)', width: 1290, height: 2796 },
   { id: 'iphone-6-5', label: 'iPhone 6.5" App Store (1284×2778)', width: 1284, height: 2778 },
   { id: 'iphone-6-3', label: 'iPhone 6.3" App Store (1179×2556)', width: 1179, height: 2556 },
-  { id: 'youtube-thumbnail', label: 'YouTube 썸네일 (1280×720)', width: 1280, height: 720 },
-  { id: 'instagram-post', label: 'Instagram 피드 정사각형 (1080×1080)', width: 1080, height: 1080 },
-  { id: 'instagram-story', label: 'Instagram 스토리 (1080×1920)', width: 1080, height: 1920 },
-  { id: 'x-header', label: 'X 헤더 (1500×500)', width: 1500, height: 500 },
-  { id: 'og-image', label: 'Open Graph 썸네일 (1200×630)', width: 1200, height: 630 },
+  { id: 'youtube-thumbnail', label: 'YouTube Thumbnail (1280×720)', width: 1280, height: 720 },
+  { id: 'instagram-post', label: 'Instagram Square Post (1080×1080)', width: 1080, height: 1080 },
+  { id: 'instagram-story', label: 'Instagram Story (1080×1920)', width: 1080, height: 1920 },
+  { id: 'x-header', label: 'X Header (1500×500)', width: 1500, height: 500 },
+  { id: 'og-image', label: 'Open Graph Thumbnail (1200×630)', width: 1200, height: 630 },
 ];
+
+export function getCropRectFromPercent(
+  sourceWidth: number,
+  sourceHeight: number,
+  cropXPercent: number,
+  cropYPercent: number,
+  cropWidthPercent: number,
+  cropHeightPercent: number
+): CropRect {
+  const clampedWidthPercent = Math.min(Math.max(cropWidthPercent, 1), 100);
+  const clampedHeightPercent = Math.min(Math.max(cropHeightPercent, 1), 100);
+
+  const width = sourceWidth * (clampedWidthPercent / 100);
+  const height = sourceHeight * (clampedHeightPercent / 100);
+
+  const maxX = sourceWidth - width;
+  const maxY = sourceHeight - height;
+
+  const x = Math.min(Math.max(cropXPercent, 0), 100) / 100 * maxX;
+  const y = Math.min(Math.max(cropYPercent, 0), 100) / 100 * maxY;
+
+  return { x, y, width, height };
+}
 
 export function getCoverCropRect(
   sourceWidth: number,
