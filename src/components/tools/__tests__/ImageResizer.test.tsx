@@ -122,6 +122,18 @@ describe('ImageResizer', () => {
     expect(lockButton.className).toContain('bg-primary-500');
   });
 
+  it('switches to preset mode and applies preset output size', async () => {
+    render(<ImageResizer />);
+    await uploadImage();
+
+    fireEvent.click(screen.getByRole('button', { name: '프리셋' }));
+
+    await waitFor(() => {
+      expect(screen.getByText('프리셋 선택')).toBeInTheDocument();
+      expect(screen.getByText((content) => content.includes('출력 크기: 512 x 512'))).toBeInTheDocument();
+    });
+  });
+
   it('re-renders preview automatically when dimensions change', async () => {
     render(<ImageResizer />);
     await uploadImage();
@@ -132,6 +144,21 @@ describe('ImageResizer', () => {
 
     await waitFor(() => {
       expect(mockToDataURL.mock.calls.length).toBeGreaterThan(initialCalls);
+    });
+  });
+
+  it('re-renders preview when preset selection changes', async () => {
+    render(<ImageResizer />);
+    await uploadImage();
+
+    fireEvent.click(screen.getByRole('button', { name: '프리셋' }));
+    const initialCalls = mockToDataURL.mock.calls.length;
+    const presetSelect = screen.getAllByRole('combobox')[0];
+    fireEvent.change(presetSelect, { target: { value: 'youtube-thumbnail' } });
+
+    await waitFor(() => {
+      expect(mockToDataURL.mock.calls.length).toBeGreaterThan(initialCalls);
+      expect(screen.getByText((content) => content.includes('출력 크기: 1280 x 720'))).toBeInTheDocument();
     });
   });
 

@@ -1,0 +1,14 @@
+---
+import type { Language } from '../../../data/tools';
+
+export function getStaticPaths() {
+  return [
+    { params: { lang: 'ko' } },
+    { params: { lang: 'en' } },
+    { params: { lang: 'ja' } },
+  ];
+}
+
+const { lang } = Astro.params as { lang: Language };
+return Astro.redirect(`/${lang}/tools/image-resizer`, 301);
+---

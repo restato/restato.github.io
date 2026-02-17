@@ -1,14 +1,3 @@
 ---
-import ToolLayout from '../../layouts/ToolLayout.astro';
-import ImageCropResizer from '../../components/tools/ImageCropResizer';
+return Astro.redirect('/tools/image-resizer', 301);
 ---
-
-<ToolLayout
-  title="Image Crop & Resize"
-  description="Upload an image and crop/resize it in one step with presets for Slack, iPhone, and thumbnails."
-  slug="image-crop-resizer"
-  icon="✂️"
-  category="image"
->
-  <ImageCropResizer client:load />
-</ToolLayout>

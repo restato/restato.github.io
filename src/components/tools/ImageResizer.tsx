@@ -2,6 +2,7 @@ import { useState, useRef, useCallback, useEffect } from 'react';
 import ReactCrop, { type Crop, centerCrop, makeAspectCrop } from 'react-image-crop';
 import 'react-image-crop/dist/ReactCrop.css';
 import { useTranslation } from '../../i18n/useTranslation';
+import { IMAGE_CROP_PRESETS } from '../../lib/imageCropPresets';
 
 interface ImageInfo {
   file: File;
@@ -11,6 +12,7 @@ interface ImageInfo {
 }
 
 type CropMode = 'free' | 'output';
+type ResizeMode = 'custom' | 'preset';
 
 const DEFAULT_CROP: Crop = {
   unit: '%',
@@ -24,6 +26,14 @@ const clampDimension = (value: number) => {
   if (!Number.isFinite(value)) return 1;
   return Math.min(10000, Math.max(1, Math.round(value)));
 };
+
+const SCALE_PRESETS = [
+  { label: '50%', factor: 0.5 },
+  { label: '75%', factor: 0.75 },
+  { label: '100%', factor: 1 },
+  { label: '150%', factor: 1.5 },
+  { label: '200%', factor: 2 },
+];
 
 export default function ImageResizer() {
   const { t, translations } = useTranslation();
@@ -41,6 +51,8 @@ export default function ImageResizer() {
   });
   const [crop, setCrop] = useState<Crop | undefined>();
   const [cropMode, setCropMode] = useState<CropMode>('free');
+  const [resizeMode, setResizeMode] = useState<ResizeMode>('custom');
+  const [selectedPresetId, setSelectedPresetId] = useState(IMAGE_CROP_PRESETS[0].id);
   const [resizedSize, setResizedSize] = useState<number | null>(null);
   const [isDragging, setIsDragging] = useState(false);
 
@@ -49,6 +61,7 @@ export default function ImageResizer() {
   const sourceImageRef = useRef<HTMLImageElement | null>(null);
   const renderVersionRef = useRef(0);
 
+  const selectedPreset = IMAGE_CROP_PRESETS.find((preset) => preset.id === selectedPresetId) ?? IMAGE_CROP_PRESETS[0];
   const outputAspect = settings.width / settings.height;
 
   const createCenteredAspectCrop = useCallback((aspect: number, width: number, height: number) => {
@@ -84,6 +97,22 @@ export default function ImageResizer() {
 
     img.src = url;
   }, []);
+
+  useEffect(() => {
+    if (resizeMode !== 'preset' || !selectedPreset) return;
+
+    setSettings((prev) => {
+      if (prev.width === selectedPreset.width && prev.height === selectedPreset.height) {
+        return prev;
+      }
+
+      return {
+        ...prev,
+        width: selectedPreset.width,
+        height: selectedPreset.height,
+      };
+    });
+  }, [resizeMode, selectedPreset]);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -239,8 +268,11 @@ export default function ImageResizer() {
   const download = () => {
     if (!resized) return;
 
+    const fileName = resizeMode === 'preset'
+      ? `${selectedPreset.id}.${settings.format}`
+      : `resized.${settings.format}`;
     const link = document.createElement('a');
-    link.download = `resized.${settings.format}`;
+    link.download = fileName;
     link.href = resized;
     link.click();
   };
@@ -294,56 +326,127 @@ export default function ImageResizer() {
       {/* Image Loaded */}
       {original && (
         <>
-          {/* Settings */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {/* Width */}
-            <div className="space-y-2">
-              <label className="text-sm font-medium text-[var(--color-text)]">
-                {t(tt.width)} (px)
-              </label>
-              <input
-                type="number"
-                min="1"
-                max="10000"
-                value={settings.width}
-                onChange={(e) => handleWidthChange(Number(e.target.value))}
-                className="w-full px-4 py-2 rounded-lg border border-[var(--color-border)]
-                  bg-[var(--color-card)] text-[var(--color-text)]
-                  focus:outline-none focus:ring-2 focus:ring-primary-500"
-              />
-            </div>
-
-            {/* Height */}
-            <div className="space-y-2">
-              <label className="text-sm font-medium text-[var(--color-text)]">
-                {t(tt.height)} (px)
-              </label>
-              <input
-                type="number"
-                min="1"
-                max="10000"
-                value={settings.height}
-                onChange={(e) => handleHeightChange(Number(e.target.value))}
-                className="w-full px-4 py-2 rounded-lg border border-[var(--color-border)]
-                  bg-[var(--color-card)] text-[var(--color-text)]
-                  focus:outline-none focus:ring-2 focus:ring-primary-500"
-              />
+          {/* Resize Mode */}
+          <div className="space-y-2">
+            <span className="text-sm text-[var(--color-text)]">{t(tt.mode)}:</span>
+            <div className="flex gap-2">
+              <button
+                onClick={() => setResizeMode('custom')}
+                className={`px-3 py-1 text-sm rounded-lg border transition-colors
+                  ${resizeMode === 'custom'
+                    ? 'bg-primary-500 text-white border-primary-500'
+                    : 'bg-[var(--color-card)] border-[var(--color-border)] hover:bg-[var(--color-card-hover)]'
+                  }`}
+              >
+                {t(tt.customMode)}
+              </button>
+              <button
+                onClick={() => setResizeMode('preset')}
+                className={`px-3 py-1 text-sm rounded-lg border transition-colors
+                  ${resizeMode === 'preset'
+                    ? 'bg-primary-500 text-white border-primary-500'
+                    : 'bg-[var(--color-card)] border-[var(--color-border)] hover:bg-[var(--color-card-hover)]'
+                  }`}
+              >
+                {t(tt.presetMode)}
+              </button>
             </div>
           </div>
+
+          {/* Settings */}
+          {resizeMode === 'custom' && (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {/* Width */}
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-[var(--color-text)]">
+                  {t(tt.width)} (px)
+                </label>
+                <input
+                  type="number"
+                  min="1"
+                  max="10000"
+                  value={settings.width}
+                  onChange={(e) => handleWidthChange(Number(e.target.value))}
+                  className="w-full px-4 py-2 rounded-lg border border-[var(--color-border)]
+                  bg-[var(--color-card)] text-[var(--color-text)]
+                  focus:outline-none focus:ring-2 focus:ring-primary-500"
+                />
+              </div>
+
+            {/* Height */}
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-[var(--color-text)]">
+                  {t(tt.height)} (px)
+                </label>
+                <input
+                  type="number"
+                  min="1"
+                  max="10000"
+                  value={settings.height}
+                  onChange={(e) => handleHeightChange(Number(e.target.value))}
+                  className="w-full px-4 py-2 rounded-lg border border-[var(--color-border)]
+                  bg-[var(--color-card)] text-[var(--color-text)]
+                  focus:outline-none focus:ring-2 focus:ring-primary-500"
+                />
+              </div>
+            </div>
+          )}
+
+          {/* Preset Settings */}
+          {resizeMode === 'preset' && (
+            <div className="space-y-3">
+              <label className="text-sm font-medium text-[var(--color-text)]">
+                {t(tt.preset)}
+              </label>
+              <select
+                value={selectedPresetId}
+                onChange={(e) => setSelectedPresetId(e.target.value)}
+                className="w-full px-4 py-2 rounded-lg border border-[var(--color-border)]
+                  bg-[var(--color-card)] text-[var(--color-text)]
+                  focus:outline-none focus:ring-2 focus:ring-primary-500"
+              >
+                {IMAGE_CROP_PRESETS.map((preset) => (
+                  <option key={preset.id} value={preset.id}>
+                    {preset.label}
+                  </option>
+                ))}
+              </select>
+              <div className="grid grid-cols-2 md:grid-cols-5 gap-2">
+                {IMAGE_CROP_PRESETS.map((preset) => (
+                  <button
+                    key={preset.id}
+                    onClick={() => setSelectedPresetId(preset.id)}
+                    className={`px-2 py-2 text-xs rounded-lg border transition-colors
+                      ${selectedPresetId === preset.id
+                        ? 'border-primary-500 bg-primary-500/10 text-primary-500'
+                        : 'border-[var(--color-border)] hover:bg-[var(--color-card-hover)]'
+                      }`}
+                  >
+                    {preset.width} x {preset.height}
+                  </button>
+                ))}
+              </div>
+              <p className="text-xs text-[var(--color-text-muted)]">
+                {t(tt.presetHint)}
+              </p>
+            </div>
+          )}
 
           {/* Options */}
           <div className="flex flex-wrap gap-4 items-center">
             {/* Keep Aspect Ratio */}
-            <label className="flex items-center gap-2 cursor-pointer">
-              <input
-                type="checkbox"
-                checked={settings.keepAspectRatio}
-                onChange={(e) => setSettings((prev) => ({ ...prev, keepAspectRatio: e.target.checked }))}
-                className="w-4 h-4 rounded border-[var(--color-border)] text-primary-500
+            {resizeMode === 'custom' && (
+              <label className="flex items-center gap-2 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={settings.keepAspectRatio}
+                  onChange={(e) => setSettings((prev) => ({ ...prev, keepAspectRatio: e.target.checked }))}
+                  className="w-4 h-4 rounded border-[var(--color-border)] text-primary-500
                   focus:ring-primary-500"
-              />
-              <span className="text-sm text-[var(--color-text)]">{t(tt.keepAspectRatio)}</span>
-            </label>
+                />
+                <span className="text-sm text-[var(--color-text)]">{t(tt.keepAspectRatio)}</span>
+              </label>
+            )}
 
             {/* Quality */}
             {settings.format !== 'png' && (
@@ -409,30 +512,26 @@ export default function ImageResizer() {
           </div>
 
           {/* Quick Presets */}
-          <div className="flex flex-wrap gap-2">
-            {[
-              { label: '50%', factor: 0.5 },
-              { label: '75%', factor: 0.75 },
-              { label: '100%', factor: 1 },
-              { label: '150%', factor: 1.5 },
-              { label: '200%', factor: 2 },
-            ].map(({ label, factor }) => (
-              <button
-                key={label}
-                onClick={() => {
-                  setSettings((prev) => ({
-                    ...prev,
-                    width: Math.round(original.width * factor),
-                    height: Math.round(original.height * factor),
-                  }));
-                }}
-                className="px-3 py-1 text-sm bg-[var(--color-card)] hover:bg-[var(--color-card-hover)]
+          {resizeMode === 'custom' && (
+            <div className="flex flex-wrap gap-2">
+              {SCALE_PRESETS.map(({ label, factor }) => (
+                <button
+                  key={label}
+                  onClick={() => {
+                    setSettings((prev) => ({
+                      ...prev,
+                      width: Math.round(original.width * factor),
+                      height: Math.round(original.height * factor),
+                    }));
+                  }}
+                  className="px-3 py-1 text-sm bg-[var(--color-card)] hover:bg-[var(--color-card-hover)]
                   border border-[var(--color-border)] rounded transition-colors"
-              >
-                {label}
-              </button>
-            ))}
-          </div>
+                >
+                  {label}
+                </button>
+              ))}
+            </div>
+          )}
 
           {/* Preview */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -474,6 +573,11 @@ export default function ImageResizer() {
                   </span>
                 )}
               </div>
+              {resizeMode === 'preset' && selectedPreset && (
+                <p className="text-xs text-[var(--color-text-muted)]">
+                  {t(tt.presetOutput)}: {selectedPreset.label}
+                </p>
+              )}
               <div className="border border-[var(--color-border)] rounded-lg overflow-hidden bg-[var(--color-bg)] min-h-[200px] flex items-center justify-center">
                 {resized ? (
                   <img

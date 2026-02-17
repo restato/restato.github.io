@@ -191,8 +191,22 @@ export const toolTranslations = {
   // Image Resizer
   imageResizer: {
     title: { ko: '이미지 리사이저', en: 'Image Resizer', ja: '画像リサイザー' },
-    description: { ko: '이미지 크기 조절 및 압축', en: 'Resize and compress images', ja: '画像のサイズ変更と圧縮' },
+    description: {
+      ko: '실시간 크롭과 프리셋 변환을 지원하는 이미지 리사이저',
+      en: 'Image resizer with live crop and preset size conversion',
+      ja: 'リアルタイムクロップとプリセット変換に対応した画像リサイザー',
+    },
     dropzone: { ko: '이미지를 드래그하거나 클릭하여 업로드', en: 'Drag or click to upload image', ja: '画像をドラッグまたはクリックしてアップロード' },
+    mode: { ko: '모드', en: 'Mode', ja: 'モード' },
+    customMode: { ko: '기본 편집', en: 'Custom', ja: 'カスタム' },
+    presetMode: { ko: '프리셋', en: 'Preset', ja: 'プリセット' },
+    preset: { ko: '프리셋 선택', en: 'Preset', ja: 'プリセット' },
+    presetOutput: { ko: '선택 프리셋', en: 'Selected preset', ja: '選択プリセット' },
+    presetHint: {
+      ko: '프리셋 모드에서는 선택한 해상도로 자동 리사이즈됩니다.',
+      en: 'Preset mode automatically resizes to the selected output dimensions.',
+      ja: 'プリセットモードでは選択した解像度に自動リサイズされます。',
+    },
     width: { ko: '너비', en: 'Width', ja: '幅' },
     height: { ko: '높이', en: 'Height', ja: '高さ' },
     keepAspectRatio: { ko: '비율 유지', en: 'Keep aspect ratio', ja: '比率を維持' },

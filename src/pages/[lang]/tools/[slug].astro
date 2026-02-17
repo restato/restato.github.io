@@ -30,7 +30,6 @@ import LlmCostCalculator from '../../../components/tools/LlmCostCalculator';
 import GradientGenerator from '../../../components/tools/GradientGenerator';
 import BoxShadowGenerator from '../../../components/tools/BoxShadowGenerator';
 import ImageResizer from '../../../components/tools/ImageResizer';
-import ImageCropResizer from '../../../components/tools/ImageCropResizer';
 import ExifViewer from '../../../components/tools/ExifViewer';
 import BackgroundRemover from '../../../components/tools/BackgroundRemover';
 import ImageMetadataViewer from '../../../components/tools/ImageMetadataViewer';
@@ -249,7 +248,6 @@ const appSchema = {
       {tool.slug === 'gradient' && <GradientGenerator client:load />}
       {tool.slug === 'box-shadow' && <BoxShadowGenerator client:load />}
       {tool.slug === 'image-resizer' && <ImageResizer client:load />}
-      {tool.slug === 'image-crop-resizer' && <ImageCropResizer client:load />}
       {tool.slug === 'exif' && <ExifViewer client:load />}
       {tool.slug === 'background-remover' && <BackgroundRemover client:load />}
       {tool.slug === 'image-metadata' && <ImageMetadataViewer client:load />}

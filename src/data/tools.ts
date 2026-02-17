@@ -542,42 +542,19 @@ export const toolsConfig: ToolConfig[] = [
     component: 'ImageResizer',
     seo: {
       ko: {
-        title: '이미지 리사이저 - 무료 이미지 크기 조절',
-        description: '무료 온라인 이미지 리사이저. 이미지 크기를 간편하게 조절하고 압축. 무설치, 무료.',
-        keywords: ['이미지 리사이즈', '이미지 크기 조절', '이미지 압축', ...seoKeywords.ko],
+        title: '이미지 리사이저 - 무료 이미지 크롭 & 프리셋 변환',
+        description: '무료 온라인 이미지 리사이저. 실시간 크롭, 해상도 조절, Slack/YouTube/iPhone 프리셋 변환을 한 번에 처리. 무설치, 무료.',
+        keywords: ['이미지 리사이즈', '이미지 크롭', '프리셋 리사이즈', '슬랙 이미지', '유튜브 썸네일', ...seoKeywords.ko],
       },
       en: {
-        title: 'Image Resizer - Free Image Size Changer',
-        description: 'Free online image resizer. Easily resize and compress images. No installation, free.',
-        keywords: ['image resizer', 'resize image', 'image compression', ...seoKeywords.en],
+        title: 'Image Resizer - Free Crop & Preset Resize Tool',
+        description: 'Free online image resizer with live crop and preset sizes for Slack, YouTube thumbnails, iPhone App Store, and more.',
+        keywords: ['image resizer', 'image crop', 'preset resize', 'slack image', 'youtube thumbnail', ...seoKeywords.en],
       },
       ja: {
-        title: '画像リサイザー - 無料画像サイズ変更',
-        description: '無料オンライン画像リサイザー。画像サイズを簡単に変更して圧縮。インストール不要、無料。',
-        keywords: ['画像リサイズ', '画像サイズ変更', '画像圧縮', ...seoKeywords.ja],
-      },
-    },
-  },
-  {
-    slug: 'image-crop-resizer',
-    icon: '✂️',
-    category: 'image',
-    component: 'ImageCropResizer',
-    seo: {
-      ko: {
-        title: '이미지 크롭 & 리사이즈 - 무료 프리셋 크기 조절',
-        description: '무료 온라인 이미지 크롭 & 리사이즈 도구. Slack, iPhone App Store, YouTube 썸네일 등 프리셋으로 한 번에 이미지 크롭과 리사이즈.',
-        keywords: ['이미지 크롭', '이미지 리사이즈', '슬랙 이미지', '아이폰 썸네일', '유튜브 썸네일', ...seoKeywords.ko],
-      },
-      en: {
-        title: 'Image Crop & Resize - Free Preset Size Tool',
-        description: 'Free online image crop and resize tool. Resize for Slack, iPhone App Store, YouTube thumbnails, and more with presets.',
-        keywords: ['image crop', 'image resize', 'slack image', 'iphone screenshot size', 'youtube thumbnail', ...seoKeywords.en],
-      },
-      ja: {
-        title: '画像クロップ & リサイズ - 無料プリセットサイズ調整',
-        description: '無料オンライン画像クロップ＆リサイズツール。Slack、iPhone App Store、YouTubeサムネイルなどのプリセットに対応。',
-        keywords: ['画像クロップ', '画像リサイズ', 'slack画像', 'iphoneスクリーンショット', 'youtubeサムネイル', ...seoKeywords.ja],
+        title: '画像リサイザー - 無料クロップ & プリセット変換',
+        description: '無料オンライン画像リサイザー。リアルタイムクロップ、解像度調整、Slack/YouTube/iPhoneプリセット変換に対応。',
+        keywords: ['画像リサイズ', '画像クロップ', 'プリセットリサイズ', 'slack画像', 'youtubeサムネイル', ...seoKeywords.ja],
       },
     },
   },

@@ -141,6 +141,16 @@ vi.mock('../../../i18n/useTranslation', () => ({
         imageResizer: {
           title: { ko: '이미지 리사이저', en: 'Image Resizer', ja: '画像リサイザー' },
           dropzone: { ko: '이미지를 드래그하거나 클릭하여 업로드', en: 'Drag or click to upload image', ja: '画像をドラッグまたはクリックしてアップロード' },
+          mode: { ko: '모드', en: 'Mode', ja: 'モード' },
+          customMode: { ko: '기본 편집', en: 'Custom', ja: 'カスタム' },
+          presetMode: { ko: '프리셋', en: 'Preset', ja: 'プリセット' },
+          preset: { ko: '프리셋 선택', en: 'Preset', ja: 'プリセット' },
+          presetOutput: { ko: '선택 프리셋', en: 'Selected preset', ja: '選択プリセット' },
+          presetHint: {
+            ko: '프리셋 모드에서는 선택한 해상도로 자동 리사이즈됩니다.',
+            en: 'Preset mode automatically resizes to the selected output dimensions.',
+            ja: 'プリセットモードでは選択した解像度に自動リサイズされます。',
+          },
           width: { ko: '너비', en: 'Width', ja: '幅' },
           height: { ko: '높이', en: 'Height', ja: '高さ' },
           keepAspectRatio: { ko: '비율 유지', en: 'Keep aspect ratio', ja: '比率を維持' },
