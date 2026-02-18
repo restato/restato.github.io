@@ -1,0 +1,46 @@
+<svg width="1200" height="700" viewBox="0 0 1200 700" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <style>
+      .title { font: 700 32px 'Inter', Arial, sans-serif; fill: #111827; }
+      .axis { stroke: #374151; stroke-width: 3; }
+      .grid { stroke: #e5e7eb; stroke-width: 1; }
+      .label { font: 600 18px 'Inter', Arial, sans-serif; fill: #111827; }
+      .small { font: 500 15px 'Inter', Arial, sans-serif; fill: #1f2937; }
+      .line { stroke: #2563eb; stroke-width: 5; fill: none; }
+      .decode { fill: #f59e0b; opacity: 0.85; }
+      .prefill { fill: #10b981; opacity: 0.85; }
+      .box { fill: #f9fafb; stroke: #9ca3af; stroke-width: 2; rx: 12; }
+    </style>
+  </defs>
+
+  <rect width="1200" height="700" fill="#fff"/>
+  <text x="60" y="70" class="title">Why Open LLM Inference Hits a Memory Wall</text>
+
+  <line x1="120" y1="560" x2="1020" y2="560" class="axis"/>
+  <line x1="120" y1="560" x2="120" y2="130" class="axis"/>
+
+  <line x1="120" y1="470" x2="1020" y2="470" class="grid"/>
+  <line x1="120" y1="380" x2="1020" y2="380" class="grid"/>
+  <line x1="120" y1="290" x2="1020" y2="290" class="grid"/>
+  <line x1="120" y1="200" x2="1020" y2="200" class="grid"/>
+
+  <text x="500" y="615" class="label">Arithmetic Intensity (ops per byte moved)</text>
+  <text x="18" y="355" transform="rotate(-90 18 355)" class="label">Achieved Throughput</text>
+
+  <polyline points="140,530 300,430 460,345 620,285 780,245 940,220" class="line"/>
+  <text x="790" y="205" class="small">Compute roof (tensor cores)</text>
+
+  <circle cx="300" cy="430" r="14" class="decode"/>
+  <text x="325" y="436" class="small">Decode token step: low intensity, memory-bound</text>
+
+  <circle cx="700" cy="265" r="14" class="prefill"/>
+  <text x="725" y="271" class="small">Prefill phase: higher intensity, more compute-bound</text>
+
+  <rect x="120" y="90" width="430" height="80" class="box"/>
+  <text x="145" y="123" class="small">Decode repeatedly reads model weights + KV cache for each new token.</text>
+  <text x="145" y="148" class="small">So bandwidth and cache policy dominate latency.</text>
+
+  <rect x="585" y="90" width="435" height="80" class="box"/>
+  <text x="610" y="123" class="small">Prefill processes many prompt tokens in parallel GEMMs.</text>
+  <text x="610" y="148" class="small">So tensor core efficiency and batching matter more.</text>
+</svg>
