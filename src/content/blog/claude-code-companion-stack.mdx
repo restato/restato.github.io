@@ -1,0 +1,279 @@
+---
+title: "What to Use with Claude Code: The Practical Companion Stack (Deep Guide)"
+description: "A deeply practical, field-tested guide to the tools, workflows, and habits that make Claude Code dramatically more useful in real projects."
+date: 2026-02-25
+tags: ["claude-code", "developer-tools", "workflow", "productivity", "guide"]
+---
+
+If you already use Claude Code, you’ve probably felt both sides of it.
+
+On good days, it feels like a tireless pair programmer that can reason fast, draft clean code, and keep momentum when your brain is tired. On bad days, it can feel a little “generic,” miss project context, or move too quickly in the wrong direction.
+
+The difference usually isn’t your skill. It’s the _system_ around Claude Code.
+
+This post is a deep, practical guide to that system: what to pair with Claude Code so it consistently gives high-quality results in real work—not toy examples. If you set up even half of this, your day-to-day experience will improve immediately.
+
+---
+
+## The Big Idea: Claude Code Is a Multiplier, Not a Full Replacement
+
+Think of Claude Code as an intelligence multiplier. Multipliers are powerful only when they multiply something good:
+
+- good repo structure,
+- good prompts,
+- good safety checks,
+- good feedback loops,
+- good memory of decisions.
+
+If those pieces are missing, Claude Code still helps, but output quality is volatile. So instead of asking, “Which model is best?”, ask:
+
+> “What stack gives Claude Code the right context, constraints, and verification?”
+
+That question leads to better software, faster.
+
+---
+
+## 1) A Clear Repo Contract (Your AI Runtime Environment)
+
+Before any fancy tool, your repository needs a machine-readable “contract.”
+
+### What to include
+
+1. **`AGENTS.md` or equivalent operating instructions**
+   - coding style,
+   - testing rules,
+   - commit conventions,
+   - architecture boundaries,
+   - “do/don’t” constraints.
+
+2. **Good README sections Claude can reference quickly**
+   - local setup,
+   - start/build/test commands,
+   - environment variables,
+   - deployment overview.
+
+3. **Feature-level docs**
+   - where business rules live,
+   - data model boundaries,
+   - known edge cases.
+
+### Why it matters
+
+Claude Code can infer patterns, but inference is fragile. Explicit rules are more reliable than inference. Put simply: if your standards are only in a senior engineer’s head, the model cannot follow them consistently.
+
+---
+
+## 2) Strong Prompt Patterns (The Difference Between “Okay” and “Excellent”)
+
+Most teams under-invest in prompt structure. They write one sentence, then wonder why outputs vary.
+
+Use this baseline template:
+
+```text
+Goal:
+[What success looks like in one sentence]
+
+Context:
+[Relevant files, architecture decisions, constraints]
+
+Requirements:
+- [Behavior requirement #1]
+- [Behavior requirement #2]
+
+Non-goals:
+- [What should not be changed]
+
+Validation:
+- Run: [test/build/typecheck commands]
+- Explain: [what changed + why]
+```
+
+### Practical tips
+
+- Ask for **an explicit plan first** on medium/large tasks.
+- Ask it to **name assumptions** before coding.
+- Give **acceptance criteria** in bullet points.
+- Ask for **small, reviewable commits** if the task is big.
+
+This one habit dramatically reduces rework.
+
+---
+
+## 3) Git Discipline + PR Workflow (Safety Net + Collaboration)
+
+Claude Code shines when paired with strict git habits.
+
+### Recommended baseline
+
+- Create a feature branch per task.
+- Keep commits scoped and meaningful.
+- Require PR review for non-trivial changes.
+- Use a PR template that asks:
+  - what changed,
+  - why,
+  - risk areas,
+  - test evidence,
+  - rollback notes.
+
+### Why this pairing works
+
+Claude Code can generate code quickly. Git + PR discipline prevents speed from becoming silent risk. Think of this as “high velocity with brakes.”
+
+---
+
+## 4) Automated Checks: Type, Lint, Test, Build
+
+Never rely on “looks right.” Always rely on checks.
+
+### Minimum quality gate
+
+- **Type checking** (`tsc`, `mypy`, etc.)
+- **Linting** (ESLint, Ruff, etc.)
+- **Unit/integration tests**
+- **Production build**
+
+If Claude Code writes code but doesn’t pass these gates, the task is not done.
+
+### Pro move
+
+Ask Claude Code to:
+1. run checks,
+2. summarize failures,
+3. propose fixes in priority order,
+4. re-run checks after patching.
+
+This turns it into a useful test-fix loop assistant.
+
+---
+
+## 5) Local Tooling That Gives Better Ground Truth
+
+Models hallucinate less when they can _read reality_. Pair Claude Code with tools that expose real project state.
+
+- fast search (`rg`) for symbol discovery,
+- tree-aware code search where available,
+- test reports and coverage artifacts,
+- runtime logs,
+- database schema snapshots,
+- API schemas (OpenAPI/GraphQL SDL).
+
+The less it guesses, the better it performs.
+
+---
+
+## 6) Optional But High-Leverage Companions
+
+These are not mandatory, but they create serious upside.
+
+### A. Lightweight architecture decision log (ADR-lite)
+Keep a `docs/decisions/` folder with short markdown decisions.
+
+Why: Claude Code can anchor changes to _why_ the system is designed this way.
+
+### B. Reusable command snippets
+Store recurring prompts/commands for:
+- release checklist,
+- bug triage,
+- migration planning,
+- test generation,
+- refactor safety review.
+
+Why: consistency and speed.
+
+### C. Evaluation scripts
+Create tiny scripts that verify critical behavior after changes.
+
+Why: lets Claude Code validate real outcomes, not just syntax.
+
+---
+
+## 7) When to Use Claude Code vs. When Not To
+
+Being strategic beats using AI everywhere.
+
+### Great use cases
+
+- repetitive refactors,
+- boilerplate generation,
+- test scaffolding,
+- documentation drafting,
+- migration assistance,
+- debugging with logs + stack traces.
+
+### Weak use cases (without strong guardrails)
+
+- ambiguous product decisions,
+- high-stakes security logic without expert review,
+- large architectural rewrites without staged validation.
+
+Claude Code is strongest where feedback loops are tight and correctness is measurable.
+
+---
+
+## 8) A Daily Workflow That Actually Works
+
+Here’s a practical loop many teams adopt:
+
+1. **Define task + acceptance criteria** (human).
+2. **Ask Claude Code for a short plan**.
+3. **Approve plan or refine constraints**.
+4. **Implement in small steps**.
+5. **Run full checks after each meaningful step**.
+6. **Review diff with intent, not just syntax**.
+7. **Open PR with clear risk/test notes**.
+8. **Ship only after checks + review pass**.
+
+It sounds simple, but doing this consistently is where compounding gains come from.
+
+---
+
+## 9) Common Failure Modes (and How to Avoid Them)
+
+### Failure mode 1: Overly broad prompts
+“Refactor this entire module for performance.”
+
+**Fix:** constrain scope, define metrics, specify untouched files.
+
+### Failure mode 2: Missing business context
+Model writes technically valid but product-wrong code.
+
+**Fix:** include user scenario, edge cases, and policy constraints.
+
+### Failure mode 3: Skipping verification
+Code gets merged because it “looks fine.”
+
+**Fix:** enforce non-optional checks in CI.
+
+### Failure mode 4: Prompt-only memory
+Decisions vanish between sessions.
+
+**Fix:** store conventions and decisions in versioned docs.
+
+---
+
+## 10) Recommended Starter Stack (Simple Version)
+
+If you want a no-drama setup, start here:
+
+- Claude Code
+- Git + PR template
+- `AGENTS.md`
+- Typecheck + lint + test + build scripts
+- test coverage report
+- `docs/decisions/` for architecture notes
+
+This is enough to get 80% of the benefit.
+
+---
+
+## Final Thoughts
+
+Claude Code is excellent, but it becomes _exceptional_ when paired with clear instructions, reliable checks, and deliberate workflow habits.
+
+If your results feel inconsistent, don’t immediately switch tools. First, improve the operating environment around the tool. In most teams, that single shift creates the biggest jump in quality.
+
+If I had to summarize the whole post in one line:
+
+> Don’t just use Claude Code—design the system that Claude Code runs inside.
+
+When you do that, your productivity won’t just increase. Your confidence in shipping will, too.
