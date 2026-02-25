@@ -1,0 +1,64 @@
+<svg width="980" height="520" viewBox="0 0 980 520" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="title desc">
+  <title id="title">Open LLM Model Size vs GPU VRAM Fit</title>
+  <desc id="desc">Bar chart showing estimated VRAM requirements for common open LLM parameter scales and corresponding GPU classes.</desc>
+  <style>
+    .bg { fill: #0b1020; }
+    .axis { stroke: #8ea0c9; stroke-width: 1; }
+    .grid { stroke: #2a355a; stroke-width: 1; stroke-dasharray: 4 4; }
+    .label { fill: #d9e2ff; font: 14px sans-serif; }
+    .small { fill: #aebae6; font: 12px sans-serif; }
+    .bar1 { fill: #49b3ff; }
+    .bar2 { fill: #42d392; }
+    .bar3 { fill: #f6c85f; }
+    .bar4 { fill: #ff7a7a; }
+  </style>
+
+  <rect class="bg" x="0" y="0" width="980" height="520" rx="14" />
+
+  <text x="40" y="42" class="label" style="font-size:22px;font-weight:700;">Open LLM VRAM Fit (INT4-ish Practical Planning)</text>
+  <text x="40" y="66" class="small">Approximate required VRAM including runtime overhead. Values are for planning, not hard limits.</text>
+
+  <!-- chart area -->
+  <line class="axis" x1="90" y1="430" x2="900" y2="430" />
+  <line class="axis" x1="90" y1="100" x2="90" y2="430" />
+
+  <!-- horizontal grid -->
+  <line class="grid" x1="90" y1="375" x2="900" y2="375" />
+  <line class="grid" x1="90" y1="320" x2="900" y2="320" />
+  <line class="grid" x1="90" y1="265" x2="900" y2="265" />
+  <line class="grid" x1="90" y1="210" x2="900" y2="210" />
+  <line class="grid" x1="90" y1="155" x2="900" y2="155" />
+
+  <text class="small" x="55" y="434">0</text>
+  <text class="small" x="47" y="379">8</text>
+  <text class="small" x="41" y="324">16</text>
+  <text class="small" x="41" y="269">24</text>
+  <text class="small" x="41" y="214">32</text>
+  <text class="small" x="41" y="159">40</text>
+  <text class="small" x="20" y="122" transform="rotate(-90 20,122)">VRAM (GB)</text>
+
+  <!-- Bars: scale 1GB = 6.875px -->
+  <!-- 8B ~ 6GB -->
+  <rect class="bar1" x="170" y="389" width="120" height="41" rx="6" />
+  <!-- 14B ~ 10GB -->
+  <rect class="bar2" x="340" y="361" width="120" height="69" rx="6" />
+  <!-- 34B ~ 24GB -->
+  <rect class="bar3" x="510" y="265" width="120" height="165" rx="6" />
+  <!-- 70B ~ 42GB -->
+  <rect class="bar4" x="680" y="141" width="120" height="289" rx="6" />
+
+  <text class="label" x="196" y="455">8B</text>
+  <text class="label" x="360" y="455">14B</text>
+  <text class="label" x="530" y="455">34B</text>
+  <text class="label" x="700" y="455">70B</text>
+
+  <text class="small" x="190" y="381">~6 GB</text>
+  <text class="small" x="360" y="353">~10 GB</text>
+  <text class="small" x="530" y="257">~24 GB</text>
+  <text class="small" x="700" y="133">~42 GB</text>
+
+  <text class="small" x="150" y="490">Fits typical: 12GB+</text>
+  <text class="small" x="320" y="490">Fits typical: 16GB+</text>
+  <text class="small" x="490" y="490">Fits typical: 24GB/48GB</text>
+  <text class="small" x="650" y="490">Usually multi-GPU or 80GB class</text>
+</svg>
