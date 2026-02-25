@@ -1,0 +1,53 @@
+<svg width="1100" height="640" viewBox="0 0 1100 640" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="title desc">
+  <title id="title">Post-training progress chart</title>
+  <desc id="desc">A line chart showing helpfulness, harmlessness, and latency across post-training stages.</desc>
+  <rect width="1100" height="640" fill="#0b1020" rx="16"/>
+
+  <g font-family="Inter, Arial, sans-serif" fill="#dbeafe">
+    <text x="550" y="54" text-anchor="middle" font-size="32" font-weight="700">Example Quality Trend Across Post-Training Stages</text>
+    <text x="550" y="84" text-anchor="middle" font-size="17" fill="#94a3b8">Higher is better for quality metrics; lower is better for latency.</text>
+  </g>
+
+  <g stroke="#334155" stroke-width="1">
+    <line x1="120" y1="140" x2="120" y2="530"/>
+    <line x1="120" y1="530" x2="980" y2="530"/>
+    <line x1="120" y1="452" x2="980" y2="452"/>
+    <line x1="120" y1="374" x2="980" y2="374"/>
+    <line x1="120" y1="296" x2="980" y2="296"/>
+    <line x1="120" y1="218" x2="980" y2="218"/>
+    <line x1="120" y1="140" x2="980" y2="140"/>
+  </g>
+
+  <g font-family="Inter, Arial, sans-serif" font-size="14" fill="#94a3b8">
+    <text x="90" y="535">0</text>
+    <text x="78" y="457">20</text>
+    <text x="78" y="379">40</text>
+    <text x="78" y="301">60</text>
+    <text x="78" y="223">80</text>
+    <text x="70" y="145">100</text>
+  </g>
+
+  <g font-family="Inter, Arial, sans-serif" font-size="15" fill="#cbd5e1">
+    <text x="170" y="565" text-anchor="middle">Base</text>
+    <text x="380" y="565" text-anchor="middle">SFT</text>
+    <text x="590" y="565" text-anchor="middle">Preference</text>
+    <text x="800" y="565" text-anchor="middle">Safety Tune</text>
+    <text x="940" y="565" text-anchor="middle">Final</text>
+  </g>
+
+  <polyline points="170,428 380,312 590,226 800,187 940,171" fill="none" stroke="#38bdf8" stroke-width="5"/>
+  <polyline points="170,470 380,382 590,296 800,218 940,202" fill="none" stroke="#22c55e" stroke-width="5"/>
+  <polyline points="170,265 380,289 590,319 800,343 940,358" fill="none" stroke="#f59e0b" stroke-width="5"/>
+
+  <g>
+    <circle cx="170" cy="428" r="7" fill="#38bdf8"/><circle cx="380" cy="312" r="7" fill="#38bdf8"/><circle cx="590" cy="226" r="7" fill="#38bdf8"/><circle cx="800" cy="187" r="7" fill="#38bdf8"/><circle cx="940" cy="171" r="7" fill="#38bdf8"/>
+    <circle cx="170" cy="470" r="7" fill="#22c55e"/><circle cx="380" cy="382" r="7" fill="#22c55e"/><circle cx="590" cy="296" r="7" fill="#22c55e"/><circle cx="800" cy="218" r="7" fill="#22c55e"/><circle cx="940" cy="202" r="7" fill="#22c55e"/>
+    <circle cx="170" cy="265" r="7" fill="#f59e0b"/><circle cx="380" cy="289" r="7" fill="#f59e0b"/><circle cx="590" cy="319" r="7" fill="#f59e0b"/><circle cx="800" cy="343" r="7" fill="#f59e0b"/><circle cx="940" cy="358" r="7" fill="#f59e0b"/>
+  </g>
+
+  <g font-family="Inter, Arial, sans-serif" font-size="15">
+    <rect x="170" y="104" width="16" height="16" fill="#38bdf8"/><text x="194" y="117" fill="#dbeafe">Helpfulness score</text>
+    <rect x="380" y="104" width="16" height="16" fill="#22c55e"/><text x="404" y="117" fill="#dbeafe">Harmlessness score</text>
+    <rect x="625" y="104" width="16" height="16" fill="#f59e0b"/><text x="649" y="117" fill="#dbeafe">Latency (normalized, lower is better)</text>
+  </g>
+</svg>
