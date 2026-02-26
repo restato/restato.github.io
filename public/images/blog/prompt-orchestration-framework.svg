@@ -1,0 +1,36 @@
+<svg width="1200" height="630" viewBox="0 0 1200 630" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="1200" height="630" fill="#0B1020"/>
+  <rect x="40" y="40" width="1120" height="550" rx="20" fill="#121A32" stroke="#334155"/>
+  <text x="80" y="120" fill="#E2E8F0" font-family="Arial, sans-serif" font-size="44" font-weight="700">Prompt Orchestration Framework</text>
+  <text x="80" y="165" fill="#94A3B8" font-family="Arial, sans-serif" font-size="26">Plan → Delegate → Verify → Learn</text>
+
+  <rect x="80" y="220" width="230" height="120" rx="14" fill="#1D4ED8"/>
+  <text x="195" y="270" text-anchor="middle" fill="white" font-family="Arial" font-size="28" font-weight="700">Plan</text>
+  <text x="195" y="305" text-anchor="middle" fill="#DBEAFE" font-family="Arial" font-size="18">clear specs first</text>
+
+  <rect x="350" y="220" width="230" height="120" rx="14" fill="#7C3AED"/>
+  <text x="465" y="270" text-anchor="middle" fill="white" font-family="Arial" font-size="28" font-weight="700">Delegate</text>
+  <text x="465" y="305" text-anchor="middle" fill="#EDE9FE" font-family="Arial" font-size="18">parallel subagents</text>
+
+  <rect x="620" y="220" width="230" height="120" rx="14" fill="#0F766E"/>
+  <text x="735" y="270" text-anchor="middle" fill="white" font-family="Arial" font-size="28" font-weight="700">Verify</text>
+  <text x="735" y="305" text-anchor="middle" fill="#CCFBF1" font-family="Arial" font-size="18">tests and evidence</text>
+
+  <rect x="890" y="220" width="230" height="120" rx="14" fill="#B45309"/>
+  <text x="1005" y="270" text-anchor="middle" fill="white" font-family="Arial" font-size="28" font-weight="700">Learn</text>
+  <text x="1005" y="305" text-anchor="middle" fill="#FFEDD5" font-family="Arial" font-size="18">codify lessons</text>
+
+  <path d="M310 280H350" stroke="#94A3B8" stroke-width="4" marker-end="url(#arrow)"/>
+  <path d="M580 280H620" stroke="#94A3B8" stroke-width="4" marker-end="url(#arrow)"/>
+  <path d="M850 280H890" stroke="#94A3B8" stroke-width="4" marker-end="url(#arrow)"/>
+
+  <rect x="80" y="390" width="1040" height="150" rx="14" fill="#0F172A" stroke="#334155"/>
+  <text x="100" y="435" fill="#E2E8F0" font-family="Arial" font-size="24" font-weight="700">Outcome:</text>
+  <text x="100" y="475" fill="#CBD5E1" font-family="Arial" font-size="24">Higher reliability, lower rework, clearer handoff between humans and agents.</text>
+
+  <defs>
+    <marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto">
+      <path d="M0,0 L0,6 L9,3 z" fill="#94A3B8"/>
+    </marker>
+  </defs>
+</svg>
