@@ -1,0 +1,271 @@
+---
+title: "NVIDIA GPU/Driver Compatibility for vLLM + OpenLLM: Qwen 3.5, GLM, DeepSeek, Gemma"
+description: "A practical compatibility and troubleshooting guide for serving modern open models with vLLM and OpenLLM, including NVIDIA GPU/driver baselines, CUDA alignment, and real-world failure patterns."
+date: 2026-02-26
+tags: ["vllm", "openllm", "nvidia", "gpu", "qwen", "gemma", "deepseek", "glm", "troubleshooting"]
+---
+
+If you are deploying modern open models, the biggest production risk is usually **not model quality**.
+
+It is version mismatch across:
+
+- **NVIDIA GPU architecture** (Turing / Ampere / Ada / Hopper / Blackwell),
+- **NVIDIA driver branch**,
+- **CUDA runtime/toolkit**,
+- **PyTorch + vLLM version**,
+- **OpenLLM backend integration and model template assumptions**.
+
+This guide is a practical field manual for teams serving **Qwen 3.5, GLM, DeepSeek, and Gemma family models**.
+
+> Scope: inference/serving with vLLM and OpenLLM in Linux environments (bare metal or containers), with emphasis on real incident patterns.
+
+---
+
+## 1) The Compatibility Stack You Must Keep Aligned
+
+Think in this order:
+
+1. **GPU capability** (VRAM, tensor core generation, BF16/FP8 practicality)
+2. **Driver branch** (must support your CUDA userspace)
+3. **Container CUDA userspace** (e.g., cu121, cu124)
+4. **PyTorch binary** (compiled for same CUDA family)
+5. **vLLM build** (linked against matching torch/cuda ecosystem)
+6. **OpenLLM runtime wiring** (backend flags, tokenizer chat template, model config)
+
+If one layer is behind, you can get:
+
+- startup crashes,
+- `CUDA error: invalid device function`,
+- NCCL hangs,
+- silent throughput collapse,
+- incorrect output format from chat template mismatch.
+
+---
+
+## 2) Practical NVIDIA Driver/CUDA Baselines
+
+Exact minimums evolve by release, but these **operational baselines** reduce incidents for current vLLM stacks:
+
+| CUDA userspace target | Practical driver branch baseline (Linux) | Notes |
+|---|---|---|
+| CUDA 12.1 class | R530+ (prefer R535+) | Stable floor for many older PyTorch/vLLM combos |
+| CUDA 12.2/12.3 class | R535+/R545+ | Good bridge period for mixed clusters |
+| CUDA 12.4 class | R550+ | Common baseline for newer high-throughput images |
+| CUDA 12.5/12.6 class | R555+/R560+ | Use when stack explicitly requires it |
+
+### Why this matters
+
+- Newer containers can start even if host driver is old, then fail at runtime.
+- Driver mismatch frequently appears as cryptic kernel launch errors rather than a clear compatibility message.
+
+### Minimal host checks
+
+```bash
+nvidia-smi
+cat /proc/driver/nvidia/version
+```
+
+### Container checks
+
+```bash
+python -c "import torch; print(torch.__version__, torch.version.cuda)"
+python -c "import vllm; print(vllm.__version__)"
+```
+
+---
+
+## 3) Known-Good Versioning Strategy (vLLM + OpenLLM)
+
+Instead of chasing latest for every package, use **tested bundles**:
+
+- Pin **torch + vllm + transformers + tokenizers** together.
+- Upgrade **one axis at a time** (driver first, then container base, then runtime).
+- Keep OpenLLM backend config pinned per model family.
+
+A practical policy:
+
+- Maintain two lanes:
+  - **stable lane** for production,
+  - **canary lane** for latest models/features.
+- Promote only after load + regression + prompt-format tests pass.
+
+---
+
+## 4) Model Family Notes (Qwen 3.5, GLM, DeepSeek, Gemma)
+
+The table below is a deployment-oriented summary (not a benchmark ranking).
+
+| Family | Typical serving mode in vLLM | Common gotcha | What to validate first |
+|---|---|---|---|
+| **Qwen 3.5** | BF16/FP16 or quantized; long-context workloads common | Chat template / tokenizer mismatch causes quality drop | `tokenizer_config.json`, generation defaults, context tests |
+| **GLM (latest open checkpoints)** | Standard causal LM serving pattern (family-specific prompt style) | Special tokens and prompt wrappers differ from Llama-style defaults | End-to-end prompt template golden tests |
+| **DeepSeek (latest open instruct/coder variants)** | High-throughput decoding; reasoning/coder variants can be memory-heavy | OOM due to optimistic max model len + high concurrency | KV cache sizing and max tokens under real traffic |
+| **Gemma (latest open variants)** | Strong small-to-mid model serving economics | Tokenizer/chat formatting differences between checkpoints | Prompt canonicalization + stop sequence validation |
+
+---
+
+## 5) Qwen 3.5 on vLLM: GPU/Driver Planning
+
+For Qwen 3.5-class deployments, plan around three axes:
+
+1. **Model size (effective weight memory)**
+2. **Context length (KV cache growth)**
+3. **Concurrency target**
+
+### Rule-of-thumb hardware tiers
+
+| Deployment target | Practical GPU class | Driver/CUDA recommendation |
+|---|---|---|
+| Local/prototype, low concurrency | 24GB class (L4/A10/4090) | Driver branch aligned to chosen CUDA 12.x image |
+| Small production API | 40–48GB class or 2x24GB | Prefer newer R550+ path for fewer CUDA edge issues |
+| Long-context + higher concurrency | 80GB class or multi-GPU | Keep NCCL + driver + CUDA tightly pinned across nodes |
+
+### Memory planning reminder
+
+Total memory pressure is not just weights:
+
+`Total ≈ Weights + KV Cache + Runtime Overhead + Fragmentation Buffer`
+
+Teams often fit weights on paper, then fail in production due to KV cache under realistic conversation lengths.
+
+---
+
+## 6) What Breaks Most Often (and How to Fix It)
+
+## A) `CUDA error: invalid device function`
+
+**Typical cause**
+
+- Binary built for a different CUDA/SM expectation than host/device path.
+
+**Fix path**
+
+1. Verify host driver branch is new enough.
+2. Use official/prebuilt wheels matching your CUDA lane.
+3. Avoid mixing random nightly wheels across torch/vllm.
+
+---
+
+## B) `NCCL timeout` / multi-GPU hang
+
+**Typical cause**
+
+- Inconsistent driver/CUDA/NCCL environment across nodes, or bad network interface selection.
+
+**Fix path**
+
+1. Ensure all nodes have identical driver major branch.
+2. Pin container image digest (not floating tags).
+3. Set/verify NCCL network env explicitly for your fabric.
+4. Run a small all-reduce smoke test before model serving.
+
+---
+
+## C) OOM despite "model should fit"
+
+**Typical cause**
+
+- KV cache + concurrency + long context underestimated.
+
+**Fix path**
+
+1. Lower max context / max num seqs initially.
+2. Use quantization path validated for your workload.
+3. Increase tensor parallel or move to larger VRAM tier.
+4. Keep headroom (10–20%) for fragmentation spikes.
+
+---
+
+## D) Bad answer format / role confusion
+
+**Typical cause**
+
+- Chat template mismatch between model family and serving wrapper defaults.
+
+**Fix path**
+
+1. Lock model-specific template in config.
+2. Add golden prompt-output tests per family.
+3. Block deploy if template checksum changes unexpectedly.
+
+---
+
+## E) Throughput collapse after "upgrade"
+
+**Typical cause**
+
+- Kernel path changes, eager fallback, or scheduler defaults changed.
+
+**Fix path**
+
+1. Compare `tokens/sec`, p95 latency, and GPU utilization before/after.
+2. Keep synthetic + replayed production prompts for A/B.
+3. Roll back quickly if regression > agreed threshold.
+
+---
+
+## 7) OpenLLM + vLLM Integration Checklist
+
+Before production cutover:
+
+- [ ] Pin OpenLLM version and backend adapter config.
+- [ ] Pin vLLM + torch + transformers bundle.
+- [ ] Freeze tokenizer/chat template per model family.
+- [ ] Record host driver branch in deployment metadata.
+- [ ] Run canary with real prompt distributions.
+- [ ] Validate stream format, stop behavior, and tool-call schema.
+- [ ] Validate autoscaling warmup and cold-start latency.
+
+Recommended CI gates:
+
+1. **Boot test**: model loads and serves a trivial prompt.
+2. **Template test**: prompt wrappers produce expected role tokens.
+3. **Load test**: fixed QPS/concurrency pass criteria.
+4. **Long-context test**: no OOM/hang at planned context percentile.
+
+---
+
+## 8) What You May Need to Change During Upgrades
+
+When moving to newer model releases (including latest Qwen/GLM/DeepSeek/Gemma), expect to update:
+
+- tokenizer/chat template logic,
+- `max_model_len` and batching strategy,
+- quantization choice,
+- tensor/pipeline parallel settings,
+- driver branch on hosts,
+- container base image (CUDA lane).
+
+### Things that often **do not** work well
+
+- Keeping old drivers while upgrading to newest CUDA-tagged runtime images.
+- Mixing heterogeneous driver branches in one inference cluster.
+- Assuming Llama-family prompt wrapper works for every non-Llama model.
+- Raising max context without redoing KV cache/concurrency capacity tests.
+
+---
+
+## 9) Reference Rollout Plan (Low-Risk)
+
+1. **Stage 0: Inventory**
+   - Capture GPU SKU, VRAM, driver branch, CUDA lane, runtime versions.
+2. **Stage 1: Single-node validation**
+   - One model family at a time, fixed prompt harness.
+3. **Stage 2: Multi-GPU/node smoke**
+   - NCCL and network path validation.
+4. **Stage 3: Canary traffic**
+   - Real traffic shadow or small percentage live.
+5. **Stage 4: Full rollout**
+   - Keep rollback image and prior driver-compatible lane ready.
+
+---
+
+## 10) Final Takeaway
+
+For modern OpenLLM serving, success comes from **compatibility discipline**, not just bigger GPUs.
+
+- Treat **driver/CUDA/runtime/model-template** as one deployable unit.
+- Pin known-good bundles for vLLM + OpenLLM.
+- For **Qwen 3.5** and other latest model families, always re-validate tokenizer/template + long-context memory behavior before full rollout.
+
+If you do this, most "mysterious" production incidents become predictable and preventable.
