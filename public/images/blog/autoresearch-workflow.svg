@@ -1,0 +1,59 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="700" viewBox="0 0 1200 700" role="img" aria-labelledby="title desc">
+  <title id="title">AutoResearch Workflow</title>
+  <desc id="desc">A flow chart describing query planning, retrieval, synthesis, and report generation steps.</desc>
+  <defs>
+    <style>
+      .bg { fill: #0f172a; }
+      .title { fill: #e2e8f0; font: 700 36px 'Inter', Arial, sans-serif; }
+      .subtitle { fill: #94a3b8; font: 500 18px 'Inter', Arial, sans-serif; }
+      .box { fill: #1e293b; stroke: #334155; stroke-width: 2; rx: 16; }
+      .text { fill: #e2e8f0; font: 600 20px 'Inter', Arial, sans-serif; }
+      .small { fill: #94a3b8; font: 400 15px 'Inter', Arial, sans-serif; }
+      .arrow { stroke: #38bdf8; stroke-width: 4; fill: none; marker-end: url(#arrowhead); }
+    </style>
+    <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#38bdf8" />
+    </marker>
+  </defs>
+
+  <rect class="bg" width="1200" height="700" />
+  <text class="title" x="60" y="70">AutoResearch: End-to-End Pipeline</text>
+  <text class="subtitle" x="60" y="105">From user question to cited research brief</text>
+
+  <rect class="box" x="60" y="170" width="240" height="130" />
+  <text class="text" x="85" y="220">1) Scope Question</text>
+  <text class="small" x="85" y="252">Define topic, limits,</text>
+  <text class="small" x="85" y="274">time horizon, outputs</text>
+
+  <rect class="box" x="350" y="170" width="240" height="130" />
+  <text class="text" x="375" y="220">2) Search & Fetch</text>
+  <text class="small" x="375" y="252">APIs / web sources,</text>
+  <text class="small" x="375" y="274">metadata + full text</text>
+
+  <rect class="box" x="640" y="170" width="240" height="130" />
+  <text class="text" x="665" y="220">3) Rank & Filter</text>
+  <text class="small" x="665" y="252">Deduplicate, relevance,</text>
+  <text class="small" x="665" y="274">quality thresholds</text>
+
+  <rect class="box" x="930" y="170" width="220" height="130" />
+  <text class="text" x="955" y="220">4) Read & Extract</text>
+  <text class="small" x="955" y="252">Claims, methods,</text>
+  <text class="small" x="955" y="274">numbers, caveats</text>
+
+  <rect class="box" x="220" y="430" width="280" height="150" />
+  <text class="text" x="245" y="485">5) Synthesize</text>
+  <text class="small" x="245" y="518">Cross-paper comparison,</text>
+  <text class="small" x="245" y="540">agreement vs conflict map</text>
+
+  <rect class="box" x="650" y="430" width="320" height="150" />
+  <text class="text" x="675" y="485">6) Draft Report + Citations</text>
+  <text class="small" x="675" y="518">Structured sections, inline refs,</text>
+  <text class="small" x="675" y="540">open questions + next actions</text>
+
+  <path class="arrow" d="M300 235 L350 235" />
+  <path class="arrow" d="M590 235 L640 235" />
+  <path class="arrow" d="M880 235 L930 235" />
+  <path class="arrow" d="M1040 300 C1040 360, 900 380, 810 430" />
+  <path class="arrow" d="M650 505 L500 505" />
+  <path class="arrow" d="M220 505 C140 505, 110 360, 160 300" />
+</svg>
