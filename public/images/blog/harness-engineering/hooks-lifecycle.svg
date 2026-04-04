@@ -1,0 +1,75 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 380" font-family="system-ui, -apple-system, sans-serif">
+  <defs>
+    <marker id="arr" markerWidth="10" markerHeight="7" refX="10" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#6366f1"/>
+    </marker>
+    <marker id="arr-red" markerWidth="10" markerHeight="7" refX="10" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#ef4444"/>
+    </marker>
+  </defs>
+
+  <rect width="800" height="380" rx="12" fill="#fafafa" stroke="#e2e8f0" stroke-width="1"/>
+  <text x="400" y="35" text-anchor="middle" font-size="16" font-weight="700" fill="#1e293b">Hook Lifecycle: How Hooks Intercept Tool Calls</text>
+
+  <!-- Timeline -->
+  <line x1="60" y1="100" x2="740" y2="100" stroke="#cbd5e1" stroke-width="3"/>
+
+  <!-- Step 1: Claude decides -->
+  <circle cx="120" cy="100" r="22" fill="#6366f1"/>
+  <text x="120" y="105" text-anchor="middle" font-size="11" font-weight="700" fill="white">1</text>
+  <text x="120" y="145" text-anchor="middle" font-size="11" font-weight="600" fill="#1e293b">Claude decides</text>
+  <text x="120" y="160" text-anchor="middle" font-size="10" fill="#64748b">to use a tool</text>
+
+  <!-- Step 2: PreToolUse -->
+  <circle cx="280" cy="100" r="22" fill="#ec4899"/>
+  <text x="280" y="105" text-anchor="middle" font-size="11" font-weight="700" fill="white">2</text>
+  <text x="280" y="145" text-anchor="middle" font-size="11" font-weight="600" fill="#be185d">PreToolUse Hook</text>
+  <text x="280" y="160" text-anchor="middle" font-size="10" fill="#64748b">Runs BEFORE</text>
+  <text x="280" y="175" text-anchor="middle" font-size="10" fill="#64748b">tool executes</text>
+
+  <!-- Step 3: Tool executes -->
+  <circle cx="440" cy="100" r="22" fill="#22c55e"/>
+  <text x="440" y="105" text-anchor="middle" font-size="11" font-weight="700" fill="white">3</text>
+  <text x="440" y="145" text-anchor="middle" font-size="11" font-weight="600" fill="#15803d">Tool Executes</text>
+  <text x="440" y="160" text-anchor="middle" font-size="10" fill="#64748b">Edit, Bash,</text>
+  <text x="440" y="175" text-anchor="middle" font-size="10" fill="#64748b">Write, etc.</text>
+
+  <!-- Step 4: PostToolUse -->
+  <circle cx="600" cy="100" r="22" fill="#ec4899"/>
+  <text x="600" y="105" text-anchor="middle" font-size="11" font-weight="700" fill="white">4</text>
+  <text x="600" y="145" text-anchor="middle" font-size="11" font-weight="600" fill="#be185d">PostToolUse Hook</text>
+  <text x="600" y="160" text-anchor="middle" font-size="10" fill="#64748b">Runs AFTER</text>
+  <text x="600" y="175" text-anchor="middle" font-size="10" fill="#64748b">tool executes</text>
+
+  <!-- Arrows -->
+  <line x1="145" y1="100" x2="253" y2="100" stroke="#6366f1" stroke-width="2" marker-end="url(#arr)"/>
+  <line x1="305" y1="100" x2="413" y2="100" stroke="#6366f1" stroke-width="2" marker-end="url(#arr)"/>
+  <line x1="465" y1="100" x2="573" y2="100" stroke="#6366f1" stroke-width="2" marker-end="url(#arr)"/>
+
+  <!-- Block path -->
+  <path d="M280 125 Q280 210 200 210 Q120 210 120 125" fill="none" stroke="#ef4444" stroke-width="2" stroke-dasharray="5,3" marker-end="url(#arr-red)"/>
+  <rect x="160" y="215" width="120" height="28" rx="6" fill="#fef2f2" stroke="#ef4444" stroke-width="1"/>
+  <text x="220" y="234" text-anchor="middle" font-size="10" font-weight="600" fill="#dc2626">Can BLOCK tool</text>
+
+  <!-- Example boxes -->
+  <rect x="50" y="260" width="210" height="95" rx="8" fill="#eff6ff" stroke="#3b82f6" stroke-width="1"/>
+  <text x="155" y="282" text-anchor="middle" font-size="11" font-weight="600" fill="#1d4ed8">PreToolUse Examples</text>
+  <text x="65" y="300" font-size="10" fill="#475569">- Lint check before file write</text>
+  <text x="65" y="316" font-size="10" fill="#475569">- Block dangerous commands</text>
+  <text x="65" y="332" font-size="10" fill="#475569">- Validate file paths</text>
+  <text x="65" y="348" font-size="10" fill="#475569">- Require confirmation</text>
+
+  <rect x="295" y="260" width="210" height="95" rx="8" fill="#f0fdf4" stroke="#22c55e" stroke-width="1"/>
+  <text x="400" y="282" text-anchor="middle" font-size="11" font-weight="600" fill="#15803d">PostToolUse Examples</text>
+  <text x="310" y="300" font-size="10" fill="#475569">- Auto-format saved files</text>
+  <text x="310" y="316" font-size="10" fill="#475569">- Run tests after edit</text>
+  <text x="310" y="332" font-size="10" fill="#475569">- Type-check on change</text>
+  <text x="310" y="348" font-size="10" fill="#475569">- Notify on completion</text>
+
+  <rect x="540" y="260" width="210" height="95" rx="8" fill="#fefce8" stroke="#eab308" stroke-width="1"/>
+  <text x="645" y="282" text-anchor="middle" font-size="11" font-weight="600" fill="#a16207">Session Hooks</text>
+  <text x="555" y="300" font-size="10" fill="#475569">- SessionStart: env setup</text>
+  <text x="555" y="316" font-size="10" fill="#475569">- SessionEnd: cleanup</text>
+  <text x="555" y="332" font-size="10" fill="#475569">- Install deps on start</text>
+  <text x="555" y="348" font-size="10" fill="#475569">- Save session logs</text>
+</svg>
