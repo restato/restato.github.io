@@ -1,0 +1,269 @@
+---
+title: "Google Gemma 4: A Comprehensive Guide to the Most Capable Open Model Family"
+description: "Deep dive into Google DeepMind's Gemma 4 — architecture, benchmarks, multimodal capabilities, and how it compares to Llama 4, Qwen 3.5, and other leading open LLMs in 2026."
+date: 2026-04-04
+tags: ["gemma-4", "open-llm", "google-deepmind", "ai-models", "multimodal", "mixture-of-experts"]
+---
+
+On April 2, 2026, Google DeepMind released **Gemma 4** — a family of four open-weight models that push the boundaries of what small-to-medium sized language models can achieve. Built on the same research lineage as Gemini 3, Gemma 4 is designed for advanced reasoning, agentic workflows, and multimodal understanding, all under the commercially permissive **Apache 2.0 license**.
+
+This guide covers everything you need to understand before using Gemma 4: the model variants, architecture innovations, benchmark performance, multimodal capabilities, and where it stands among the current generation of open LLMs.
+
+---
+
+## The Gemma 4 Model Family at a Glance
+
+Gemma 4 ships in four distinct variants, each targeting a different deployment scenario:
+
+| Model | Total Params | Active Params | Architecture | Context Window | Target Use Case |
+|-------|-------------|---------------|-------------|----------------|-----------------|
+| **Gemma 4 E2B** | ~2.3B | ~2.3B | Dense + PLE | 128K | On-device, mobile, edge |
+| **Gemma 4 E4B** | ~4B | ~4B | Dense + PLE | 128K | On-device, smart assistants |
+| **Gemma 4 26B-A4B** | 26B | ~3.8B | Mixture of Experts | 256K | Cloud & edge balance |
+| **Gemma 4 31B** | 31B | 31B | Dense | 256K | Maximum quality, cloud |
+
+The naming convention reflects an intentional design philosophy. The "E" prefix (Effective) in E2B and E4B indicates these models use **Per-Layer Embeddings (PLE)**, a novel technique that makes a smaller model behave as if it has more parameters. The 26B-A4B notation tells you the total parameter count (26B) and the active parameters per token (approximately 4B).
+
+---
+
+## Architecture Deep Dive
+
+Gemma 4 introduces several architectural innovations that deserve detailed examination. These aren't incremental tweaks — they represent meaningful advances in how transformer models handle efficiency, context length, and multimodal inputs.
+
+### 1. Per-Layer Embeddings (PLE)
+
+PLE is arguably the most interesting innovation in the E2B and E4B models. Traditional transformers use a single embedding table at the input layer. PLE adds a **second embedding table** that produces a dedicated conditioning vector for every decoder layer.
+
+Here's how it works:
+
+1. For each input token, PLE generates a small vector per layer by combining a **token-identity component** (from a learned embedding lookup) with a **context-aware component** (from a learned projection).
+2. Each decoder layer receives its corresponding PLE vector and uses it to **modulate hidden states** via a lightweight residual block after both the attention and feed-forward sublayers.
+
+The result is that each layer gets a richer, token-specific signal than what standard positional embeddings provide. This allows smaller models to punch well above their weight class — the E4B model with PLE can approach the quality of models with significantly more parameters.
+
+### 2. Hybrid Attention: Sliding Window + Global
+
+Gemma 4 alternates between two types of attention across its layers:
+
+- **Local sliding-window attention** (512–1024 token windows): Fast and memory-efficient, handles nearby token interactions.
+- **Global full-context attention**: Captures long-range dependencies across the entire context.
+
+By interleaving these two attention types (and ensuring the **final layer is always global**), Gemma 4 achieves the speed and low memory footprint of a lightweight model without sacrificing the deep contextual awareness required for complex, long-context tasks.
+
+### 3. Dual RoPE (Rotary Position Embeddings)
+
+Standard RoPE works well for moderate context lengths but degrades at very long distances. Gemma 4 solves this with a dual configuration:
+
+- **Standard RoPE** for sliding-window (local) layers
+- **Proportional RoPE** for global attention layers
+
+This dual approach is what enables reliable 256K token context windows on the 26B and 31B models without the quality degradation that typically plagues long-context inference.
+
+### 4. KV Cache Sharing
+
+The last N layers of the model **reuse key-value tensors from earlier layers** rather than computing their own KV projections. Specifically, the last `num_kv_shared_layers` layers don't compute their own key and value matrices — they reference the K and V tensors from the last non-shared layer of the same attention type (sliding or full).
+
+This reduces both memory consumption and compute during inference, which is particularly valuable for deployment on resource-constrained devices and for serving at scale.
+
+### 5. Mixture of Experts (26B-A4B)
+
+The 26B variant uses a fine-grained MoE architecture with:
+
+- **128 small experts** in the feed-forward layers
+- **8 experts activated + 1 shared expert** per token
+- Only **~3.8B parameters firing per forward pass**
+
+This design achieves roughly **97% of the dense 31B model's quality** while requiring a fraction of the compute per token. The shared expert ensures that common knowledge patterns are always available, while the routed experts handle specialized knowledge domains.
+
+---
+
+## Multimodal Capabilities
+
+Unlike many open models that are text-only, Gemma 4 is natively multimodal across the entire family:
+
+### Vision
+All four models support **image input** with variable aspect ratio and resolution. You can feed in photographs, screenshots, diagrams, or charts, and the model processes them natively through its vision encoder — no separate CLIP-like module bolted on after the fact.
+
+### Video
+The 26B and 31B models support **video understanding**, processing sequences of frames to answer questions about temporal events, actions, and scene changes.
+
+### Audio
+The E2B and E4B models feature **native audio processing**. This is particularly significant for on-device applications — imagine a smartphone assistant that can listen, see, and reason without sending data to the cloud.
+
+### Function Calling
+All models include **native structured tool-use support**, enabling agentic workflows where the model can plan multi-step actions, call external tools, and process the results — all without specialized fine-tuning.
+
+---
+
+## Benchmark Performance: The Numbers
+
+Gemma 4 delivers dramatic improvements over its predecessor. Here's a detailed look at benchmark results for the 31B dense model:
+
+### Gemma 4 31B vs Gemma 3 (Same-Class Comparison)
+
+| Benchmark | Gemma 3 | Gemma 4 31B | Improvement |
+|-----------|---------|-------------|-------------|
+| AIME 2026 (Math) | 20.8% | **89.2%** | +68.4 pts |
+| LiveCodeBench v6 (Coding) | 29.1% | **80.0%** | +50.9 pts |
+| GPQA Diamond (Science) | 42.4% | **84.3%** | +41.9 pts |
+| MMLU Pro (General) | — | **85.2%** | — |
+| Codeforces ELO | — | **2,150** | — |
+
+These aren't marginal gains — the jump from 20.8% to 89.2% on AIME represents a fundamentally different tier of mathematical reasoning capability.
+
+### Arena Rankings
+
+- **Gemma 4 31B**: LMArena Elo **1452** — ranked **#3** on the text leaderboard
+- **Gemma 4 26B-A4B**: LMArena Elo **1441** — ranked **#6** with only 4B active parameters
+- Both models beat out competitors with 20x their parameter count
+
+The fact that the 26B MoE model (with only 3.8B active parameters) achieves Elo 1441 — just 11 points behind the full 31B dense model — validates the efficiency of the MoE architecture.
+
+---
+
+## Where Gemma 4 Stands Among Open LLMs (April 2026)
+
+The open-weight LLM landscape in early 2026 is highly competitive. Here's how Gemma 4 compares to the other major players:
+
+### vs. Qwen 3.5 (Alibaba)
+
+**Qwen 3.5** is currently the top-ranked open model family. Key differences:
+
+- **Math**: Qwen 3.5 still leads on harder benchmarks (48.7 vs 42.1 on AIME for the largest variants), though Gemma 4 31B is competitive at its size class.
+- **Coding**: Qwen 3.5 edges ahead on SWE-bench and LiveCodeBench for the largest models.
+- **Multilingual**: Qwen 3.5 has a 250K vocabulary trained on 201 languages — the broadest multilingual coverage.
+- **License**: Both use Apache 2.0 — full commercial freedom with no restrictions.
+- **Size**: Qwen 3.5's flagship is the 397B-A17B MoE model, significantly larger than Gemma 4's 31B.
+
+**Verdict**: Qwen 3.5 leads at the top end, but Gemma 4 offers better quality at the sub-31B parameter range, especially for multimodal tasks.
+
+### vs. Llama 4 (Meta)
+
+**Llama 4** (Scout and Maverick variants) is Meta's latest offering:
+
+- **Context Length**: Llama 4 Scout has an unmatched **10M token context window** — 40x longer than Gemma 4's 256K.
+- **MMLU**: Llama 4 Maverick has the highest MMLU score (85.5%) among open models.
+- **Architecture**: Llama 4 Scout uses a 109B MoE with 17B active parameters per token.
+- **License**: Llama licenses include a **700M MAU cap** and EU restrictions — significantly more restrictive than Gemma 4's Apache 2.0.
+
+**Verdict**: Llama 4 wins on raw context length and general knowledge, but Gemma 4's Apache 2.0 license and stronger on-device variants make it more practical for many production deployments.
+
+### vs. DeepSeek V3.2
+
+- **Reasoning**: DeepSeek V3.2 remains very competitive on reasoning and coding tasks.
+- **Architecture**: DeepSeek uses its own MoE variant with similar efficiency principles.
+- **License**: More restrictive than Apache 2.0.
+
+**Verdict**: DeepSeek V3.2 is a strong reasoning model, but Gemma 4 offers a more complete package with native multimodal support and a better license.
+
+### vs. GLM-5 (Zhipu AI) and Kimi K2.5 (Moonshot AI)
+
+Chinese competitors GLM-5 and Kimi K2.5 both slightly edge out Gemma 4 on certain benchmarks, but Gemma 4 competes closely and has advantages in license terms, multimodal breadth, and ecosystem support.
+
+### The Competitive Landscape Summary
+
+| Model | Best At | License | Multimodal | On-Device |
+|-------|---------|---------|-----------|-----------|
+| **Gemma 4 31B** | Balanced perf + license | Apache 2.0 | Text, Image, Video, Audio | Limited |
+| **Gemma 4 E4B** | Edge/mobile deployment | Apache 2.0 | Text, Image, Audio | Excellent |
+| **Qwen 3.5 397B** | Raw benchmark scores | Apache 2.0 | Text, Image | No |
+| **Llama 4 Scout** | Ultra-long context (10M) | Llama License (restrictive) | Text, Image | No |
+| **DeepSeek V3.2** | Reasoning, coding | Custom (restrictive) | Text | No |
+
+---
+
+## The Apache 2.0 License: Why It Matters
+
+Previous Gemma models used the **Gemma Use License**, which included acceptable-use restrictions and redistribution limitations. Gemma 4's switch to **Apache 2.0** is arguably as significant as its technical improvements:
+
+- **No usage restrictions**: No MAU limits, no acceptable use policies
+- **No geographic restrictions**: Unlike Llama's EU limitations
+- **Full commercial freedom**: Use it in any product, modify it, redistribute it
+- **Patent grant**: Apache 2.0 includes an explicit patent license
+
+For enterprises evaluating open models for production deployment, this license change eliminates a major category of legal risk. You can fine-tune, distill, quantize, and deploy Gemma 4 without worrying about license compliance beyond standard Apache 2.0 terms.
+
+---
+
+## Practical Deployment Considerations
+
+### Memory Requirements
+
+| Model | FP16 VRAM | INT8 VRAM | INT4 VRAM |
+|-------|-----------|-----------|-----------|
+| Gemma 4 E2B | ~5 GB | ~3 GB | ~2 GB |
+| Gemma 4 E4B | ~8 GB | ~5 GB | ~3 GB |
+| Gemma 4 26B-A4B | ~12 GB* | ~8 GB* | ~5 GB* |
+| Gemma 4 31B | ~62 GB | ~32 GB | ~18 GB |
+
+*MoE models only load active experts into memory during inference.
+
+### Recommended Hardware
+
+- **E2B/E4B**: Modern smartphones, Raspberry Pi 5, edge accelerators
+- **26B-A4B**: Single consumer GPU (RTX 4090/5090), Apple M-series Macs
+- **31B**: Multi-GPU setup or cloud (A100/H100)
+
+### Framework Support
+
+Gemma 4 is supported across the major inference frameworks from day one:
+
+- **Hugging Face Transformers**: Full support including multimodal
+- **vLLM**: Optimized serving with PagedAttention
+- **LMStudio**: Local deployment with GUI
+- **Ollama**: Easy local setup
+- **TensorRT-LLM**: NVIDIA-optimized inference
+- **MediaPipe / LiteRT**: On-device deployment for Android
+
+---
+
+## When to Choose Which Gemma 4 Variant
+
+**Choose E2B when:**
+- You need AI on a smartphone or IoT device
+- Privacy requirements mandate on-device processing
+- Audio understanding is needed on-device
+- Latency must be sub-100ms
+
+**Choose E4B when:**
+- You need higher quality on-device inference
+- Smart assistant or voice-first applications
+- Mobile apps with vision + audio capabilities
+- Moderate edge hardware is available
+
+**Choose 26B-A4B (MoE) when:**
+- You want near-31B quality at a fraction of the compute
+- Serving cost matters (cloud deployment at scale)
+- Single consumer GPU deployment is needed
+- You need the best quality-per-FLOP ratio
+
+**Choose 31B (Dense) when:**
+- Maximum quality is the priority
+- Complex agentic workflows with long context
+- Fine-tuning stability matters (dense models are easier to fine-tune than MoE)
+- Research and experimentation
+
+---
+
+## Conclusion
+
+Gemma 4 represents a significant moment in the open LLM landscape. It's not the single best model on every benchmark — Qwen 3.5 leads at the top end, Llama 4 Scout has unmatched context length. But Gemma 4 offers the **best combination** of:
+
+1. **Strong performance** across reasoning, coding, and general knowledge
+2. **Native multimodal support** (text, image, video, audio) across the full model family
+3. **On-device viability** with E2B and E4B variants
+4. **Unrestricted Apache 2.0 license** for commercial deployment
+5. **Architectural efficiency** with PLE, KV cache sharing, and MoE
+
+For developers evaluating open models in April 2026, Gemma 4 deserves serious consideration — not because it's the biggest or the highest-scoring, but because it's the most versatile and the most deployable. It's the kind of model family where you can start prototyping with the 31B on a cloud GPU, optimize with the 26B MoE for production serving, and deploy the E4B to edge devices — all under the same architecture, the same API, and the same license.
+
+---
+
+*Sources:*
+- [Gemma 4: Byte for byte, the most capable open models — Google Blog](https://blog.google/innovation-and-ai/technology/developers-tools/gemma-4/)
+- [Gemma 4: Byte for byte, the most capable open models — Google DeepMind](https://deepmind.google/blog/gemma-4-byte-for-byte-the-most-capable-open-models/)
+- [Welcome Gemma 4: Frontier multimodal intelligence on device — Hugging Face](https://huggingface.co/blog/gemma4)
+- [Bring state-of-the-art agentic skills to the edge with Gemma 4 — Google Developers Blog](https://developers.googleblog.com/bring-state-of-the-art-agentic-skills-to-the-edge-with-gemma-4/)
+- [What Is Google Gemma 4? Architecture, Benchmarks, and Why It Matters — WaveSpeedAI](https://wavespeed.ai/blog/posts/what-is-google-gemma-4/)
+- [Gemma 4 vs Qwen 3.5 vs Llama 4: Updated Benchmarks — ai.rs](https://ai.rs/ai-developer/gemma-4-vs-qwen-3-5-vs-llama-4-compared)
+- [Google releases Gemma 4 under Apache 2.0 — VentureBeat](https://venturebeat.com/technology/google-releases-gemma-4-under-apache-2-0-and-that-license-change-may-matter)
