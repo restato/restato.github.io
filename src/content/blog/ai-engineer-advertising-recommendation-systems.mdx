@@ -1,0 +1,478 @@
+---
+title: "AI Engineer's Guide to Advertising and Recommendation Systems"
+description: "CTR prediction, real-time bidding, RecSys architectures, and the ML behind ads"
+date: 2026-04-11
+tags: ["ai-development", "recommendation-system", "advertising", "machine-learning", "advanced"]
+---
+
+## Why Ads and RecSys Matter for AI Engineers
+
+Advertising and recommendation systems are where AI meets business at massive scale. These systems serve billions of predictions per day, handle millisecond latency requirements, and directly generate revenue. Even if you never work in ads, the techniques—feature engineering, real-time serving, multi-objective optimization—apply across all production ML.
+
+## The Advertising ML Stack
+
+### How Online Advertising Works
+
+```
+User visits a webpage
+    ↓
+Ad request sent to ad exchange (SSP)
+    ↓
+Multiple ad networks bid in real-time (RTB) ← This happens in ~100ms
+    ↓
+Winning ad is served
+    ↓
+User may click (CTR) → may convert (CVR)
+    ↓
+Advertiser pays per click (CPC) or per impression (CPM)
+```
+
+### Key Prediction Tasks
+
+| Task | What It Predicts | Business Impact |
+|------|-----------------|----------------|
+| **CTR** (Click-Through Rate) | P(click \| ad, user, context) | Core ranking signal |
+| **CVR** (Conversion Rate) | P(conversion \| click, ad, user) | Revenue optimization |
+| **Bid Optimization** | Optimal bid price | Cost efficiency |
+| **Budget Pacing** | Spend rate over time | Budget utilization |
+| **LTV** (Lifetime Value) | Long-term user value | Acquisition strategy |
+
+### CTR Prediction: A Deep Dive
+
+CTR prediction is the most fundamental ML problem in advertising. You need to predict whether a user will click on an ad given the user, ad, and context features.
+
+**Feature Categories**:
+
+```python
+features = {
+    # User features
+    "user_id": "hashed_user_123",
+    "user_age_bucket": "25-34",
+    "user_interests": ["technology", "gaming", "cooking"],
+    "user_device": "mobile_ios",
+    "user_historical_ctr": 0.023,
+
+    # Ad features
+    "ad_id": "ad_456",
+    "ad_category": "electronics",
+    "ad_creative_type": "video",
+    "ad_historical_ctr": 0.031,
+
+    # Context features
+    "page_category": "news_technology",
+    "time_of_day": "evening",
+    "day_of_week": "saturday",
+    "position": 2,
+
+    # Cross features (interactions)
+    "user_x_ad_category": "user_123_electronics",
+    "device_x_creative": "mobile_video",
+}
+```
+
+### Evolution of CTR Models
+
+**1. Logistic Regression (baseline)**
+```python
+# Simple but surprisingly effective with good feature engineering
+from sklearn.linear_model import LogisticRegression
+
+model = LogisticRegression()
+model.fit(sparse_features, clicks)
+```
+
+**2. Factorization Machines (FM)**
+Captures second-order feature interactions without manual feature crossing:
+
+```
+ŷ = w₀ + Σ wᵢxᵢ + Σ Σ <vᵢ, vⱼ> xᵢxⱼ
+```
+
+**3. Deep Learning Models**
+
+```python
+# Wide & Deep (Google, 2016)
+class WideAndDeep(nn.Module):
+    def __init__(self, wide_dim, deep_dims, embed_dim):
+        super().__init__()
+        # Wide: memorization of specific patterns
+        self.wide = nn.Linear(wide_dim, 1)
+
+        # Deep: generalization through embeddings
+        layers = []
+        for i in range(len(deep_dims) - 1):
+            layers.extend([
+                nn.Linear(deep_dims[i], deep_dims[i + 1]),
+                nn.ReLU(),
+                nn.BatchNorm1d(deep_dims[i + 1]),
+                nn.Dropout(0.2),
+            ])
+        self.deep = nn.Sequential(*layers)
+        self.output = nn.Linear(deep_dims[-1] + 1, 1)
+
+    def forward(self, wide_input, deep_input):
+        wide_out = self.wide(wide_input)
+        deep_out = self.deep(deep_input)
+        combined = torch.cat([wide_out, deep_out], dim=1)
+        return torch.sigmoid(self.output(combined))
+```
+
+**4. Modern Architectures**
+
+| Model | Key Innovation | Used By |
+|-------|---------------|---------|
+| **DeepFM** | FM + Deep in parallel | Huawei |
+| **DCN v2** | Explicit cross network | Google |
+| **DIN** (Deep Interest Network) | Attention on user history | Alibaba |
+| **DIEN** | GRU-based interest evolution | Alibaba |
+| **DLRM** | Embedding tables + interaction | Meta |
+| **Transformer-based** | Self-attention on features | Industry-wide (2024+) |
+
+### Real-Time Bidding (RTB)
+
+```python
+class BidOptimizer:
+    def __init__(self, ctr_model, cvr_model, budget_pacer):
+        self.ctr_model = ctr_model
+        self.cvr_model = cvr_model
+        self.budget_pacer = budget_pacer
+
+    def compute_bid(self, request: BidRequest) -> float:
+        # Predict click and conversion probability
+        features = self.extract_features(request)
+        p_click = self.ctr_model.predict(features)
+        p_convert = self.cvr_model.predict(features)
+
+        # Expected value of this impression
+        expected_value = p_click * p_convert * request.advertiser_bid
+
+        # Adjust for budget pacing
+        pacing_factor = self.budget_pacer.get_factor(
+            campaign_id=request.campaign_id,
+            current_spend=request.current_spend,
+            remaining_budget=request.remaining_budget,
+            time_remaining=request.time_remaining,
+        )
+
+        return expected_value * pacing_factor
+```
+
+## Recommendation Systems
+
+### The RecSys Spectrum
+
+```
+Content-Based ←——————————————————→ Collaborative Filtering
+(Use item features)              (Use user-item interactions)
+
+Simple ←————————————————————————→ Complex
+Popularity → CF → Matrix Factor → Deep Learning → Multi-task → LLM-based
+```
+
+### Collaborative Filtering
+
+**User-based CF**: "Users similar to you liked this"
+**Item-based CF**: "Items similar to what you liked"
+
+```python
+# Item-based collaborative filtering
+from scipy.sparse import csr_matrix
+from sklearn.metrics.pairwise import cosine_similarity
+
+# User-item interaction matrix
+interactions = csr_matrix([
+    [1, 0, 1, 0, 1],  # User 0
+    [1, 1, 0, 0, 1],  # User 1
+    [0, 1, 1, 1, 0],  # User 2
+])
+
+# Item-item similarity
+item_similarity = cosine_similarity(interactions.T)
+
+def recommend(user_id, n=5):
+    user_interactions = interactions[user_id].toarray().flatten()
+    scores = item_similarity.dot(user_interactions)
+    # Zero out already interacted items
+    scores[user_interactions > 0] = 0
+    return np.argsort(scores)[-n:][::-1]
+```
+
+### Matrix Factorization
+
+Decompose the user-item matrix into latent factors:
+
+```python
+# Using implicit library for ALS
+import implicit
+
+model = implicit.als.AlternatingLeastSquares(
+    factors=128,
+    regularization=0.01,
+    iterations=50,
+)
+
+# Train on sparse user-item matrix
+model.fit(user_item_matrix)
+
+# Get recommendations
+recommendations = model.recommend(
+    userid=user_id,
+    user_items=user_item_matrix[user_id],
+    N=10,
+)
+```
+
+### Two-Tower Architecture (Industry Standard)
+
+Separately encode users and items, then compute similarity:
+
+```python
+class TwoTowerModel(nn.Module):
+    def __init__(self, user_features_dim, item_features_dim, embedding_dim=128):
+        super().__init__()
+
+        # User tower
+        self.user_tower = nn.Sequential(
+            nn.Linear(user_features_dim, 256),
+            nn.ReLU(),
+            nn.Linear(256, embedding_dim),
+            nn.functional.normalize,
+        )
+
+        # Item tower
+        self.item_tower = nn.Sequential(
+            nn.Linear(item_features_dim, 256),
+            nn.ReLU(),
+            nn.Linear(256, embedding_dim),
+            nn.functional.normalize,
+        )
+
+    def forward(self, user_features, item_features):
+        user_embedding = self.user_tower(user_features)
+        item_embedding = self.item_tower(item_features)
+        return torch.sum(user_embedding * item_embedding, dim=1)
+
+    def get_user_embedding(self, user_features):
+        """For offline: pre-compute and index user embeddings"""
+        return self.user_tower(user_features)
+
+    def get_item_embedding(self, item_features):
+        """For offline: pre-compute and index item embeddings"""
+        return self.item_tower(item_features)
+```
+
+**Why Two Towers?**
+- Pre-compute item embeddings offline → fast serving
+- User embedding computed at request time with fresh features
+- ANN search over item embeddings for candidate generation
+- Decouples user and item update cycles
+
+### Multi-Stage Recommendation Pipeline
+
+Production recommendation systems use multiple stages:
+
+```
+Candidate Generation (1000s → 100s)
+    │ Fast, approximate: Two-tower, ANN, co-occurrence
+    ↓
+Pre-Ranking (100s → 50s)
+    │ Lightweight model: simple neural network
+    ↓
+Ranking (50s → 10s)
+    │ Full model: deep network with all features
+    ↓
+Re-Ranking (10s → final list)
+    │ Business rules: diversity, freshness, deduplication
+    ↓
+Served to User
+```
+
+```python
+class RecommendationPipeline:
+    def __init__(self):
+        self.candidate_generators = [
+            TwoTowerRetriever(),
+            PopularityRetriever(),
+            RecentlyViewedRetriever(),
+        ]
+        self.ranker = DeepRankingModel()
+        self.reranker = DiversityReranker()
+
+    async def recommend(self, user_id: str, context: dict) -> list[Item]:
+        # Stage 1: Candidate generation (parallel)
+        candidate_lists = await asyncio.gather(*[
+            gen.generate(user_id, n=200) for gen in self.candidate_generators
+        ])
+        candidates = deduplicate(merge(candidate_lists))  # ~500 items
+
+        # Stage 2: Ranking
+        features = self.build_features(user_id, candidates, context)
+        scores = self.ranker.predict(features)
+        ranked = sorted(zip(candidates, scores), key=lambda x: x[1], reverse=True)[:50]
+
+        # Stage 3: Re-ranking for diversity
+        final = self.reranker.rerank(ranked, diversity_weight=0.3)
+        return final[:10]
+```
+
+### Handling Cold Start
+
+The eternal challenge: how to recommend for new users or new items?
+
+```python
+class ColdStartHandler:
+    def handle_new_user(self, user_context: dict) -> list[Item]:
+        # Strategy 1: Popularity-based
+        popular = get_popular_items(
+            category=user_context.get("signup_interest"),
+            recency_days=7
+        )
+
+        # Strategy 2: Context-based
+        contextual = get_items_for_context(
+            device=user_context["device"],
+            location=user_context["geo"],
+            time=user_context["time"],
+        )
+
+        # Strategy 3: Explore (bandit-based)
+        explore = epsilon_greedy_select(
+            items=get_diverse_items(),
+            epsilon=0.3
+        )
+
+        return interleave(popular, contextual, explore)
+
+    def handle_new_item(self, item: Item) -> float:
+        # Use content features to estimate initial score
+        similar_items = find_similar_by_content(item)
+        estimated_ctr = np.mean([i.historical_ctr for i in similar_items])
+        # Add exploration bonus
+        return estimated_ctr + exploration_bonus(item.age_hours)
+```
+
+## Feature Engineering for Ads/RecSys
+
+### Feature Store Pattern
+
+```python
+# Online feature store (Redis-backed)
+class OnlineFeatureStore:
+    def __init__(self, redis_client):
+        self.redis = redis_client
+
+    async def get_user_features(self, user_id: str) -> dict:
+        pipe = self.redis.pipeline()
+        pipe.hgetall(f"user:profile:{user_id}")
+        pipe.lrange(f"user:recent_clicks:{user_id}", 0, 49)
+        pipe.get(f"user:realtime_ctr:{user_id}")
+
+        profile, recent_clicks, realtime_ctr = await pipe.execute()
+        return {
+            **profile,
+            "recent_clicks": recent_clicks,
+            "realtime_ctr": float(realtime_ctr or 0),
+        }
+
+# Offline feature computation (Spark/batch)
+def compute_user_features(interactions_df):
+    return interactions_df.groupBy("user_id").agg(
+        count("*").alias("total_interactions"),
+        mean("click").alias("historical_ctr"),
+        countDistinct("item_category").alias("category_diversity"),
+        collect_list("item_id").alias("interaction_history"),
+    )
+```
+
+### Real-Time Feature Updates
+
+```python
+# Streaming feature updates with Kafka
+class FeatureUpdater:
+    async def process_click_event(self, event: ClickEvent):
+        user_id = event.user_id
+
+        # Update real-time CTR (exponential moving average)
+        current_ctr = await self.redis.get(f"user:realtime_ctr:{user_id}")
+        alpha = 0.1  # smoothing factor
+        new_ctr = alpha * 1.0 + (1 - alpha) * float(current_ctr or 0)
+        await self.redis.set(f"user:realtime_ctr:{user_id}", new_ctr)
+
+        # Update recent clicks
+        await self.redis.lpush(f"user:recent_clicks:{user_id}", event.item_id)
+        await self.redis.ltrim(f"user:recent_clicks:{user_id}", 0, 49)
+
+        # Update session features
+        await self.redis.hincrby(f"session:{event.session_id}", "click_count", 1)
+```
+
+## Evaluation Metrics
+
+### Offline Metrics
+
+| Metric | When to Use | Formula |
+|--------|------------|---------|
+| **AUC-ROC** | Binary classification (CTR) | Area under ROC curve |
+| **Log Loss** | Calibrated probabilities needed | -Σ(y·log(p) + (1-y)·log(1-p)) |
+| **NDCG@K** | Ranking quality | Normalized discounted cumulative gain |
+| **MAP@K** | Ranking with binary relevance | Mean average precision |
+| **Hit Rate@K** | "Was the item in top K?" | hits / total |
+| **Coverage** | Diversity of recommendations | unique_recommended / total_items |
+
+### Online Metrics (A/B Testing)
+
+```python
+# Key online metrics for RecSys
+online_metrics = {
+    "ctr": "clicks / impressions",
+    "revenue_per_session": "total_revenue / sessions",
+    "engagement_time": "time spent on recommended content",
+    "diversity": "unique categories in recommendations",
+    "serendipity": "unexpected but liked recommendations",
+    "user_retention": "returning users after N days",
+}
+```
+
+### The Metrics Trap
+
+Optimizing for a single metric causes problems:
+- **CTR-only optimization** → clickbait
+- **Revenue-only optimization** → spammy ads, poor user experience
+- **Engagement-only optimization** → addictive, low-quality content
+
+Solution: **Multi-objective optimization** with guardrail metrics:
+
+```python
+class MultiObjectiveRanker:
+    def __init__(self, weights: dict):
+        self.weights = weights  # e.g., {"relevance": 0.5, "diversity": 0.2, "freshness": 0.15, "revenue": 0.15}
+
+    def score(self, item, user_context):
+        scores = {
+            "relevance": self.relevance_model.predict(item, user_context),
+            "diversity": self.diversity_score(item, user_context.recent_items),
+            "freshness": self.freshness_score(item.publish_time),
+            "revenue": self.revenue_model.predict(item, user_context),
+        }
+        return sum(self.weights[k] * scores[k] for k in self.weights)
+```
+
+## LLMs in RecSys (2025+)
+
+The frontier: using LLMs as part of the recommendation pipeline.
+
+- **LLM-based feature extraction**: Generate rich item descriptions from metadata
+- **Conversational recommendations**: "I want something like X but more Y"
+- **Explanation generation**: "We recommended this because..."
+- **Cross-domain transfer**: LLM embeddings work across domains without retraining
+- **Cold start mitigation**: LLMs understand new items from descriptions alone
+
+## Takeaways
+
+1. **Start with simple models** (logistic regression, item-based CF) and establish baselines
+2. **Feature engineering beats model architecture** in most real-world settings
+3. **Build a multi-stage pipeline**—candidate generation + ranking + re-ranking
+4. **Real-time features matter**—a user's last 5 minutes of behavior is more predictive than their last 5 months
+5. **Always A/B test**—offline metrics don't perfectly predict online performance
+6. **Optimize for multiple objectives**—single-metric optimization leads to degenerate solutions
+7. **The feature store is infrastructure you'll build eventually**—start early
