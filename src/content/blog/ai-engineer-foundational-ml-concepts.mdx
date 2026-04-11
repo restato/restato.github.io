@@ -1,0 +1,381 @@
+---
+title: "AI Engineer's Guide to Foundational ML Concepts"
+description: "Essential machine learning theory, neural network architectures, and training fundamentals every AI engineer must know"
+date: 2026-04-11
+tags: ["ai-development", "machine-learning", "deep-learning", "fundamentals", "intermediate"]
+---
+
+## Why Fundamentals Still Matter
+
+AI engineering has shifted from "build models from scratch" to "integrate and orchestrate models." But understanding the fundamentals makes you dramatically more effective. When your fine-tune diverges, when your embeddings don't cluster, when your RAG pipeline returns nonsense—the engineer who understands the theory diagnoses the problem in minutes, not days.
+
+## Core ML Concepts
+
+### The ML Problem Types
+
+| Type | Task | Output | Example |
+|------|------|--------|---------|
+| **Supervised** | Learn from labeled data | Prediction | Spam detection, price prediction |
+| **Unsupervised** | Find structure in unlabeled data | Clusters/patterns | Customer segmentation, anomaly detection |
+| **Self-supervised** | Create labels from data itself | Representations | Language models, contrastive learning |
+| **Reinforcement Learning** | Learn from reward signals | Policy/actions | Game playing, RLHF |
+
+### The Bias-Variance Tradeoff
+
+```
+Total Error = Bias² + Variance + Irreducible Noise
+
+High Bias (Underfitting):
+  - Model too simple
+  - Poor training AND test performance
+  - Fix: more features, more complex model, less regularization
+
+High Variance (Overfitting):
+  - Model too complex
+  - Great training, poor test performance
+  - Fix: more data, regularization, simpler model, dropout, early stopping
+```
+
+### Loss Functions
+
+```python
+# Classification
+def binary_cross_entropy(y_true, y_pred):
+    """Standard for binary classification."""
+    return -np.mean(y_true * np.log(y_pred) + (1 - y_true) * np.log(1 - y_pred))
+
+def categorical_cross_entropy(y_true, y_pred):
+    """Standard for multi-class classification."""
+    return -np.sum(y_true * np.log(y_pred)) / len(y_true)
+
+# Regression
+def mse_loss(y_true, y_pred):
+    """Mean Squared Error - penalizes large errors more."""
+    return np.mean((y_true - y_pred) ** 2)
+
+def huber_loss(y_true, y_pred, delta=1.0):
+    """Robust to outliers - combines MSE and MAE."""
+    error = y_true - y_pred
+    is_small = np.abs(error) <= delta
+    squared_loss = 0.5 * error ** 2
+    linear_loss = delta * (np.abs(error) - 0.5 * delta)
+    return np.mean(np.where(is_small, squared_loss, linear_loss))
+
+# Contrastive Learning
+def contrastive_loss(anchor, positive, negatives, temperature=0.07):
+    """InfoNCE loss - used in CLIP, SimCLR, embedding training."""
+    pos_sim = np.dot(anchor, positive) / temperature
+    neg_sims = np.dot(negatives, anchor) / temperature
+    return -pos_sim + np.log(np.exp(pos_sim) + np.sum(np.exp(neg_sims)))
+```
+
+### Optimization
+
+```python
+# SGD: simple, needs careful tuning
+optimizer = torch.optim.SGD(model.parameters(), lr=0.01, momentum=0.9)
+
+# Adam: adaptive learning rates, good default
+optimizer = torch.optim.Adam(model.parameters(), lr=0.001, weight_decay=0.01)
+
+# AdamW: Adam with proper weight decay (use this for Transformers)
+optimizer = torch.optim.AdamW(model.parameters(), lr=0.001, weight_decay=0.01)
+
+# Learning rate scheduling
+scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=100)
+# or
+scheduler = torch.optim.lr_scheduler.OneCycleLR(
+    optimizer, max_lr=0.01, total_steps=1000
+)
+```
+
+## Neural Network Architectures
+
+### The Transformer (You Must Know This)
+
+The architecture behind every modern LLM, and increasingly used in vision, audio, and multimodal models.
+
+```python
+import torch
+import torch.nn as nn
+import math
+
+class MultiHeadAttention(nn.Module):
+    def __init__(self, d_model, num_heads):
+        super().__init__()
+        self.d_model = d_model
+        self.num_heads = num_heads
+        self.d_k = d_model // num_heads
+
+        self.W_q = nn.Linear(d_model, d_model)
+        self.W_k = nn.Linear(d_model, d_model)
+        self.W_v = nn.Linear(d_model, d_model)
+        self.W_o = nn.Linear(d_model, d_model)
+
+    def scaled_dot_product_attention(self, Q, K, V, mask=None):
+        scores = torch.matmul(Q, K.transpose(-2, -1)) / math.sqrt(self.d_k)
+        if mask is not None:
+            scores = scores.masked_fill(mask == 0, float('-inf'))
+        attention_weights = torch.softmax(scores, dim=-1)
+        return torch.matmul(attention_weights, V)
+
+    def forward(self, query, key, value, mask=None):
+        batch_size = query.size(0)
+
+        Q = self.W_q(query).view(batch_size, -1, self.num_heads, self.d_k).transpose(1, 2)
+        K = self.W_k(key).view(batch_size, -1, self.num_heads, self.d_k).transpose(1, 2)
+        V = self.W_v(value).view(batch_size, -1, self.num_heads, self.d_k).transpose(1, 2)
+
+        attn_output = self.scaled_dot_product_attention(Q, K, V, mask)
+        attn_output = attn_output.transpose(1, 2).contiguous().view(batch_size, -1, self.d_model)
+        return self.W_o(attn_output)
+
+class TransformerBlock(nn.Module):
+    def __init__(self, d_model, num_heads, d_ff, dropout=0.1):
+        super().__init__()
+        self.attention = MultiHeadAttention(d_model, num_heads)
+        self.norm1 = nn.LayerNorm(d_model)
+        self.norm2 = nn.LayerNorm(d_model)
+        self.ffn = nn.Sequential(
+            nn.Linear(d_model, d_ff),
+            nn.GELU(),
+            nn.Linear(d_ff, d_model),
+        )
+        self.dropout = nn.Dropout(dropout)
+
+    def forward(self, x, mask=None):
+        # Pre-norm architecture (modern standard)
+        attn_out = self.attention(self.norm1(x), self.norm1(x), self.norm1(x), mask)
+        x = x + self.dropout(attn_out)
+        ffn_out = self.ffn(self.norm2(x))
+        x = x + self.dropout(ffn_out)
+        return x
+```
+
+**Key concepts to understand**:
+- **Self-attention**: Each token attends to all other tokens. O(n²) in sequence length.
+- **Positional encoding**: Transformers have no inherent sense of order; positions must be encoded.
+- **KV-cache**: During inference, cache key-value pairs to avoid recomputation. Critical for serving.
+- **Flash Attention**: Memory-efficient attention that's 2-4x faster. Use it always.
+
+### Architecture Variants
+
+| Architecture | Key Idea | Use Case |
+|-------------|----------|----------|
+| **Encoder-only** (BERT) | Bidirectional context | Classification, NER, embeddings |
+| **Decoder-only** (GPT) | Autoregressive generation | Text generation, LLMs |
+| **Encoder-decoder** (T5) | Sequence-to-sequence | Translation, summarization |
+| **Vision Transformer** (ViT) | Patch embeddings + Transformer | Image classification |
+| **Diffusion Transformer** (DiT) | Transformer backbone for diffusion | Image generation |
+| **Mamba / SSM** | State space models (linear attention) | Long sequences, efficient inference |
+
+## Fine-Tuning
+
+### Full Fine-Tuning vs. Parameter-Efficient Methods
+
+```python
+# Full fine-tuning: update all parameters
+# Expensive but most flexible
+model = AutoModelForCausalLM.from_pretrained("meta-llama/Llama-3.1-8B")
+# All 8B parameters are trainable
+
+# LoRA: Low-Rank Adaptation (most popular PEFT method)
+from peft import LoraConfig, get_peft_model
+
+lora_config = LoraConfig(
+    r=16,              # rank (lower = fewer parameters)
+    lora_alpha=32,     # scaling factor
+    target_modules=["q_proj", "v_proj", "k_proj", "o_proj"],
+    lora_dropout=0.05,
+    task_type="CAUSAL_LM",
+)
+
+model = get_peft_model(model, lora_config)
+model.print_trainable_parameters()
+# trainable params: 6.5M (0.08% of 8B)
+
+# QLoRA: Quantized LoRA (fits on consumer GPUs)
+from transformers import BitsAndBytesConfig
+
+quantization_config = BitsAndBytesConfig(
+    load_in_4bit=True,
+    bnb_4bit_compute_dtype=torch.bfloat16,
+    bnb_4bit_quant_type="nf4",
+)
+
+model = AutoModelForCausalLM.from_pretrained(
+    "meta-llama/Llama-3.1-8B",
+    quantization_config=quantization_config,
+)
+model = get_peft_model(model, lora_config)
+# Now fits on a single 24GB GPU
+```
+
+### Training Data Preparation
+
+```python
+# Instruction fine-tuning data format
+training_examples = [
+    {
+        "instruction": "Summarize the following legal document",
+        "input": "WHEREAS, the parties have agreed to the following terms...",
+        "output": "This agreement establishes a partnership between..."
+    },
+    {
+        "instruction": "Extract key entities from this medical report",
+        "input": "Patient presented with acute chest pain...",
+        "output": '{"conditions": ["acute chest pain"], "tests": ["ECG", "troponin"]}'
+    },
+]
+
+# Chat format (preferred for modern models)
+chat_examples = [
+    {
+        "messages": [
+            {"role": "system", "content": "You are a legal document assistant."},
+            {"role": "user", "content": "Summarize this contract: ..."},
+            {"role": "assistant", "content": "This contract establishes..."},
+        ]
+    }
+]
+```
+
+### RLHF and DPO
+
+**RLHF (Reinforcement Learning from Human Feedback)**:
+```
+Step 1: Supervised Fine-Tuning (SFT) on demonstration data
+Step 2: Train a reward model on human preference data
+Step 3: Optimize the policy (LLM) using PPO against the reward model
+```
+
+**DPO (Direct Preference Optimization)** — simpler alternative:
+```python
+# DPO directly optimizes on preference pairs without a separate reward model
+preference_data = [
+    {
+        "prompt": "Explain quantum computing",
+        "chosen": "Quantum computing uses quantum bits (qubits)...",   # preferred
+        "rejected": "Quantum computing is really complicated...",       # less preferred
+    }
+]
+
+# DPO loss (simplified)
+def dpo_loss(policy_chosen_logps, policy_rejected_logps,
+             reference_chosen_logps, reference_rejected_logps, beta=0.1):
+    chosen_rewards = beta * (policy_chosen_logps - reference_chosen_logps)
+    rejected_rewards = beta * (policy_rejected_logps - reference_rejected_logps)
+    return -torch.log(torch.sigmoid(chosen_rewards - rejected_rewards)).mean()
+```
+
+## Embeddings and Representation Learning
+
+### What Makes a Good Embedding?
+
+```python
+# Good embeddings have these properties:
+# 1. Similar items are close in vector space
+# 2. Dissimilar items are far apart
+# 3. Meaningful directions exist (king - man + woman ≈ queen)
+# 4. Clusters correspond to semantic categories
+
+# Training embeddings with contrastive learning
+class ContrastiveEmbeddingModel(nn.Module):
+    def __init__(self, encoder):
+        super().__init__()
+        self.encoder = encoder
+        self.projection = nn.Linear(encoder.output_dim, 256)
+
+    def forward(self, anchor, positive, negatives):
+        anchor_emb = self.projection(self.encoder(anchor))
+        positive_emb = self.projection(self.encoder(positive))
+        negative_embs = [self.projection(self.encoder(n)) for n in negatives]
+
+        # InfoNCE loss
+        pos_similarity = F.cosine_similarity(anchor_emb, positive_emb)
+        neg_similarities = torch.stack([
+            F.cosine_similarity(anchor_emb, neg) for neg in negative_embs
+        ])
+
+        temperature = 0.07
+        logits = torch.cat([pos_similarity.unsqueeze(0), neg_similarities]) / temperature
+        labels = torch.zeros(1, dtype=torch.long)  # positive is at index 0
+        return F.cross_entropy(logits, labels)
+```
+
+### Hard Negative Mining
+
+The quality of negatives in contrastive learning dramatically affects embedding quality:
+
+```python
+def mine_hard_negatives(query_embedding, corpus_embeddings, positive_ids, k=10):
+    """Find examples that are similar to the query but not positive examples."""
+    similarities = cosine_similarity([query_embedding], corpus_embeddings)[0]
+
+    # Rank by similarity, exclude positives
+    candidates = []
+    for idx in similarities.argsort()[::-1]:
+        if idx not in positive_ids:
+            candidates.append(idx)
+        if len(candidates) >= k:
+            break
+
+    return candidates
+```
+
+## Practical Model Selection Guide
+
+| Task | First Try | Scale Up |
+|------|-----------|----------|
+| Text classification | Fine-tuned BERT/RoBERTa | LLM with few-shot |
+| Named Entity Recognition | SpaCy + fine-tuned Transformer | LLM extraction |
+| Semantic similarity | Sentence-BERT | Fine-tuned embedding model |
+| Text generation | API (Claude/GPT) | Fine-tuned open-source LLM |
+| Image classification | CLIP zero-shot | Fine-tuned ViT |
+| Object detection | YOLO v8/v11 | Custom-trained model |
+| Speech-to-text | Whisper | Fine-tuned Whisper |
+| Tabular data | XGBoost/LightGBM | Neural network ensemble |
+| Time series | Prophet/XGBoost | Temporal Fusion Transformer |
+| Anomaly detection | Isolation Forest | Autoencoder |
+
+## Key Metrics to Know
+
+### Classification
+
+```python
+from sklearn.metrics import classification_report, roc_auc_score
+
+# Precision: Of predicted positives, how many are correct?
+# Recall: Of actual positives, how many did we find?
+# F1: Harmonic mean of precision and recall
+# AUC-ROC: Ranking quality across all thresholds
+
+print(classification_report(y_true, y_pred))
+print(f"AUC-ROC: {roc_auc_score(y_true, y_prob)}")
+
+# When to optimize for what:
+# - High precision: When false positives are costly (spam → important email)
+# - High recall: When false negatives are costly (cancer screening)
+# - AUC: When you need to choose a threshold later
+```
+
+### Generative AI
+
+| Metric | What It Measures | Use When |
+|--------|-----------------|----------|
+| **Perplexity** | Language model quality | Comparing LLMs |
+| **BLEU** | N-gram overlap with reference | Translation (dated) |
+| **ROUGE** | Recall of reference n-grams | Summarization |
+| **BERTScore** | Semantic similarity to reference | General generation |
+| **Pass@k** | Code correctness (k attempts) | Code generation |
+| **LLM-as-Judge** | Human-like quality assessment | Open-ended generation |
+
+## Takeaways
+
+1. **Understand Transformers deeply**—attention, positional encoding, KV-cache. This is the foundation of modern AI.
+2. **Start with existing models**, fine-tune if needed, train from scratch only as a last resort
+3. **LoRA/QLoRA** make fine-tuning accessible on consumer hardware—learn to use them
+4. **Embedding quality** determines the ceiling of your retrieval/search system
+5. **The best model for your task** often isn't the largest—XGBoost still wins on tabular data
+6. **DPO has largely replaced RLHF** for preference optimization—it's simpler and works well
+7. **Hard negative mining** is the single most impactful technique for improving embedding quality

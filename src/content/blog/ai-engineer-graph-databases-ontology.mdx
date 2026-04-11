@@ -1,0 +1,366 @@
+---
+title: "AI Engineer's Guide to Graph Databases and Ontology"
+description: "Knowledge graphs, Neo4j, RDF, and ontology engineering for AI applications"
+date: 2026-04-11
+tags: ["ai-development", "graph-database", "knowledge-graph", "ontology", "intermediate"]
+---
+
+## Why Graph Databases Matter for AI
+
+Relational databases store data in tables. Vector databases store data as points in space. Graph databases store data as **relationships**. For AI engineers, this is powerful because the real world is a graph: users follow users, products belong to categories, concepts relate to concepts.
+
+Graph databases are essential for:
+- **Knowledge Graphs**: Structured representations of facts (Google Knowledge Graph, Wikidata)
+- **GraphRAG**: Retrieval-augmented generation using graph traversal instead of (or alongside) vector search
+- **Fraud Detection**: Finding suspicious patterns in transaction networks
+- **Recommendation Systems**: "Users who bought X also bought Y" via graph traversal
+- **Drug Discovery**: Modeling molecular interactions and pathways
+
+## Graph Database Fundamentals
+
+### The Property Graph Model
+
+The most common graph model, used by Neo4j, Amazon Neptune, and TigerGraph:
+
+```
+Nodes (Vertices): Entities with labels and properties
+Edges (Relationships): Typed, directed connections with properties
+
+Example:
+(:Person {name: "Alice", age: 30})-[:WORKS_AT {since: 2020}]->(:Company {name: "Acme"})
+(:Person {name: "Alice"})-[:KNOWS {since: 2015}]->(:Person {name: "Bob"})
+```
+
+### RDF (Resource Description Framework)
+
+The semantic web standard, used by knowledge graphs and linked data:
+
+```turtle
+# RDF Triple: Subject - Predicate - Object
+<http://example.org/Alice> <http://xmlns.com/foaf/0.1/name> "Alice" .
+<http://example.org/Alice> <http://xmlns.com/foaf/0.1/knows> <http://example.org/Bob> .
+<http://example.org/Alice> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://xmlns.com/foaf/0.1/Person> .
+```
+
+**Property Graph vs RDF**:
+
+| Feature | Property Graph | RDF |
+|---------|---------------|-----|
+| Schema | Flexible, optional | Ontology-driven |
+| Query Language | Cypher (Neo4j), Gremlin | SPARQL |
+| Relationships | Properties on edges | Reification needed |
+| Standards | Vendor-specific | W3C standard |
+| Best for | Application data | Linked data, knowledge representation |
+
+## Neo4j: The Industry Standard
+
+### Cypher Query Language
+
+Cypher uses ASCII art patterns to describe graph patterns:
+
+```cypher
+// Find friends of friends who work at the same company
+MATCH (me:Person {name: "Alice"})-[:KNOWS]->(friend)-[:KNOWS]->(fof)
+WHERE (fof)-[:WORKS_AT]->(:Company)<-[:WORKS_AT]-(me)
+  AND NOT (me)-[:KNOWS]->(fof)
+RETURN fof.name, count(friend) as mutual_friends
+ORDER BY mutual_friends DESC
+```
+
+```cypher
+// Shortest path between two nodes
+MATCH path = shortestPath(
+    (a:Person {name: "Alice"})-[:KNOWS*]-(b:Person {name: "Dave"})
+)
+RETURN path, length(path)
+```
+
+```cypher
+// PageRank-like influence scoring
+CALL gds.pageRank.stream('social-network')
+YIELD nodeId, score
+RETURN gds.util.asNode(nodeId).name AS name, score
+ORDER BY score DESC
+LIMIT 10
+```
+
+### Neo4j Graph Data Science (GDS) Library
+
+Neo4j includes a powerful analytics library for AI/ML:
+
+```cypher
+// Create a graph projection for ML
+CALL gds.graph.project(
+    'my-graph',
+    ['Person', 'Company'],
+    {
+        KNOWS: {orientation: 'UNDIRECTED'},
+        WORKS_AT: {orientation: 'NATURAL'}
+    }
+)
+
+// Node embedding using FastRP (Fast Random Projection)
+CALL gds.fastRP.stream('my-graph', {
+    embeddingDimension: 128,
+    iterationWeights: [0.0, 1.0, 1.0]
+})
+YIELD nodeId, embedding
+RETURN gds.util.asNode(nodeId).name AS name, embedding
+
+// Community detection using Louvain
+CALL gds.louvain.stream('my-graph')
+YIELD nodeId, communityId
+RETURN communityId, collect(gds.util.asNode(nodeId).name) AS members
+ORDER BY size(members) DESC
+```
+
+## Ontology: Structuring Knowledge
+
+### What Is an Ontology?
+
+An ontology is a formal specification of concepts, relationships, and rules in a domain. Think of it as a schema for knowledge graphs—but richer than a database schema.
+
+```
+Ontology defines:
+├── Classes (concepts): Person, Organization, Product
+├── Properties (relationships): worksAt, knows, hasPart
+├── Constraints: "A Person can work at exactly one Organization"
+├── Hierarchies: "Student is a subclass of Person"
+└── Inference rules: "If A knows B and B knows C, then A indirectly knows C"
+```
+
+### OWL (Web Ontology Language)
+
+The standard for building ontologies:
+
+```turtle
+@prefix owl: <http://www.w3.org/2002/07/owl#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix : <http://example.org/ontology#> .
+
+# Define classes
+:Person a owl:Class .
+:Employee a owl:Class ;
+    rdfs:subClassOf :Person .
+:Organization a owl:Class .
+
+# Define properties
+:worksAt a owl:ObjectProperty ;
+    rdfs:domain :Employee ;
+    rdfs:range :Organization .
+
+:hasEmployee a owl:ObjectProperty ;
+    owl:inverseOf :worksAt .
+
+# Define constraints
+:Employee a owl:Class ;
+    rdfs:subClassOf [
+        a owl:Restriction ;
+        owl:onProperty :worksAt ;
+        owl:minCardinality 1
+    ] .
+```
+
+### Why AI Engineers Need Ontology
+
+1. **Knowledge Graph Construction**: Ontologies define what entities and relationships your KG can contain
+2. **LLM Grounding**: Use ontologies to constrain LLM outputs to valid domain concepts
+3. **Data Integration**: Map different data sources to a common ontology
+4. **Reasoning**: Infer new facts from existing ones (if A is parent of B, B is child of A)
+
+## GraphRAG: Graphs Meet LLMs
+
+### The Problem with Pure Vector RAG
+
+Standard RAG retrieves text chunks by embedding similarity. This fails when:
+- Answers require connecting information across multiple documents
+- The question involves relationships ("Who are the competitors of companies that Alice has worked at?")
+- You need multi-hop reasoning
+
+### GraphRAG Architecture
+
+```
+Documents
+    ↓
+Entity & Relationship Extraction (LLM)
+    ↓
+Knowledge Graph Construction
+    ↓
+Community Detection (Leiden algorithm)
+    ↓
+Community Summaries (LLM)
+    ↓
+Indexed for retrieval
+
+Query Time:
+    Query → Entity Recognition → Graph Traversal → Context Assembly → LLM Answer
+```
+
+### Implementing GraphRAG with Neo4j
+
+```python
+from neo4j import GraphDatabase
+from openai import OpenAI
+
+client = OpenAI()
+driver = GraphDatabase.driver("bolt://localhost:7687", auth=("neo4j", "password"))
+
+# Step 1: Extract entities and relationships from text using LLM
+def extract_graph(text):
+    response = client.chat.completions.create(
+        model="claude-sonnet-4-6",
+        messages=[{
+            "role": "user",
+            "content": f"""Extract entities and relationships from this text.
+            Return JSON: {{"entities": [{{"name": "", "type": ""}}], "relationships": [{{"source": "", "target": "", "type": ""}}]}}
+
+            Text: {text}"""
+        }]
+    )
+    return json.loads(response.choices[0].message.content)
+
+# Step 2: Store in Neo4j
+def store_graph(entities, relationships):
+    with driver.session() as session:
+        for entity in entities:
+            session.run(
+                "MERGE (n {name: $name}) SET n:$type",
+                name=entity["name"], type=entity["type"]
+            )
+        for rel in relationships:
+            session.run(
+                """MATCH (a {name: $source}), (b {name: $target})
+                MERGE (a)-[r:RELATED {type: $type}]->(b)""",
+                source=rel["source"], target=rel["target"], type=rel["type"]
+            )
+
+# Step 3: Query using graph traversal + LLM
+def graph_rag_query(question):
+    # Extract entities from question
+    entities = extract_entities(question)
+
+    # Traverse graph for context
+    with driver.session() as session:
+        context = session.run("""
+            MATCH (n)-[r*1..3]-(m)
+            WHERE n.name IN $entities
+            RETURN n, r, m
+            LIMIT 50
+        """, entities=entities)
+
+    # Generate answer with graph context
+    response = client.chat.completions.create(
+        model="claude-sonnet-4-6",
+        messages=[
+            {"role": "system", "content": f"Answer based on this knowledge graph context:\n{format_context(context)}"},
+            {"role": "user", "content": question}
+        ]
+    )
+    return response.choices[0].message.content
+```
+
+### Microsoft's GraphRAG Approach
+
+Microsoft Research's GraphRAG adds two key innovations:
+
+1. **Community Summaries**: Use the Leiden algorithm to detect communities in the graph, then generate LLM summaries for each community
+2. **Global Search**: For broad questions ("What are the main themes?"), search over community summaries rather than individual entities
+
+This handles "global" questions that traditional RAG completely fails at.
+
+## SPARQL: Querying Knowledge Graphs
+
+For RDF-based knowledge graphs (Wikidata, DBpedia), SPARQL is the query language:
+
+```sparql
+# Find all AI researchers and their affiliations
+PREFIX dbo: <http://dbpedia.org/ontology/>
+PREFIX dbr: <http://dbpedia.org/resource/>
+
+SELECT ?person ?name ?affiliation
+WHERE {
+    ?person dbo:field dbr:Artificial_intelligence ;
+            foaf:name ?name ;
+            dbo:affiliation ?affiliation .
+}
+ORDER BY ?name
+LIMIT 100
+```
+
+```sparql
+# Federated query across Wikidata and DBpedia
+SELECT ?item ?name ?population
+WHERE {
+    SERVICE <https://query.wikidata.org/sparql> {
+        ?item wdt:P31 wd:Q515 ;  # instance of city
+              wdt:P1082 ?population ;
+              rdfs:label ?name .
+        FILTER(LANG(?name) = "en")
+        FILTER(?population > 1000000)
+    }
+}
+ORDER BY DESC(?population)
+```
+
+## Choosing the Right Graph Technology
+
+| Use Case | Technology | Why |
+|----------|-----------|-----|
+| Application data with complex relationships | Neo4j | Best tooling, Cypher is intuitive |
+| Enterprise knowledge graph | Amazon Neptune | Managed, supports both Property Graph and RDF |
+| Linked open data | Wikidata + SPARQL | Standard, massive existing data |
+| Real-time fraud detection | TigerGraph | Optimized for deep link analytics |
+| Lightweight graph in existing stack | Apache AGE (Postgres) | No new infrastructure |
+| LLM-powered knowledge graphs | Neo4j + LangChain/LlamaIndex | Best integration ecosystem |
+
+## Practical Patterns
+
+### Entity Resolution
+
+The same entity may appear differently across sources. Graph-based entity resolution:
+
+```cypher
+// Find potential duplicate entities
+MATCH (a:Person), (b:Person)
+WHERE a <> b
+  AND (a.name = b.name OR a.email = b.email)
+  AND NOT (a)-[:SAME_AS]-(b)
+RETURN a, b, 
+    CASE WHEN a.name = b.name AND a.email = b.email THEN 'HIGH'
+         ELSE 'MEDIUM' END as confidence
+```
+
+### Graph Embeddings for ML
+
+Convert graph structure into vectors for downstream ML:
+
+- **Node2Vec**: Random walks + Word2Vec. Good for homogeneous graphs.
+- **FastRP**: Fast random projection. Built into Neo4j GDS.
+- **GraphSAGE**: Learns to aggregate neighbor features. For inductive settings.
+- **TransE/RotatE**: Knowledge graph embeddings. Model relations as translations/rotations.
+
+```python
+# Using PyTorch Geometric for graph ML
+from torch_geometric.nn import SAGEConv
+import torch
+
+class GraphSAGE(torch.nn.Module):
+    def __init__(self, in_channels, hidden_channels, out_channels):
+        super().__init__()
+        self.conv1 = SAGEConv(in_channels, hidden_channels)
+        self.conv2 = SAGEConv(hidden_channels, out_channels)
+
+    def forward(self, x, edge_index):
+        x = self.conv1(x, edge_index).relu()
+        x = self.conv2(x, edge_index)
+        return x
+```
+
+## Takeaways
+
+1. **Graph databases complement, not replace, vector databases**—use both in your AI stack
+2. **GraphRAG solves what standard RAG can't**: multi-hop reasoning and global questions
+3. **Start with Neo4j** for most AI engineering use cases—best ecosystem and LLM integrations
+4. **Ontologies aren't just academic**—they're essential for structuring knowledge graphs at scale
+5. **Graph embeddings** bridge the gap between graph structure and ML models
+6. **Entity resolution** is the unglamorous but critical step in building any knowledge graph

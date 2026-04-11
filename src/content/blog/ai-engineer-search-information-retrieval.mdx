@@ -1,0 +1,366 @@
+---
+title: "AI Engineer's Guide to Search and Information Retrieval"
+description: "From BM25 to RAG: understanding search systems that power modern AI applications"
+date: 2026-04-11
+tags: ["ai-development", "search", "rag", "information-retrieval", "intermediate"]
+---
+
+## Why Search Is the AI Engineer's Most Underrated Skill
+
+Every AI engineer eventually builds a search system. Whether it's RAG (Retrieval-Augmented Generation), a recommendation engine, or a knowledge base, you need to understand how search works at a fundamental level. The difference between a mediocre AI product and a great one often comes down to retrieval quality.
+
+Search is not a solved problem. It's a spectrum of techniques, each with different trade-offs, and modern AI systems combine multiple approaches.
+
+## The Search Stack: From Keywords to Semantics
+
+### Level 1: Lexical Search (BM25)
+
+BM25 (Best Matching 25) is the workhorse of traditional search. It's a bag-of-words model that scores documents based on term frequency and inverse document frequency.
+
+```
+BM25(D, Q) = Σ IDF(qi) * (f(qi, D) * (k1 + 1)) / (f(qi, D) + k1 * (1 - b + b * |D| / avgdl))
+```
+
+Where:
+- `f(qi, D)` = frequency of term qi in document D
+- `|D|` = document length
+- `avgdl` = average document length
+- `k1` = term frequency saturation (typically 1.2-2.0)
+- `b` = length normalization (typically 0.75)
+
+**Strengths**: Fast, interpretable, excellent for exact matches, no training needed
+**Weaknesses**: No understanding of synonyms, context, or meaning
+
+```python
+# Using rank_bm25
+from rank_bm25 import BM25Okapi
+
+corpus = [
+    "machine learning algorithms for classification",
+    "deep neural networks for image recognition",
+    "natural language processing with transformers",
+]
+
+tokenized_corpus = [doc.split() for doc in corpus]
+bm25 = BM25Okapi(tokenized_corpus)
+
+query = "neural network image classification"
+scores = bm25.get_scores(query.split())
+```
+
+### Level 2: Semantic Search (Dense Retrieval)
+
+Encode queries and documents into the same embedding space. Similar meanings → close vectors.
+
+```python
+from sentence_transformers import SentenceTransformer
+import numpy as np
+
+model = SentenceTransformer('BAAI/bge-large-en-v1.5')
+
+docs = ["The cat sat on the mat", "A feline rested on the rug"]
+query = "Where is the kitty?"
+
+doc_embeddings = model.encode(docs)
+query_embedding = model.encode(query)
+
+# Cosine similarity
+similarities = np.dot(doc_embeddings, query_embedding) / (
+    np.linalg.norm(doc_embeddings, axis=1) * np.linalg.norm(query_embedding)
+)
+# Both documents score high despite no word overlap with "kitty"
+```
+
+**Strengths**: Understands meaning, handles synonyms, multilingual capable
+**Weaknesses**: Misses exact terms, computationally expensive, needs good embeddings
+
+### Level 3: Hybrid Search
+
+The production standard. Combine lexical and semantic search, then fuse the results.
+
+**Reciprocal Rank Fusion (RRF)**:
+```python
+def reciprocal_rank_fusion(ranked_lists, k=60):
+    """
+    Combine multiple ranked lists using RRF.
+    k=60 is the standard constant from the original paper.
+    """
+    scores = {}
+    for ranked_list in ranked_lists:
+        for rank, doc_id in enumerate(ranked_list):
+            if doc_id not in scores:
+                scores[doc_id] = 0
+            scores[doc_id] += 1.0 / (k + rank + 1)
+    return sorted(scores.items(), key=lambda x: x[1], reverse=True)
+```
+
+**Convex Combination (Weighted)**:
+```python
+def weighted_hybrid(bm25_scores, vector_scores, alpha=0.7):
+    """
+    alpha controls the weight: 1.0 = pure vector, 0.0 = pure BM25
+    """
+    # Normalize scores to [0, 1]
+    bm25_norm = normalize(bm25_scores)
+    vector_norm = normalize(vector_scores)
+
+    combined = {}
+    for doc_id in set(bm25_norm) | set(vector_norm):
+        bm25_s = bm25_norm.get(doc_id, 0)
+        vector_s = vector_norm.get(doc_id, 0)
+        combined[doc_id] = alpha * vector_s + (1 - alpha) * bm25_s
+    return combined
+```
+
+### Level 4: Learned Sparse Retrieval (SPLADE)
+
+A middle ground: neural networks that produce *sparse* representations, combining the interpretability of BM25 with the learning capacity of neural models.
+
+```
+Query: "best programming language"
+SPLADE expansion: {
+    "best": 2.1, "programming": 3.4, "language": 2.8,
+    "code": 1.5, "software": 1.2, "developer": 0.8,  # expanded terms
+    "python": 0.6, "java": 0.5  # semantic expansion
+}
+```
+
+SPLADE models learn which terms to expand and how to weight them. This means you get BM25-like efficiency with semantic understanding.
+
+## Building a RAG Pipeline
+
+RAG (Retrieval-Augmented Generation) is the most common search application for AI engineers. Here's the production architecture:
+
+### Ingestion Pipeline
+
+```
+Documents → Chunking → Embedding → Vector DB
+                ↓
+         Metadata Extraction → Metadata Store
+                ↓
+         Keyword Indexing → Search Engine (Elasticsearch/BM25)
+```
+
+### Query Pipeline
+
+```
+User Query
+    ↓
+Query Understanding (rewrite, expand, classify)
+    ↓
+Parallel Retrieval:
+    ├── Vector Search (semantic)
+    ├── Keyword Search (BM25)
+    └── Metadata Filters
+    ↓
+Fusion (RRF or weighted)
+    ↓
+Reranking (cross-encoder)
+    ↓
+Context Assembly
+    ↓
+LLM Generation (with citations)
+```
+
+### Query Rewriting
+
+Raw user queries are often poor search queries. Rewrite them:
+
+```python
+REWRITE_PROMPT = """Given the user's question and conversation history,
+rewrite the question to be a standalone search query.
+
+Conversation: {history}
+Question: {question}
+
+Rewritten search query:"""
+
+# Example:
+# History: "Tell me about Python web frameworks"
+# Question: "What about the async ones?"
+# Rewritten: "Python async web frameworks like FastAPI and Sanic"
+```
+
+### Multi-Query Retrieval
+
+Generate multiple search queries from one question, retrieve for each, then merge:
+
+```python
+def multi_query_retrieve(question, retriever, llm):
+    # Generate 3 different query perspectives
+    queries = llm.generate_queries(question, n=3)
+    # Example output:
+    # ["vector database performance benchmarks",
+    #  "fastest vector search engine comparison",
+    #  "vector DB latency throughput benchmarks 2025"]
+
+    all_docs = set()
+    for query in queries:
+        docs = retriever.search(query, top_k=5)
+        all_docs.update(docs)
+
+    return list(all_docs)
+```
+
+### Reranking: The Secret Weapon
+
+First-stage retrieval (BM25 + vector) is fast but approximate. A **cross-encoder reranker** scores each (query, document) pair more carefully:
+
+```python
+from sentence_transformers import CrossEncoder
+
+reranker = CrossEncoder('BAAI/bge-reranker-v2-m3')
+
+query = "How do vector databases handle scaling?"
+passages = [...]  # Top 20 from first-stage retrieval
+
+# Cross-encoder sees both query and passage together
+pairs = [(query, passage) for passage in passages]
+scores = reranker.predict(pairs)
+
+# Rerank by cross-encoder score
+reranked = sorted(zip(passages, scores), key=lambda x: x[1], reverse=True)
+top_5 = reranked[:5]
+```
+
+Why this matters: cross-encoders are 10-100x more accurate than bi-encoders (embedding similarity) but too slow to run on the full corpus. Use them as a second-stage filter on the top 20-50 results.
+
+## Elasticsearch for AI Engineers
+
+Elasticsearch remains the backbone of many production search systems. Key concepts:
+
+### Analyzers and Tokenizers
+
+```json
+{
+  "settings": {
+    "analysis": {
+      "analyzer": {
+        "custom_analyzer": {
+          "type": "custom",
+          "tokenizer": "standard",
+          "filter": ["lowercase", "stop", "snowball"]
+        }
+      }
+    }
+  },
+  "mappings": {
+    "properties": {
+      "content": { "type": "text", "analyzer": "custom_analyzer" },
+      "embedding": { "type": "dense_vector", "dims": 1536, "index": true, "similarity": "cosine" },
+      "metadata": { "type": "keyword" }
+    }
+  }
+}
+```
+
+### Elasticsearch Hybrid Search (kNN + BM25)
+
+```json
+{
+  "query": {
+    "bool": {
+      "should": [
+        {
+          "match": {
+            "content": {
+              "query": "vector database performance",
+              "boost": 0.3
+            }
+          }
+        }
+      ]
+    }
+  },
+  "knn": {
+    "field": "embedding",
+    "query_vector": [0.1, 0.2, ...],
+    "k": 10,
+    "num_candidates": 100,
+    "boost": 0.7
+  }
+}
+```
+
+## Evaluation: Measuring Search Quality
+
+You can't improve what you can't measure. Key metrics:
+
+### Retrieval Metrics
+
+| Metric | What It Measures | Formula |
+|--------|-----------------|---------|
+| **Recall@K** | Coverage of relevant docs in top K | relevant_in_top_k / total_relevant |
+| **Precision@K** | Accuracy of top K results | relevant_in_top_k / K |
+| **MRR** | Rank of first relevant result | 1 / rank_of_first_relevant |
+| **NDCG@K** | Quality considering position | Uses graded relevance with log discount |
+| **MAP** | Average precision across queries | Mean of AP across query set |
+
+### Building an Evaluation Set
+
+```python
+# Minimum viable evaluation set
+eval_set = [
+    {
+        "query": "How to fine-tune BERT?",
+        "relevant_docs": ["doc_123", "doc_456", "doc_789"],
+        "irrelevant_docs": ["doc_111", "doc_222"],  # hard negatives
+    },
+    # ... at least 50-100 queries for meaningful evaluation
+]
+
+def evaluate_retriever(retriever, eval_set, k=10):
+    recalls, precisions, mrrs = [], [], []
+
+    for item in eval_set:
+        results = retriever.search(item["query"], top_k=k)
+        result_ids = [r.id for r in results]
+
+        relevant = set(item["relevant_docs"])
+        retrieved_relevant = relevant & set(result_ids)
+
+        recalls.append(len(retrieved_relevant) / len(relevant))
+        precisions.append(len(retrieved_relevant) / k)
+
+        for rank, doc_id in enumerate(result_ids, 1):
+            if doc_id in relevant:
+                mrrs.append(1.0 / rank)
+                break
+        else:
+            mrrs.append(0.0)
+
+    return {
+        "recall@k": np.mean(recalls),
+        "precision@k": np.mean(precisions),
+        "mrr": np.mean(mrrs),
+    }
+```
+
+### End-to-End RAG Evaluation
+
+Retrieval metrics alone don't tell the full story. Also measure:
+
+- **Answer Correctness**: Does the LLM's answer match the ground truth?
+- **Faithfulness**: Is the answer grounded in the retrieved context? (no hallucination)
+- **Context Relevance**: Are the retrieved passages actually relevant?
+
+Tools: RAGAS, DeepEval, LangSmith, Braintrust
+
+## Performance Optimization Checklist
+
+1. **Index tuning**: Adjust HNSW `ef_construction` and `M` parameters
+2. **Quantization**: Use scalar or binary quantization to reduce memory
+3. **Caching**: Cache frequent query embeddings and results
+4. **Batch embedding**: Embed in batches, not one-by-one
+5. **Pre-filtering**: Apply metadata filters before vector search, not after
+6. **Connection pooling**: Reuse database connections
+7. **Async retrieval**: Run BM25 and vector search in parallel
+
+## Takeaways
+
+1. **Always use hybrid search** in production—pure vector or pure BM25 leaves performance on the table
+2. **Reranking is the highest-leverage improvement** you can make to any search system
+3. **Query rewriting** is underrated—spend time improving query understanding
+4. **Build evaluation sets early**—you can't optimize what you can't measure
+5. **Chunking strategy matters more than which vector DB you pick**
+6. **Start simple** (BM25 + embeddings + RRF), measure, then add complexity where metrics show gaps

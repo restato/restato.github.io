@@ -1,0 +1,276 @@
+---
+title: "AI Engineer's Guide to Vector Databases"
+description: "Deep dive into vector databases, embeddings, and similarity search for production AI systems"
+date: 2026-04-11
+tags: ["ai-development", "vector-database", "embeddings", "intermediate"]
+---
+
+## Why Vector Databases Matter for AI Engineers
+
+If you're building anything with LLMs, recommender systems, or semantic search, you need a vector database. Traditional databases index rows by primary keys or B-tree indexes. Vector databases index high-dimensional vectors by *similarity*—a fundamentally different paradigm that powers modern AI applications.
+
+A vector database stores **embeddings**: dense numerical representations of data (text, images, audio) produced by neural networks. These embeddings capture semantic meaning, allowing you to find items that are *conceptually similar* rather than just lexically matching.
+
+## Core Concepts
+
+### Embeddings
+
+An embedding is a fixed-length vector (typically 384 to 3072 dimensions) that encodes semantic meaning. Two pieces of text with similar meaning will have embeddings that are close together in vector space.
+
+```python
+from openai import OpenAI
+
+client = OpenAI()
+
+response = client.embeddings.create(
+    model="text-embedding-3-large",
+    input="Vector databases enable similarity search"
+)
+
+# Returns a 3072-dimensional vector
+embedding = response.data[0].embedding
+```
+
+Key embedding models to know:
+
+| Model | Dimensions | Use Case |
+|-------|-----------|----------|
+| OpenAI text-embedding-3-large | 3072 | General purpose, high quality |
+| OpenAI text-embedding-3-small | 1536 | Cost-effective general purpose |
+| Cohere embed-v3 | 1024 | Multilingual, search-optimized |
+| BGE-M3 | 1024 | Open-source multilingual |
+| GTE-Qwen2 | Variable | Open-source, strong performance |
+
+### Distance Metrics
+
+How you measure "closeness" between vectors matters:
+
+- **Cosine Similarity**: Measures the angle between vectors. Normalized, so magnitude doesn't matter. Most common choice for text embeddings.
+- **Euclidean Distance (L2)**: Straight-line distance. Sensitive to magnitude. Good when absolute values matter.
+- **Dot Product**: Faster to compute than cosine. Equivalent to cosine when vectors are normalized.
+- **Manhattan Distance (L1)**: Sum of absolute differences. More robust to outliers in sparse data.
+
+```python
+import numpy as np
+
+def cosine_similarity(a, b):
+    return np.dot(a, b) / (np.linalg.norm(a) * np.linalg.norm(b))
+
+def euclidean_distance(a, b):
+    return np.linalg.norm(a - b)
+```
+
+### Approximate Nearest Neighbor (ANN) Algorithms
+
+Exact nearest neighbor search is O(n) per query—too slow for millions of vectors. ANN algorithms trade a small amount of accuracy for massive speed gains.
+
+**HNSW (Hierarchical Navigable Small World)**
+- Most popular algorithm in production
+- Builds a multi-layer graph structure
+- O(log n) query time
+- High memory usage (stores full graph in memory)
+- Used by: Qdrant, Weaviate, pgvector
+
+**IVF (Inverted File Index)**
+- Clusters vectors into partitions using k-means
+- Searches only the closest partitions
+- Lower memory than HNSW
+- Used by: Milvus, Faiss
+
+**ScaNN (Scalable Nearest Neighbors)**
+- Google's algorithm using learned quantization
+- Strong on high-dimensional data
+- Used by: Google's Vertex AI Vector Search
+
+**DiskANN**
+- Microsoft's disk-based algorithm
+- Handles billion-scale datasets without fitting in memory
+- Used by: Azure AI Search, Milvus (hybrid)
+
+## Major Vector Databases Compared
+
+### Pinecone
+- Fully managed, serverless option available
+- Simple API, great DX
+- Sparse-dense hybrid search built-in
+- Namespaces for multi-tenancy
+- Best for: Teams wanting zero-ops vector search
+
+```python
+from pinecone import Pinecone
+
+pc = Pinecone(api_key="your-key")
+index = pc.Index("my-index")
+
+# Upsert vectors with metadata
+index.upsert(vectors=[
+    {"id": "doc1", "values": embedding, "metadata": {"source": "wiki", "topic": "ai"}},
+])
+
+# Query with metadata filtering
+results = index.query(
+    vector=query_embedding,
+    top_k=10,
+    filter={"topic": {"$eq": "ai"}}
+)
+```
+
+### Weaviate
+- Open-source with cloud offering
+- Built-in vectorization modules (connect your model or use built-in)
+- GraphQL query interface
+- Multi-modal support (text, image, etc.)
+- Best for: Teams wanting integrated ML pipeline
+
+### Qdrant
+- Open-source, written in Rust (fast)
+- Rich filtering with payload indexes
+- Quantization support (reduce memory 4-8x)
+- gRPC and REST APIs
+- Best for: Performance-critical applications
+
+```python
+from qdrant_client import QdrantClient
+from qdrant_client.models import Distance, VectorParams, PointStruct
+
+client = QdrantClient(url="http://localhost:6333")
+
+client.create_collection(
+    collection_name="documents",
+    vectors_config=VectorParams(size=1536, distance=Distance.COSINE),
+)
+
+client.upsert(
+    collection_name="documents",
+    points=[
+        PointStruct(id=1, vector=embedding, payload={"text": "document content"}),
+    ]
+)
+```
+
+### Milvus / Zilliz
+- Open-source (Milvus) with managed cloud (Zilliz)
+- Scales to billions of vectors
+- Multiple index types (HNSW, IVF, DiskANN)
+- GPU-accelerated indexing
+- Best for: Large-scale enterprise deployments
+
+### pgvector
+- PostgreSQL extension
+- Use your existing Postgres infrastructure
+- Supports HNSW and IVF-Flat indexes
+- Best for: Teams already on Postgres who want to avoid new infrastructure
+
+```sql
+CREATE EXTENSION vector;
+
+CREATE TABLE documents (
+    id SERIAL PRIMARY KEY,
+    content TEXT,
+    embedding vector(1536)
+);
+
+CREATE INDEX ON documents USING hnsw (embedding vector_cosine_ops);
+
+SELECT content, 1 - (embedding <=> query_embedding) AS similarity
+FROM documents
+ORDER BY embedding <=> query_embedding
+LIMIT 10;
+```
+
+## Production Patterns
+
+### Hybrid Search
+
+Pure vector search misses exact matches. Pure keyword search misses semantic matches. Combine both:
+
+```python
+# Pseudo-code for hybrid search
+def hybrid_search(query, alpha=0.7):
+    # Vector search (semantic)
+    vector_results = vector_db.search(embed(query), top_k=20)
+
+    # Keyword search (lexical, BM25)
+    keyword_results = search_engine.search(query, top_k=20)
+
+    # Reciprocal Rank Fusion
+    combined = reciprocal_rank_fusion(
+        [vector_results, keyword_results],
+        weights=[alpha, 1 - alpha]
+    )
+    return combined[:10]
+```
+
+### Metadata Filtering
+
+Always store metadata alongside vectors. Filter *before* or *during* search, not after:
+
+```python
+# Bad: fetch 1000 results then filter in application
+results = index.query(vector=query_vec, top_k=1000)
+filtered = [r for r in results if r.metadata["category"] == "tech"]
+
+# Good: filter at the database level
+results = index.query(
+    vector=query_vec,
+    top_k=10,
+    filter={"category": {"$eq": "tech"}}
+)
+```
+
+### Chunking Strategies
+
+How you split documents before embedding dramatically affects retrieval quality:
+
+- **Fixed-size chunks** (512 tokens): Simple, works okay. Risk splitting mid-sentence.
+- **Semantic chunking**: Split at topic boundaries. Better quality, more complex.
+- **Recursive character splitting**: Try large chunks first, recursively split if too big. Good default.
+- **Parent-child chunking**: Embed small chunks, retrieve the larger parent. Best of both worlds.
+
+```python
+# Parent-child chunking pattern
+def create_parent_child_chunks(document, child_size=200, parent_size=1000):
+    parents = split_into_chunks(document, parent_size)
+    results = []
+    for parent in parents:
+        children = split_into_chunks(parent, child_size)
+        for child in children:
+            results.append({
+                "child_text": child,
+                "child_embedding": embed(child),
+                "parent_text": parent,  # stored as metadata
+            })
+    return results
+```
+
+### Quantization for Cost Reduction
+
+Production tip: quantize vectors to reduce memory and cost by 4-8x with minimal quality loss:
+
+- **Scalar Quantization**: float32 → int8 (4x reduction, ~1-2% quality loss)
+- **Binary Quantization**: float32 → 1-bit (32x reduction, use as first-pass filter)
+- **Product Quantization**: Splits vectors into sub-vectors, quantizes each (configurable tradeoff)
+
+## When NOT to Use a Vector Database
+
+- **Exact matching**: Use traditional databases or search engines
+- **Small datasets** (< 10K vectors): NumPy/Faiss in-memory is simpler
+- **Structured queries only**: If you never need similarity search, don't add complexity
+- **Real-time updates with consistency**: Most vector DBs are eventually consistent
+
+## Key Metrics to Monitor
+
+- **Recall@K**: What fraction of true nearest neighbors are in your top-K results?
+- **Latency (p50/p95/p99)**: Query response time under load
+- **Throughput**: Queries per second your system handles
+- **Index build time**: How long after upsert before vectors are searchable?
+- **Memory usage**: Vectors + index overhead per million vectors
+
+## Takeaways
+
+1. **Start with pgvector** if you're already on Postgres and have < 10M vectors
+2. **Choose Qdrant or Weaviate** for open-source, self-hosted deployments
+3. **Choose Pinecone** if you want zero operational overhead
+4. **Always implement hybrid search** for production RAG systems
+5. **Chunk wisely**—retrieval quality depends more on chunking than on which vector DB you choose
+6. **Monitor recall**, not just latency—a fast wrong answer is worse than a slow right one

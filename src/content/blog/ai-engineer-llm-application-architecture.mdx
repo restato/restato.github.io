@@ -1,0 +1,554 @@
+---
+title: "AI Engineer's Guide to LLM Application Architecture"
+description: "Patterns for building production LLM applications: prompts, chains, agents, and evaluation"
+date: 2026-04-11
+tags: ["ai-development", "llm", "architecture", "agents", "advanced"]
+---
+
+## The LLM Application Stack
+
+Building a demo with an LLM takes an afternoon. Building a production LLM application takes months. The gap isn't the model—it's everything around it: prompt management, error handling, evaluation, guardrails, cost optimization, and latency management.
+
+This guide covers the architectural patterns that separate production LLM applications from weekend prototypes.
+
+## Prompt Engineering at Scale
+
+### Beyond Basic Prompting
+
+Production prompt engineering isn't about clever tricks. It's about **systematic, testable, version-controlled prompts**.
+
+```python
+# Bad: ad-hoc prompts scattered in code
+response = llm.chat("Summarize this: " + text)
+
+# Good: structured prompt templates with versioning
+class PromptTemplate:
+    def __init__(self, template: str, version: str, metadata: dict):
+        self.template = template
+        self.version = version
+        self.metadata = metadata
+
+    def render(self, **kwargs) -> str:
+        return self.template.format(**kwargs)
+
+SUMMARIZE_V3 = PromptTemplate(
+    template="""You are a technical writer. Summarize the following document.
+
+Requirements:
+- Maximum {max_length} words
+- Include key technical details
+- Use bullet points for main findings
+- Preserve any numerical data
+
+Document:
+{document}
+
+Summary:""",
+    version="3.0",
+    metadata={"task": "summarization", "last_eval_score": 0.87}
+)
+```
+
+### Structured Outputs
+
+Never parse free-text LLM responses in production. Use structured outputs:
+
+```python
+from pydantic import BaseModel
+from openai import OpenAI
+
+class ExtractedEntity(BaseModel):
+    name: str
+    entity_type: str
+    confidence: float
+    source_span: str
+
+class ExtractionResult(BaseModel):
+    entities: list[ExtractedEntity]
+    summary: str
+
+client = OpenAI()
+response = client.beta.chat.completions.parse(
+    model="gpt-4o",
+    messages=[
+        {"role": "system", "content": "Extract entities from the given text."},
+        {"role": "user", "content": document_text}
+    ],
+    response_format=ExtractionResult,
+)
+
+result = response.choices[0].message.parsed
+# result.entities is a typed list of ExtractedEntity objects
+```
+
+### Few-Shot Selection
+
+Static few-shot examples waste tokens. Select examples dynamically based on similarity to the input:
+
+```python
+class DynamicFewShotSelector:
+    def __init__(self, examples: list[dict], embedding_model):
+        self.examples = examples
+        self.model = embedding_model
+        self.embeddings = self.model.encode([e["input"] for e in examples])
+
+    def select(self, query: str, k: int = 3) -> list[dict]:
+        query_embedding = self.model.encode(query)
+        similarities = cosine_similarity([query_embedding], self.embeddings)[0]
+        top_indices = similarities.argsort()[-k:][::-1]
+        return [self.examples[i] for i in top_indices]
+```
+
+## Agentic Architecture Patterns
+
+### Pattern 1: Tool-Using Agent
+
+The most common pattern. The LLM decides which tools to call and in what order.
+
+```python
+tools = [
+    {
+        "type": "function",
+        "function": {
+            "name": "search_documents",
+            "description": "Search internal documents by query",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "query": {"type": "string"},
+                    "top_k": {"type": "integer", "default": 5}
+                },
+                "required": ["query"]
+            }
+        }
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "run_sql",
+            "description": "Execute a read-only SQL query",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "query": {"type": "string"}
+                },
+                "required": ["query"]
+            }
+        }
+    }
+]
+
+# Agent loop
+messages = [{"role": "user", "content": user_question}]
+
+while True:
+    response = client.chat.completions.create(
+        model="claude-sonnet-4-6",
+        messages=messages,
+        tools=tools,
+    )
+
+    if response.choices[0].finish_reason == "stop":
+        break  # Agent is done
+
+    # Execute tool calls
+    for tool_call in response.choices[0].message.tool_calls:
+        result = execute_tool(tool_call.function.name, tool_call.function.arguments)
+        messages.append({"role": "tool", "content": result, "tool_call_id": tool_call.id})
+```
+
+### Pattern 2: Planning Agent (ReAct)
+
+The agent explicitly reasons before acting:
+
+```
+Thought: I need to find the user's order history first
+Action: search_orders(user_id="12345")
+Observation: Found 3 orders: [...]
+Thought: Now I need to check the refund policy for the most recent order
+Action: get_policy(policy_type="refund")
+Observation: Refund policy allows returns within 30 days...
+Thought: The order is within the refund window. I can process this.
+Action: initiate_refund(order_id="ORD-789")
+Observation: Refund initiated successfully
+Answer: I've initiated a refund for order ORD-789...
+```
+
+### Pattern 3: Multi-Agent Orchestration
+
+Complex tasks benefit from specialized agents:
+
+```python
+class AgentOrchestrator:
+    def __init__(self):
+        self.agents = {
+            "researcher": ResearchAgent(model="claude-sonnet-4-6"),
+            "analyst": AnalysisAgent(model="claude-sonnet-4-6"),
+            "writer": WritingAgent(model="claude-sonnet-4-6"),
+        }
+        self.planner = PlannerAgent(model="claude-opus-4-6")
+
+    async def execute(self, task: str):
+        # Planner decomposes the task
+        plan = await self.planner.create_plan(task)
+
+        results = {}
+        for step in plan.steps:
+            agent = self.agents[step.agent_type]
+            # Pass results from previous steps as context
+            context = {dep: results[dep] for dep in step.dependencies}
+            results[step.id] = await agent.execute(step.instruction, context)
+
+        return results[plan.final_step]
+```
+
+### Pattern 4: Router Architecture
+
+Route requests to specialized pipelines based on intent:
+
+```python
+class QueryRouter:
+    def __init__(self):
+        self.classifier = IntentClassifier()
+        self.pipelines = {
+            "factual_qa": RAGPipeline(),
+            "data_analysis": SQLAgentPipeline(),
+            "creative_writing": DirectLLMPipeline(),
+            "code_generation": CodeAgentPipeline(),
+        }
+
+    async def route(self, query: str) -> str:
+        intent = self.classifier.classify(query)
+        pipeline = self.pipelines[intent]
+        return await pipeline.execute(query)
+```
+
+## Memory and State Management
+
+### Short-Term Memory (Conversation)
+
+```python
+class ConversationMemory:
+    def __init__(self, max_tokens: int = 8000):
+        self.messages = []
+        self.max_tokens = max_tokens
+
+    def add(self, message: dict):
+        self.messages.append(message)
+        self._truncate()
+
+    def _truncate(self):
+        """Keep recent messages within token budget"""
+        while self._count_tokens() > self.max_tokens:
+            # Remove oldest non-system message
+            for i, msg in enumerate(self.messages):
+                if msg["role"] != "system":
+                    self.messages.pop(i)
+                    break
+
+    def get_messages(self) -> list[dict]:
+        return self.messages.copy()
+```
+
+### Long-Term Memory
+
+```python
+class LongTermMemory:
+    def __init__(self, vector_store, summary_llm):
+        self.vector_store = vector_store
+        self.summary_llm = summary_llm
+
+    async def remember(self, conversation: list[dict]):
+        """Extract and store key information from a conversation"""
+        summary = await self.summary_llm.summarize(conversation)
+        facts = await self.summary_llm.extract_facts(conversation)
+
+        for fact in facts:
+            embedding = embed(fact.text)
+            self.vector_store.upsert(
+                id=fact.id,
+                vector=embedding,
+                metadata={
+                    "text": fact.text,
+                    "timestamp": datetime.now().isoformat(),
+                    "confidence": fact.confidence,
+                }
+            )
+
+    async def recall(self, query: str, k: int = 5) -> list[str]:
+        """Retrieve relevant memories"""
+        results = self.vector_store.query(embed(query), top_k=k)
+        return [r.metadata["text"] for r in results]
+```
+
+## Cost and Latency Optimization
+
+### Token Optimization
+
+```python
+# 1. Use prompt caching for repeated system prompts
+response = client.chat.completions.create(
+    model="claude-sonnet-4-6",
+    messages=[
+        {
+            "role": "system",
+            "content": long_system_prompt,  # Cached after first call
+            "cache_control": {"type": "ephemeral"}
+        },
+        {"role": "user", "content": user_message}
+    ]
+)
+
+# 2. Compress context before sending
+def compress_context(documents: list[str], max_tokens: int) -> str:
+    """Extractive compression: keep most relevant sentences"""
+    sentences = []
+    for doc in documents:
+        sentences.extend(sent_tokenize(doc))
+
+    # Score sentences by relevance to query
+    scored = [(s, relevance_score(s, query)) for s in sentences]
+    scored.sort(key=lambda x: x[1], reverse=True)
+
+    compressed = []
+    token_count = 0
+    for sentence, score in scored:
+        tokens = count_tokens(sentence)
+        if token_count + tokens > max_tokens:
+            break
+        compressed.append(sentence)
+        token_count += tokens
+    return " ".join(compressed)
+```
+
+### Latency Optimization
+
+```python
+# 1. Streaming for perceived performance
+async def stream_response(query: str):
+    stream = client.chat.completions.create(
+        model="claude-sonnet-4-6",
+        messages=[{"role": "user", "content": query}],
+        stream=True,
+    )
+    for chunk in stream:
+        if chunk.choices[0].delta.content:
+            yield chunk.choices[0].delta.content
+
+# 2. Parallel tool execution
+async def parallel_retrieval(query: str):
+    results = await asyncio.gather(
+        vector_search(query),
+        bm25_search(query),
+        graph_search(query),
+    )
+    return merge_results(*results)
+
+# 3. Model cascade: fast model first, escalate if needed
+async def cascaded_response(query: str):
+    # Try fast model first
+    response = await fast_model.generate(query)
+    if response.confidence > 0.9:
+        return response
+
+    # Escalate to powerful model
+    return await powerful_model.generate(query)
+```
+
+### Caching Strategy
+
+```python
+import hashlib
+from functools import lru_cache
+
+class LLMCache:
+    def __init__(self, redis_client):
+        self.redis = redis_client
+        self.ttl = 3600  # 1 hour
+
+    def _cache_key(self, model: str, messages: list, **kwargs) -> str:
+        content = json.dumps({"model": model, "messages": messages, **kwargs}, sort_keys=True)
+        return f"llm:{hashlib.sha256(content.encode()).hexdigest()}"
+
+    async def get_or_create(self, model: str, messages: list, **kwargs):
+        key = self._cache_key(model, messages, **kwargs)
+
+        cached = await self.redis.get(key)
+        if cached:
+            return json.loads(cached)
+
+        response = await client.chat.completions.create(
+            model=model, messages=messages, **kwargs
+        )
+        await self.redis.setex(key, self.ttl, response.model_dump_json())
+        return response
+```
+
+## Guardrails and Safety
+
+### Input Validation
+
+```python
+class InputGuardrail:
+    def __init__(self):
+        self.max_length = 10000
+        self.blocked_patterns = [
+            r"ignore previous instructions",
+            r"system prompt",
+            r"you are now",
+        ]
+
+    def validate(self, user_input: str) -> tuple[bool, str]:
+        if len(user_input) > self.max_length:
+            return False, "Input too long"
+
+        for pattern in self.blocked_patterns:
+            if re.search(pattern, user_input, re.IGNORECASE):
+                return False, "Potentially harmful input detected"
+
+        return True, "OK"
+```
+
+### Output Validation
+
+```python
+class OutputGuardrail:
+    def __init__(self, classifier_model):
+        self.classifier = classifier_model
+
+    async def validate(self, response: str, context: dict) -> tuple[bool, str]:
+        # Check for hallucinated facts
+        if context.get("source_documents"):
+            grounding_score = await self.check_grounding(
+                response, context["source_documents"]
+            )
+            if grounding_score < 0.7:
+                return False, "Response may contain hallucinated information"
+
+        # Check for PII leakage
+        if self.contains_pii(response):
+            return False, "Response contains PII"
+
+        # Content safety classification
+        safety_score = await self.classifier.classify(response)
+        if safety_score.unsafe:
+            return False, f"Unsafe content: {safety_score.category}"
+
+        return True, "OK"
+```
+
+## LLM Evaluation Framework
+
+### Offline Evaluation
+
+```python
+class EvalSuite:
+    def __init__(self, test_cases: list[dict]):
+        self.test_cases = test_cases
+        self.metrics = {
+            "correctness": CorrectnessMetric(),
+            "faithfulness": FaithfulnessMetric(),
+            "relevance": RelevanceMetric(),
+            "latency": LatencyMetric(),
+            "cost": CostMetric(),
+        }
+
+    async def run(self, pipeline) -> dict:
+        results = []
+        for case in self.test_cases:
+            start = time.time()
+            output = await pipeline.run(case["input"])
+            latency = time.time() - start
+
+            scores = {}
+            for name, metric in self.metrics.items():
+                scores[name] = await metric.score(
+                    input=case["input"],
+                    output=output,
+                    expected=case.get("expected"),
+                    context=case.get("context"),
+                )
+            scores["latency_ms"] = latency * 1000
+            results.append(scores)
+
+        return aggregate_results(results)
+```
+
+### LLM-as-Judge
+
+Use a strong model to evaluate a weaker model's outputs:
+
+```python
+JUDGE_PROMPT = """You are evaluating an AI assistant's response.
+
+Question: {question}
+Reference Answer: {reference}
+Assistant's Answer: {response}
+
+Rate the assistant's answer on these criteria (1-5 each):
+1. Correctness: Is the information accurate?
+2. Completeness: Does it cover all important points?
+3. Clarity: Is the explanation clear and well-structured?
+
+Respond in JSON: {{"correctness": N, "completeness": N, "clarity": N, "reasoning": "..."}}"""
+
+async def llm_judge(question, reference, response):
+    result = await strong_model.generate(
+        JUDGE_PROMPT.format(
+            question=question,
+            reference=reference,
+            response=response,
+        ),
+        response_format=JudgeResult,
+    )
+    return result
+```
+
+### A/B Testing in Production
+
+```python
+class ABTestRouter:
+    def __init__(self, variants: dict[str, Pipeline], traffic_split: dict[str, float]):
+        self.variants = variants
+        self.traffic_split = traffic_split
+
+    async def route(self, request: Request) -> Response:
+        # Deterministic assignment based on user_id
+        variant = self._assign_variant(request.user_id)
+        pipeline = self.variants[variant]
+
+        response = await pipeline.run(request)
+
+        # Log for analysis
+        await self.log_event({
+            "user_id": request.user_id,
+            "variant": variant,
+            "latency": response.latency,
+            "input": request.query,
+            "output": response.text,
+        })
+
+        return response
+```
+
+## Architecture Decision Matrix
+
+| Question | Pattern |
+|----------|---------|
+| Single-turn Q&A over documents? | RAG Pipeline |
+| Multi-step tasks with external tools? | Tool-Using Agent |
+| Complex workflows with subtasks? | Multi-Agent Orchestration |
+| Different query types need different handling? | Router Architecture |
+| Need to remember across sessions? | Long-Term Memory + Vector Store |
+| Cost-sensitive with variable complexity? | Model Cascade |
+| High throughput, similar queries? | Cache + Batch Processing |
+
+## Takeaways
+
+1. **Structure your outputs**—never parse free text from LLMs in production
+2. **Version and test your prompts** like code—they ARE code
+3. **Build evaluation before building features**—you need to measure to improve
+4. **Cache aggressively**—LLM calls are expensive and often repetitive
+5. **Use model cascading**—don't send every query to the most expensive model
+6. **Implement guardrails from day one**—it's much harder to add them retroactively
+7. **Start with simple architectures** (RAG) and add complexity (agents) only when metrics show you need it
