@@ -45,7 +45,7 @@ export function RagComparison({ scenario, selectedQuestionId, onSelectQuestion }
             <blockquote>{question.wikiAnswer}</blockquote>
             <footer>
               <span>Evidence used</span>
-              {evidence.map((document) => <button key={document!.id} type="button">{document!.title}</button>)}
+              {evidence.map((document) => <span className="llmw-evidence-tag" key={document!.id}>{document!.title}</span>)}
             </footer>
           </article>
         </div>
@@ -53,4 +53,3 @@ export function RagComparison({ scenario, selectedQuestionId, onSelectQuestion }
     </div>
   );
 }
-

@@ -72,7 +72,7 @@ export function LlmWikiExperience() {
           <div><p className="llmw-kicker">From pattern to workflow</p><h2>OpenWiki does the maintenance work.</h2><p>It scans a repository or configured sources, synthesizes local wiki pages, connects coding agents, and records what changed.</p></div>
         </div>
         <div className="llmw-openwiki-grid">
-          <OpenWikiTerminal scenario={scenario} />
+          <OpenWikiTerminal key={`${scenario.id}-${experience.resetEpoch}`} scenario={scenario} />
           <aside className="llmw-openwiki-notes">
             <span className="llmw-kicker">What became operational</span>
             <ol>
@@ -89,7 +89,7 @@ export function LlmWikiExperience() {
           <span className="llmw-index">06 / Make it portable</span>
           <div><p className="llmw-kicker">Format, not platform</p><h2>OKF gives knowledge a shared shape.</h2><p>Markdown stays readable. YAML makes concepts queryable. Reserved index and log files make the bundle navigable and auditable.</p></div>
         </div>
-        <OkfExplorer key={scenario.id} scenario={scenario} />
+        <OkfExplorer key={`${scenario.id}-${experience.resetEpoch}`} scenario={scenario} />
       </section>
 
       <section className="llmw-section llmw-recap-section" aria-labelledby="recap-title">

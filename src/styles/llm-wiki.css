@@ -662,8 +662,8 @@
 }
 
 .llmw-presentation-controls .llmw-mini-brand {
-  width: 42px;
-  min-height: 40px;
+  width: 44px;
+  min-height: 44px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -684,7 +684,7 @@
 
 .llmw-presentation-controls a,
 .llmw-presentation-controls button {
-  min-height: 40px;
+  min-height: 44px;
   padding: 0 12px;
   display: inline-flex;
   align-items: center;
@@ -700,17 +700,20 @@
 }
 
 .llmw-presentation-controls a:hover,
+.llmw-presentation-controls a[aria-current="step"],
 .llmw-presentation-controls button:hover {
   color: var(--llmw-ink);
   background: color-mix(in srgb, var(--llmw-violet), transparent 92%);
 }
 
-.llmw-presentation-controls > button:last-child {
+.llmw-presentation-controls > button[aria-pressed] {
   background: var(--llmw-ink);
   color: var(--llmw-bg);
 }
 
 .llmw-presentation-controls svg { width: 14px; height: 14px; }
+.llmw-journey-progress { position: absolute; left: 0; right: 0; bottom: -1px; height: 2px; overflow: hidden; background: transparent; }
+.llmw-journey-progress i { display: block; height: 100%; background: var(--scenario-accent, var(--llmw-violet)); transition: width 260ms ease; }
 
 .llmw-lab-section { padding-top: clamp(120px, 14vw, 190px); }
 
@@ -848,7 +851,7 @@
 .llmw-file-copy strong { font-size: 11px; }
 .llmw-file-copy small { overflow: hidden; color: var(--llmw-faint); font-size: 7px; text-overflow: ellipsis; white-space: nowrap; }
 .llmw-file-copy code { margin-top: 4px; overflow: hidden; color: var(--llmw-muted); font-size: 8px; line-height: 1.45; text-overflow: ellipsis; white-space: nowrap; }
-.llmw-source-card > button { width: 40px; height: 40px; padding: 0; display: grid; place-items: center; border: 1px solid var(--llmw-line); background: transparent; cursor: pointer; transition: background 180ms ease, color 180ms ease; }
+.llmw-source-card > button { width: 44px; height: 44px; padding: 0; display: grid; place-items: center; border: 1px solid var(--llmw-line); background: transparent; cursor: pointer; transition: background 180ms ease, color 180ms ease; }
 .llmw-source-card > button:hover:not(:disabled) { color: var(--llmw-bg); background: var(--scenario-accent); }
 .llmw-source-card > button:disabled { color: var(--llmw-success); cursor: default; }
 .llmw-source-card > button svg { width: 15px; height: 15px; }
@@ -886,9 +889,14 @@
 
 .llmw-graph-section { border-top: 1px solid var(--llmw-line); }
 .llmw-graph-layout { display: grid; grid-template-columns: minmax(0, 1fr) 310px; min-height: 650px; border: 1px solid var(--llmw-line); background: var(--llmw-panel-solid); }
-.llmw-graph-canvas { min-width: 0; min-height: 650px; position: relative; overflow: hidden; background-image: radial-gradient(var(--llmw-line) 1px, transparent 1px); background-size: 22px 22px; }
+.llmw-graph-canvas { min-width: 0; min-height: 650px; position: relative; overflow: hidden; cursor: grab; background-image: radial-gradient(var(--llmw-line) 1px, transparent 1px); background-size: 22px 22px; }
 .llmw-graph-canvas::after { content: ""; position: absolute; inset: 15%; background: radial-gradient(circle, color-mix(in srgb, var(--scenario-accent), transparent 80%), transparent 68%); pointer-events: none; }
-.llmw-graph-canvas > svg { position: absolute; inset: 0; width: 100%; height: 100%; fill: none; stroke: color-mix(in srgb, var(--scenario-accent), transparent 48%); stroke-width: 0.25; stroke-dasharray: 1.2 1.2; z-index: 1; }
+.llmw-graph-stage { position: absolute; inset: 0; transform-origin: center; transition: transform 160ms ease; }
+.llmw-graph-stage > svg { position: absolute; inset: 0; width: 100%; height: 100%; fill: none; stroke: color-mix(in srgb, var(--scenario-accent), transparent 48%); stroke-width: 0.25; stroke-dasharray: 1.2 1.2; z-index: 1; }
+.llmw-graph-controls { position: absolute; top: 14px; right: 14px; z-index: 6; display: flex; border: 1px solid var(--llmw-line); background: var(--llmw-panel-solid); }
+.llmw-graph-controls button { width: 44px; height: 44px; border: 0; border-right: 1px solid var(--llmw-line); background: transparent; color: var(--llmw-muted); cursor: pointer; font-family: "SFMono-Regular", Consolas, monospace; font-size: 10px; }
+.llmw-graph-controls button:last-child { border-right: 0; }
+.llmw-graph-controls button:hover { color: var(--scenario-accent); background: color-mix(in srgb, var(--scenario-accent), transparent 94%); }
 .llmw-graph-node { position: absolute; z-index: 3; width: 116px; min-height: 80px; padding: 10px; transform: translate(-50%, -50%); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 7px; border: 1px solid var(--llmw-line); background: color-mix(in srgb, var(--llmw-panel-solid), transparent 5%); box-shadow: 0 9px 28px rgba(0,0,0,0.08); cursor: pointer; font-size: 9px; text-align: center; transition: border-color 180ms ease, box-shadow 180ms ease; }
 .llmw-graph-node:hover,
 .llmw-graph-node[data-active="true"] { border-color: var(--scenario-accent); box-shadow: 0 0 30px color-mix(in srgb, var(--scenario-accent), transparent 78%); }
@@ -925,7 +933,7 @@
 .llmw-answer-card blockquote { margin: 0; padding: 25px 0 25px 26px; border-left: 2px solid var(--scenario-accent); color: var(--llmw-ink); font-family: Georgia, serif; font-size: 21px; line-height: 1.55; }
 .llmw-answer-card footer { margin-top: auto; padding-top: 24px; display: flex; flex-wrap: wrap; gap: 7px; border-top: 1px solid var(--llmw-line); color: var(--llmw-faint); font-size: 10px; }
 .llmw-answer-card footer > span { width: 100%; font-family: "SFMono-Regular", Consolas, monospace; font-size: 7px; text-transform: uppercase; }
-.llmw-answer-card footer button { min-height: 34px; padding: 0 9px; border: 1px solid var(--llmw-line); background: transparent; font-size: 8px; }
+.llmw-evidence-tag { width: auto !important; min-height: 32px; padding: 0 9px; display: inline-flex; align-items: center; border: 1px solid var(--llmw-line); color: var(--llmw-muted); font-family: inherit !important; font-size: 8px !important; text-transform: none !important; }
 
 .llmw-openwiki-section { border-top: 1px solid var(--llmw-line); }
 .llmw-openwiki-grid { display: grid; grid-template-columns: minmax(0, 1.45fr) minmax(300px, 0.55fr); }
@@ -944,6 +952,14 @@
 .llmw-terminal-intro svg { width: 42px; color: var(--scenario-accent); }
 .llmw-terminal-intro p { max-width: 380px; font-size: 11px; line-height: 1.6; }
 .llmw-terminal-body pre { margin: 0; display: flex; flex-direction: column; gap: 15px; white-space: pre-wrap; }
+.llmw-terminal-workspace { min-height: 430px; display: grid; grid-template-columns: minmax(0, 1.2fr) minmax(210px, 0.8fr); gap: 24px; }
+.llmw-generated-tree { padding-left: 20px; border-left: 1px solid rgba(255,255,255,0.12); font-family: "SFMono-Regular", Consolas, monospace; }
+.llmw-generated-tree > span { display: block; margin-bottom: 12px; color: #5ce0af; font-size: 9px; }
+.llmw-generated-tree button { width: 100%; min-height: 44px; padding: 8px 10px; display: flex; align-items: center; gap: 8px; border: 1px solid transparent; background: transparent; color: #9a96a2; cursor: pointer; text-align: left; font-size: 8px; }
+.llmw-generated-tree button:hover,
+.llmw-generated-tree button[data-active="true"] { border-color: rgba(255,255,255,0.16); background: rgba(255,255,255,0.04); color: #d7d4de; }
+.llmw-generated-tree button svg { width: 13px; flex: 0 0 auto; color: var(--scenario-accent); }
+.llmw-generated-tree p { margin: 14px 0 0; padding: 14px; border: 1px solid rgba(255,255,255,0.12); color: #aaa6b2; font-family: Georgia, serif; font-size: 10px; line-height: 1.6; }
 .llmw-terminal-body code { display: block; color: #a9a5b1; font-size: 11px; line-height: 1.5; animation: llmw-terminal-line 260ms ease both; }
 .llmw-terminal-body code[data-command="true"] { color: #c1b4ff; }
 .llmw-terminal-body code:not([data-command="true"])::before { content: "→ "; color: #5ce0af; }
@@ -983,7 +999,7 @@
 .llmw-okf-browser > aside svg { width: 14px; color: var(--scenario-accent); }
 .llmw-okf-browser > article { min-width: 0; display: flex; flex-direction: column; }
 .llmw-view-tabs { min-height: 58px; padding: 8px 18px; display: flex; align-items: center; gap: 8px; border-bottom: 1px solid var(--llmw-line); }
-.llmw-view-tabs button { min-height: 38px; padding: 0 13px; border: 1px solid transparent; background: transparent; cursor: pointer; color: var(--llmw-faint); font-size: 9px; }
+.llmw-view-tabs button { min-height: 44px; padding: 0 13px; border: 1px solid transparent; background: transparent; cursor: pointer; color: var(--llmw-faint); font-size: 9px; }
 .llmw-view-tabs button[aria-selected="true"] { border-color: var(--llmw-line); color: var(--llmw-ink); background: var(--llmw-bg); }
 .llmw-okf-plain { flex: 1; padding: clamp(44px, 7vw, 90px); background: radial-gradient(circle at 80% 20%, color-mix(in srgb, var(--scenario-accent), transparent 90%), transparent 35%); }
 .llmw-okf-plain > span { color: var(--scenario-accent); font-family: "SFMono-Regular", Consolas, monospace; font-size: 8px; text-transform: uppercase; }
@@ -1152,7 +1168,7 @@
   .llmw-mission-brief { grid-template-columns: 1fr; padding: 26px 22px; }
   .llmw-mission-question { grid-column: auto; }
   .llmw-source-panel, .llmw-wiki-panel { padding: 14px; }
-  .llmw-source-card { grid-template-columns: 30px minmax(0, 1fr) 40px; }
+  .llmw-source-card { grid-template-columns: 30px minmax(0, 1fr) 44px; }
   .llmw-compiler-column { grid-template-columns: 72px 1fr; }
   .llmw-compile-button { min-height: 56px; }
   .llmw-wiki-browser nav { grid-template-columns: 1fr; }
@@ -1167,6 +1183,8 @@
   .llmw-answer-card + .llmw-answer-card { border-left: 1px solid var(--llmw-line); }
   .llmw-answer-card blockquote { font-size: 18px; }
   .llmw-terminal-body { padding: 20px; }
+  .llmw-terminal-workspace { grid-template-columns: 1fr; }
+  .llmw-generated-tree { padding: 18px 0 0; border-left: 0; border-top: 1px solid rgba(255,255,255,0.12); }
   .llmw-terminal-actions { align-items: flex-start; flex-direction: column; }
   .llmw-okf-bundle { padding: 24px 16px; }
   .llmw-portability-track { grid-template-columns: 1fr; gap: 8px; }
@@ -1213,4 +1231,3 @@
   .llmw-static-section,
   .llmw-mental-model { break-inside: avoid; padding: 55px 0; }
 }
-

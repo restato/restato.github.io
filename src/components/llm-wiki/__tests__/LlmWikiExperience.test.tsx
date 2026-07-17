@@ -9,6 +9,7 @@ describe('LlmWikiExperience', () => {
     render(<LlmWikiExperience />);
 
     expect(screen.getByRole('heading', { name: /the knowledge workbench/i })).toBeVisible();
+    expect(screen.getByRole('progressbar', { name: /learning journey progress/i })).toHaveAttribute('aria-valuenow', '20');
     fireEvent.click(screen.getByRole('button', { name: /compile all sample sources/i }));
     expect(screen.getByRole('status', { name: /compilation status/i })).toHaveTextContent('Wiki ready');
 
@@ -24,9 +25,16 @@ describe('LlmWikiExperience', () => {
     fireEvent.click(screen.getByRole('tab', { name: /personal research notes/i }));
     expect(screen.getByText(/turn reading into accumulated understanding/i)).toBeVisible();
     fireEvent.click(screen.getByRole('button', { name: /compile all sample sources/i }));
+    fireEvent.click(screen.getByRole('button', { name: /run simulation/i }));
+    fireEvent.click(screen.getByRole('button', { name: /skip animation/i }));
+    fireEvent.click(screen.getByRole('tab', { name: /raw yaml/i }));
+    fireEvent.click(screen.getByRole('button', { name: /send bundle to research agent/i }));
     fireEvent.click(screen.getByRole('button', { name: /reset lab/i }));
 
     expect(screen.getByRole('tab', { name: /open-source repository/i })).toHaveAttribute('aria-selected', 'true');
     expect(screen.getByRole('status', { name: /compilation status/i })).toHaveTextContent('Waiting for sources');
+    expect(screen.getByRole('button', { name: /run simulation/i })).toBeVisible();
+    expect(screen.getByRole('tab', { name: /plain language/i })).toHaveAttribute('aria-selected', 'true');
+    expect(screen.getByRole('status', { name: /portability status/i })).toHaveTextContent(/code agent.*can read the same bundle/i);
   });
 });

@@ -35,7 +35,7 @@ export function OkfExplorer({ scenario }: Props) {
             </button>
           ))}
         </div>
-        <p role="status"><strong>{consumer}</strong> can read the same bundle—without a proprietary SDK.</p>
+        <p role="status" aria-label="Portability status"><strong>{consumer}</strong> can read the same bundle—without a proprietary SDK.</p>
       </div>
 
       <div className="llmw-okf-browser">

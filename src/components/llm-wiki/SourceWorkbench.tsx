@@ -87,6 +87,12 @@ export function SourceWorkbench({
             <strong>Move knowledge here</strong>
             <span>Drag a sample file or use its arrow button.</span>
           </div>
+        ) : stage !== 'ready' ? (
+          <div className="llmw-empty-drop" data-state="indexing">
+            <Icon name="layers" />
+            <strong>{compiledSourceIds.length} {compiledSourceIds.length === 1 ? 'source' : 'sources'} indexed</strong>
+            <span>Compile the remaining sources to synthesize accurate, linked wiki pages.</span>
+          </div>
         ) : (
           <div className="llmw-wiki-browser">
             <nav aria-label="Generated wiki documents">
@@ -112,4 +118,3 @@ export function SourceWorkbench({
     </div>
   );
 }
-

@@ -11,6 +11,12 @@ type TerminalState = 'idle' | 'running' | 'complete';
 export function OpenWikiTerminal({ scenario }: Props) {
   const [state, setState] = useState<TerminalState>('idle');
   const [visibleLines, setVisibleLines] = useState(0);
+  const [selectedDocumentId, setSelectedDocumentId] = useState<string | null>(null);
+  const visibleDocumentCount = state === 'idle'
+    ? 0
+    : Math.min(scenario.wikiDocuments.length, Math.ceil((visibleLines / scenario.terminalLines.length) * scenario.wikiDocuments.length));
+  const visibleDocuments = scenario.wikiDocuments.slice(0, visibleDocumentCount);
+  const selectedDocument = scenario.wikiDocuments.find((document) => document.id === selectedDocumentId) ?? null;
 
   useEffect(() => {
     if (state !== 'running') return;
@@ -36,6 +42,7 @@ export function OpenWikiTerminal({ scenario }: Props) {
 
   function run() {
     setVisibleLines(1);
+    setSelectedDocumentId(null);
     setState('running');
   }
 
@@ -59,9 +66,20 @@ export function OpenWikiTerminal({ scenario }: Props) {
             <p>Run a deterministic OpenWiki simulation. No repository or API key is used.</p>
           </div>
         ) : (
-          <pre aria-live="off">{scenario.terminalLines.slice(0, visibleLines).map((line, index) => (
-            <code key={`${scenario.id}-${index}`} data-command={line.startsWith('$')}>{line}</code>
-          ))}</pre>
+          <div className="llmw-terminal-workspace">
+            <pre aria-live="off">{scenario.terminalLines.slice(0, visibleLines).map((line, index) => (
+              <code key={`${scenario.id}-${index}`} data-command={line.startsWith('$')}>{line}</code>
+            ))}</pre>
+            <aside className="llmw-generated-tree" aria-label="Generated OpenWiki files">
+              <span>openwiki/</span>
+              {visibleDocuments.map((document) => (
+                <button key={document.id} type="button" onClick={() => setSelectedDocumentId(document.id)} data-active={selectedDocument?.id === document.id}>
+                  <Icon name="document" /> {document.path}
+                </button>
+              ))}
+              {selectedDocument && <p>{selectedDocument.content}</p>}
+            </aside>
+          </div>
         )}
       </div>
 
@@ -74,4 +92,3 @@ export function OpenWikiTerminal({ scenario }: Props) {
     </div>
   );
 }
-

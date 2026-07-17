@@ -13,6 +13,12 @@ describe('Knowledge Workbench', () => {
     expect(screen.getByRole('tab', { name: /open-source repository/i })).toHaveAttribute('aria-selected', 'true');
     fireEvent.click(screen.getByRole('tab', { name: /personal research notes/i }));
     expect(onChange).toHaveBeenCalledWith('research');
+
+    const repositoryTab = screen.getByRole('tab', { name: /open-source repository/i });
+    repositoryTab.focus();
+    fireEvent.keyDown(repositoryTab, { key: 'ArrowRight' });
+    expect(onChange).toHaveBeenLastCalledWith('research');
+    expect(screen.getByRole('tab', { name: /personal research notes/i })).toHaveFocus();
   });
 
   it('compiles sources with buttons and announces progress', () => {
@@ -40,6 +46,24 @@ describe('Knowledge Workbench', () => {
     expect(compileAll).toHaveBeenCalled();
   });
 
+  it('does not claim finished synthesis while only one source is compiled', () => {
+    const scenario = llmWikiScenarios.repository;
+    render(
+      <SourceWorkbench
+        scenario={scenario}
+        compiledSourceIds={[scenario.sources[0].id]}
+        stage="compiling"
+        onAddSource={vi.fn()}
+        onCompileAll={vi.fn()}
+        selectedDocument={scenario.wikiDocuments[0]}
+        onSelectDocument={vi.fn()}
+      />,
+    );
+
+    expect(screen.getByText(/1 source indexed/i)).toBeVisible();
+    expect(screen.queryByRole('navigation', { name: /generated wiki documents/i })).not.toBeInTheDocument();
+  });
+
   it('provides selectable graph nodes and a semantic relationship list', () => {
     const onSelect = vi.fn();
     render(<KnowledgeGraph graph={llmWikiScenarios.repository.graph} selectedNodeId={null} onSelectNode={onSelect} />);
@@ -47,5 +71,11 @@ describe('Knowledge Workbench', () => {
     fireEvent.click(screen.getByRole('button', { name: /authentication: the compiled request-to-session model/i }));
     expect(onSelect).toHaveBeenCalledWith('concept-auth');
     expect(screen.getByRole('list', { name: /knowledge relationships/i })).toHaveTextContent('Routes + middleware implements Authentication');
+
+    const canvas = screen.getByLabelText(/interactive knowledge graph/i);
+    fireEvent.click(screen.getByRole('button', { name: /zoom in/i }));
+    expect(canvas).toHaveAttribute('data-zoom', '1.15');
+    fireEvent.click(screen.getByRole('button', { name: /reset graph view/i }));
+    expect(canvas).toHaveAttribute('data-zoom', '1.00');
   });
 });

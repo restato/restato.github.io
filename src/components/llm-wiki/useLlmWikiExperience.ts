@@ -35,7 +35,9 @@ function readPersistedState(): PersistedState {
 }
 
 export function useLlmWikiExperience() {
-  const [persisted, setPersisted] = useState<PersistedState>(readPersistedState);
+  const [persisted, setPersisted] = useState<PersistedState>(defaultPersistedState);
+  const [persistenceRestored, setPersistenceRestored] = useState(false);
+  const [resetEpoch, setResetEpoch] = useState(0);
   const [compiledSourceIds, setCompiledSourceIds] = useState<string[]>([]);
   const [selectedQuestionId, setSelectedQuestionId] = useState<string | null>(null);
   const [selectedDocumentId, setSelectedDocumentId] = useState<string | null>(null);
@@ -45,12 +47,18 @@ export function useLlmWikiExperience() {
   const stage = getCompilationStage(compiledSourceIds.length, scenario.sources.length);
 
   useEffect(() => {
+    setPersisted(readPersistedState());
+    setPersistenceRestored(true);
+  }, []);
+
+  useEffect(() => {
+    if (!persistenceRestored) return;
     try {
       window.localStorage.setItem(STORAGE_KEY, JSON.stringify(persisted));
     } catch {
       // Persistence is a progressive enhancement; the simulation still works in memory.
     }
-  }, [persisted]);
+  }, [persisted, persistenceRestored]);
 
   const selectedQuestion = useMemo(
     () => scenario.questions.find((question) => question.id === selectedQuestionId) ?? null,
@@ -71,6 +79,7 @@ export function useLlmWikiExperience() {
 
   function switchScenario(scenarioId: ScenarioId) {
     clearTransientState();
+    setResetEpoch((current) => current + 1);
     setPersisted((current) => ({ ...current, scenarioId }));
   }
 
@@ -91,6 +100,7 @@ export function useLlmWikiExperience() {
 
   function reset() {
     clearTransientState();
+    setResetEpoch((current) => current + 1);
     setPersisted(defaultPersistedState);
     try {
       window.localStorage.removeItem(STORAGE_KEY);
@@ -109,6 +119,7 @@ export function useLlmWikiExperience() {
     selectedQuestion,
     selectedDocument,
     selectedNodeId,
+    resetEpoch,
     switchScenario,
     addSource,
     compileAll,
