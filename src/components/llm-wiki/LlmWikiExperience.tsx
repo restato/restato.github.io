@@ -55,7 +55,7 @@ export function LlmWikiExperience() {
           <span className="llmw-index">03 / Relationships</span>
           <div><p className="llmw-kicker">A folder becomes a model</p><h2>Knowledge is more than files.</h2><p>Each edge makes a claim visible: what implements, governs, qualifies, or supports the answer.</p></div>
         </div>
-        <KnowledgeGraph graph={scenario.graph} selectedNodeId={experience.selectedNodeId} onSelectNode={experience.selectNode} />
+        <KnowledgeGraph key={`${scenario.id}-${experience.resetEpoch}`} graph={scenario.graph} selectedNodeId={experience.selectedNodeId} onSelectNode={experience.selectNode} />
       </section>
 
       <section className="llmw-section llmw-compare-section" id="compare">

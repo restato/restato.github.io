@@ -28,6 +28,7 @@ describe('guided knowledge tools', () => {
     render(<OpenWikiTerminal scenario={llmWikiScenarios.repository} />);
 
     fireEvent.click(screen.getByRole('button', { name: /run simulation/i }));
+    expect(screen.queryByRole('button', { name: /openwiki\/architecture\/authentication\.md/i })).not.toBeInTheDocument();
     fireEvent.click(screen.getByRole('button', { name: /skip animation/i }));
     expect(screen.getByText(/wiki ready in openwiki\//i)).toBeVisible();
     expect(screen.getByRole('button', { name: /replay simulation/i })).toBeVisible();

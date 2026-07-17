@@ -29,6 +29,8 @@ describe('LlmWikiExperience', () => {
     fireEvent.click(screen.getByRole('button', { name: /skip animation/i }));
     fireEvent.click(screen.getByRole('tab', { name: /raw yaml/i }));
     fireEvent.click(screen.getByRole('button', { name: /send bundle to research agent/i }));
+    fireEvent.click(screen.getByRole('button', { name: /zoom in/i }));
+    expect(screen.getByLabelText(/interactive knowledge graph/i)).toHaveAttribute('data-zoom', '1.15');
     fireEvent.click(screen.getByRole('button', { name: /reset lab/i }));
 
     expect(screen.getByRole('tab', { name: /open-source repository/i })).toHaveAttribute('aria-selected', 'true');
@@ -36,5 +38,6 @@ describe('LlmWikiExperience', () => {
     expect(screen.getByRole('button', { name: /run simulation/i })).toBeVisible();
     expect(screen.getByRole('tab', { name: /plain language/i })).toHaveAttribute('aria-selected', 'true');
     expect(screen.getByRole('status', { name: /portability status/i })).toHaveTextContent(/code agent.*can read the same bundle/i);
+    expect(screen.getByLabelText(/interactive knowledge graph/i)).toHaveAttribute('data-zoom', '1.00');
   });
 });

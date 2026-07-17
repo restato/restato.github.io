@@ -12,9 +12,11 @@ export function OpenWikiTerminal({ scenario }: Props) {
   const [state, setState] = useState<TerminalState>('idle');
   const [visibleLines, setVisibleLines] = useState(0);
   const [selectedDocumentId, setSelectedDocumentId] = useState<string | null>(null);
-  const visibleDocumentCount = state === 'idle'
-    ? 0
-    : Math.min(scenario.wikiDocuments.length, Math.ceil((visibleLines / scenario.terminalLines.length) * scenario.wikiDocuments.length));
+  const visibleDocumentCount = scenario.terminalLines
+    .slice(0, visibleLines)
+    .filter((line) => /(synthesized|linked|wrote|preserved|attached)/i.test(line))
+    .slice(0, scenario.wikiDocuments.length)
+    .length;
   const visibleDocuments = scenario.wikiDocuments.slice(0, visibleDocumentCount);
   const selectedDocument = scenario.wikiDocuments.find((document) => document.id === selectedDocumentId) ?? null;
 
