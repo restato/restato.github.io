@@ -1,0 +1,206 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { LlmWikiExperience } from '../../components/llm-wiki/LlmWikiExperience';
+import '../../styles/llm-wiki.css';
+
+const title = 'LLM Wiki, OpenWiki & OKF — The Interactive Field Guide';
+const description = 'Understand LLM Wiki, LangChain OpenWiki, and the Open Knowledge Format by compiling three realistic knowledge systems yourself.';
+
+const faqItems = [
+  {
+    question: 'Is LLM Wiki a product?',
+    answer: 'No. LLM Wiki is a pattern proposed by Andrej Karpathy: an LLM compiles sources into a persistent, interlinked wiki that can improve as it is used.',
+  },
+  {
+    question: 'How is an LLM Wiki different from RAG?',
+    answer: 'RAG usually retrieves source fragments again for each question. An LLM Wiki leaves behind maintained synthesis pages, links, questions, and logs so useful reasoning becomes reusable knowledge.',
+  },
+  {
+    question: 'What does OpenWiki do?',
+    answer: 'OpenWiki is LangChain’s open-source CLI for writing and maintaining local agent wikis from codebases or configured personal knowledge sources.',
+  },
+  {
+    question: 'What is OKF?',
+    answer: 'The Open Knowledge Format is a vendor-neutral specification for portable knowledge bundles made of Markdown files, YAML frontmatter, and simple index and log conventions.',
+  },
+  {
+    question: 'Does this page upload my files or call an LLM?',
+    answer: 'No. This is a deterministic guided simulation using precomputed sample sources and outputs. Nothing is uploaded and no model API is called.',
+  },
+];
+
+const faqSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'FAQPage',
+  mainEntity: faqItems.map((item) => ({
+    '@type': 'Question',
+    name: item.question,
+    acceptedAnswer: { '@type': 'Answer', text: item.answer },
+  })),
+};
+
+const learningSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'LearningResource',
+  name: title,
+  description,
+  educationalLevel: 'Beginner to advanced',
+  learningResourceType: 'Interactive guide',
+  inLanguage: 'en',
+  teaches: ['LLM Wiki pattern', 'LangChain OpenWiki', 'Open Knowledge Format', 'Agent knowledge systems'],
+};
+---
+
+<BaseLayout
+  title={title}
+  description={description}
+  image="/images/llm-wiki-og.svg"
+  canonical="/llm-wiki/"
+  lang="en"
+>
+  <script type="application/ld+json" set:html={JSON.stringify(faqSchema)} />
+  <script type="application/ld+json" set:html={JSON.stringify(learningSchema)} />
+
+  <main class="llmw-page" id="llm-wiki-top">
+    <header class="llmw-topbar">
+      <a href="/" class="llmw-brand" aria-label="Restato home">
+        <span aria-hidden="true">R</span>
+        <span>RESTATO <small>FIELD GUIDE / 001</small></span>
+      </a>
+      <div class="llmw-topbar-meta">
+        <span><i></i> Source-verified</span>
+        <span>July 2026</span>
+        <a href="#sources">Sources</a>
+      </div>
+    </header>
+
+    <section class="llmw-hero" aria-labelledby="hero-title">
+      <div class="llmw-hero-grid" aria-hidden="true"></div>
+      <div class="llmw-hero-copy">
+        <p class="llmw-kicker"><span>Interactive field guide</span> Agent-native knowledge</p>
+        <h1 id="hero-title">
+          Your AI shouldn’t
+          <em>rediscover</em>
+          what you already know.
+        </h1>
+        <p class="llmw-hero-lede">
+          Files can be retrieved. Knowledge should accumulate. Build a living wiki, watch OpenWiki maintain it, then move it anywhere with OKF.
+        </p>
+        <div class="llmw-hero-actions">
+          <a href="#lab" class="llmw-primary-link">Enter the knowledge lab <span aria-hidden="true">↘</span></a>
+          <a href="#mental-model" class="llmw-text-link">Start with the 90-second model</a>
+        </div>
+        <div class="llmw-hero-proof">
+          <div><strong>3</strong><span>real-world missions</span></div>
+          <div><strong>0</strong><span>uploads or API calls</span></div>
+          <div><strong>1</strong><span>durable mental model</span></div>
+        </div>
+      </div>
+
+      <div class="llmw-hero-instrument" aria-label="A visualization of scattered files becoming linked knowledge">
+        <div class="llmw-instrument-header"><span>KNOWLEDGE COMPILER</span><span>SIMULATION / LIVE</span></div>
+        <div class="llmw-orbit">
+          <span class="llmw-orbit-ring ring-one"></span>
+          <span class="llmw-orbit-ring ring-two"></span>
+          <div class="llmw-core"><span>LLM</span><strong>WIKI</strong><small>persistent artifact</small></div>
+          <div class="llmw-orbit-file file-a"><span>TS</span><strong>auth.ts</strong></div>
+          <div class="llmw-orbit-file file-b"><span>MD</span><strong>notes.md</strong></div>
+          <div class="llmw-orbit-file file-c"><span>PDF</span><strong>paper.pdf</strong></div>
+          <div class="llmw-orbit-file file-d"><span>SQL</span><strong>metric.sql</strong></div>
+          <svg viewBox="0 0 500 500" aria-hidden="true">
+            <path d="M83 125 C170 150 180 220 246 247" />
+            <path d="M405 105 C350 165 320 185 258 242" />
+            <path d="M95 385 C160 340 180 300 245 260" />
+            <path d="M420 385 C350 340 315 300 260 260" />
+          </svg>
+        </div>
+        <div class="llmw-instrument-footer"><span>Sources remain inspectable</span><span>Reasoning becomes reusable</span></div>
+      </div>
+    </section>
+
+    <section class="llmw-mental-model" id="mental-model" aria-labelledby="mental-title">
+      <div class="llmw-section-heading">
+        <span class="llmw-index">01 / The shift</span>
+        <div>
+          <p class="llmw-kicker">From retrieval to accumulation</p>
+          <h2 id="mental-title">The answer is not the asset.<br />The wiki is.</h2>
+        </div>
+      </div>
+      <div class="llmw-shift-grid">
+        <article class="llmw-shift-card muted">
+          <span class="llmw-card-label">TODAY / RETRIEVE AGAIN</span>
+          <div class="llmw-scattered-files"><i>PDF</i><i>SQL</i><i>MD</i><i>TS</i></div>
+          <h3>Every question starts from fragments.</h3>
+          <p>Retrieve chunks. Reconstruct context. Generate an answer. Discard the useful synthesis.</p>
+          <footer><span>Question 01</span><span>Question 02</span><span>Question 03</span></footer>
+        </article>
+        <div class="llmw-shift-arrow" aria-hidden="true"><span>compile</span>→</div>
+        <article class="llmw-shift-card bright">
+          <span class="llmw-card-label">LLM WIKI / BUILD ONCE</span>
+          <div class="llmw-linked-pages"><i></i><i></i><i></i><i></i><svg viewBox="0 0 200 80"><path d="M20 40h160M55 15l90 50M55 65l90-50" /></svg></div>
+          <h3>Every answer can improve the artifact.</h3>
+          <p>Sources become concepts, relationships, contradictions, guides, and logs that remain available tomorrow.</p>
+          <footer><span>Versioned</span><span>Cited</span><span>Interlinked</span></footer>
+        </article>
+      </div>
+      <p class="llmw-honesty-note"><span>Guided simulation</span> All sample inputs and outputs are precomputed. No files leave your browser.</p>
+    </section>
+
+    <LlmWikiExperience client:visible />
+
+    <noscript>
+      <section class="llmw-noscript">
+        <h2>The interactive lab needs JavaScript.</h2>
+        <p>The core model still holds: LLM Wiki is the idea, OpenWiki operationalizes it, and OKF makes the resulting Markdown knowledge portable.</p>
+      </section>
+    </noscript>
+
+    <section class="llmw-static-section llmw-glossary" aria-labelledby="glossary-title">
+      <div class="llmw-section-heading">
+        <span class="llmw-index">08 / Plain language</span>
+        <div><p class="llmw-kicker">Keep the vocabulary precise</p><h2 id="glossary-title">A five-term glossary.</h2></div>
+      </div>
+      <dl>
+        <div><dt>Source</dt><dd>The original material: code, papers, notes, tables, decisions, or conversations.</dd></div>
+        <div><dt>LLM Wiki</dt><dd>A persistent, interlinked knowledge artifact that an LLM helps compile and maintain.</dd></div>
+        <div><dt>RAG</dt><dd>A pattern that retrieves source fragments at question time to ground a generated answer.</dd></div>
+        <div><dt>OpenWiki</dt><dd>LangChain’s open-source CLI for writing and maintaining agent wikis from codebases or configured sources.</dd></div>
+        <div><dt>OKF</dt><dd>A vendor-neutral Markdown and YAML format for portable, agent- and human-readable knowledge.</dd></div>
+      </dl>
+    </section>
+
+    <section class="llmw-static-section llmw-faq" aria-labelledby="faq-title">
+      <div class="llmw-section-heading">
+        <span class="llmw-index">09 / Questions</span>
+        <div><p class="llmw-kicker">Before you try it</p><h2 id="faq-title">Clear answers, no mystique.</h2></div>
+      </div>
+      <div class="llmw-faq-list">
+        {faqItems.map((item, index) => (
+          <details open={index === 0}>
+            <summary><span>0{index + 1}</span>{item.question}<i aria-hidden="true">+</i></summary>
+            <p>{item.answer}</p>
+          </details>
+        ))}
+      </div>
+    </section>
+
+    <section class="llmw-static-section llmw-sources" id="sources" aria-labelledby="sources-title">
+      <div class="llmw-section-heading">
+        <span class="llmw-index">10 / Primary sources</span>
+        <div><p class="llmw-kicker">Read the originals</p><h2 id="sources-title">Source-verified, not trend-summarized.</h2></div>
+      </div>
+      <div class="llmw-source-links">
+        <a href="https://gist.github.com/karpathy/442a6bf555914893e9891c11519de94f" target="_blank" rel="noreferrer"><span>01 · Idea</span><strong>Andrej Karpathy — LLM Wiki</strong><small>Original gist · April 4, 2026</small></a>
+        <a href="https://github.com/langchain-ai/openwiki" target="_blank" rel="noreferrer"><span>02 · Tool</span><strong>LangChain — OpenWiki</strong><small>Source, install, modes, and operations</small></a>
+        <a href="https://www.langchain.com/blog/openwiki-0-2-adds-okf-support" target="_blank" rel="noreferrer"><span>03 · Adoption</span><strong>OpenWiki 0.2 adds OKF</strong><small>LangChain · July 16, 2026</small></a>
+        <a href="https://cloud.google.com/blog/products/data-analytics/how-the-open-knowledge-format-can-improve-data-sharing" target="_blank" rel="noreferrer"><span>04 · Format</span><strong>Google Cloud — Introducing OKF</strong><small>Announcement · June 12, 2026</small></a>
+        <a href="https://github.com/GoogleCloudPlatform/knowledge-catalog/blob/main/okf/SPEC.md" target="_blank" rel="noreferrer"><span>05 · Specification</span><strong>Open Knowledge Format v0.1</strong><small>Apache-2.0 specification</small></a>
+      </div>
+    </section>
+
+    <footer class="llmw-footer">
+      <div><span class="llmw-footer-mark">LW</span><p><strong>Make knowledge compound.</strong><br />An interactive field guide by Restato.</p></div>
+      <a href="#llm-wiki-top">Back to the beginning ↑</a>
+    </footer>
+  </main>
+</BaseLayout>
