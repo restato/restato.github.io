@@ -1,0 +1,17 @@
+{
+  "updatedAt": "2026-07-18T00:00:00+09:00",
+  "threshold": 85,
+  "candidates": [
+    {
+      "id": "content-os-launch",
+      "title": "Restato Content OS 구축기",
+      "topic": "AI 콘텐츠 자동화",
+      "score": 88,
+      "status": "ready",
+      "action": "new-post",
+      "sourceType": "project",
+      "reason": "실제 저장소에 구축한 역할별 에이전트와 자동화 구조를 개발일지로 설명할 수 있음",
+      "updatedAt": "2026-07-18"
+    }
+  ]
+}
