@@ -76,4 +76,44 @@ describe('file selection results', () => {
     expect(screen.getByText('1320 × 2868px')).toBeInTheDocument();
   });
 
+  it('keeps the EXIF workflow empty when no file is selected', () => {
+    const { container } = render(<ExifViewer />);
+    const input = container.querySelector('input[type="file"]')!;
+
+    fireEvent.change(input, { target: { files: [] } });
+    expect(screen.queryByText('empty.jpg')).not.toBeInTheDocument();
+  });
+
+  it('replaces EXIF and metadata workflows when a second local file is selected', async () => {
+    const exif = render(<ExifViewer />);
+    const exifInput = exif.container.querySelector('input[type="file"]')!;
+    fireEvent.change(exifInput, { target: { files: [new File(['x'], 'first.jpg', { type: 'image/jpeg' })] } });
+    await screen.findByText('first.jpg');
+    fireEvent.change(exifInput, { target: { files: [new File(['y'], 'second.jpg', { type: 'image/jpeg' })] } });
+    expect(await screen.findByText('second.jpg')).toBeInTheDocument();
+    exif.unmount();
+
+    const metadata = render(<ImageMetadataViewer />);
+    const metadataInput = metadata.container.querySelector('input[type="file"]')!;
+    fireEvent.change(metadataInput, { target: { files: [new File(['x'], 'first.png', { type: 'image/png' })] } });
+    expect((await screen.findAllByText('first.png')).length).toBeGreaterThanOrEqual(2);
+    fireEvent.change(metadataInput, { target: { files: [new File(['y'], 'second.png', { type: 'image/png' })] } });
+    expect((await screen.findAllByText('second.png')).length).toBeGreaterThanOrEqual(2);
+  });
+
+  it('does not create a local preview for empty or non-image removal and screenshot selections', () => {
+    const remove = render(<BackgroundRemover />);
+    const removeInput = remove.container.querySelector('input[type="file"]')!;
+    fireEvent.change(removeInput, { target: { files: [] } });
+    fireEvent.change(removeInput, { target: { files: [new File(['x'], 'not-image.txt', { type: 'text/plain' })] } });
+    expect(screen.queryByRole('img', { name: 'Original' })).not.toBeInTheDocument();
+    remove.unmount();
+
+    const screenshot = render(<AppStoreScreenshotResizer />);
+    const screenshotInput = screenshot.container.querySelector('input[type="file"]')!;
+    fireEvent.change(screenshotInput, { target: { files: [] } });
+    fireEvent.change(screenshotInput, { target: { files: [new File(['x'], 'not-image.txt', { type: 'text/plain' })] } });
+    expect(screen.queryByRole('img', { name: 'Crop preview' })).not.toBeInTheDocument();
+  });
+
 });
