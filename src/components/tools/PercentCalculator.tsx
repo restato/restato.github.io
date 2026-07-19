@@ -14,7 +14,11 @@ export default function PercentCalculator() {
     const num1 = parseFloat(value1);
     const num2 = parseFloat(value2);
 
-    if (isNaN(num1) || isNaN(num2)) {
+    const hasZeroDenominator =
+      (calcType === 'whatPercent' && num2 === 0) ||
+      (calcType === 'percentChange' && num1 === 0);
+
+    if (isNaN(num1) || isNaN(num2) || hasZeroDenominator) {
       setResult(null);
       return;
     }
