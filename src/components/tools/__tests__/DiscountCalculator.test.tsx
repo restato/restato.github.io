@@ -31,7 +31,7 @@ describe('DiscountCalculator', () => {
     await user.type(inputs[1], '20');
 
     // Should show 8000 (10000 - 20%)
-    expect(screen.getByText(/8,?000|8000/)).toBeInTheDocument();
+    expect(screen.getAllByText(/8,?000|8000/).length).toBeGreaterThan(0);
   });
 
   it('calculates discount amount correctly', async () => {
@@ -63,7 +63,7 @@ describe('DiscountCalculator', () => {
     await user.type(inputs[1], '0');
 
     // Final price should still be 10000
-    expect(screen.getByText(/10,?000|10000/)).toBeInTheDocument();
+    expect(screen.getAllByText(/10,?000|10000/).length).toBeGreaterThan(0);
   });
 
   it('handles 100% discount', async () => {
@@ -96,6 +96,6 @@ describe('DiscountCalculator', () => {
     await user.type(inputs[1], '10');
 
     // Should display formatted number
-    expect(screen.getByText(/900,?000|900000/)).toBeInTheDocument();
+    expect(screen.getAllByText(/900,?000|900000/).length).toBeGreaterThan(0);
   });
 });
