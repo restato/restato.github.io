@@ -24,6 +24,24 @@ describe('project catalog', () => {
 
     expect(source).toContain('lang="en"');
     expect(source).toContain('lockLanguage={true}');
-    expect(source).toContain('including RoomFit 3D');
+    expect(source).toContain('RoomFit 3D');
+  });
+
+  it('publishes Local Price Extractor as an experimental public project', () => {
+    const extractor = projects.find((project) => project.slug === 'local-price-extractor');
+
+    expect(extractor).toMatchObject({
+      title: 'Local Price Extractor',
+      description: "Extract product prices locally with Chrome's built-in AI—no shopping-page backend required.",
+      icon: '🏷️',
+      badge: 'EXPERIMENTAL',
+      color: 'from-amber-500 to-orange-500',
+    });
+  });
+
+  it('includes Local Price Extractor in the project catalog metadata', () => {
+    const source = readFileSync(join(process.cwd(), 'src/pages/projects/index.astro'), 'utf8');
+
+    expect(source).toContain('including Local Price Extractor');
   });
 });

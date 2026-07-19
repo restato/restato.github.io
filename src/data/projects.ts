@@ -9,6 +9,14 @@ export interface ProjectCard {
 
 export const projects: ProjectCard[] = [
   {
+    slug: 'local-price-extractor',
+    title: 'Local Price Extractor',
+    description: "Extract product prices locally with Chrome's built-in AI—no shopping-page backend required.",
+    icon: '🏷️',
+    color: 'from-amber-500 to-orange-500',
+    badge: 'EXPERIMENTAL',
+  },
+  {
     slug: 'roomfit-3d',
     title: 'RoomFit 3D',
     description: 'Plan furniture layouts in a dimension-accurate 3D room with magnetic snapping and fit checks.',
