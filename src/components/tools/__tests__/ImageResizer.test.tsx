@@ -11,8 +11,6 @@ vi.mock('react-image-crop', () => ({
 
 const mockCreateObjectURL = vi.fn(() => 'blob:mock-url');
 const mockRevokeObjectURL = vi.fn();
-global.URL.createObjectURL = mockCreateObjectURL;
-global.URL.revokeObjectURL = mockRevokeObjectURL;
 
 const mockDrawImage = vi.fn();
 const mockClearRect = vi.fn();
@@ -69,6 +67,10 @@ const uploadImage = async () => {
 describe('ImageResizer', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    vi.stubGlobal('URL', {
+      createObjectURL: mockCreateObjectURL,
+      revokeObjectURL: mockRevokeObjectURL,
+    });
     Object.defineProperty(global, 'Image', { configurable: true, writable: true, value: MockImage });
     Object.defineProperty(HTMLCanvasElement.prototype, 'getContext', {
       configurable: true,
@@ -89,6 +91,7 @@ describe('ImageResizer', () => {
 
   afterEach(() => {
     Object.defineProperty(global, 'Image', { configurable: true, writable: true, value: OriginalImage });
+    vi.unstubAllGlobals();
   });
 
   it('renders drop zone initially', () => {

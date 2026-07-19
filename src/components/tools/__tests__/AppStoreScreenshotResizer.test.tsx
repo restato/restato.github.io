@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import './testUtils';
 
@@ -12,14 +12,20 @@ vi.mock('react-image-crop', () => ({
 // Mock URL.createObjectURL
 const mockCreateObjectURL = vi.fn(() => 'blob:mock-url');
 const mockRevokeObjectURL = vi.fn();
-global.URL.createObjectURL = mockCreateObjectURL;
-global.URL.revokeObjectURL = mockRevokeObjectURL;
 
 import AppStoreScreenshotResizer from '../AppStoreScreenshotResizer';
 
 describe('AppStoreScreenshotResizer', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    vi.stubGlobal('URL', {
+      createObjectURL: mockCreateObjectURL,
+      revokeObjectURL: mockRevokeObjectURL,
+    });
+  });
+
+  afterEach(() => {
+    vi.unstubAllGlobals();
   });
 
   it('renders drop zone initially', () => {
