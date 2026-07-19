@@ -1,0 +1,200 @@
+---
+title: "Inside Palantir Ontology: Objects, Actions, and Governed AI"
+description: "A vendor-aware architecture analysis of Palantir Ontology, from objects and links to actions, functions, permissions, AIP Chatbots, evaluation, and platform trade-offs."
+date: 2026-07-20
+tags: ["Palantir", "Ontology", "AIP", "AI Agent", "Architecture"]
+---
+
+Calling Palantir Ontology a knowledge graph misses the part that matters most to an operating team. Objects and relationships supply the domain model, but Palantir also connects that model to transactions, business logic, permissions, audit records, application SDKs, and AI workflows.
+
+That integration is the product's architectural proposition. It is also the source of its trade-offs. **Palantir Ontology is best evaluated as a governed application and action platform, not as a graph feature in isolation.**
+
+This article analyzes current public documentation checked on July 20, 2026. Product capabilities and security statements are attributed to Palantir. The build-versus-buy conclusions are engineering interpretation; they are not benchmark results or first-hand Foundry testing.
+
+The first article in this series, *Ontology as the Operating Layer for AI Agents*, develops the vendor-neutral foundation. The [graph database and ontology guide](/blog/ai-engineer-graph-databases-ontology/) covers RDF, OWL, Neo4j, and GraphRAG.
+
+## What Palantir means by Ontology
+
+Palantir's [Ontology overview](https://www.palantir.com/docs/foundry/ontology/overview) calls the Ontology an "operational layer" over datasets, virtual tables, and models. It maps those digital assets to real-world counterparts such as equipment, products, customer orders, and financial transactions.
+
+The documentation divides the model into two broad groups:
+
+- Semantic elements describe objects, properties, links, and interfaces.
+- Kinetic elements define actions, functions, and dynamic security used to change or act on the modeled world.
+
+Palantir also describes the result as a digital twin of the organization. That is the vendor's framing, not an independent conclusion. A useful technical reading is narrower: the Ontology supplies a typed domain API shared across Palantir's analytical and operational applications.
+
+The [core concepts documentation](https://www.palantir.com/docs/foundry/ontology/core-concepts) maps familiar dataset structures to ontology structures:
+
+| Dataset concept | Ontology concept |
+|---|---|
+| Dataset | Object type |
+| Row | Object |
+| Column | Property |
+| Field value | Property value |
+| Join | Link type |
+
+This analogy helps with onboarding, but the ontology adds metadata, relationships, actions, roles, functions, interfaces, and application behavior that a table definition does not express.
+
+## The semantic layer: objects, properties, links, and interfaces
+
+An object type defines an entity or event such as `Customer`, `Order`, `Shipment`, or `Facility`. An object is one instance. Properties describe characteristics, and link types define relationships between object types.
+
+A commerce model might look like this:
+
+```text
+Customer ──placed──▶ Order ──contains──▶ OrderLine
+                         │
+                         ├──allocated_from──▶ Facility
+                         └──fulfilled_by────▶ Shipment
+```
+
+The point is not the graph drawing. The object IDs, metadata, links, and source mappings need to remain consistent across applications. Shared properties centralize metadata used by several types. Interfaces add polymorphism, allowing different object types to expose a common shape and capabilities.
+
+None of this automatically fixes source data. Identity resolution, freshness, mapping quality, and ownership still need engineering and governance. The Ontology provides a place to express the result; it does not remove the work required to reach agreement.
+
+## The kinetic layer: actions and functions
+
+This is where Palantir's model departs from a conventional semantic layer.
+
+An [action type](https://www.palantir.com/docs/foundry/action-types/overview) defines a set of changes to objects, properties, and links that a user can take as one transaction. It can include parameters, rules, validation, and side effects such as notifications or external-system calls.
+
+Consider an `ExpediteShipment` action. It might accept an `Order`, a target service level, and a reason. Its rules could verify that the order is still open, calculate the cost difference, link a new decision record, update the shipment, and notify an operations queue.
+
+Palantir's documentation says the same action logic and validation can be made available across user-facing applications. That reuse is important. A Workshop app, an AIP workflow, and an external client can operate against the same business action instead of rebuilding validation in three interfaces.
+
+[Functions](https://www.palantir.com/docs/foundry/functions/overview) provide server-side code for logic that is harder to express as configuration. They can read object properties, traverse links, return object sets, compute values, make ontology edits, back complex actions, and query external systems. Palantir documents TypeScript and Python support.
+
+Actions and Functions have different architectural roles:
+
+| Primitive | Main responsibility |
+|---|---|
+| Object and link type | Describe the business world |
+| Function | Compute or execute reusable logic |
+| Action type | Define a governed business transaction and its side effects |
+
+This separation is cleaner than exposing arbitrary functions directly to an LLM. The action provides a stable business contract; the function can evolve behind it.
+
+## Authorization is layered, not automatic
+
+"Governed action" can sound as if the platform makes authorization mistakes impossible. The documentation describes a more complicated and realistic system.
+
+[Object permissioning](https://www.palantir.com/docs/foundry/object-permissioning/overview) distinguishes ontology resources, such as type definitions, from the object and link data itself. Roles control access to ontological resources. Data access can depend on underlying sources and security policies.
+
+The [Action permissions documentation](https://www.palantir.com/docs/foundry/action-types/permissions) adds several checks. Whether a user can apply an action may depend on:
+
+- Visibility into the edited object and link types and their data sources
+- Submission criteria using identity, group, or action parameters
+- Edit permissions on writeback datasets
+- Edit policy for restricted-view-backed types
+- The object's configuration for action-only or broader editing
+
+New object types default to allowing edits only through actions, according to the documentation. Palantir discourages broader edit paths for new usage because granting dataset edit permissions may expose more data than the user needs for the workflow.
+
+There is still configuration risk. The person defining an action must ensure that permissions on affected underlying types are correct. A platform can centralize policy checks; it cannot decide the organization's intended policy by itself.
+
+## Decisions become ontology data
+
+An operational system needs to explain what changed after the chat window is gone. Palantir's [Action log](https://www.palantir.com/docs/foundry/action-types/action-log) can model each action submission as an object linked to the objects it edited.
+
+Default log fields include the action identifier, action type and version, timestamp, submitting user, and edited object IDs. A log may also capture a summary, parameter values, and selected contextual properties.
+
+This design treats the decision as domain data rather than a generic text log. A batch action that closes ten alerts can produce one decision object linked to all ten. Investigators can ask what changed, who submitted it, which version of the action ran, and what the modeled world looked like at the time.
+
+Action logs do not capture every possible detail automatically. Palantir distinguishes action logging from object edit history, and function-backed actions require edits provenance configuration. Teams still need to choose which context is necessary for audit, privacy, and debugging.
+
+## Where AIP fits
+
+The current product name is [AIP Chatbot Studio](https://www.palantir.com/docs/foundry/chatbot-studio/overview). Palantir notes that it was previously called AIP Agent Studio, and AIP Chatbots were previously called AIP Agents.
+
+AIP Chatbots can use LLMs, the Ontology, documents, and custom tools. They can be embedded in Palantir applications or exposed through platform APIs and the Ontology SDK. Palantir describes them as supporting context-aware read and write workflows under the platform's security model.
+
+The runtime pattern looks like this:
+
+```text
+user request
+   ↓
+AIP Chatbot
+   ├── retrieve documents
+   ├── read ontology objects and links
+   ├── call custom tools or functions
+   └── propose or execute bounded actions
+          ↓
+permissions, validation, writeback, action log
+```
+
+The diagram shows a documented capability path, not a guarantee of safe behavior. An LLM can still resolve the wrong object, select the wrong available action, or generate invalid arguments. The action and permission boundaries reduce the blast radius only when they are configured and tested correctly.
+
+## Interfaces, logs, and evaluation
+
+Palantir exposes the Ontology to both applications and external agents.
+
+The [Ontology SDK](https://www.palantir.com/docs/foundry/ontology-sdk/overview) generates types and functions from the subset of the Ontology relevant to an application. Palantir documents TypeScript, Python, Java, and OpenAPI paths. Access combines an application token scoped to selected ontological entities with the user's own data permissions.
+
+[Ontology MCP](https://www.palantir.com/docs/foundry/ontology-mcp/overview) exposes selected object types, action types, and query functions as Model Context Protocol tools. External AI agents can discover those tools, read objects, execute predefined actions, and query data. Application restrictions and permissions constrain which resources and actions are available.
+
+Palantir distinguishes Ontology MCP from Palantir MCP:
+
+- Ontology MCP is for consumers that read and perform controlled writes against production ontology data.
+- Palantir MCP is for builders modifying ontology structure and development resources; the documentation says it cannot write actual ontology data.
+
+The distinction reduces one common ambiguity in agent platforms: building the control plane and using the production action plane are different authorities.
+
+For observability, [AIP Chatbot session logging](https://www.palantir.com/docs/foundry/chatbot-studio/session-logging) records user requests, model messages, tool calls, parsed tool inputs, results, duration, final responses, and errors. The documented fields support conversation reconstruction and analysis of tool success, latency, and retries.
+
+[AIP Evals](https://www.palantir.com/docs/foundry/aip-evals/overview) provides test cases, target functions, evaluation functions, and metrics. Teams can compare function versions or models and examine variance across repeated runs. This is a testing capability, not evidence that a particular chatbot performs well. Quality still depends on the cases, metrics, deployment context, and release criteria a team defines.
+
+## What you buy and what you couple yourself to
+
+The integrated platform can absorb a large amount of glue work:
+
+| Capability | Palantir-integrated path | Composable path |
+|---|---|---|
+| Domain semantics | Object types, properties, links, interfaces | Application types, RDF/OWL, knowledge graph, or semantic model |
+| Validation and transactions | Action rules, submission criteria, writeback | Schema validators, services, workflow engine, database transactions |
+| Business logic | Functions | Application or serverless code |
+| Policy and authorization | Roles, object security, source controls, action criteria | Identity provider, policy engine, resource service |
+| Agent interface | AIP Chatbots, Ontology MCP, OSDK | Agent runtime, MCP server, typed API clients |
+| Audit and evaluation | Action logs, session logs, AIP Evals | Event store, traces, evaluation pipeline |
+
+This is a responsibility map, not a feature-parity claim. A standards-based stack can expose similar boxes on a diagram while requiring much more integration and operational ownership. Conversely, an organization may already have mature identity, workflow, policy, and data platforms that make a second integrated control plane expensive.
+
+Central management and generated types can speed up application work. They also couple data models, actions, permissions, SDKs, and workflows to Palantir concepts and operating practices. Migration cost is likely to rise as more applications depend on those contracts. That is an engineering inference from the documented integration points; Palantir does not publish a general migration-cost measure.
+
+Public list pricing, typical implementation effort, customer ROI, and performance were not available in the public technical documentation reviewed for this article. A serious evaluation needs organization-specific commercial terms and a representative pilot.
+
+## A build-versus-buy decision framework
+
+Palantir is a plausible candidate when the problem is broader than adding chat to one application. Evaluate it against the following questions:
+
+1. Do several operational workflows need the same object and action model?
+2. How difficult is it to integrate source-level security and data lineage today?
+3. Which decisions require consistent writeback, approval, and audit across applications?
+4. Does the organization already run Foundry, or would this create a new platform boundary?
+5. Which custom policies, interfaces, or external systems must remain outside Palantir?
+6. How important are portability and independent component replacement?
+7. Who will own ontology definitions, mappings, actions, and release governance?
+8. Can a bounded pilot measure integration time, operator adoption, error paths, and business outcomes?
+
+The answer should not come from a product demo. Build one workflow with messy source data, real permission boundaries, a material write action, and an evaluation set. Compare the result with the integration work required in the existing stack.
+
+## Conclusion
+
+Palantir Ontology is more than an object graph. Its architecture connects business semantics to server-side logic, governed actions, layered permissions, decision logs, typed application access, and AI tooling.
+
+That integration can remove years of duplicated glue work in an organization with many shared operational workflows. It can also create deep platform and operating-model coupling. Evaluate the product at that level. If the requirement is only semantic search or a small knowledge graph, the integrated surface may be unnecessary. If the requirement is to let people and agents make controlled decisions across fragmented systems, the complete action path is the relevant unit of comparison.
+
+## Primary sources
+
+- [Palantir Ontology overview](https://www.palantir.com/docs/foundry/ontology/overview)
+- [Ontology core concepts](https://www.palantir.com/docs/foundry/ontology/core-concepts)
+- [Action types overview](https://www.palantir.com/docs/foundry/action-types/overview)
+- [Action permissions](https://www.palantir.com/docs/foundry/action-types/permissions)
+- [Action log](https://www.palantir.com/docs/foundry/action-types/action-log)
+- [Functions overview](https://www.palantir.com/docs/foundry/functions/overview)
+- [Object permissioning](https://www.palantir.com/docs/foundry/object-permissioning/overview)
+- [AIP Chatbot Studio overview](https://www.palantir.com/docs/foundry/chatbot-studio/overview)
+- [AIP Chatbot session logging](https://www.palantir.com/docs/foundry/chatbot-studio/session-logging)
+- [AIP Evals](https://www.palantir.com/docs/foundry/aip-evals/overview)
+- [Ontology MCP](https://www.palantir.com/docs/foundry/ontology-mcp/overview)
+- [Ontology SDK](https://www.palantir.com/docs/foundry/ontology-sdk/overview)
