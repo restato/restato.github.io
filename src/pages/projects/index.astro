@@ -1,44 +1,11 @@
 ---
 import MainLayout from '../../layouts/MainLayout.astro';
+import { projects } from '../../data/projects';
 
-const pageDescription = "A collection of personal projects, practical apps, and tools including PasteDock, Quick Issue, JobWorld Kids Planner, and mini games.";
-
-const projects = [
-  {
-    slug: 'pastedock',
-    title: 'PasteDock',
-    description: 'Menu bar clipboard manager for macOS',
-    icon: '📋',
-    color: 'from-emerald-500 to-teal-500',
-    badge: 'NEW',
-  },
-  {
-    slug: 'jobworld-kids',
-    title: 'JobWorld Kids Planner',
-    description: 'Schedule planner for the Korea JobWorld Kids Experience Center',
-    icon: '🎪',
-    color: 'from-blue-500 to-cyan-500',
-    badge: 'NEW',
-  },
-  {
-    slug: 'quick-issue',
-    title: 'Quick Issue',
-    description: 'Mobile-first PWA for creating GitHub issues in seconds',
-    icon: '⚡',
-    color: 'from-indigo-500 to-sky-500',
-    badge: 'NEW',
-  },
-  {
-    slug: 'games',
-    title: 'Game Center',
-    description: 'Collection of free online mini games',
-    icon: '🎮',
-    color: 'from-purple-500 to-pink-500',
-  },
-];
+const pageDescription = "A collection of personal projects, practical apps, and tools including RoomFit 3D, PasteDock, Quick Issue, JobWorld Kids Planner, and mini games.";
 ---
 
-<MainLayout title="Projects | Restato" description={pageDescription}>
+<MainLayout title="Projects | Restato" description={pageDescription} lang="en" lockLanguage={true}>
   <section class="py-16 px-4">
     <div class="max-w-5xl mx-auto">
       <!-- Header -->

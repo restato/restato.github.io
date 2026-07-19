@@ -19,15 +19,16 @@ interface Props {
   robots?: string;
   canonical?: string;
   lang?: 'ko' | 'en' | 'ja';
+  lockLanguage?: boolean;
   alternateUrls?: AlternateUrl[];
 }
 
-const { title, description, image, type, publishedTime, modifiedTime, author, robots, canonical, lang, alternateUrls } = Astro.props;
+const { title, description, image, type, publishedTime, modifiedTime, author, robots, canonical, lang, lockLanguage, alternateUrls } = Astro.props;
 ---
 
-<BaseLayout title={title} description={description} image={image} type={type} publishedTime={publishedTime} modifiedTime={modifiedTime} author={author} robots={robots} canonical={canonical} lang={lang} alternateUrls={alternateUrls}>
+<BaseLayout title={title} description={description} image={image} type={type} publishedTime={publishedTime} modifiedTime={modifiedTime} author={author} robots={robots} canonical={canonical} lang={lang} lockLanguage={lockLanguage} alternateUrls={alternateUrls}>
   <slot name="head" slot="head" />
-  <Header />
+  <Header lang={lang} lockLanguage={lockLanguage} />
   <main class="flex-1">
     <slot />
   </main>

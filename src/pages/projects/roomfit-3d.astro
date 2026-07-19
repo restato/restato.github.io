@@ -1,0 +1,195 @@
+---
+import MainLayout from '../../layouts/MainLayout.astro';
+
+const pageTitle = 'RoomFit 3D | Plan Furniture in a Measured 3D Room';
+const pageDescription = 'Plan furniture layouts in a dimension-accurate 3D room with magnetic snapping and fit checks.';
+const appUrl = 'https://roomfit-3d.vercel.app';
+
+const features = [
+  {
+    title: 'Accurate Measurements',
+    description: 'Build a room from real dimensions and size every object in millimeters before moving anything at home.',
+  },
+  {
+    title: 'Magnetic Placement',
+    description: 'Snap objects cleanly to nearby walls while keeping their measured position visible as you arrange the room.',
+  },
+  {
+    title: 'Fit Checks',
+    description: 'See boundary, collision, door-swing, clearance, and aisle warnings while you test a layout.',
+  },
+  {
+    title: 'Local-First Storage',
+    description: 'Autosave projects in the browser and import or export versioned JSON without creating an account.',
+  },
+];
+
+const techStack = [
+  { label: 'Interface', value: 'React, TypeScript' },
+  { label: '3D Rendering', value: 'Three.js, React Three Fiber' },
+  { label: 'State and Build', value: 'Zustand, Vite' },
+  { label: 'Testing', value: 'Vitest, Playwright' },
+];
+
+const appSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'SoftwareApplication',
+  name: 'RoomFit 3D',
+  description: pageDescription,
+  applicationCategory: 'DesignApplication',
+  operatingSystem: 'Web Browser',
+  offers: {
+    '@type': 'Offer',
+    price: '0',
+    priceCurrency: 'USD',
+  },
+  url: appUrl,
+};
+
+const breadcrumbSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'BreadcrumbList',
+  itemListElement: [
+    {
+      '@type': 'ListItem',
+      position: 1,
+      name: 'Home',
+      item: 'https://restato.github.io/',
+    },
+    {
+      '@type': 'ListItem',
+      position: 2,
+      name: 'Projects',
+      item: 'https://restato.github.io/projects/',
+    },
+    {
+      '@type': 'ListItem',
+      position: 3,
+      name: 'RoomFit 3D',
+      item: 'https://restato.github.io/projects/roomfit-3d',
+    },
+  ],
+};
+---
+
+<MainLayout title={pageTitle} description={pageDescription} lang="en" lockLanguage={true}>
+  <script type="application/ld+json" set:html={JSON.stringify(appSchema)} />
+  <script type="application/ld+json" set:html={JSON.stringify(breadcrumbSchema)} />
+
+  <section class="relative overflow-hidden py-16 px-4 bg-gradient-to-b from-cyan-500/10 via-indigo-500/5 to-transparent">
+    <div class="absolute inset-0 pointer-events-none" aria-hidden="true">
+      <div class="absolute -top-24 right-0 w-72 h-72 rounded-full bg-cyan-400/10 blur-3xl"></div>
+      <div class="absolute top-20 -left-24 w-72 h-72 rounded-full bg-indigo-500/10 blur-3xl"></div>
+    </div>
+
+    <div class="relative max-w-5xl mx-auto">
+      <nav aria-label="Breadcrumb" class="mb-8 text-sm text-[var(--color-text-muted)] flex items-center gap-2">
+        <a href="/" class="hover:text-[var(--color-text)] transition-colors">Home</a>
+        <span aria-hidden="true">/</span>
+        <a href="/projects" class="hover:text-[var(--color-text)] transition-colors">Projects</a>
+        <span aria-hidden="true">/</span>
+        <span class="text-[var(--color-text)]" aria-current="page">RoomFit 3D</span>
+      </nav>
+
+      <div class="max-w-3xl">
+        <div class="flex flex-wrap items-center gap-2 mb-5">
+          <span class="text-4xl mr-1" aria-hidden="true">🛋️</span>
+          <span class="inline-flex items-center px-3 py-1 text-sm font-medium rounded-full bg-cyan-500/10 text-cyan-700 dark:text-cyan-300">
+            3D Planner
+          </span>
+          <span class="inline-flex items-center px-3 py-1 text-sm font-medium rounded-full bg-indigo-500/10 text-indigo-700 dark:text-indigo-300">
+            Dimension Accurate
+          </span>
+          <span class="inline-flex items-center px-3 py-1 text-sm font-medium rounded-full bg-emerald-500/10 text-emerald-700 dark:text-emerald-300">
+            No Sign-Up
+          </span>
+        </div>
+
+        <h1 class="text-4xl md:text-6xl font-bold tracking-tight mb-5">RoomFit 3D</h1>
+        <p class="text-xl md:text-2xl leading-relaxed text-[var(--color-text-muted)] mb-8">
+          Measure the room, place simple furniture shapes, and find layout problems before the furniture arrives.
+        </p>
+
+        <a
+          href={appUrl}
+          target="_blank"
+          rel="noopener noreferrer"
+          class="inline-flex items-center px-6 py-3 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-semibold shadow-lg shadow-indigo-500/20 transition-all hover:-translate-y-0.5"
+        >
+          Open Live App
+          <svg class="w-5 h-5 ml-2" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 4h6m0 0v6m0-6L10 14M5 8v11h11" />
+          </svg>
+        </a>
+
+        <div class="grid sm:grid-cols-3 gap-3 mt-10">
+          <div class="p-4 rounded-xl border border-[var(--color-border)] bg-[var(--color-card)]/80 backdrop-blur">
+            <p class="text-xs uppercase tracking-wide text-[var(--color-text-muted)] mb-1">Platform</p>
+            <p class="font-semibold">Web Browser</p>
+          </div>
+          <div class="p-4 rounded-xl border border-[var(--color-border)] bg-[var(--color-card)]/80 backdrop-blur">
+            <p class="text-xs uppercase tracking-wide text-[var(--color-text-muted)] mb-1">Focus</p>
+            <p class="font-semibold">3D Furniture Planning</p>
+          </div>
+          <div class="p-4 rounded-xl border border-[var(--color-border)] bg-[var(--color-card)]/80 backdrop-blur">
+            <p class="text-xs uppercase tracking-wide text-[var(--color-text-muted)] mb-1">Storage</p>
+            <p class="font-semibold">Local Browser Storage</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="py-16 px-4">
+    <div class="max-w-5xl mx-auto">
+      <div class="max-w-2xl mb-10">
+        <p class="text-sm font-semibold uppercase tracking-wider text-cyan-600 dark:text-cyan-400 mb-3">Plan with confidence</p>
+        <h2 class="text-3xl md:text-4xl font-bold mb-4">A simple answer to “will it fit?”</h2>
+        <p class="text-lg text-[var(--color-text-muted)]">
+          RoomFit keeps the model intentionally simple: measured rooms and geometric objects that make spacing decisions easy to inspect.
+        </p>
+      </div>
+
+      <div class="grid md:grid-cols-2 gap-6">
+        {features.map((feature, index) => (
+          <article class="group p-6 rounded-2xl border border-[var(--color-border)] bg-[var(--color-card)] hover:border-cyan-500/40 transition-colors">
+            <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-cyan-500 to-indigo-500 text-white flex items-center justify-center font-bold mb-5 shadow-md">
+              {index + 1}
+            </div>
+            <h3 class="text-xl font-semibold mb-2">{feature.title}</h3>
+            <p class="leading-relaxed text-[var(--color-text-muted)]">{feature.description}</p>
+          </article>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <section class="py-16 px-4 border-t border-[var(--color-border)] bg-[var(--color-card)]/30">
+    <div class="max-w-5xl mx-auto">
+      <h2 class="text-3xl font-bold mb-8">Built for a responsive 3D workflow</h2>
+      <div class="grid sm:grid-cols-2 gap-4">
+        {techStack.map((item) => (
+          <div class="p-5 rounded-xl border border-[var(--color-border)] bg-[var(--color-card)]">
+            <p class="text-sm uppercase tracking-wide text-[var(--color-text-muted)] mb-2">{item.label}</p>
+            <p class="font-semibold text-lg">{item.value}</p>
+          </div>
+        ))}
+      </div>
+
+      <div class="mt-10 p-6 md:p-8 rounded-2xl bg-gradient-to-r from-cyan-600 to-indigo-600 text-white flex flex-col md:flex-row md:items-center md:justify-between gap-6">
+        <div>
+          <h2 class="text-2xl font-bold mb-2">Try your room in 3D</h2>
+          <p class="text-cyan-50">Start with the measurements you already have. No account required.</p>
+        </div>
+        <a
+          href={appUrl}
+          target="_blank"
+          rel="noopener noreferrer"
+          class="inline-flex shrink-0 items-center justify-center px-5 py-3 rounded-xl bg-white text-indigo-700 hover:bg-cyan-50 font-semibold transition-colors"
+        >
+          Launch RoomFit 3D
+        </a>
+      </div>
+    </div>
+  </section>
+</MainLayout>
