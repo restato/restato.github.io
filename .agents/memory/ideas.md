@@ -21,3 +21,12 @@
 - search-intent: GPT-5.6 모델 비교, API 가격, Sol Terra Luna 선택, GPT-5.5 마이그레이션
 - update-existing: false
 - notes: 2026-07-19 `/blog/gpt-5-6-sol-terra-luna-api-guide/`로 발행. 출시 요약보다 모델 라우팅과 실제 비용 판단에 집중함
+
+## GPT-5.6 production agent engineering guide
+- status: published
+- source: 사용자 직접 요청, OpenAI 공식 GPT-5.6 출시 자료와 API 모델 문서
+- why-now: GPT-5.6 도구 사용과 장문 컨텍스트를 실제 에이전트 운영 아키텍처로 연결할 필요가 있었음
+- target-reader: GPT-5.6 기반 에이전트를 프로덕션에 도입하거나 평가하는 개발자
+- search-intent: GPT-5.6 agent engineering, tool permissions, model routing, agent evaluation
+- update-existing: false
+- notes: 2026-07-19 `/blog/gpt-5-6-agent-engineering-production-guide/`로 영문 발행. 이후 유사 주제는 이 글 업데이트를 우선 검토

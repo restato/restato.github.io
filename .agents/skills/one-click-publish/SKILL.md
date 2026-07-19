@@ -1,50 +1,55 @@
+---
+name: one-click-publish
+description: "Use when the user explicitly asks to turn a specified Restato topic or approved draft into a pull request with minimal coordination. Preserves evidence and build checks; never treats one-click as permission to push directly to the default branch or merge without approval."
+version: 2.0.0
+author: Restato
+license: MIT
+metadata:
+  hermes:
+    tags: [content, publishing, pull-request]
+    related_skills: [restato-content-partner]
+---
+
 # One Click Publish
 
-## 트리거 예시
-- "이 주제로 글 써서 올려"
-- "1, 3번 발행해"
-- "최근 커밋으로 개발일지 올려"
-- "기존 Claude Code 글 업데이트해"
+## Purpose
 
-## 실행 모드
-사용자가 직접 주제를 지정하면 즉시 실행한다. 자동 탐색 모드의 85점 임계값은 적용하지 않지만 사실 검증, 중복 검사, 리뷰 기준은 생략하지 않는다.
+이 스킬은 “이 주제로 글 써서 PR 만들어줘”, “이 초안 바로 올릴 준비해줘” 같은 빠른 실행 요청의 호환 진입점이다. 실제 정책과 파이프라인은 `restato-content-partner`를 따른다.
 
-## 파이프라인
-1. `.agents/CONTENT_POLICY.md`와 `.agents/WORKFLOW.md`를 읽는다.
-2. memory의 topics, published, ideas, style을 읽는다.
-3. 기존 글과 검색 의도를 비교한다.
-4. 공식 문서와 1차 자료를 조사한다.
-5. gap-finder로 차별화 관점을 정한다.
-6. planner → writer → seo-reviewer → reviewer 순서로 실행한다.
-7. 새 글 또는 기존 글 업데이트를 선택한다.
-8. MDX 스키마와 링크를 검사한다.
-9. 가능한 환경에서는 `npm run build`를 실행한다. 실행할 수 없으면 검증하지 못했다고 명시한다.
-10. 기본 브랜치에 커밋하고 결과를 보고한다.
-11. `.agents/memory/published.md`와 `.agents/memory/ideas.md`를 갱신한다.
+“One click”은 조사와 검증을 생략한다는 뜻이 아니다. 사용자가 원하는 방향이 이미 명확할 때 질문과 중간 보고를 줄인다는 뜻이다.
 
-## MDX 규칙
-경로: `src/content/blog/<english-kebab-case>.mdx`
+## Fast-track rules
 
-```mdx
----
-title: ""
-description: ""
-pubDate: 2026-07-18
-tags: ["", ""]
----
-```
+- 사용자가 주제만 지정하면 brief와 outline을 한 번에 제안하고 outline 승인을 받는다.
+- 사용자가 승인된 outline 또는 완성 초안을 제공하면 첫 승인 지점을 충족한 것으로 볼 수 있다.
+- 사용자가 “중간 승인 없이 PR까지”라고 명시하면 outline과 final draft 승인을 합칠 수 있다.
+- 사실 검증, 중복 검사, MDX 계약, editorial hard blockers, `npm run build`는 생략할 수 없다.
+- 기본 브랜치 직접 푸시와 자동 병합은 허용하지 않는다.
 
-실제 `src/content/config.ts` 스키마가 위와 다르면 스키마를 우선한다.
+## Pipeline
 
-## 완료 보고
-- 새 글/업데이트 여부
-- 제목
-- 파일 경로
-- 핵심 근거
-- 품질 점수
+1. `.agents/skills/restato-content-partner/SKILL.md`를 읽는다.
+2. 현재 `src/content/config.ts`와 관련 기존 글을 확인한다.
+3. 공식 자료와 실제 저장소를 조사한다.
+4. 사용자 지시에 맞는 승인 지점을 적용한다.
+5. 영문 MDX를 작성하거나 수정한다.
+6. editorial rubric과 `npm run build`를 통과한다.
+7. 승인 후 콘텐츠 브랜치에 커밋하고 PR을 만든다.
+8. CI와 예상 게시 URL을 보고한다.
+
+## Delivery report
+
+- 작업 유형: new | update
+- 제목과 파일 경로
+- 핵심 주장과 주요 출처
+- 실행한 검증과 실제 결과
 - 커밋 SHA
+- PR URL
 - 예상 게시 URL
-- 빌드 검증 여부
+- 남은 불확실성
 
-## 실패 처리
-근거가 부족하거나 사실 검증에 실패하면 억지로 발행하지 않는다. 어떤 정보가 부족했는지 명확히 보고한다.
+## Failure handling
+
+근거 부족, 스키마 오류, 새 빌드 실패, 중요한 미확인 주장 중 하나라도 있으면 PR을 만들지 않는다. 실패 원인과 필요한 다음 입력을 정확히 보고한다.
+
+PR 생성은 게시 완료가 아니다. 병합과 실제 URL 확인 전에는 `.agents/memory/published.md`에 발행 완료로 기록하지 않는다.

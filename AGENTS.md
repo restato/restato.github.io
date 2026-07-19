@@ -9,6 +9,11 @@ Core application code lives in `src/`:
 
 Static files are in `public/`; generated job data is `public/data/jobs.json`. Build/automation scripts are in `scripts/` (`scrape-jobs.mjs`, `generate-sitemaps.mjs`).
 
+## Content Collaboration Workflow
+For technical blog planning, writing, review, or publication, start with `.agents/skills/restato-content-partner/SKILL.md`. Published technical articles default to English. The normal workflow requires outline approval, final-draft approval, a successful `npm run build`, and delivery through a pull request rather than a direct push to the default branch.
+
+Treat `src/content/config.ts` as the source of truth for frontmatter. Supporting editorial references and templates live under `.agents/skills/restato-content-partner/`.
+
 ## Build, Test, and Development Commands
 - `npm install`: install dependencies.
 - `npm run dev`: start Astro dev server.

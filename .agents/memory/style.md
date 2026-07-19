@@ -1,11 +1,31 @@
-# Restato 문체
+# Restato editorial style memory
 
-- 한국어 존댓말을 기본으로 한다.
-- 첫 문단에서 문제와 얻을 결과를 바로 말한다.
-- 짧고 자연스러운 문장을 사용한다.
-- 번역투, 상투적인 AI 서론, 과장된 감탄을 피한다.
-- 코드와 실제 절차를 중심에 두고 설명은 필요한 만큼만 한다.
-- 직접 하지 않은 일을 직접 해본 것처럼 쓰지 않는다.
-- 실패·제약·트레이드오프를 숨기지 않는다.
-- 제목은 구체적이고 검색 의도가 드러나게 작성한다.
-- 결론은 핵심 판단과 다음 행동으로 끝낸다.
+## Language
+
+- Published technical blog posts are written in English.
+- Planning discussion and progress reports with direcision may be in Korean.
+- A different publication language requires an explicit per-article decision.
+
+## Voice
+
+- Lead with the reader's problem and the engineering conclusion.
+- Use direct, natural English for working engineers and technical decision-makers.
+- Prefer implementation details, operational consequences, and decision criteria over background summaries.
+- Avoid translated phrasing, chatbot openings, promotional adjectives, and generic optimism.
+- Use first-person experience only when repository history, test output, or user-provided facts support it.
+- State failures, limits, security boundaries, cost, and trade-offs precisely.
+- End with a concrete judgment and next action.
+
+## Structure
+
+- Use sentence-case headings.
+- Keep paragraphs focused and readable.
+- Add code, commands, tables, or checklists only when they help a reader act or choose.
+- Attribute vendor claims and separate documented facts, calculations, and engineering interpretation.
+- Prefer primary sources and specific internal links.
+
+## Reference article
+
+`src/content/blog/gpt-5-6-agent-engineering-production-guide.mdx` is the current golden sample for English technical voice and decision-oriented structure. It is not a source for future current facts.
+
+The full source of truth is `.agents/skills/restato-content-partner/references/editorial-style.md`.
