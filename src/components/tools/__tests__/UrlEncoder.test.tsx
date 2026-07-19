@@ -25,7 +25,7 @@ describe('UrlEncoder', () => {
     await user.type(input, 'hello world');
 
     const output = inputs[1];
-    expect(output.getAttribute('value')).toContain('hello%20world');
+    expect(output).toHaveValue('hello%20world');
   });
 
   it('encodes special characters correctly', async () => {
@@ -37,7 +37,7 @@ describe('UrlEncoder', () => {
     await user.type(input, 'test&param=value');
 
     const output = inputs[1];
-    expect(output.getAttribute('value')).toContain('%26');
+    expect(output).toHaveValue('test%26param%3Dvalue');
   });
 
   it('decodes URL correctly', async () => {
@@ -52,7 +52,7 @@ describe('UrlEncoder', () => {
     await user.type(input, 'hello%20world');
 
     const output = inputs[1];
-    expect(output.getAttribute('value')).toContain('hello world');
+    expect(output).toHaveValue('hello world');
   });
 
   it('handles Korean characters', async () => {
@@ -65,7 +65,7 @@ describe('UrlEncoder', () => {
 
     const output = inputs[1];
     // Korean characters should be percent-encoded
-    expect(output.getAttribute('value')).toMatch(/%[0-9A-Fa-f]{2}/);
+    expect((output as HTMLTextAreaElement).value).toMatch(/%[0-9A-Fa-f]{2}/);
   });
 
   it('copies output to clipboard', async () => {
@@ -90,6 +90,6 @@ describe('UrlEncoder', () => {
     const inputs = screen.getAllByRole('textbox');
     const output = inputs[1];
 
-    expect(output.getAttribute('value')).toBe('');
+    expect(output).toHaveValue('');
   });
 });
