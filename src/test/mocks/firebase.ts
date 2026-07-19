@@ -1,90 +1,119 @@
 import { vi } from 'vitest';
 
-// Mock database structure
-let mockDatabase: Record<string, any> = {};
+type JsonObject = Record<string, any>;
 
-function getData(path: string) {
-  if (path in mockDatabase) return mockDatabase[path];
+let mockDatabase: JsonObject = {};
+const subscriptions = new Map<string, Set<(snapshot: ReturnType<typeof snapshotFor>) => void>>();
 
-  const prefix = `${path}/`;
-  const children = Object.entries(mockDatabase)
-    .filter(([key]) => key.startsWith(prefix))
-    .reduce<Record<string, any>>((result, [key, value]) => {
-      const child = key.slice(prefix.length).split('/')[0];
-      result[child] = value;
-      return result;
-    }, {});
-
-  return Object.keys(children).length > 0 ? children : undefined;
+function pathParts(path: string): string[] {
+  return path.split('/').filter(Boolean);
 }
 
-// Mock Firebase App
-export const mockApp = {};
+function getData(path: string): any {
+  return pathParts(path).reduce<any>((current, part) => current?.[part], mockDatabase);
+}
 
-// Mock Database functions
-export const get = vi.fn((ref: any) => {
-  const path = ref._path;
+function setData(path: string, value: any): void {
+  const parts = pathParts(path);
+  if (parts.length === 0) {
+    mockDatabase = value;
+    return;
+  }
+
+  let current = mockDatabase;
+  for (const part of parts.slice(0, -1)) {
+    current[part] ??= {};
+    current = current[part];
+  }
+  current[parts.at(-1)!] = value;
+}
+
+function removeData(path: string): void {
+  const parts = pathParts(path);
+  if (parts.length === 0) {
+    mockDatabase = {};
+    return;
+  }
+
+  const parent = parts.slice(0, -1).reduce<any>((current, part) => current?.[part], mockDatabase);
+  if (parent && typeof parent === 'object') {
+    delete parent[parts.at(-1)!];
+  }
+}
+
+function snapshotFor(path: string) {
   const data = getData(path);
-
-  return Promise.resolve({
+  return {
     exists: () => data !== undefined,
     val: () => data,
-  });
-});
+  };
+}
+
+function notify(path: string): void {
+  for (const [subscriptionPath, callbacks] of subscriptions) {
+    if (path === subscriptionPath || path.startsWith(`${subscriptionPath}/`) || subscriptionPath.startsWith(`${path}/`)) {
+      const snapshot = snapshotFor(subscriptionPath);
+      callbacks.forEach((callback) => callback(snapshot));
+    }
+  }
+}
+
+export const mockApp = {};
+
+export const get = vi.fn((ref: any) => Promise.resolve(snapshotFor(ref._path)));
 
 export const set = vi.fn((ref: any, value: any) => {
-  const path = ref._path;
-  mockDatabase[path] = value;
+  setData(ref._path, value);
+  notify(ref._path);
   return Promise.resolve();
 });
 
 export const push = vi.fn((ref: any) => {
-  const path = ref._path;
   const key = `mock-key-${Date.now()}-${Math.random()}`;
-  const newRef = { _path: `${path}/${key}`, key };
-  return newRef;
+  return { _path: `${ref._path}/${key}`, key };
 });
 
 export const remove = vi.fn((ref: any) => {
-  const path = ref._path;
-  delete mockDatabase[path];
+  removeData(ref._path);
+  notify(ref._path);
   return Promise.resolve();
 });
 
-export const onValue = vi.fn((ref: any, callback: Function) => {
-  const path = ref._path;
+export const runTransaction = vi.fn(async (ref: any, update: (current: any) => any) => {
+  const next = update(getData(ref._path));
+  if (next === undefined) {
+    return { committed: false, snapshot: snapshotFor(ref._path) };
+  }
 
-  // Immediately call callback with current value
-  callback({
-    exists: () => getData(path) !== undefined,
-    val: () => getData(path),
+  setData(ref._path, next);
+  notify(ref._path);
+  return { committed: true, snapshot: snapshotFor(ref._path) };
+});
+
+export const onValue = vi.fn((ref: any, callback: (snapshot: ReturnType<typeof snapshotFor>) => void) => {
+  const callbacks = subscriptions.get(ref._path) ?? new Set();
+  callbacks.add(callback);
+  subscriptions.set(ref._path, callbacks);
+  callback(snapshotFor(ref._path));
+
+  return vi.fn(() => {
+    callbacks.delete(callback);
+    if (callbacks.size === 0) subscriptions.delete(ref._path);
   });
-
-  // Return unsubscribe function
-  return vi.fn();
 });
 
-export const ref = vi.fn((db: any, path?: string) => {
-  return {
-    _path: path || '',
-  };
-});
-
+export const ref = vi.fn((_: any, path = '') => ({ _path: path }));
 export const getDatabase = vi.fn(() => ({}));
-
 export const initializeApp = vi.fn(() => mockApp);
 
-// Helper function to reset mock database
 export const resetMockDatabase = () => {
   mockDatabase = {};
+  subscriptions.clear();
 };
 
-// Helper function to set mock data
 export const setMockData = (path: string, data: any) => {
-  mockDatabase[path] = data;
+  setData(path, data);
+  notify(path);
 };
 
-// Helper function to get mock data
-export const getMockData = (path: string) => {
-  return mockDatabase[path];
-};
+export const getMockData = (path: string) => getData(path);
