@@ -37,8 +37,20 @@ describe('localized tool page metadata', () => {
   it('filters fallback tool and anonymous-chat URLs out of the sitemap without removing public routes', () => {
     expect(isIndexableLocalizedToolUrl('/ko/tools/background-remover')).toBe(false);
     expect(isIndexableLocalizedToolUrl('/en/anonymous-chat')).toBe(false);
+    expect(isIndexableLocalizedToolUrl('/ko/tools/image-crop-resizer')).toBe(false);
     expect(isIndexableLocalizedToolUrl('/ko/tools')).toBe(true);
-    expect(isIndexableLocalizedToolUrl('/ko/tools/image-crop-resizer')).toBe(true);
+    expect(isIndexableLocalizedToolUrl('/en/blog/not-a-tool')).toBe(true);
+  });
+
+  it('exposes the anonymous-chat connection disclosure from the registry', () => {
+    const metadata = getLocalizedToolPageMetadata(getTool('anonymous-chat')!, 'en');
+
+    expect(metadata.privacy).toContain('PeerJS signaling');
+    expect(metadata.privacy).toContain('STUN-assisted direct WebRTC connection');
+    expect(metadata.privacy).toContain('intended peer');
+    expect(metadata.privacy).toContain('No TURN relay is configured');
+    expect(metadata.privacy).toContain('may fail when STUN cannot establish a path');
+    expect(metadata.privacy).toContain('room connection metadata may be temporarily recorded');
   });
 
   it('wires registry metadata and release filtering into localized route output', () => {
@@ -55,6 +67,8 @@ describe('localized tool page metadata', () => {
     expect(catalogSource).toContain('getPublishedTools');
     expect(catalogSource).toContain('getPublishedTools().map');
     expect(anonymousChatSource).toContain('getLocalizedToolPageMetadata');
+    expect(anonymousChatSource).toContain('const privacy = seo.privacy');
+    expect(anonymousChatSource).toContain('<p class="chat-privacy">{privacy}</p>');
     expect(anonymousChatSource).toContain('robots={robots}');
     expect(astroConfigSource).toContain('isIndexableLocalizedToolUrl');
     expect(astroConfigSource).toContain('filter: isIndexableLocalizedToolUrl');

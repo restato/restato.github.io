@@ -2,6 +2,7 @@ import { getIndexableLanguages, getTool } from './registry';
 import type { Language, ToolContent, ToolDefinition } from './types';
 
 const siteUrl = 'https://restato.github.io';
+const localizedRedirectToolSlugs = new Set(['image-crop-resizer']);
 
 export interface ToolAlternateUrl {
   lang: Language;
@@ -49,6 +50,8 @@ export function isIndexableLocalizedToolUrl(url: string): boolean {
   if (!match) return true;
 
   const [, lang, slug = 'anonymous-chat'] = match;
+  if (toolMatch && localizedRedirectToolSlugs.has(slug)) return false;
+
   const tool = getTool(slug);
 
   return !tool || getIndexableLanguages(tool).includes(lang as Language);

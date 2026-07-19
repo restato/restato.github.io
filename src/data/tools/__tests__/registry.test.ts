@@ -48,9 +48,9 @@ describe('toolsRegistry', () => {
   it('discloses non-local privacy behavior in every existing locale', () => {
     const expectedPhrases = {
       'anonymous-chat': {
-        ko: ['PeerJS', 'STUN을 사용해 직접 WebRTC 연결', '상대 피어', 'STUN으로 직접 연결을 설정하지 못할 수 있으며'],
-        en: ['PeerJS', 'STUN-assisted direct WebRTC connection', 'intended peer', 'direct connection may fail'],
-        ja: ['PeerJS', 'STUN を利用した直接の WebRTC 接続', '相手のピア', '直接接続を確立できない場合があります'],
+        ko: ['PeerJS', 'STUN을 사용해 직접 WebRTC 연결', 'TURN 릴레이는 구성하지 않습니다', '상대 피어', 'STUN으로 직접 연결을 설정하지 못할 수 있으며'],
+        en: ['PeerJS', 'STUN-assisted direct WebRTC connection', 'No TURN relay is configured', 'intended peer', 'direct connection may fail'],
+        ja: ['PeerJS', 'STUN を利用した直接の WebRTC 接続', 'TURN リレーは構成していません', '相手のピア', '直接接続を確立できない場合があります'],
       },
       'llm-cost': {
         ko: ['외부 환율 서비스', '전송되지'],
@@ -77,10 +77,10 @@ describe('toolsRegistry', () => {
     }
   });
 
-  it('does not claim TURN or relay behavior for anonymous chat', () => {
-    for (const language of ['ko', 'en', 'ja'] as const) {
-      expect(getTool('anonymous-chat')?.content[language]?.privacy).not.toMatch(/TURN|relay|릴레이|リレー/i);
-    }
+  it('discloses that anonymous chat has no TURN relay', () => {
+    expect(getTool('anonymous-chat')?.content.ko?.privacy).toContain('TURN 릴레이는 구성하지 않습니다');
+    expect(getTool('anonymous-chat')?.content.en?.privacy).toContain('No TURN relay is configured');
+    expect(getTool('anonymous-chat')?.content.ja?.privacy).toContain('TURN リレーは構成していません');
   });
 
   it('does not use the false generic no-data-sent statement for non-local modes', () => {
