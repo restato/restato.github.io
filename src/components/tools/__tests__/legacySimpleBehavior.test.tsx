@@ -313,6 +313,20 @@ describe('legacy simple tool behavior', () => {
     expect(inputs[0]).toHaveValue('after');
   });
 
+  it('clears diff output for empty input and compares non-Latin lines', () => {
+    const { container } = render(<DiffTool />);
+    const inputs = container.querySelectorAll('textarea');
+    fireEvent.change(inputs[0], { target: { value: 'before' } });
+    fireEvent.change(inputs[1], { target: { value: 'after' } });
+    expect(screen.getByText('+1 추가')).toBeInTheDocument();
+    fireEvent.change(inputs[0], { target: { value: '' } });
+    expect(screen.getByText('-1 삭제')).toBeInTheDocument();
+    fireEvent.change(inputs[0], { target: { value: '한국어' } });
+    fireEvent.change(inputs[1], { target: { value: '日本語' } });
+    expect(screen.getByText('+1 추가')).toBeInTheDocument();
+    expect(screen.getByText('-1 삭제')).toBeInTheDocument();
+  });
+
   it('changes a gradient angle and exposes the generated CSS', () => {
     const { container } = render(<GradientGenerator />);
     const angle = container.querySelector('input[type="range"]')!;
@@ -383,6 +397,17 @@ describe('legacy simple tool behavior', () => {
 
     fireEvent.change(screen.getByPlaceholderText('eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...'), { target: { value: 'broken' } });
     expect(screen.getByText('Invalid JWT format (should have 3 parts)')).toBeInTheDocument();
+  });
+
+  it('clears decoded JWT output and rejects a non-Latin token', () => {
+    render(<JwtDecoder />);
+    fireEvent.click(screen.getByRole('button', { name: '예제 불러오기' }));
+    expect(screen.getByText('HS256')).toBeInTheDocument();
+    const token = screen.getByPlaceholderText('eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...');
+    fireEvent.change(token, { target: { value: '' } });
+    expect(screen.queryByText('HS256')).not.toBeInTheDocument();
+    fireEvent.change(token, { target: { value: '한글.토큰.서명' } });
+    expect(screen.getByText('Failed to decode JWT')).toBeInTheDocument();
   });
 
   it('updates cron expression and its human-readable schedule from controls', () => {
