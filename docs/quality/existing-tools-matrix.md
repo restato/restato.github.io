@@ -27,7 +27,7 @@
 | gradient | ✓ | — | — | — | — | — | ✓ | ✓ | — |
 | box-shadow | ✓ | — | — | — | — | — | ✓ | ✓ | — |
 | image-resizer | — | — | — | — | — | — | ✓ | ✓ | ✓ |
-| exif | — | — | — | — | — | — | — | ✓ | ✓ |
+| exif | ✓ | — | — | — | ✓ | — | ✓ | ✓ | ✓ |
 | background-remover | — | — | — | — | — | — | — | ✓ | ✓ |
 | image-metadata | — | — | — | — | — | — | — | ✓ | ✓ |
 | appstore-screenshot | — | — | — | — | — | — | — | ✓ | ✓ |
