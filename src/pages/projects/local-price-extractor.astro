@@ -78,7 +78,7 @@ const breadcrumbSchema = {
             <span class="px-3 py-1 text-sm font-medium rounded-full bg-orange-500/10 text-orange-800 dark:text-orange-200">On-Device AI</span>
             <span class="px-3 py-1 text-sm font-medium rounded-full bg-emerald-500/10 text-emerald-800 dark:text-emerald-200">No Backend</span>
           </div>
-          <h1 class="text-4xl md:text-6xl font-bold tracking-tight mb-5">Local Price Extractor</h1>
+          <h1 class="text-4xl md:text-6xl font-bold tracking-tight text-balance mb-5">Local Price Extractor</h1>
           <p class="text-xl md:text-2xl leading-relaxed text-[var(--color-text-muted)] mb-8">
             Extract product prices from the page you are viewing with Chrome's built-in AI, without sending the page to a backend.
           </p>
@@ -92,7 +92,8 @@ const breadcrumbSchema = {
           </a>
         </div>
 
-        <div class="rounded-2xl border border-[var(--color-border)] bg-[var(--color-card)] p-5 shadow-xl" aria-label="Local extraction flow preview">
+        <figure class="rounded-2xl border border-[var(--color-border)] bg-[var(--color-card)] p-5 shadow-xl">
+          <figcaption class="sr-only">A shopping page is structured by Chrome on-device AI into validated product JSON.</figcaption>
           <div class="rounded-xl border border-[var(--color-border)] p-4 mb-3">
             <p class="text-xs uppercase tracking-wide text-[var(--color-text-muted)] mb-2">Active shopping page</p>
             <div class="h-3 w-4/5 rounded bg-[var(--color-border)] mb-2"></div>
@@ -105,7 +106,7 @@ const breadcrumbSchema = {
             <p>{`{ "title": "Product",`}</p>
             <p class="pl-4">{`"price": 29900 }`}</p>
           </div>
-        </div>
+        </figure>
       </div>
 
       <div class="grid sm:grid-cols-3 gap-3 mt-10">
@@ -119,7 +120,7 @@ const breadcrumbSchema = {
         </div>
         <div class="p-4 rounded-xl border border-[var(--color-border)] bg-[var(--color-card)]">
           <p class="text-xs uppercase text-[var(--color-text-muted)] mb-1">Tested fixture</p>
-          <p class="font-semibold">2 accepted · 0 rejected</p>
+          <p class="font-semibold tabular-nums">2 accepted · 0 rejected</p>
         </div>
       </div>
     </div>
@@ -128,7 +129,7 @@ const breadcrumbSchema = {
   <section class="py-16 px-4">
     <div class="max-w-5xl mx-auto">
       <p class="text-sm font-semibold uppercase tracking-wider text-orange-700 dark:text-orange-300 mb-3">How it works</p>
-      <h2 class="text-3xl md:text-4xl font-bold mb-8">Model output is only the first draft</h2>
+      <h2 class="text-3xl md:text-4xl font-bold text-balance mb-8">Model output is only the first draft</h2>
       <div class="grid md:grid-cols-3 gap-6">
         {workflow.map((item, index) => (
           <article class="p-6 rounded-2xl border border-[var(--color-border)] bg-[var(--color-card)]">
@@ -145,7 +146,7 @@ const breadcrumbSchema = {
     <div class="max-w-5xl mx-auto grid lg:grid-cols-2 gap-10">
       <div>
         <p class="text-sm font-semibold uppercase tracking-wider text-orange-700 dark:text-orange-300 mb-3">Install and try</p>
-        <h2 class="text-3xl font-bold mb-6">Load it directly from GitHub</h2>
+        <h2 class="text-3xl font-bold text-balance mb-6">Load it directly from GitHub</h2>
         <ol class="space-y-4">
           {installSteps.map((step, index) => (
             <li class="flex gap-4">
@@ -157,7 +158,7 @@ const breadcrumbSchema = {
         <p class="mt-6 text-sm text-[var(--color-text-muted)]">The first analysis can trigger an on-device model download. Progress appears in the extension popup.</p>
       </div>
       <aside class="p-6 rounded-2xl border border-amber-500/25 bg-amber-500/10 self-start">
-        <h2 class="text-2xl font-bold mb-3">Privacy boundary and limits</h2>
+        <h2 class="text-2xl font-bold text-balance mb-3">Privacy boundary and limits</h2>
         <p class="mb-4">The prototype has no backend and includes no remote scripts. Captured page content is processed inside the user's Chrome environment.</p>
         <p class="mb-4">Korean extraction is experimental because Korean is not currently an officially supported Prompt API language. The tested result is not a production reliability guarantee.</p>
         <p class="text-[var(--color-text-muted)]">Desktop Chrome must expose the built-in Prompt API and meet its on-device model hardware and storage requirements.</p>
@@ -167,7 +168,7 @@ const breadcrumbSchema = {
 
   <section class="py-16 px-4">
     <div class="max-w-5xl mx-auto">
-      <h2 class="text-3xl font-bold mb-8">Implementation evidence</h2>
+      <h2 class="text-3xl font-bold text-balance mb-8">Implementation evidence</h2>
       <div class="grid sm:grid-cols-2 gap-4 mb-10">
         {stack.map((item) => (
           <div class="p-5 rounded-xl border border-[var(--color-border)] bg-[var(--color-card)]">
