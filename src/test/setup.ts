@@ -24,6 +24,7 @@ Object.defineProperty(window, 'matchMedia', {
 
 // Mock navigator.clipboard
 Object.defineProperty(navigator, 'clipboard', {
+  configurable: true,
   value: {
     writeText: vi.fn(() => Promise.resolve()),
     readText: vi.fn(() => Promise.resolve('')),
@@ -53,10 +54,12 @@ Object.defineProperty(window, 'localStorage', {
   value: localStorageMock,
 });
 
-// Mock window.location
-delete (window as any).location;
-window.location = {
-  ...window.location,
-  hash: '',
-  origin: 'http://localhost:3000',
-} as any;
+window.history.replaceState({}, '', '/ko/tools/test');
+
+Object.defineProperty(HTMLCanvasElement.prototype, 'getContext', {
+  configurable: true,
+  value: vi.fn(() => ({ clearRect: vi.fn(), drawImage: vi.fn(), fillRect: vi.fn() })),
+});
+
+Object.defineProperty(URL, 'createObjectURL', { configurable: true, value: vi.fn(() => 'blob:test') });
+Object.defineProperty(URL, 'revokeObjectURL', { configurable: true, value: vi.fn() });
