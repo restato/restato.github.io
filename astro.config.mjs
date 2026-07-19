@@ -3,6 +3,7 @@ import mdx from '@astrojs/mdx';
 import react from '@astrojs/react';
 import sitemap from '@astrojs/sitemap';
 import tailwind from '@astrojs/tailwind';
+import { isIndexableLocalizedToolUrl } from './src/data/tools/pageMetadata';
 
 export default defineConfig({
   site: 'https://restato.github.io',
@@ -10,6 +11,7 @@ export default defineConfig({
     mdx(),
     react(),
     sitemap({
+      filter: isIndexableLocalizedToolUrl,
       i18n: {
         defaultLocale: 'ko',
         locales: {

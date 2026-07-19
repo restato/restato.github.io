@@ -1,9 +1,8 @@
 ---
 import MainLayout from '../../layouts/MainLayout.astro';
 import Chat from '../../components/Chat.tsx';
-import { anonymousChatSeo, type Language } from '../../data/tools';
-
-const languages: Language[] = ['ko', 'en', 'ja'];
+import { getTool, type Language } from '../../data/tools';
+import { getLocalizedToolPageMetadata } from '../../data/tools/pageMetadata';
 
 export function getStaticPaths() {
   return [
@@ -14,13 +13,11 @@ export function getStaticPaths() {
 }
 
 const { lang } = Astro.params as { lang: Language };
-const seo = anonymousChatSeo[lang];
-
-// Generate alternate URLs for hreflang
-const alternateUrls = languages.map(l => ({
-  lang: l,
-  url: `https://restato.github.io/${l}/anonymous-chat`
-}));
+const tool = getTool('anonymous-chat');
+if (!tool) {
+  throw new Error('Anonymous chat is missing from the tool registry');
+}
+const { content: seo, robots, alternateUrls } = getLocalizedToolPageMetadata(tool, lang);
 
 const pageTitle = `${seo.title} | Restato`;
 ---
@@ -29,6 +26,7 @@ const pageTitle = `${seo.title} | Restato`;
   title={pageTitle}
   description={seo.description}
   lang={lang}
+  robots={robots}
   alternateUrls={alternateUrls}
 >
   <div class="chat-container px-4 py-2">

@@ -5,6 +5,7 @@ import ShareButton from '../../../components/tools/ShareButton';
 import FavoriteButton from '../../../components/tools/FavoriteButton';
 import BookmarkPrompt from '../../../components/tools/BookmarkPrompt';
 import { getPublishedTools, type Language, type ToolDefinition } from '../../../data/tools';
+import { getLocalizedToolPageMetadata } from '../../../data/tools/pageMetadata';
 
 // Import all tool components explicitly (required for Astro hydration)
 import QRCodeGenerator from '../../../components/tools/QRCodeGenerator';
@@ -55,7 +56,6 @@ const uiStrings = {
     tools: '도구',
     usageGuide: '사용 안내',
     free: '완전 무료, 회원가입 불필요',
-    privacy: '모든 처리는 브라우저에서 실행 (데이터 서버 전송 없음)',
     responsive: '모바일, 태블릿, 데스크톱 모두 지원',
     multilang: '한국어, 영어, 일본어 지원',
   },
@@ -64,7 +64,6 @@ const uiStrings = {
     tools: 'Tools',
     usageGuide: 'Usage Guide',
     free: 'Completely free, no signup required',
-    privacy: 'All processing happens in your browser (no data sent to servers)',
     responsive: 'Works on mobile, tablet, and desktop',
     multilang: 'Supports Korean, English, and Japanese',
   },
@@ -73,13 +72,10 @@ const uiStrings = {
     tools: 'ツール',
     usageGuide: '使い方ガイド',
     free: '完全無料、会員登録不要',
-    privacy: 'すべての処理はブラウザで実行（サーバーへのデータ送信なし）',
     responsive: 'モバイル、タブレット、デスクトップ対応',
     multilang: '韓国語、英語、日本語対応',
   },
 };
-
-const languages: Language[] = ['ko', 'en', 'ja'];
 
 export function getStaticPaths() {
   const paths: { params: { lang: string; slug: string }; props: { tool: ToolDefinition; lang: Language } }[] = [];
@@ -97,19 +93,10 @@ export function getStaticPaths() {
 }
 
 const { tool, lang } = Astro.props;
-const content = tool.content[lang] ?? tool.content.ko;
-if (!content) {
-  throw new Error(`Missing localized content for ${tool.slug}`);
-}
-
+const { content, robots, alternateUrls } = getLocalizedToolPageMetadata(tool, lang);
+const privacy = content.privacy;
 const seo = content;
 const ui = uiStrings[lang];
-
-// Generate alternate URLs for hreflang
-const alternateUrls = languages.map(l => ({
-  lang: l,
-  url: `https://restato.github.io/${l}/tools/${tool.slug}`
-}));
 
 const pageTitle = `${seo.title} | Restato`;
 const canonicalUrl = `https://restato.github.io/${lang}/tools/${tool.slug}`;
@@ -167,6 +154,7 @@ const breadcrumbSchema = {
   title={pageTitle}
   description={seo.description}
   lang={lang}
+  robots={robots}
   alternateUrls={alternateUrls}
 >
   <script type="application/ld+json" set:html={JSON.stringify(appSchema)} />
@@ -259,7 +247,7 @@ const breadcrumbSchema = {
         </li>
         <li class="flex items-start gap-2">
           <span class="text-green-500">✓</span>
-          <span>{ui.privacy}</span>
+          <span>{privacy}</span>
         </li>
         <li class="flex items-start gap-2">
           <span class="text-green-500">✓</span>

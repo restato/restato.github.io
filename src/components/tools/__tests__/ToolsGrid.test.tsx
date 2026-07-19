@@ -21,4 +21,25 @@ describe('ToolsGrid', () => {
 
     expect(screen.getByRole('link', { name: /JSON/ })).toHaveAttribute('href', '/ko/tools/json');
   });
+
+  it.each([
+    ['en', 'Total 1 tools available.'],
+    ['ja', '合計 1個のツールがあります。'],
+  ] as const)('renders the tool count in the supplied %s locale during SSR', (lang, expectedCount) => {
+    const { container } = render(<ToolsGrid lang={lang} tools={[tool]} categories={[allCategory]} />);
+
+    expect(container).toHaveTextContent(expectedCount);
+  });
+
+  it('preserves an absolute special-route link', () => {
+    const chatTool = {
+      ...tool,
+      slug: '/ko/anonymous-chat',
+      title: { ko: '익명 채팅', en: 'Anonymous Chat', ja: '匿名チャット' },
+    };
+
+    render(<ToolsGrid lang="ko" tools={[chatTool]} categories={[allCategory]} />);
+
+    expect(screen.getByRole('link', { name: /익명 채팅/ })).toHaveAttribute('href', '/ko/anonymous-chat');
+  });
 });

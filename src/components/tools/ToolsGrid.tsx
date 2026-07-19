@@ -1,5 +1,4 @@
 import { useState } from 'react';
-import { useTranslation } from '../../i18n/useTranslation';
 import type { Language } from '../../i18n';
 
 interface Tool {
@@ -22,7 +21,6 @@ interface ToolsGridProps {
 }
 
 export default function ToolsGrid({ lang, tools, categories }: ToolsGridProps) {
-  const { t } = useTranslation();
   const [selectedCategory, setSelectedCategory] = useState('all');
 
   const filteredTools = selectedCategory === 'all'
@@ -32,6 +30,13 @@ export default function ToolsGrid({ lang, tools, categories }: ToolsGridProps) {
   const getLocalizedText = (obj: { ko: string; en: string; ja: string }) => {
     return obj[lang as keyof typeof obj] || obj.ko;
   };
+
+  const countCopy = {
+    ko: { prefix: '총', suffix: '의 도구가 있습니다.', unit: '개' },
+    en: { prefix: 'Total', suffix: ' tools available.', unit: '' },
+    ja: { prefix: '合計', suffix: 'のツールがあります。', unit: '個' },
+  };
+  const count = countCopy[lang as keyof typeof countCopy] || countCopy.ko;
 
   return (
     <div>
@@ -81,9 +86,9 @@ export default function ToolsGrid({ lang, tools, categories }: ToolsGridProps) {
 
       {/* Tool Count */}
       <div className="mt-8 text-center text-[var(--color-text-muted)]">
-        {t({ ko: '총', en: 'Total', ja: '合計' })}{' '}
-        <span className="font-bold text-[var(--color-text)]">{filteredTools.length}{t({ ko: '개', en: '', ja: '個' })}</span>
-        {t({ ko: '의 도구가 있습니다.', en: ' tools available.', ja: 'のツールがあります。' })}
+        {count.prefix}{' '}
+        <span className="font-bold text-[var(--color-text)]">{filteredTools.length}{count.unit}</span>
+        {count.suffix}
       </div>
     </div>
   );
