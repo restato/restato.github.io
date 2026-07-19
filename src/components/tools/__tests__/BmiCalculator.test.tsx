@@ -30,9 +30,10 @@ describe('BmiCalculator', () => {
 
     await user.clear(weightInput);
     await user.type(weightInput, '70');
+    await user.click(screen.getByRole('button', { name: 'BMI 계산하기' }));
 
     // BMI = 70 / (1.7)^2 = ~24.22
-    expect(screen.getByText(/24\.[0-9]/)).toBeInTheDocument();
+    expect(screen.getByText('24.2')).toBeInTheDocument();
   });
 
   it('shows BMI category (normal, overweight, etc.)', async () => {
@@ -48,9 +49,9 @@ describe('BmiCalculator', () => {
 
     await user.clear(weightInput);
     await user.type(weightInput, '70');
+    await user.click(screen.getByRole('button', { name: 'BMI 계산하기' }));
 
-    // Should show BMI category (정상, 과체중, etc.)
-    expect(screen.getByText(/정상|과체중|저체중|비만|normal|overweight/i)).toBeInTheDocument();
+    expect(screen.getAllByText('과체중')).toHaveLength(2);
   });
 
   it('handles underweight BMI', async () => {
@@ -66,9 +67,10 @@ describe('BmiCalculator', () => {
 
     await user.clear(weightInput);
     await user.type(weightInput, '50');
+    await user.click(screen.getByRole('button', { name: 'BMI 계산하기' }));
 
     // BMI = 50 / (1.8)^2 = ~15.43 (underweight)
-    expect(screen.getByText(/15\.[0-9]/)).toBeInTheDocument();
+    expect(screen.getByText('15.4')).toBeInTheDocument();
   });
 
   it('handles obese BMI', async () => {
@@ -84,9 +86,10 @@ describe('BmiCalculator', () => {
 
     await user.clear(weightInput);
     await user.type(weightInput, '100');
+    await user.click(screen.getByRole('button', { name: 'BMI 계산하기' }));
 
     // BMI = 100 / (1.6)^2 = ~39.06 (obese)
-    expect(screen.getByText(/39\.[0-9]|비만|obese/i)).toBeInTheDocument();
+    expect(screen.getByText('39.1')).toBeInTheDocument();
   });
 
   it('handles empty inputs gracefully', () => {
