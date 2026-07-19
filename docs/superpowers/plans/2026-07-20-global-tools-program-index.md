@@ -20,7 +20,7 @@
 ### Execution order
 
 - [ ] 1. Execute `2026-07-20-tools-quality-foundation.md` completely.
-- [ ] 2. Execute Tasks 1–3 of `2026-07-20-growth-verification-rollout.md` so later clusters inherit browser, accessibility, and performance gates.
+- [ ] 2. Execute Tasks 1–3 of `2026-07-20-growth-verification-rollout.md` to install the common browser, accessibility, and performance infrastructure against existing routes. Each cluster activates its own route checks after implementation.
 - [ ] 3. Execute `2026-07-20-global-localization-adsense.md` completely.
 - [ ] 4. Execute `2026-07-20-image-text-tools-wave-one.md` completely.
 - [ ] 5. Execute `2026-07-20-developer-data-tools-wave-one.md` completely.

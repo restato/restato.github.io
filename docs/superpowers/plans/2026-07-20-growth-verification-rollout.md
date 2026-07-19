@@ -43,7 +43,7 @@
 - Create: `tests/e2e/accessibility.spec.ts`
 - Modify: `package.json`
 
-- [ ] Add failing checks for hub, representative text, developer, PDF, and image routes in light/dark modes.
+- [ ] Add failing checks for the hub and currently published representative text, developer, and image routes in light/dark modes. Cluster plans add their own route checks immediately after those routes exist.
 - [ ] Install `@axe-core/playwright` and fail on serious or critical violations.
 - [ ] Add manual keyboard assertions for navigation, dialogs, file inputs, result announcements, and download buttons.
 - [ ] Fix violations through test-first feature commits, rerun to zero serious/critical findings, and commit with `test: enforce tool accessibility`.
@@ -62,9 +62,9 @@
 - Image tool JS budget: 550 KB gzip.
 - PDF tool JS budget: 900 KB gzip, lazy route only.
 
-- [ ] Add a failing bundle fixture proving a heavy PDF chunk on the hub is rejected.
+- [ ] Add a failing synthetic bundle fixture proving a heavy PDF chunk on the hub is rejected without requiring a published PDF route.
 - [ ] Implement manifest-based route/chunk checks.
-- [ ] Configure Lighthouse assertions at 0.90 for all four categories and CLS at 0.1.
+- [ ] Configure Lighthouse assertions at 0.90 for all four categories and CLS at 0.1. Run the initial collection on the hub and existing representative routes; each later cluster adds its real routes to the collection when published.
 - [ ] Add `lighthouse` and `check:bundles` scripts, optimize until all representative routes pass, and commit with `perf: enforce route budgets`.
 
 ### Task 4: Search and localization matrix
