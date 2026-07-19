@@ -256,6 +256,7 @@ export default function ExifViewer() {
       <input
         ref={fileInputRef}
         type="file"
+        aria-label="이미지 파일 선택"
         accept="image/jpeg,image/jpg"
         onChange={handleFileChange}
         className="hidden"

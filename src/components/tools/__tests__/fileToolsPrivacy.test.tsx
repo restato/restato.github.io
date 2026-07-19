@@ -33,6 +33,18 @@ describe('file tools local privacy boundary', () => {
   let xhrSendMock: ReturnType<typeof vi.spyOn>;
 
   beforeEach(() => {
+    Object.defineProperty(window, 'innerWidth', { configurable: true, value: 375 });
+    Object.defineProperty(navigator, 'maxTouchPoints', { configurable: true, value: 1 });
+    window.matchMedia = vi.fn().mockImplementation((query: string) => ({
+      matches: query.includes('max-width') || query.includes('pointer: coarse'),
+      media: query,
+      onchange: null,
+      addListener: vi.fn(),
+      removeListener: vi.fn(),
+      addEventListener: vi.fn(),
+      removeEventListener: vi.fn(),
+      dispatchEvent: vi.fn(),
+    }));
     vi.stubGlobal('fetch', fetchMock);
     xhrSendMock = vi.spyOn(XMLHttpRequest.prototype, 'send');
     vi.stubGlobal('URL', {
@@ -53,6 +65,9 @@ describe('file tools local privacy boundary', () => {
     const file = new File(['local-only-image'], '비공개.png', { type: 'image/png' });
 
     expect(input).toBeInTheDocument();
+    expect(input).toHaveAccessibleName('이미지 파일 선택');
+    input.focus();
+    expect(input).toHaveFocus();
     fireEvent.change(input, { target: { files: [file] } });
 
     expect(fetchMock).not.toHaveBeenCalled();

@@ -294,6 +294,7 @@ export default function ImageResizer() {
       <input
         ref={fileInputRef}
         type="file"
+        aria-label="이미지 파일 선택"
         accept="image/*"
         onChange={handleFileChange}
         className="hidden"

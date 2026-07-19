@@ -327,6 +327,7 @@ export default function AppStoreScreenshotResizer() {
       <input
         ref={fileInputRef}
         type="file"
+        aria-label="이미지 파일 선택"
         accept="image/*"
         multiple
         onChange={handleFileChange}
