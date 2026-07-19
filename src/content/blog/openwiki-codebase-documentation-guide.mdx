@@ -1,0 +1,221 @@
+---
+title: "OpenWiki for Codebases: Documentation Your Agents Can Maintain"
+description: "A practical rollout guide for LangChain OpenWiki, covering repository mutations, deterministic safeguards, CI permissions, review gates, and evaluation."
+date: 2026-07-20
+tags: ["OpenWiki", "AI Agent", "Documentation", "Knowledge Management", "Engineering"]
+---
+
+Generated documentation usually fails in the least dramatic way possible. The first run produces a convincing architecture page. Two releases later, a renamed service still appears under its old path. Engineers notice, stop trusting the wiki, and go back to searching the repository.
+
+LangChain's OpenWiki tries to make that first run the beginning of a maintenance loop rather than the end of a demo. It reads the repository and Git history, writes an agent-oriented wiki under version control, and can propose later updates through pull requests.
+
+That is a better operating model, but only if the generated wiki remains a reviewable derivative of the codebase. **OpenWiki should be treated as a documentation compiler inside the software delivery loop, not as an authority that gets to explain the repository unchecked.**
+
+This guide covers [LangChain OpenWiki](https://github.com/langchain-ai/openwiki), specifically version 0.2.0, and focuses on code mode. It explains what the tool changes, which safeguards are deterministic, where permissions expand, and how to run a pilot without creating a large folder of plausible technical fiction.
+
+## First, disambiguate the name
+
+There are two active projects called OpenWiki, and they solve different deployment problems.
+
+| Project | Shape | Primary output |
+| --- | --- | --- |
+| [langchain-ai/openwiki](https://github.com/langchain-ai/openwiki) | A local Node.js CLI with code and personal modes | Markdown documentation committed inside a repository, or a local personal wiki |
+| [vercel-labs/openwiki](https://github.com/vercel-labs/openwiki) | A hosted Next.js application backed by an eve agent, Postgres, and Blob storage | Public, source-cited wiki pages and chat for GitHub repositories |
+
+This article covers the LangChain CLI. The Vercel Labs project is a separate hosted application, not a web interface for the CLI.
+
+The distinction matters when evaluating security and ownership. The CLI writes files into the repository you already review and version. The hosted app indexes public repositories into an application with its own storage, jobs, routes, and refresh pipeline.
+
+## OpenWiki turns the pattern into a repository loop
+
+The general LLM Wiki pattern separates raw evidence, maintained synthesis, and the rules that govern mutations. Restato's [LLM Wiki engineering guide](/blog/llm-wiki-engineering-guide/) explains that architecture and its failure modes.
+
+OpenWiki code mode makes a concrete choice for each part:
+
+- The repository and its Git history are the evidence.
+- Generated Markdown under `openwiki/` is the maintained synthesis.
+- The agent prompt, `openwiki/INSTRUCTIONS.md`, Open Knowledge Format rules, and deterministic middleware form the maintenance contract.
+- Pull requests are the review and rollback mechanism.
+
+An initial run starts with:
+
+```bash
+npm install -g openwiki
+openwiki code --init
+```
+
+The package currently declares Node.js 22 or newer. The first interactive run asks for a model provider, credentials, and model selection. A non-interactive update expects those values in the environment or `~/.openwiki/.env`.
+
+The command is simple. The resulting repository change is not, so run it on a branch or isolated worktree and inspect the entire diff.
+
+## Understand the first-run diff before running init
+
+OpenWiki's [README](https://github.com/langchain-ai/openwiki/blob/main/README.md) and [`code-mode.ts`](https://github.com/langchain-ai/openwiki/blob/main/src/code-mode.ts) show that code-mode setup can touch four areas:
+
+```text
+repository/
+├── openwiki/
+│   ├── INSTRUCTIONS.md       # user-authored scope and priorities
+│   ├── quickstart.md         # generated entry point
+│   ├── index.md              # deterministic directory index
+│   ├── .last-update.json     # successful update metadata
+│   └── ...                   # generated section pages
+├── AGENTS.md                 # managed OpenWiki block
+├── CLAUDE.md                 # managed OpenWiki block
+└── .github/workflows/
+    └── openwiki-update.yml   # scheduled update PR
+```
+
+The root instruction files are not replaced wholesale. OpenWiki creates or refreshes content between `<!-- OPENWIKI:START -->` and `<!-- OPENWIKI:END -->`, leaving other content outside that block intact.
+
+There is an important boundary hidden in this design. During repository documentation generation, OpenWiki's [`docs-only-backend.ts`](https://github.com/langchain-ai/openwiki/blob/main/src/agent/docs-only-backend.ts) rejects agent writes outside `openwiki/`. The bootstrap code is different: it deliberately creates the workflow and updates the two root instruction files.
+
+So "the agent can only write docs" is true for the documentation backend, not for every file operation performed by initialization. Review the bootstrap diff separately from generated page content. A workflow file and root agent instructions affect future automation; they deserve more scrutiny than a new architecture page.
+
+## The useful safeguards are partly deterministic
+
+OpenWiki 0.2.0 added compatibility with Google's draft [Open Knowledge Format 0.1](https://github.com/GoogleCloudPlatform/knowledge-catalog/blob/main/okf/SPEC.md). An OKF bundle is a directory of Markdown files with YAML frontmatter. Concept documents require a non-empty `type`; `index.md` and `log.md` are reserved files.
+
+The format is modest on purpose. It does not prove that the prose is true. It does make files self-describing, portable, and easier to validate outside the model.
+
+OpenWiki adds several controls around that format:
+
+- [`frontmatter-validator.ts`](https://github.com/langchain-ai/openwiki/blob/main/src/agent/frontmatter-validator.ts) checks generated concept files after write or edit operations and returns an actionable warning when required metadata is invalid.
+- [`index-middleware.ts`](https://github.com/langchain-ai/openwiki/blob/main/src/agent/index-middleware.ts) rebuilds directory indexes after the agent finishes. It sorts entries and derives labels and descriptions from frontmatter instead of asking the model to maintain every list by hand.
+- Update runs record the last successful Git head and timestamp in `.last-update.json`, then use that metadata to narrow the next change window.
+- A content snapshot prevents a no-op run from rewriting update metadata when the wiki itself did not change.
+
+These mechanisms remove tedious structural work from the model. They do not check whether an architecture claim matches the source, whether an omitted subsystem matters, or whether a page describes an old design that still exists in Git history. Those remain review and evaluation problems.
+
+This split is worth copying elsewhere: use a model for synthesis and judgment, then use ordinary code for paths, indexes, schemas, and change detection.
+
+## Write the brief before generating the wiki
+
+`openwiki/INSTRUCTIONS.md` is the repository's durable editorial brief. OpenWiki reads it for scope and priorities but does not rewrite it during routine init, update, or chat runs unless asked explicitly.
+
+Do not begin with "document this repository." Give the generator an audience, a priority order, and explicit exclusions. For example:
+
+```md
+---
+type: Repository guide
+title: Repository Wiki Instructions
+description: Scope and maintenance rules for the generated code wiki.
+tags: [documentation, repository]
+---
+
+Write for engineers joining the payments platform team.
+
+Prioritize:
+- request flow from the public API to settlement
+- ownership boundaries between services
+- data models that cross service boundaries
+- deployment, rollback, and incident runbooks
+- tests that encode business rules
+
+Exclude generated clients, vendored code, build output, and migration history
+older than the current schema unless it explains a live compatibility rule.
+
+Every material behavior claim must name the supporting source path. Mark an
+uncertain relationship as unresolved instead of inferring it from filenames.
+```
+
+This example is an operating recommendation, not required OpenWiki syntax beyond the OKF-shaped frontmatter. Tailor it to how people actually use the repository. A library needs public API contracts and examples. An internal service needs ownership, data flow, failure handling, and runbooks. A monorepo may need a map of subsystem boundaries before it needs detailed pages.
+
+The brief also creates a stable review standard. Without it, reviewers can say only that a page feels incomplete. With it, they can identify a missed priority or an unauthorized topic.
+
+## Review the first wiki like a code change
+
+The initial wiki is a baseline, not a finished knowledge product. Review it in three passes.
+
+First, verify provenance. Sample claims from each major page and open the named source files. Check that the source supports the wording and that Git history was not mistaken for current behavior. A source path is useful evidence only when it resolves and contains the claimed behavior.
+
+Second, verify coverage. Start from questions engineers already ask:
+
+- Where does this request enter the system?
+- Which component owns the state transition?
+- What retries, queues, or idempotency rules protect it?
+- How is the service deployed and rolled back?
+- Which test is the best executable example of the rule?
+
+If the repository contains the answer but the wiki does not, record a coverage miss. Do not reward a large page count when the pages avoid the decisions engineers need to make.
+
+Third, inspect structure and navigation. The quickstart should lead to a small set of coherent sections. Merge thin pages that merely restate filenames. Look for duplicate concepts, broken paths, and architecture pages that describe modules without explaining their relationships.
+
+Reject the baseline if it contains unsupported behavioral claims, misses a high-risk workflow, or requires reviewers to rediscover most source paths. Fix `INSTRUCTIONS.md` and regenerate before automating anything.
+
+## Automate updates only after the baseline passes
+
+The repository includes an [example GitHub Actions workflow](https://github.com/langchain-ai/openwiki/blob/main/examples/openwiki-update.yml). It installs OpenWiki, runs `openwiki code --update --print`, and uses `peter-evans/create-pull-request` to propose changes. The example grants:
+
+```yaml
+permissions:
+  contents: write
+  pull-requests: write
+```
+
+Those permissions are needed for the workflow to push a branch and open a PR, but they also turn generated documentation into a supply-chain and governance concern. GitHub recommends limiting the workflow token to the [minimum permissions required](https://docs.github.com/en/actions/tutorials/authenticate-with-github_token).
+
+Before enabling the schedule:
+
+1. Keep generated updates as PRs. Do not auto-merge them while the project is still establishing trust.
+2. Protect the default branch and require the same ownership review used for architecture or operational documentation.
+3. Store provider credentials as repository or organization secrets, never in the wiki or workflow body.
+4. Decide whether repository content may be sent to the selected model provider. This is a data-governance decision, not an OpenWiki setting.
+5. Pin the OpenWiki version instead of silently taking the newest package on every scheduled run.
+6. Review third-party actions and pin them according to your organization's dependency policy.
+7. Disable or inspect telemetry if policy requires it.
+
+OpenWiki documents that init and update runs send anonymous aggregate reliability telemetry by default. Set either variable to opt out:
+
+```bash
+OPENWIKI_TELEMETRY_DISABLED=1
+# or
+DO_NOT_TRACK=1
+```
+
+The CLI also supports `--telemetry-file=<path>` so an operator can inspect the payload. That is a good pre-production check: verify the actual behavior instead of relying on a summary of what should be collected.
+
+## Measure trust, not page count
+
+OpenWiki does not come with an independent guarantee that its pages are accurate or cheaper than repeated repository search. A useful pilot needs its own scorecard.
+
+| Metric | How to measure it | Warning sign |
+| --- | --- | --- |
+| Source-path resolution | Sample linked paths and confirm they exist at the reviewed commit | Broken or renamed paths recur |
+| Claim support rate | Check whether sampled claims are actually supported by the named files | Pages cite nearby code rather than evidence |
+| Coverage miss rate | Ask a fixed set of onboarding and operations questions | Source contains the answer but the wiki omits it |
+| Reviewer correction rate | Count material edits required before accepting an update | Reviewers rewrite most generated prose |
+| Update precision | Compare pages changed with subsystems touched by the Git diff | Small code changes rewrite unrelated sections |
+| No-op rate | Track scheduled runs that correctly produce no documentation diff | Every run creates churn |
+| Reuse | Observe whether engineers and coding agents open the wiki before broad source search | The wiki exists but is bypassed |
+
+Build the evaluation set from real work: a recent incident, a risky code review, an onboarding task, and a change that crossed service boundaries. Run those cases against the repository with and without the wiki. The goal is not to prove that generated documentation sounds good. It is to see whether the wiki narrows discovery while preserving enough provenance to catch mistakes.
+
+Version the evaluation questions next to the wiki policy. Rerun them after a major repository restructure, a model change, or a material rewrite of `INSTRUCTIONS.md`.
+
+## Know when OpenWiki is the wrong tool
+
+OpenWiki is a reasonable fit when a repository is large enough that navigation is costly, changes often enough that hand-maintained overview pages drift, and the team is willing to review generated documentation PRs.
+
+Skip it when the repository is small and already has accurate first-party docs, when nobody owns documentation review, or when policy prevents repository content from reaching the available model providers. A generated wiki without an owner becomes another stale search result.
+
+Also separate explanatory knowledge from operational authority. OpenWiki can document a deployment flow or permission model. It should not become the system that grants a deployment or defines production access. If coding agents act on the wiki, keep their tool permissions and verification loops independent of generated prose. Restato's [production agent engineering guide](/blog/gpt-5-6-agent-engineering-production-guide/) covers that boundary.
+
+## Conclusion
+
+OpenWiki is strongest as a maintenance system: Git-grounded updates, bounded documentation writes, deterministic indexes, a portable knowledge format, and PR-based review all reinforce one another.
+
+Start on a branch. Write `INSTRUCTIONS.md` first. Generate a small baseline, inspect the bootstrap files separately, and reject unsupported claims even when the page reads well. Automate only after the baseline answers real engineering questions with traceable source paths.
+
+If reviewers keep most updates and agents reuse the wiki, the maintenance loop is earning its cost. If every run produces broad rewrites or the wiki is ignored, improve the brief or remove the tool. Documentation that nobody trusts is worse than an empty directory because it consumes attention while pretending the search is over.
+
+## Primary resources
+
+- [LangChain OpenWiki repository and README](https://github.com/langchain-ai/openwiki)
+- [OpenWiki 0.2.0 release](https://github.com/langchain-ai/openwiki/releases/tag/0.2.0)
+- [OpenWiki documentation-only backend](https://github.com/langchain-ai/openwiki/blob/main/src/agent/docs-only-backend.ts)
+- [OpenWiki deterministic index middleware](https://github.com/langchain-ai/openwiki/blob/main/src/agent/index-middleware.ts)
+- [Google Open Knowledge Format 0.1 draft](https://github.com/GoogleCloudPlatform/knowledge-catalog/blob/main/okf/SPEC.md)
+- [OpenWiki GitHub Actions update example](https://github.com/langchain-ai/openwiki/blob/main/examples/openwiki-update.yml)
+- [GitHub guidance for workflow token permissions](https://docs.github.com/en/actions/tutorials/authenticate-with-github_token)
+- [Vercel Labs OpenWiki repository](https://github.com/vercel-labs/openwiki)
