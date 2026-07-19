@@ -11,6 +11,11 @@ import QRCodeGenerator from '../QRCodeGenerator';
 import TimerStopwatch from '../TimerStopwatch';
 import PomodoroTimer from '../PomodoroTimer';
 import WorldClock from '../WorldClock';
+import MarkdownPreview from '../MarkdownPreview';
+import DiffTool from '../DiffTool';
+import GradientGenerator from '../GradientGenerator';
+import BoxShadowGenerator from '../BoxShadowGenerator';
+import ColorPalette from '../ColorPalette';
 import './testUtils';
 
 afterEach(() => {
@@ -158,5 +163,55 @@ describe('legacy simple tool behavior', () => {
 
     expect(screen.getAllByText('Tokyo').length).toBeGreaterThanOrEqual(2);
     expect(screen.getAllByText('09:00').length).toBeGreaterThanOrEqual(2);
+  });
+
+  it('renders markdown, including non-Latin headings, and clears it', () => {
+    const { container } = render(<MarkdownPreview />);
+    const input = container.querySelector('textarea')!;
+    fireEvent.change(input, { target: { value: '# 제목\n\n**굵게**' } });
+
+    expect(screen.getByRole('heading', { name: '제목' })).toBeInTheDocument();
+    expect(screen.getByText('굵게', { selector: 'strong' })).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: '지우기' }));
+    expect(screen.queryByRole('heading', { name: '제목' })).not.toBeInTheDocument();
+  });
+
+  it('reports line additions and removals, then swaps diff input', () => {
+    const { container } = render(<DiffTool />);
+    const inputs = container.querySelectorAll('textarea');
+    fireEvent.change(inputs[0], { target: { value: 'before' } });
+    fireEvent.change(inputs[1], { target: { value: 'after' } });
+
+    expect(screen.getByText('+1 추가')).toBeInTheDocument();
+    expect(screen.getByText('-1 삭제')).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: '교환' }));
+    expect(inputs[0]).toHaveValue('after');
+  });
+
+  it('changes a gradient angle and exposes the generated CSS', () => {
+    const { container } = render(<GradientGenerator />);
+    const angle = container.querySelector('input[type="range"]')!;
+    fireEvent.change(angle, { target: { value: '45' } });
+
+    expect(screen.getByText(/linear-gradient\(45deg/)).toBeInTheDocument();
+  });
+
+  it('updates a box shadow layer and renders its CSS output', () => {
+    const { container } = render(<BoxShadowGenerator />);
+    const numericInputs = container.querySelectorAll('input[type="number"]');
+    fireEvent.change(numericInputs[1], { target: { value: '12' } });
+
+    expect(screen.getByText(/box-shadow:/)).toBeInTheDocument();
+    expect(screen.getByText(/12px/)).toBeInTheDocument();
+  });
+
+  it('creates a complementary palette from a chosen base color', () => {
+    const { container } = render(<ColorPalette />);
+    const hexInput = container.querySelector('input[type="text"]')!;
+    fireEvent.change(hexInput, { target: { value: '#ff0000' } });
+    fireEvent.click(screen.getByRole('button', { name: '보색' }));
+
+    expect(screen.getAllByText('#ff0000').length).toBeGreaterThan(0);
+    expect(screen.getAllByText('#00ffff').length).toBeGreaterThan(0);
   });
 });
