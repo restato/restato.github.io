@@ -15,8 +15,8 @@
 | base64 | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | — |
 | image-converter | ✓ | — | — | — | ✓ | ✓ | ✓ | ✓ | ✓ |
 | text-counter | ✓ | ✓ | N/A | — | ✓ | ✓ | ✓ | ✓ | — |
-| markdown | ✓ | ✓ | — | — | ✓ | — | ✓ | ✓ | — |
-| diff | ✓ | — | — | — | — | ✓ | ✓ | ✓ | — |
+| markdown | ✓ | ✓ | N/A | — | ✓ | ✓ | ✓ | ✓ | — |
+| diff | ✓ | — | N/A | — | — | ✓ | ✓ | ✓ | — |
 | json | ✓ | — | ✓ | — | — | ✓ | ✓ | ✓ | — |
 | regex | ✓ | — | ✓ | — | — | ✓ | ✓ | ✓ | — |
 | url-encoder | ✓ | ✓ | ✓ | — | ✓ | ✓ | ✓ | ✓ | — |
@@ -57,3 +57,4 @@
 - QR code text accepts arbitrary Unicode payloads, so it has no invalid-text state. Password and UUID generators expose only settings plus generated output; they do not accept user text whose emptiness, invalidity, or script could be exercised. Lorem Ipsum likewise has only numeric count and boolean settings, so a non-Latin text case does not exist.
 - Hashing and text counting intentionally accept every string, including empty and non-Latin strings, so an invalid-text case does not exist.
 - Percent, discount, and BMI accept numeric values only (`type="number"`), so a non-Latin value cannot enter their calculation model. Coin flip has no input; dice has a bounded range control with an always-present value, so neither has an empty-input state.
+- Markdown and diff accept arbitrary text payloads; malformed syntax is rendered or compared as text rather than rejected, so neither exposes an invalid-input state.

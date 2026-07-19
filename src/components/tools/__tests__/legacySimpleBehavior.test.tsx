@@ -211,6 +211,15 @@ describe('legacy simple tool behavior', () => {
     expect(screen.queryByRole('heading', { name: '제목' })).not.toBeInTheDocument();
   });
 
+  it('renders repeated markdown edits', () => {
+    const { container } = render(<MarkdownPreview />);
+    const input = container.querySelector('textarea')!;
+    fireEvent.change(input, { target: { value: '# first' } });
+    expect(screen.getByRole('heading', { name: 'first' })).toBeInTheDocument();
+    fireEvent.change(input, { target: { value: '# second' } });
+    expect(screen.getByRole('heading', { name: 'second' })).toBeInTheDocument();
+  });
+
   it('reports line additions and removals, then swaps diff input', () => {
     const { container } = render(<DiffTool />);
     const inputs = container.querySelectorAll('textarea');
