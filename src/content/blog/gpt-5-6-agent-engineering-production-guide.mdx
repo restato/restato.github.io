@@ -1,0 +1,237 @@
+---
+title: "GPT-5.6 Agent Engineering: Tools, Permissions, and Evaluation in Production"
+description: "A practical guide to model routing, permission boundaries, verification loops, and cost controls for production agents built with GPT-5.6 and its 1.05M-token context window."
+date: 2026-07-19
+tags: ["OpenAI", "GPT-5.6", "AI Agent", "API", "Engineering"]
+---
+
+The largest number attached to GPT-5.6 is its 1.05 million-token context window. For production systems, though, the more consequential change is what the model can do with tools. It can search the web and files, run code, apply patches, operate a computer, and connect to MCP servers.
+
+That makes it hard to treat GPT-5.6 as a plain answer API. **The reliability of a GPT-5.6 agent depends less on one clever prompt and more on model routing, tool permissions, and verification loops.**
+
+For pricing and a direct comparison of Sol, Terra, and Luna, see the [GPT-5.6 model selection guide](/blog/gpt-5-6-sol-terra-luna-api-guide/). This article picks up at the next question: how should those models be assembled into an operating system for agents?
+
+## What you miss when you treat GPT-5.6 as an answer API
+
+All three GPT-5.6 tiers accept text and images, expose a 1.05M-token context window, and can produce up to 128K output tokens. OpenAI describes Sol as the frontier tier for complex professional work, and the `gpt-5.6` alias currently routes to Sol.
+
+The Responses API exposes a broad set of tools:
+
+- Web and file search
+- Code Interpreter and hosted shell
+- Image generation
+- Patch application
+- Computer use
+- MCP and tool search
+
+A conventional LLM application takes a question and returns text:
+
+```text
+question → model → answer
+```
+
+An agent is a different system. It observes intermediate results, chooses another action, and may change external state.
+
+```text
+request
+   ↓
+plan
+   ↓
+choose tool → execute → observe result
+   ↑                      ↓
+   └────── revise plan ───┘
+   ↓
+verify
+   ↓
+final result
+```
+
+A stronger model does not make weak execution boundaries safe. On the other hand, a well-defined permission and verification layer can make Terra or Luna useful parts of a larger system.
+
+## Route each request instead of choosing one model
+
+Sending every request to Sol is simple and expensive. Sending everything to Luna saves money but raises the failure rate on difficult work. The three tiers make more sense when each has a clear job.
+
+| Workload | Starting model | Examples |
+|---|---|---|
+| High failure cost and multi-step planning | Sol | Repository changes, security analysis, complex research |
+| General product features and business automation | Terra | Document analysis, grounded answers, code review |
+| Short, structured, high-volume processing | Luna | Classification, extraction, routing, format conversion |
+
+Input length alone is a poor routing signal. A useful router also considers:
+
+- Risk level
+- Required tools and permissions
+- Whether the result can be checked automatically
+- Whether a failed request can be retried safely
+- User-facing latency limits
+- Maximum cost per request
+
+A minimal router might look like this:
+
+```ts
+type Risk = "low" | "medium" | "high";
+type Workload = "classify" | "answer" | "execute";
+
+function selectModel(risk: Risk, workload: Workload): string {
+  if (risk === "high" || workload === "execute") {
+    return "gpt-5.6-sol";
+  }
+
+  if (workload === "classify") {
+    return "gpt-5.6-luna";
+  }
+
+  return "gpt-5.6-terra";
+}
+```
+
+This is only a starting rule. Production routing should change when evaluations reveal a consistent pattern. If Terra repeatedly fails code reviews for one repository, for example, that workload can be promoted to Sol without moving every other request with it.
+
+## Give tools the minimum permissions they need
+
+Web search reads information. Shell and computer-use tools can alter an environment. Giving every request the same tool set turns a bad judgment or prompt injection into a real incident.
+
+A useful first step is to split tools into three permission levels.
+
+| Level | Permission | Examples |
+|---|---|---|
+| Read | Cannot alter external state | Web search, file search, log queries |
+| Restricted write | Can change only an isolated workspace | Temporary files, patches in a test repository |
+| Approval required | Can affect production or an external system | Deployment, deletion, payment, outbound messages |
+
+A code-changing agent should have several hard boundaries:
+
+1. Run each task in a separate worktree or container.
+2. Remove secrets from the model context and shell environment.
+3. Restrict writes to an explicit path allowlist.
+4. Allow network access only to required domains.
+5. Require human approval for deployment and data deletion.
+6. Log every tool call and argument for later review.
+
+Tool descriptions are part of the security boundary. “Use the shell when needed” leaves too much room for interpretation. “The shell may run tests and static analysis, but it must not deploy or modify production data” is much harder to misuse.
+
+## Separate planning, execution, and verification
+
+When one model call plans, acts, and declares its own success, failures are difficult to diagnose. A production agent is easier to control when those responsibilities are separate.
+
+### 1. Planning
+
+The planner decides what should happen but does not execute tools. Its output should include at least:
+
+- Goal and completion criteria
+- Files or data that need inspection
+- Tools that will be required
+- Expected side effects
+- Verification method
+
+### 2. Execution
+
+The executor receives an approved plan and may call only the tools allowed for that request. Discovering more work does not grant more authority. If the plan is no longer sufficient, execution stops and returns to planning.
+
+A basic Responses API call with web search enabled looks like this:
+
+```ts
+import OpenAI from "openai";
+
+const client = new OpenAI();
+
+const response = await client.responses.create({
+  model: "gpt-5.6-terra",
+  reasoning: { effort: "medium" },
+  tools: [{ type: "web_search" }],
+  input: `Using official documentation only, research the latest migration
+changes for this library. Return the source URLs and a list of risks.`,
+});
+
+console.log(response.output_text);
+```
+
+Build the tool list per request. A classification job has no reason to receive shell or computer-use access.
+
+### 3. Verification
+
+The verifier checks external evidence rather than trusting the model's description of what happened.
+
+- Run tests and type checks for code changes.
+- Validate structured data against a JSON Schema.
+- Match document summaries to exact source passages.
+- Compare record counts before and after data changes.
+- Recheck links and publication dates in web research.
+
+Do not repeat an identical request after verification fails. Feed the failure evidence into the next plan, and enforce limits on retries and total cost.
+
+```text
+execution result
+   ├─ verification passed → return result
+   └─ verification failed
+        ├─ retry allowed → replan with failure evidence
+        └─ retry limit reached → hand off to a person
+```
+
+## Do not fill the 1.05M-token window by default
+
+A long context window is useful for large repositories and multi-document analysis. It does not eliminate retrieval or summarization.
+
+GPT-5.6 applies a higher rate to an entire request once the input exceeds 272K tokens: input is billed at 2x and output at 1.5x. Loading every remotely related document can hurt accuracy, latency, and cost at the same time.
+
+A safer long-context pipeline works in stages:
+
+1. Use file search or an index to narrow the candidate documents.
+2. Preserve metadata such as file path, date, and author.
+3. Put stable instructions and repeated documents in a cacheable prefix.
+4. Append changing content such as user input and tool results later.
+5. Cross the 272K threshold only when the task genuinely needs the full context.
+
+Caching is not automatically cheaper. Cached reads for GPT-5.6 Sol cost one tenth of normal input, but the initial cache write costs 1.25 times the uncached input rate. A document that will be read once should probably not be cached.
+
+## Agent evaluation needs more than answer accuracy
+
+An agent may call several tools before producing a final response. Evaluating only the final prose hides failures in the path it took. At a minimum, record the following metrics.
+
+| Metric | Question it answers |
+|---|---|
+| Task success rate | Did the agent meet the actual completion criteria? |
+| Tool success rate | Did it choose the correct tool and arguments? |
+| Verification pass rate | Did tests or schema checks pass? |
+| Unnecessary action count | Did it search or modify more than needed? |
+| Approval request rate | How often did a person need to intervene? |
+| Cost per successful task | What did success cost after failures and retries? |
+| Latency | What are the average and p95 completion times? |
+
+For a coding agent, test results should be measured alongside the number of changed files. An agent that passes tests while performing an unsolicited refactor is still difficult to operate.
+
+For a research agent, citation accuracy and source omission matter more than polished wording. Every important claim should be traceable to a source passage.
+
+Evaluation sets should come from real workloads after removing personal data and secrets. Run Sol, Terra, and Luna against the same cases, then compare quality and cost together. Those results provide a much better routing policy than a generic benchmark table.
+
+## Production checklist
+
+Before deploying a GPT-5.6 agent, check the following:
+
+- [ ] Model and reasoning effort are selected per request.
+- [ ] Tools are classified as read, restricted write, or approval required.
+- [ ] Shell and computer-use tools run in isolated environments.
+- [ ] Prompts and tool results do not expose secrets.
+- [ ] Tool calls and retries have hard limits.
+- [ ] Code, JSON, and citations are checked by external validators.
+- [ ] The 272K-token pricing threshold is included in cost estimates.
+- [ ] Cache writes and tool calls are tracked separately.
+- [ ] Regression evaluations protect against alias or snapshot changes.
+- [ ] Logs contain enough state for a person to take over a failed task.
+
+## Conclusion
+
+GPT-5.6 expands the range of work an agent can attempt through its long context window and broad tool support. It also increases the damage a poorly bounded action can cause.
+
+A practical starting point is Terra with read-only tools and an automated verifier. Move repetitive structured work to Luna, and promote only the difficult cases that show a measurable improvement to Sol. Add write access and production-changing tools last.
+
+An agent's reliability does not come from the model name alone. It comes from controlling what the model can see, what it can change, and how the system detects failure.
+
+## Official resources
+
+- [Introducing GPT-5.6](https://openai.com/index/gpt-5-6/)
+- [OpenAI API model catalog](https://developers.openai.com/api/docs/models)
+- [GPT-5.6 Sol model documentation](https://developers.openai.com/api/docs/models/gpt-5.6-sol)
+- [GPT-5.6 Terra model documentation](https://developers.openai.com/api/docs/models/gpt-5.6-terra)
+- [GPT-5.6 Luna model documentation](https://developers.openai.com/api/docs/models/gpt-5.6-luna)
