@@ -29,7 +29,7 @@
 | image-resizer | — | — | — | — | — | — | ✓ | ✓ | ✓ |
 | exif | ✓ | — | — | — | ✓ | — | ✓ | ✓ | ✓ |
 | background-remover | — | — | — | — | — | — | — | ✓ | ✓ |
-| image-metadata | — | — | — | — | — | — | — | ✓ | ✓ |
+| image-metadata | ✓ | — | — | — | ✓ | — | ✓ | ✓ | ✓ |
 | appstore-screenshot | — | — | — | — | — | — | — | ✓ | ✓ |
 | utm | ✓ | ✓ | — | — | — | ✓ | ✓ | ✓ | — |
 | timer | ✓ | — | — | ✓ | — | ✓ | ✓ | ✓ | — |
