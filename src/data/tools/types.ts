@@ -1,6 +1,6 @@
 export type Language = 'ko' | 'en' | 'ja' | 'zh-CN' | 'zh-TW' | 'es' | 'pt' | 'de' | 'fr' | 'it' | 'id' | 'hi';
 export type LocalizationStatus = 'complete' | 'fallback';
-export type ToolPrivacyMode = 'local-only' | 'local-with-assets';
+export type ToolPrivacyMode = 'local-only' | 'local-with-assets' | 'local-with-network-data' | 'peer-to-peer';
 
 export type Localized<T> = Partial<Record<Language, T>>;
 

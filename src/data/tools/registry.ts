@@ -994,14 +994,58 @@ const privacyByLanguage: Record<ExistingToolLanguage, string> = {
   ja: 'すべての処理はブラウザで実行され、データがサーバーに送信されることはありません。',
 };
 
-const assetToolSlugs = new Set([
-  'image-converter',
-  'image-resizer',
-  'exif-viewer',
-  'background-remover',
-  'image-metadata',
-  'appstore-screenshot',
-]);
+const privacyModesBySlug: Record<string, ToolPrivacyMode> = {
+  // @imgly/background-removal downloads runtime model assets, then processes locally.
+  'background-remover': 'local-with-assets',
+  // The calculator fetches current exchange rates from ExchangeRate-API.
+  'llm-cost': 'local-with-network-data',
+  // Chat messages travel through a PeerJS data connection between participants.
+  'anonymous-chat': 'peer-to-peer',
+};
+
+const relatedSlugsByTool: Record<string, string[]> = {
+  'qr-code': ['url-encoder', 'utm', 'uuid'],
+  password: ['uuid', 'hash', 'jwt-decoder'],
+  uuid: ['password', 'json', 'jwt-decoder'],
+  'lorem-ipsum': ['text-counter', 'markdown', 'diff'],
+  'color-palette': ['color', 'gradient', 'box-shadow'],
+  hash: ['password', 'jwt-decoder', 'uuid'],
+  color: ['color-palette', 'gradient', 'box-shadow'],
+  unit: ['bmi', 'percent', 'discount'],
+  base64: ['url-encoder', 'json', 'jwt-decoder'],
+  'image-converter': ['image-resizer', 'image-metadata', 'exif'],
+  'text-counter': ['markdown', 'diff', 'lorem-ipsum'],
+  markdown: ['text-counter', 'diff', 'lorem-ipsum'],
+  diff: ['text-counter', 'markdown', 'json'],
+  json: ['base64', 'jwt-decoder', 'regex'],
+  regex: ['json', 'diff', 'text-counter'],
+  'url-encoder': ['base64', 'qr-code', 'utm'],
+  'jwt-decoder': ['base64', 'json', 'hash'],
+  cron: ['timestamp', 'world-clock', 'timer'],
+  timestamp: ['cron', 'world-clock', 'dday'],
+  'llm-cost': ['text-counter', 'markdown', 'json'],
+  gradient: ['color', 'color-palette', 'box-shadow'],
+  'box-shadow': ['color', 'gradient', 'color-palette'],
+  'image-resizer': ['image-converter', 'appstore-screenshot', 'background-remover'],
+  exif: ['image-metadata', 'image-converter', 'image-resizer'],
+  'background-remover': ['image-converter', 'image-resizer', 'appstore-screenshot'],
+  'image-metadata': ['exif', 'image-converter', 'background-remover'],
+  'appstore-screenshot': ['image-resizer', 'image-converter', 'background-remover'],
+  utm: ['url-encoder', 'qr-code', 'base64'],
+  timer: ['pomodoro', 'world-clock', 'dday'],
+  pomodoro: ['timer', 'world-clock', 'text-counter'],
+  'world-clock': ['timer', 'pomodoro', 'timestamp'],
+  percent: ['discount', 'bmi', 'unit'],
+  discount: ['percent', 'dutch-pay', 'unit'],
+  bmi: ['age', 'unit', 'percent'],
+  age: ['dday', 'bmi', 'timestamp'],
+  dday: ['age', 'timestamp', 'timer'],
+  'dutch-pay': ['discount', 'percent', 'unit'],
+  'coin-flip': ['dice'],
+  dice: ['coin-flip'],
+  'kor-eng': ['text-counter', 'markdown', 'diff'],
+  'anonymous-chat': ['kor-eng', 'text-counter', 'timer'],
+};
 
 const clustersByCategory: Record<string, string> = {
   calculator: 'calculators',
@@ -1033,18 +1077,11 @@ function createContent(language: ExistingToolLanguage, seo: ToolSEO): ToolConten
 }
 
 function getRelatedSlugs(tool: ToolConfig): string[] {
-  const sameCategory = registryToolConfigs.filter(candidate => (
-    candidate.slug !== tool.slug && candidate.category === tool.category
-  ));
-  const candidates = sameCategory.length > 0
-    ? sameCategory
-    : registryToolConfigs.filter(candidate => candidate.slug !== tool.slug);
-
-  return candidates.slice(0, 4).map(candidate => candidate.slug);
+  return relatedSlugsByTool[tool.slug] ?? [];
 }
 
 function getPrivacyMode(slug: string): ToolPrivacyMode {
-  return assetToolSlugs.has(slug) ? 'local-with-assets' : 'local-only';
+  return privacyModesBySlug[slug] ?? 'local-only';
 }
 
 function createLocalizedContent(tool: ToolConfig): Localized<ToolContent> {
