@@ -58,4 +58,14 @@ describe('ImageConverter', () => {
     expect(screen.getAllByText('PNG: 3 B')).toHaveLength(2);
     expect(toDataURL).toHaveBeenLastCalledWith('image/png', undefined);
   });
+
+  it('ignores empty and unsupported file selections', () => {
+    const { container } = render(<ImageConverter />);
+    const input = container.querySelector('input[type="file"]')!;
+
+    fireEvent.change(input, { target: { files: [] } });
+    expect(screen.queryByText('unsupported.txt')).not.toBeInTheDocument();
+    fireEvent.change(input, { target: { files: [new File(['text'], 'unsupported.txt', { type: 'text/plain' })] } });
+    expect(screen.queryByText('unsupported.txt')).not.toBeInTheDocument();
+  });
 });

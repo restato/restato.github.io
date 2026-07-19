@@ -107,6 +107,21 @@ describe('ImageResizer', () => {
     expect(input).toHaveClass('hidden');
   });
 
+  it('keeps the drop zone for empty and unsupported selections', () => {
+    render(<ImageResizer />);
+    const input = document.querySelector('input[type="file"]') as HTMLInputElement;
+    fireEvent.change(input, { target: { files: [] } });
+    fireEvent.change(input, { target: { files: [new File(['text'], 'unsupported.txt', { type: 'text/plain' })] } });
+    expect(screen.getByText('이미지를 드래그하거나 클릭하여 업로드')).toBeInTheDocument();
+  });
+
+  it('loads a non-Latin local filename into the resizer', async () => {
+    render(<ImageResizer />);
+    const input = document.querySelector('input[type="file"]') as HTMLInputElement;
+    fireEvent.change(input, { target: { files: [new File(['image-data'], '이미지.png', { type: 'image/png' })] } });
+    await waitFor(() => expect(screen.getByText('원본')).toBeInTheDocument());
+  });
+
   it('shows crop UI after upload and removes manual resize button', async () => {
     render(<ImageResizer />);
     await uploadImage();

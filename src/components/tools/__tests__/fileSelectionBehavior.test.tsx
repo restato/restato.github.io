@@ -84,6 +84,15 @@ describe('file selection results', () => {
     expect(screen.queryByText('empty.jpg')).not.toBeInTheDocument();
   });
 
+  it('renders EXIF fallback feedback for an unsupported selected file', async () => {
+    const { container } = render(<ExifViewer />);
+    const input = container.querySelector('input[type="file"]')!;
+    fireEvent.change(input, { target: { files: [new File(['text'], 'unsupported.txt', { type: 'text/plain' })] } });
+
+    expect(await screen.findByText('EXIF 데이터를 찾을 수 없습니다')).toBeInTheDocument();
+    expect(screen.getAllByText('unsupported.txt').length).toBeGreaterThan(0);
+  });
+
   it('replaces EXIF and metadata workflows when a second local file is selected', async () => {
     const exif = render(<ExifViewer />);
     const exifInput = exif.container.querySelector('input[type="file"]')!;
@@ -101,6 +110,16 @@ describe('file selection results', () => {
     expect((await screen.findAllByText('second.png')).length).toBeGreaterThanOrEqual(2);
   });
 
+  it('keeps metadata empty without a file and surfaces an unsupported file as metadata fallback', async () => {
+    const { container } = render(<ImageMetadataViewer />);
+    const input = container.querySelector('input[type="file"]')!;
+    fireEvent.change(input, { target: { files: [] } });
+    expect(screen.queryByText('unsupported.txt')).not.toBeInTheDocument();
+    fireEvent.change(input, { target: { files: [new File(['text'], 'unsupported.txt', { type: 'text/plain' })] } });
+    expect((await screen.findAllByText('unsupported.txt')).length).toBeGreaterThanOrEqual(2);
+    expect(screen.getByText('text/plain')).toBeInTheDocument();
+  });
+
   it('does not create a local preview for empty or non-image removal and screenshot selections', () => {
     const remove = render(<BackgroundRemover />);
     const removeInput = remove.container.querySelector('input[type="file"]')!;
@@ -114,6 +133,23 @@ describe('file selection results', () => {
     fireEvent.change(screenshotInput, { target: { files: [] } });
     fireEvent.change(screenshotInput, { target: { files: [new File(['x'], 'not-image.txt', { type: 'text/plain' })] } });
     expect(screen.queryByRole('img', { name: 'Crop preview' })).not.toBeInTheDocument();
+  });
+
+  it('creates fresh local previews for repeated removal and screenshot selections', async () => {
+    const remove = render(<BackgroundRemover />);
+    const removeInput = remove.container.querySelector('input[type="file"]')!;
+    fireEvent.change(removeInput, { target: { files: [new File(['x'], 'first.png', { type: 'image/png' })] } });
+    expect(await screen.findByRole('img', { name: 'Original' })).toBeInTheDocument();
+    fireEvent.change(removeInput, { target: { files: [new File(['y'], 'second.png', { type: 'image/png' })] } });
+    expect(screen.getByRole('img', { name: 'Original' })).toHaveAttribute('src', 'blob:local-preview');
+    remove.unmount();
+
+    const screenshot = render(<AppStoreScreenshotResizer />);
+    const screenshotInput = screenshot.container.querySelector('input[type="file"]')!;
+    fireEvent.change(screenshotInput, { target: { files: [new File(['x'], 'first.png', { type: 'image/png' })] } });
+    expect((await screen.findAllByRole('img', { name: 'Crop preview' })).length).toBe(1);
+    fireEvent.change(screenshotInput, { target: { files: [new File(['y'], 'second.png', { type: 'image/png' })] } });
+    expect(URL.createObjectURL).toHaveBeenCalledTimes(4);
   });
 
 });
