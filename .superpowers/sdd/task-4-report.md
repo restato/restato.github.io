@@ -2,7 +2,7 @@
 
 ## Baseline
 
-Before source or test edits, `npm test -- --run --reporter=verbose --reporter=json --outputFile.json=.superpowers/sdd/task-4-baseline.json` recorded 75 failed tests of 254. The machine-readable artifact is retained at `.superpowers/sdd/task-4-baseline.json`.
+Before source or test edits, `npm test -- --run --reporter=verbose --reporter=json --outputFile.json=.superpowers/sdd/task-4-baseline.json` recorded 76 failed tests of 254. The machine-readable artifact is generated locally and is ignored by Git; this report retains the count and commands rather than claiming that JSON is versioned.
 
 Root-cause classification:
 
@@ -72,15 +72,17 @@ All five focused commands exited 0.
 
 ## Final coverage gate
 
-The exact required command completed with the shared serial browser-test configuration:
+The exact required command was re-verified in normal parallel configuration:
 
 ```sh
 npm run test:coverage -- --run
 ```
 
-The matching machine-readable audit (`--reporter=json --outputFile=.superpowers/sdd/task-4-final-coverage.json`) recorded **37 files, 268 tests, 0 failed files, and 0 failed tests**.
+The matching machine-readable audit (`--reporter=json --outputFile=.superpowers/sdd/task-4-final-coverage.json`) recorded **37 files, 268 tests, 0 failed files, and 0 failed tests** locally. The JSON is ignored by Git; this Markdown report is the retained branch evidence.
 
-V8 coverage exposed that parallel jsdom files contend for shared URL/canvas/Image globals and that realistic multi-step UI tests can exceed Vitest's 5-second default while instrumented. The test configuration therefore uses a 15-second default timeout, serial file execution, and a 30-second budget only for the comprehensive LLM-workbench flow. Focused coverage verified the image URL stub isolation (14/14), UUID/Regex interaction group (13/13), and LLM workbench flow (2/2).
+The earlier read-only URL errors came from module-level mutation in image tests, not an inherent need to serialize the suite. Scoped stubs fixed that root cause, so global serialization, worker limits, and the 15-second default timeout were removed. The comprehensive LLM-workbench journey retains its local 30-second allowance because it deliberately drives scenario, compilation, terminal, graph, format, and reset interactions. Normal-parallel V8 coverage was checked with `--fileParallelism --maxWorkers=4 --testTimeout=5000`.
+
+Review remediation added standard MD5 vectors (empty, ASCII, non-Latin, repeated UI input, and copy), local-calendar D-Day parsing under both Los Angeles and Seoul timezones, hierarchical Firebase fake reads/writes/removes with subscription notifications, atomic one-guest Firebase transactions, and named Base64/UUID controls.
 
 Final commits added during reconciliation:
 

@@ -43,6 +43,22 @@ describe('UuidGenerator', () => {
     expect(uuids.length).toBe(5);
   });
 
+  it('normalizes the count to the supported minimum and maximum on blur', async () => {
+    render(<UuidGenerator />);
+    const user = userEvent.setup();
+    const countInput = screen.getByRole('spinbutton', { name: /개수/ });
+
+    await user.clear(countInput);
+    await user.type(countInput, '0');
+    await user.tab();
+    expect(countInput).toHaveValue(1);
+
+    await user.clear(countInput);
+    await user.type(countInput, '101');
+    await user.tab();
+    expect(countInput).toHaveValue(100);
+  });
+
   it('generates uppercase UUIDs when option is checked', async () => {
     render(<UuidGenerator />);
     const user = userEvent.setup();

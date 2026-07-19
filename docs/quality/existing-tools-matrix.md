@@ -1,6 +1,6 @@
 # Existing tools quality matrix
 
-`✓` indicates an automated component or focused logic test exists at this revision. `—` means the behavior is not currently covered by an automated test; these gaps remain release concerns rather than implied coverage.
+`✓` indicates a focused test exercises that exact behavior; `—` means it is not covered. `N/A` is reserved for a behavior that cannot exist for that tool (for example, non-Latin text for a dice roll). A render/smoke test, SEO metadata assertion, or disclosure alone does not qualify.
 
 | Slug | Valid | Empty | Invalid | Boundary | Non-Latin | Repeat | Output | Mobile | Privacy |
 |---|---:|---:|---:|---:|---:|---:|---:|---:|---:|
@@ -8,7 +8,7 @@
 | password | ✓ | — | — | ✓ | — | ✓ | ✓ | — | — |
 | uuid | ✓ | — | — | ✓ | — | ✓ | ✓ | — | — |
 | lorem-ipsum | — | — | — | — | — | — | — | — | — |
-| color-palette | — | — | — | — | — | — | ✓ | — | — |
+| color-palette | — | — | — | — | — | — | — | — | — |
 | hash | ✓ | ✓ | — | — | — | ✓ | ✓ | — | — |
 | color | ✓ | — | ✓ | — | — | ✓ | ✓ | — | — |
 | unit | ✓ | ✓ | — | ✓ | ✓ | ✓ | ✓ | — | — |
@@ -28,9 +28,9 @@
 | box-shadow | — | — | — | — | — | — | — | — | — |
 | image-resizer | — | — | — | — | — | — | ✓ | — | ✓ |
 | exif | — | — | — | — | — | — | — | — | — |
-| background-remover | — | — | — | — | — | — | ✓ | — | ✓ |
+| background-remover | — | — | — | — | — | — | — | — | — |
 | image-metadata | — | — | — | — | — | — | — | — | — |
-| appstore-screenshot | — | — | — | — | — | — | ✓ | — | — |
+| appstore-screenshot | — | — | — | — | — | — | — | — | — |
 | utm | — | — | — | — | — | — | — | — | — |
 | timer | — | — | — | — | — | — | — | — | — |
 | pomodoro | — | — | — | — | — | — | — | — | — |
@@ -41,14 +41,14 @@
 | age | — | — | — | — | — | — | — | — | — |
 | dday | ✓ | — | — | — | — | ✓ | ✓ | — | — |
 | dutch-pay | ✓ | ✓ | — | ✓ | — | ✓ | ✓ | — | — |
-| coin-flip | — | — | — | — | — | ✓ | ✓ | — | — |
-| dice | — | — | — | — | — | ✓ | ✓ | — | — |
-| kor-eng | — | — | — | — | ✓ | — | ✓ | — | — |
+| coin-flip | — | — | N/A | N/A | N/A | — | — | — | — |
+| dice | — | — | N/A | N/A | N/A | — | — | — | — |
+| kor-eng | — | — | — | — | — | — | — | — | — |
 | anonymous-chat | ✓ | ✓ | — | — | — | ✓ | ✓ | — | ✓ |
 
 ## Gaps and interpretation
 
 - No existing suite exercises responsive viewport behavior, so the Mobile column is intentionally empty for all 41 tools.
-- Privacy coverage is limited to the registry/page metadata checks for `llm-cost`, `image-resizer`, `background-remover`, and anonymous chat. The anonymous-chat suite also exercises its peer-room UI, while Firebase tests cover room lifecycle.
+- Privacy disclosure assertions and Firebase lifecycle tests are not browser no-upload observations, so the Privacy column remains empty until those observations exist.
 - File tools still need browser tests that prove selected bytes, names, and generated values are not uploaded. This matrix does not claim those guarantees from unit tests alone.
 - Rows without a focused suite are not evidence that the tool lacks behavior; they identify the untested legacy backlog.
