@@ -30,9 +30,11 @@ const fileTools: Array<[string, ComponentType]> = [
 
 describe('file tools local privacy boundary', () => {
   const fetchMock = vi.fn();
+  let xhrSendMock: ReturnType<typeof vi.spyOn>;
 
   beforeEach(() => {
     vi.stubGlobal('fetch', fetchMock);
+    xhrSendMock = vi.spyOn(XMLHttpRequest.prototype, 'send');
     vi.stubGlobal('URL', {
       createObjectURL: vi.fn(() => 'blob:local-preview'),
       revokeObjectURL: vi.fn(),
@@ -54,5 +56,6 @@ describe('file tools local privacy boundary', () => {
     fireEvent.change(input, { target: { files: [file] } });
 
     expect(fetchMock).not.toHaveBeenCalled();
+    expect(xhrSendMock).not.toHaveBeenCalled();
   });
 });
