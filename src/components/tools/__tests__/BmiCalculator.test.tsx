@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen } from '@testing-library/react';
+import { fireEvent, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import BmiCalculator from '../BmiCalculator';
 import './testUtils';
@@ -97,5 +97,20 @@ describe('BmiCalculator', () => {
 
     // Should not crash with empty inputs
     expect(screen.getAllByRole('spinbutton').length).toBeGreaterThan(0);
+  });
+
+  it('suppresses BMI results for empty and invalid dimensions', () => {
+    render(<BmiCalculator />);
+    const inputs = screen.getAllByRole('spinbutton');
+    fireEvent.change(inputs[0], { target: { value: '170' } });
+    fireEvent.change(inputs[1], { target: { value: '70' } });
+    fireEvent.click(screen.getByRole('button', { name: 'BMI 계산하기' }));
+    expect(screen.getByText('24.2')).toBeInTheDocument();
+    fireEvent.change(inputs[1], { target: { value: '' } });
+    fireEvent.click(screen.getByRole('button', { name: 'BMI 계산하기' }));
+    expect(screen.queryByText('24.2')).not.toBeInTheDocument();
+    fireEvent.change(inputs[1], { target: { value: '-1' } });
+    fireEvent.click(screen.getByRole('button', { name: 'BMI 계산하기' }));
+    expect(screen.queryByText('24.2')).not.toBeInTheDocument();
   });
 });

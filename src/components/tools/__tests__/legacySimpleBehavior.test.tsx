@@ -352,6 +352,18 @@ describe('legacy simple tool behavior', () => {
     expect(screen.getByText(/linear-gradient\(360deg/)).toBeInTheDocument();
   });
 
+  it('keeps gradient color stops valid for empty, malformed, and non-Latin drafts', () => {
+    const { container } = render(<GradientGenerator />);
+    const colorText = container.querySelectorAll('input[type="text"]')[0];
+    const original = (colorText as HTMLInputElement).value;
+    fireEvent.change(colorText, { target: { value: '' } });
+    expect(colorText).toHaveValue(original);
+    fireEvent.change(colorText, { target: { value: 'invalid' } });
+    expect(colorText).toHaveValue(original);
+    fireEvent.change(colorText, { target: { value: '파랑' } });
+    expect(colorText).toHaveValue(original);
+  });
+
   it('updates a box shadow layer and renders its CSS output', () => {
     const { container } = render(<BoxShadowGenerator />);
     const numericInputs = container.querySelectorAll('input[type="number"]');
@@ -364,6 +376,18 @@ describe('legacy simple tool behavior', () => {
     expect(screen.getByText(/0px/)).toBeInTheDocument();
     fireEvent.change(numericInputs[1], { target: { value: '24' } });
     expect(screen.getByText(/24px/)).toBeInTheDocument();
+  });
+
+  it('keeps box-shadow color drafts valid for empty, malformed, and non-Latin text', () => {
+    const { container } = render(<BoxShadowGenerator />);
+    const colorText = container.querySelectorAll('input[type="text"]')[0];
+    const original = (colorText as HTMLInputElement).value;
+    fireEvent.change(colorText, { target: { value: '' } });
+    expect(colorText).toHaveValue(original);
+    fireEvent.change(colorText, { target: { value: 'invalid' } });
+    expect(colorText).toHaveValue(original);
+    fireEvent.change(colorText, { target: { value: '파랑' } });
+    expect(colorText).toHaveValue(original);
   });
 
   it('creates a complementary palette from a chosen base color', () => {
