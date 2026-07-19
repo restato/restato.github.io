@@ -4,7 +4,7 @@
 
 | Slug | Valid | Empty | Invalid | Boundary | Non-Latin | Repeat | Output | Mobile | Privacy |
 |---|---:|---:|---:|---:|---:|---:|---:|---:|---:|
-| qr-code | — | — | — | — | — | — | — | ✓ | — |
+| qr-code | ✓ | — | — | ✓ | ✓ | — | ✓ | ✓ | — |
 | password | ✓ | — | — | ✓ | — | ✓ | ✓ | ✓ | — |
 | uuid | ✓ | — | — | ✓ | — | ✓ | ✓ | ✓ | — |
 | lorem-ipsum | ✓ | — | — | — | — | — | ✓ | ✓ | — |
@@ -32,9 +32,9 @@
 | image-metadata | — | — | — | — | — | — | — | ✓ | ✓ |
 | appstore-screenshot | — | — | — | — | — | — | — | ✓ | ✓ |
 | utm | ✓ | ✓ | — | — | — | ✓ | ✓ | ✓ | — |
-| timer | — | — | — | — | — | — | — | ✓ | — |
-| pomodoro | — | — | — | — | — | — | — | ✓ | — |
-| world-clock | — | — | — | — | — | — | — | ✓ | — |
+| timer | ✓ | — | — | ✓ | — | ✓ | ✓ | ✓ | — |
+| pomodoro | ✓ | — | — | — | — | ✓ | ✓ | ✓ | — |
+| world-clock | ✓ | — | N/A | — | N/A | — | ✓ | ✓ | — |
 | percent | ✓ | ✓ | — | — | — | — | ✓ | ✓ | — |
 | discount | ✓ | — | — | ✓ | — | ✓ | ✓ | ✓ | — |
 | bmi | ✓ | — | — | ✓ | — | ✓ | ✓ | ✓ | — |

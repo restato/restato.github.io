@@ -7,6 +7,10 @@ import PercentCalculator from '../PercentCalculator';
 import KorEngConverter from '../KorEngConverter';
 import AgeCalculator from '../AgeCalculator';
 import UtmBuilder from '../UtmBuilder';
+import QRCodeGenerator from '../QRCodeGenerator';
+import TimerStopwatch from '../TimerStopwatch';
+import PomodoroTimer from '../PomodoroTimer';
+import WorldClock from '../WorldClock';
 import './testUtils';
 
 afterEach(() => {
@@ -101,5 +105,58 @@ describe('legacy simple tool behavior', () => {
     expect(screen.getByText(/utm_content=banner_v1/)).toBeInTheDocument();
     fireEvent.click(screen.getByRole('button', { name: '초기화' }));
     expect(screen.getByText('URL과 필수 파라미터를 입력하세요')).toBeInTheDocument();
+  });
+
+  it('redraws a QR canvas when text and size change', () => {
+    const context = { fillStyle: '', fillRect: vi.fn() } as unknown as CanvasRenderingContext2D;
+    vi.spyOn(HTMLCanvasElement.prototype, 'getContext').mockReturnValue(context);
+    const { container } = render(<QRCodeGenerator />);
+    const input = screen.getByPlaceholderText('URL 또는 텍스트를 입력하세요');
+    const size = container.querySelector('input[type="range"]')!;
+
+    fireEvent.change(input, { target: { value: '한글 QR' } });
+    fireEvent.change(size, { target: { value: '128' } });
+
+    expect(container.querySelector('canvas')).toHaveAttribute('width', '128');
+    expect(context.fillRect).toHaveBeenCalled();
+  });
+
+  it('runs, records, and resets a stopwatch', () => {
+    vi.useFakeTimers();
+    render(<TimerStopwatch />);
+
+    fireEvent.click(screen.getByRole('button', { name: '시작' }));
+    act(() => {
+      vi.advanceTimersByTime(1000);
+    });
+    fireEvent.click(screen.getByRole('button', { name: '랩' }));
+    fireEvent.click(screen.getByRole('button', { name: '일시정지' }));
+
+    expect(screen.getByText('#1')).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: '초기화' }));
+    expect(screen.queryByText('#1')).not.toBeInTheDocument();
+  });
+
+  it('switches Pomodoro modes and resets the selected duration', () => {
+    render(<PomodoroTimer />);
+
+    expect(screen.getByText('25:00')).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: '짧은 휴식' }));
+    expect(screen.getByText('05:00')).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: '시작' }));
+    fireEvent.click(screen.getByRole('button', { name: '리셋' }));
+    expect(screen.getByText('05:00')).toBeInTheDocument();
+  });
+
+  it('converts a local KST date-time into the world-clock rows', () => {
+    const { container } = render(<WorldClock />);
+    const date = container.querySelector('input[type="date"]')!;
+    const time = container.querySelector('input[type="time"]')!;
+
+    fireEvent.change(date, { target: { value: '2026-07-20' } });
+    fireEvent.change(time, { target: { value: '09:00' } });
+
+    expect(screen.getAllByText('Tokyo').length).toBeGreaterThanOrEqual(2);
+    expect(screen.getAllByText('09:00').length).toBeGreaterThanOrEqual(2);
   });
 });
