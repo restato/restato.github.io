@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen } from '@testing-library/react';
+import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import HashGenerator from '../HashGenerator';
 import './testUtils';
@@ -45,11 +45,14 @@ describe('HashGenerator', () => {
     expect(screen.getByPlaceholderText('해시할 텍스트를 입력하세요')).toBeInTheDocument();
   });
 
-  it('has algorithm options (MD5, SHA-1, SHA-256)', () => {
+  it('shows every supported hash algorithm', () => {
     render(<HashGenerator />);
 
-    const select = screen.getByRole('combobox');
-    expect(select).toBeInTheDocument();
+    expect(screen.getByText('MD5')).toBeInTheDocument();
+    expect(screen.getByText('SHA-1')).toBeInTheDocument();
+    expect(screen.getByText('SHA-256')).toBeInTheDocument();
+    expect(screen.getByText('SHA-384')).toBeInTheDocument();
+    expect(screen.getByText('SHA-512')).toBeInTheDocument();
   });
 
   it('generates hash on input', async () => {
@@ -59,26 +62,23 @@ describe('HashGenerator', () => {
     const input = screen.getByPlaceholderText('해시할 텍스트를 입력하세요');
     await user.type(input, 'Hello');
 
-    // Should show hash result (hex string)
-    const outputs = screen.getAllByRole('textbox');
-    const outputWithHash = outputs.find(o =>
-      (o.getAttribute('value') || '').match(/^[0-9a-f]+$/i)
-    );
-    expect(outputWithHash || outputs.length).toBeTruthy();
+    await waitFor(() => expect(mockDigest).toHaveBeenCalled());
+    expect(screen.getAllByText(/^[0-9a-f]{32,}$/i)).toHaveLength(5);
   });
 
-  it('changes hash when algorithm changes', async () => {
+  it('generates each Web Crypto hash variant after input', async () => {
     render(<HashGenerator />);
     const user = userEvent.setup();
 
     const input = screen.getByPlaceholderText('해시할 텍스트를 입력하세요');
     await user.type(input, 'Test');
 
-    const select = screen.getByRole('combobox');
-    await user.selectOptions(select, 'SHA-256');
-
-    // Hash should be recalculated
-    expect(mockDigest).toHaveBeenCalled();
+    await waitFor(() => {
+      expect(mockDigest).toHaveBeenCalledWith('SHA-1', expect.any(Uint8Array));
+      expect(mockDigest).toHaveBeenCalledWith('SHA-256', expect.any(Uint8Array));
+      expect(mockDigest).toHaveBeenCalledWith('SHA-384', expect.any(Uint8Array));
+      expect(mockDigest).toHaveBeenCalledWith('SHA-512', expect.any(Uint8Array));
+    });
   });
 
   it('copies hash to clipboard', async () => {
