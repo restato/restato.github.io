@@ -32,13 +32,13 @@
 | image-metadata | ✓ | — | — | — | ✓ | — | ✓ | ✓ | ✓ |
 | appstore-screenshot | ✓ | — | — | ✓ | ✓ | — | ✓ | ✓ | ✓ |
 | utm | ✓ | ✓ | — | — | — | ✓ | ✓ | ✓ | — |
-| timer | ✓ | — | — | ✓ | — | ✓ | ✓ | ✓ | — |
-| pomodoro | ✓ | — | — | — | — | ✓ | ✓ | ✓ | — |
+| timer | ✓ | — | — | ✓ | N/A | ✓ | ✓ | ✓ | — |
+| pomodoro | ✓ | — | — | — | N/A | ✓ | ✓ | ✓ | — |
 | world-clock | ✓ | — | N/A | — | N/A | — | ✓ | ✓ | — |
 | percent | ✓ | ✓ | ✓ | — | N/A | — | ✓ | ✓ | — |
 | discount | ✓ | — | — | ✓ | N/A | ✓ | ✓ | ✓ | — |
 | bmi | ✓ | — | — | ✓ | N/A | ✓ | ✓ | ✓ | — |
-| age | ✓ | — | — | ✓ | — | — | ✓ | ✓ | — |
+| age | ✓ | — | — | ✓ | N/A | — | ✓ | ✓ | — |
 | dday | ✓ | — | — | — | — | ✓ | ✓ | ✓ | — |
 | dutch-pay | ✓ | ✓ | — | ✓ | — | ✓ | ✓ | ✓ | — |
 | coin-flip | ✓ | N/A | N/A | N/A | N/A | ✓ | ✓ | ✓ | — |
@@ -58,3 +58,4 @@
 - Hashing and text counting intentionally accept every string, including empty and non-Latin strings, so an invalid-text case does not exist.
 - Percent, discount, and BMI accept numeric values only (`type="number"`), so a non-Latin value cannot enter their calculation model. Coin flip has no input; dice has a bounded range control with an always-present value, so neither has an empty-input state.
 - Markdown and diff accept arbitrary text payloads; malformed syntax is rendered or compared as text rather than rejected, so neither exposes an invalid-input state.
+- Timer, Pomodoro, and age calculation accept duration or date controls rather than free text, so non-Latin input cannot enter their calculation models.
