@@ -22,6 +22,7 @@
 
 **Files:**
 - Modify: `src/test/setup.ts`
+- Modify: `src/components/tools/__tests__/JsonFormatter.test.tsx`
 - Create: `src/test/setup.test.ts`
 
 **Interfaces:**
@@ -61,7 +62,7 @@ Object.defineProperty(URL, 'createObjectURL', { configurable: true, value: vi.fn
 Object.defineProperty(URL, 'revokeObjectURL', { configurable: true, value: vi.fn() });
 ```
 
-Delete the `delete window.location` block.
+Delete the `delete window.location` block. Update JsonFormatter test input helpers to enter literal JSON with `fireEvent.change` because the installed `user-event` treats braces as keyboard descriptors; do not change JsonFormatter production behavior.
 
 - [ ] **Step 4: Run setup and existing tests**
 
