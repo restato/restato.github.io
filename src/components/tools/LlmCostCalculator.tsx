@@ -320,10 +320,11 @@ export default function LlmCostCalculator() {
       {!useManualTokens && (
         <div className="space-y-4">
           <div className="space-y-2">
-            <label className="block text-sm font-medium text-[var(--color-text)]">
+            <label htmlFor="llm-input-text" className="block text-sm font-medium text-[var(--color-text)]">
               {t(tc.inputText)}
             </label>
             <textarea
+              id="llm-input-text"
               value={inputText}
               onChange={(e) => setInputText(e.target.value)}
               placeholder={t(tc.inputPlaceholder)}
@@ -339,10 +340,11 @@ export default function LlmCostCalculator() {
           </div>
 
           <div className="space-y-2">
-            <label className="block text-sm font-medium text-[var(--color-text)]">
+            <label htmlFor="llm-output-text" className="block text-sm font-medium text-[var(--color-text)]">
               {t(tc.outputText)}
             </label>
             <textarea
+              id="llm-output-text"
               value={outputText}
               onChange={(e) => setOutputText(e.target.value)}
               placeholder={t(tc.outputPlaceholder)}
@@ -360,10 +362,11 @@ export default function LlmCostCalculator() {
           {!outputText && (
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <label className="block text-sm font-medium text-[var(--color-text)]">
+                <label htmlFor="llm-output-tokens" className="block text-sm font-medium text-[var(--color-text)]">
                   {t(tc.outputTokensAlt)}
                 </label>
                 <input
+                  id="llm-output-tokens"
                   type="number"
                   value={outputTokensManual}
                   onChange={(e) => setOutputTokensManual(e.target.value)}
@@ -374,10 +377,11 @@ export default function LlmCostCalculator() {
                 />
               </div>
               <div className="space-y-2">
-                <label className="block text-sm font-medium text-[var(--color-text)]">
+                <label htmlFor="llm-request-count" className="block text-sm font-medium text-[var(--color-text)]">
                   {t(tc.requestCount)}
                 </label>
                 <input
+                  id="llm-request-count"
                   type="number"
                   value={requestCount}
                   onChange={(e) => setRequestCount(e.target.value)}
@@ -393,10 +397,11 @@ export default function LlmCostCalculator() {
 
           {outputText && (
             <div className="space-y-2">
-              <label className="block text-sm font-medium text-[var(--color-text)]">
+              <label htmlFor="llm-request-count" className="block text-sm font-medium text-[var(--color-text)]">
                 {t(tc.requestCount)}
               </label>
               <input
+                id="llm-request-count"
                 type="number"
                 value={requestCount}
                 onChange={(e) => setRequestCount(e.target.value)}

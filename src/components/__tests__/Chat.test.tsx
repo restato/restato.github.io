@@ -477,6 +477,32 @@ describe('Chat', () => {
   });
 
   describe('Accessibility', () => {
+    it('keeps the message input named and operable at a mobile viewport', async () => {
+      Object.defineProperty(window, 'innerWidth', { configurable: true, value: 375 });
+      Object.defineProperty(navigator, 'maxTouchPoints', { configurable: true, value: 1 });
+      window.matchMedia = vi.fn().mockImplementation((query: string) => ({
+        matches: query.includes('max-width') || query.includes('pointer: coarse'),
+        media: query,
+        onchange: null,
+        addListener: vi.fn(),
+        removeListener: vi.fn(),
+        addEventListener: vi.fn(),
+        removeEventListener: vi.fn(),
+        dispatchEvent: vi.fn(),
+      }));
+      render(<Chat />);
+
+      await act(async () => {
+        if (mockOnStatusChange) {
+          mockOnStatusChange('connected');
+        }
+      });
+
+      const input = await screen.findByRole('textbox', { name: '메시지를 입력하세요...' });
+      input.focus();
+      expect(input).toHaveFocus();
+    });
+
     it('has proper ARIA labels', async () => {
       render(<Chat />);
 
