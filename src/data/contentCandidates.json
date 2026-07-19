@@ -1,7 +1,29 @@
 {
-  "updatedAt": "2026-07-18T00:00:00+09:00",
+  "updatedAt": "2026-07-19T09:00:00+09:00",
   "threshold": 85,
   "candidates": [
+    {
+      "id": "gpt-5-6-api-guide",
+      "title": "GPT-5.6 Sol·Terra·Luna 선택 가이드",
+      "topic": "OpenAI API와 GPT-5.6",
+      "score": 95,
+      "status": "published",
+      "action": "new-post",
+      "sourceType": "user-request",
+      "reason": "사용자가 직접 요청한 주제이며, 출시 요약을 넘어 모델 선택·장문 요율·캐싱·마이그레이션을 실제 API 기준으로 설명할 수 있음",
+      "breakdown": {
+        "timeliness": 15,
+        "readerValue": 20,
+        "fit": 15,
+        "originality": 13,
+        "evergreen": 9,
+        "evidence": 15,
+        "contentGap": 8
+      },
+      "path": "/blog/gpt-5-6-sol-terra-luna-api-guide/",
+      "commit": "cd48aa8353d3584c1f0a16061f4d393d6117fbbf",
+      "updatedAt": "2026-07-19"
+    },
     {
       "id": "content-os-launch",
       "title": "Restato Content OS 구축기",
