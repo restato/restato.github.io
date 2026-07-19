@@ -57,9 +57,8 @@ describe('ColorConverter', () => {
   it('shows color preview', () => {
     render(<ColorConverter />);
 
-    // Should have a preview element with background color
-    const preview = screen.getByText('미리보기') || document.querySelector('[style*="background"]');
-    expect(preview || screen.getByText(/미리보기|preview/i)).toBeInTheDocument();
+    const preview = document.querySelector('div[style*="background-color"]');
+    expect(preview).toHaveStyle({ backgroundColor: 'rgb(59, 130, 246)' });
   });
 
   it('handles invalid HEX input', async () => {
