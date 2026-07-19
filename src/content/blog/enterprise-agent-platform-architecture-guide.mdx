@@ -1,0 +1,279 @@
+---
+title: "Enterprise Agent Platforms: Build the Operating System, Not a Bot Factory"
+description: "A vendor-neutral architecture and 90-day roadmap for enterprise agent runtimes, identity, tools, business context, governance, evaluation, observability, and lifecycle management."
+date: 2026-07-20
+tags: ["AI Agent", "Enterprise Architecture", "AI Platform", "Governance", "Platform Engineering"]
+---
+
+The first enterprise agent is an application. The tenth is a platform problem.
+
+Each pilot can choose its own model, framework, prompt store, vector database, connector, approval dialog, and logging format. That freedom feels productive until several agents reach the same CRM with different credentials, define "customer" three ways, and report quality with unrelated metrics. Security cannot list the agents. Finance cannot attribute cost to accepted work. Operations cannot stop one action path without disabling an entire integration.
+
+An enterprise agent platform is the shared product that fixes those seams. It gives domain teams a paved road to register, build, authorize, run, evaluate, observe, and retire agents against approved business context and actions.
+
+It is not one giant agent. It is not a model gateway with a dashboard. And it should not become a central team that writes every prompt in the company.
+
+The platform's job is narrower and harder: make agents from different teams operable as one fleet without erasing domain ownership.
+
+This guide presents a vendor-neutral architecture and a 90-day rollout. It reflects standards and official product documentation checked on July 20, 2026.
+
+## Why the platform appears after the pilots
+
+Agent prototypes hide their operating costs. A developer's OAuth token becomes "authentication." A chat transcript becomes "observability." A demo prompt becomes "policy." A person watching the screen becomes "human oversight."
+
+Production removes those shortcuts. An agent may run from an API trigger with no user present, call three systems, retry after a partial failure, hand work to another agent, and preserve state for next week. The organization now needs answers that one application team cannot invent alone:
+
+- Which agents, versions, owners, and environments exist?
+- Which identity acts at each step: the user, the agent, or a service account?
+- Which business objects and policies do the agents share?
+- Which tools are approved, and what exact effects can they create?
+- How are prompts, models, skills, policies, and evaluations versioned together?
+- What evidence proves the result and supports rollback or incident response?
+- How quickly can authority be reduced across the fleet?
+
+Current vendors are converging on these problems. [Microsoft Foundry Agent Service](https://learn.microsoft.com/en-us/azure/foundry/agents/overview) combines managed and code-hosted agents with dedicated identities, tools, versioning, tracing, evaluation, and network controls. [Amazon Bedrock AgentCore](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/what-is-bedrock-agentcore.html) exposes modular runtime, identity, gateway, memory, observability, and sandbox services across frameworks and models. Google Cloud's current [enterprise agent governance](https://docs.cloud.google.com/gemini-enterprise-agent-platform/govern) centers on registry, identity and access, security, audit, and operational oversight. [OpenAI Frontier](https://openai.com/business/frontier/) describes business context, execution, evaluation, agent IAM, and auditable actions.
+
+The convergence is more useful than a winner. It shows which concerns have become platform concerns.
+
+## A seven-plane reference architecture
+
+The easiest way to create a bad platform is to start with a shopping list. Start with responsibilities instead.
+
+```text
+ employees · applications · events · schedules · other agents
+                         │
+                 channels and triggers
+                         │
+              agent runtime / workflows
+          plan · state · retry · delegation · budget
+                  │                    │
+       business context          action gateway
+    search · ontology · state   typed tools · MCP · APIs
+                  │                    │
+          systems of record and operational services
+
+ identity + policy + isolation     evaluation + telemetry + evidence
+              └──────── registry + lifecycle ────────┘
+```
+
+The boxes can come from one cloud, several vendors, or internal services. The boundaries matter more than the logo.
+
+### 1. Channels and triggers
+
+Work enters through chat, an application API, an event bus, a schedule, a case-management queue, or another agent. The entry layer authenticates the caller, assigns a tenant and purpose, applies rate and data controls, and creates a run.
+
+Do not confuse a friendly chat interface with the platform. Many valuable enterprise agents have no chat surface at all. They reconcile a queue, prepare an exception packet, or monitor a process.
+
+### 2. Runtime and orchestration
+
+The runtime hosts the model loop and workflow state. It handles tool calls, retries, timeouts, checkpoints, human pauses, delegation, context compression, and budget limits.
+
+Support more than one authoring style. A prompt-defined agent is enough for a stable internal workflow. A code-based agent is necessary when orchestration, transactions, protocols, or custom state machines matter. Requiring every team to use one framework turns the framework into an organizational bottleneck.
+
+The platform should standardize deployment contracts and telemetry, not the private shape of every loop.
+
+### 3. Business context and semantic layer
+
+RAG can find text. Enterprise work also needs authoritative objects, relationships, current state, provenance, and allowed transitions. The same "account" must resolve consistently for support, finance, and sales agents.
+
+This plane joins search, catalogs, source-system adapters, entity resolution, data classification, and the relevant slice of a domain model. Restato's [ontology operating layer guide](/blog/ontology-operating-layer-for-ai-agents/) explains when shared business semantics are worth the cost.
+
+Context access must preserve the requester's authority. A document is not safe to retrieve merely because the agent can technically index it. Record the source, policy basis, freshness, and version used for material decisions.
+
+### 4. Tool and action gateway
+
+Tools turn model output into business effects. The gateway publishes approved capabilities, validates typed arguments, obtains scoped credentials, applies policy, enforces limits, adds idempotency, invokes downstream systems, and checks postconditions.
+
+Do not expose a raw administrative API and hope the prompt uses it carefully. Publish business actions such as `prepare_refund`, `approve_discount_within_limit`, or `open_incident` with explicit preconditions and expected outcomes.
+
+The upstream system remains an enforcement point. If an agent can bypass the gateway with a broad token, the gateway is documentation, not control.
+
+### 5. Identity, policy, and isolation
+
+Every run needs a chain of identity:
+
+```text
+human or service requester → agent identity → delegated grant → tool identity
+```
+
+The platform must know when the agent acts on behalf of a user and when it acts as itself. Shared owner credentials make attribution and revocation nearly impossible.
+
+Policy evaluates the proposed effect using verifiable facts: agent version, requester, business purpose, resource, environment, risk tier, amount, data class, and grant expiry. Isolation constrains the runtime's filesystem, network, process, and secret access even if model behavior is hostile.
+
+These controls are deeper than a confirmation dialog. The [OWASP Top 10 for Agentic Applications 2026](https://genai.owasp.org/resource/owasp-top-10-for-agentic-applications-for-2026/) includes goal hijacking, tool misuse, privilege abuse, memory poisoning, insecure agent communication, cascading failure, and rogue-agent behavior. A content filter does not contain those failure paths.
+
+### 6. Evaluation, telemetry, and evidence
+
+Traditional application monitoring asks whether a service responded. An agent platform also asks whether the trajectory and business outcome were acceptable.
+
+Capture a trace across model calls, retrieval, tool selection, policy decisions, approvals, downstream effects, retries, and verification. Keep sensitive content opt-in and access-controlled. The 2026 [OpenTelemetry GenAI observability guide](https://opentelemetry.io/blog/2026/genai-observability/) shows how shared semantic conventions can distinguish model latency, tool calls, token usage, and other spans. Those conventions are still evolving, so version the internal mapping.
+
+Offline evaluation gates a deployment. Online evaluation samples real outcomes, drift, and failure modes. Incident evidence reconstructs what happened. Those are related systems, not one score called "accuracy."
+
+### 7. Registry and lifecycle
+
+The registry is the fleet's system of record. It links agent identity, purpose, owner, risk tier, deployments, models, prompts, tools, data sources, policies, evaluations, environments, dependencies, and retirement state.
+
+Registration without deployment enforcement becomes a stale spreadsheet. Runtime calls and protected tool actions should resolve to a registered deployment. Unknown agents are an incident signal.
+
+Lifecycle controls cover draft, review, evaluation, publish, canary, rollback, suspension, and retirement. A decommissioned agent must lose schedules, trigger endpoints, credentials, tool grants, and discoverability, not merely disappear from a catalog page.
+
+## Give the platform a thin waist
+
+Framework traces are useful but make a poor organization-wide contract. The platform needs a small canonical run envelope that every runtime can emit and every control can understand.
+
+This is a reference shape, not an industry standard:
+
+```json
+{
+  "run_id": "run_20260720_1842",
+  "agent": { "id": "invoice-reconciler", "version": "42" },
+  "purpose": "resolve_duplicate_payment",
+  "requester": "user:ops_37",
+  "subject": ["invoice:8451", "payment:9918"],
+  "risk_tier": 2,
+  "grant_id": "grant_713",
+  "policy_version": "finance-actions@18",
+  "budgets": { "usd": 2.0, "seconds": 300, "tool_calls": 25 },
+  "trace_id": "9f7c...",
+  "result": "requires_review",
+  "evidence": ["ev_201", "ev_202"]
+}
+```
+
+The envelope is the thin waist between changing runtimes and durable enterprise controls. A team can replace its orchestration library without losing identity, policy, cost attribution, or evidence. The platform can correlate a parent run with delegated agents even when they use different frameworks.
+
+Keep the envelope small. Store large prompts, retrieved content, tool payloads, and model reasoning in appropriate telemetry stores with separate retention and access rules. Centralizing every raw input creates a privacy and security problem disguised as observability.
+
+## MCP and A2A are interfaces, not the operating model
+
+Two protocols now appear in most agent-platform discussions:
+
+- The Model Context Protocol connects agents and applications to tools or data services.
+- The Agent2Agent protocol lets independent agents discover capabilities and exchange tasks or artifacts.
+
+The current [MCP authorization specification](https://modelcontextprotocol.io/specification/2025-11-25/basic/authorization) requires protected tokens to be bound to their intended resource and recommends least-privilege scopes. The [A2A 0.3 specification](https://a2a-protocol.org/v0.3.0/specification/) defines agent cards, messages, tasks, and artifacts without requiring one agent to expose its internal memory or tools.
+
+Those are useful interoperability seams. They do not decide whether a procurement agent may accept a supplier change, whether the invoice is in scope, or whether the action needs a finance approver. Transport identity is not business authorization. Capability discovery is not trust.
+
+Put protocol adapters at the platform edge. Keep domain semantics, grants, policy decisions, and evidence in controls that survive protocol and vendor changes.
+
+## Split ownership without creating a ticket queue
+
+A central platform team cannot understand every workflow. A domain team should not build a private security and observability stack for each agent. The ownership boundary should be explicit.
+
+| Team | Owns | Does not own alone |
+| --- | --- | --- |
+| Agent platform | Registry, runtime patterns, model gateway, tool gateway, identity integration, policy hooks, telemetry spine, templates | Domain correctness and business outcomes |
+| Domain product team | Purpose, workflow, source mapping, action semantics, eval dataset, outcome metric, on-call | Organization-wide identity and security primitives |
+| Security and risk | Control requirements, risk taxonomy, policy baseline, exceptions, incident criteria | Every prompt revision or business rule |
+| System owner | Tool contract, downstream authorization, rate and transaction controls, postconditions | Agent planning quality |
+| Data or ontology owner | Shared definitions, provenance, classification, entity mappings | Agent runtime reliability |
+
+The platform team should offer two or three golden paths, not an infinitely configurable portal. For example: a read-only knowledge agent, a human-reviewed action agent, and a bounded autonomous workflow. Each path includes deployment, identity, telemetry, evaluation, and incident defaults.
+
+Domain teams can leave the path, but the exception must be visible and owned. Otherwise "flexibility" becomes an undocumented support burden.
+
+## Buy the commodity; own the business boundary
+
+Managed platforms can remove a great deal of plumbing. Runtime scaling, session storage, sandbox creation, tracing ingestion, common connectors, and model routing are reasonable things to buy when the vendor meets residency, security, reliability, and cost requirements.
+
+Keep direct ownership of the assets that encode how your company works:
+
+- mapping between people, agents, roles, tenants, and business resources;
+- authoritative business concepts and source provenance;
+- typed action contracts and downstream enforcement;
+- risk tiers, approval mandates, grant limits, and revocation rules;
+- evaluation cases drawn from real work and known failures;
+- evidence retention, incident procedures, and outcome metrics.
+
+Those assets create portability and institutional learning. A vendor's visual workflow is not a durable system of record.
+
+There is a current cautionary example. OpenAI's [AgentKit announcement](https://openai.com/index/introducing-agentkit/) now carries a June 3, 2026 update saying Agent Builder and Evals will wind down after November 30, 2026, with Agents SDK and Workspace Agents recommended as successors. Product evolution is normal. The architecture lesson is to keep agent definitions, tool contracts, datasets, graders, and release evidence exportable and version-controlled.
+
+Portability does not require lowest-common-denominator code. Use a vendor's strong managed features when they create value. Put proprietary APIs behind adapters and know which control would disappear if the service changed.
+
+## A staged adoption model
+
+Do not announce a company-wide agent marketplace before one workflow survives production.
+
+### Stage 0: discover and inventory
+
+Find existing agents, service accounts, model endpoints, connectors, scheduled jobs, and production writes. Assign an owner and business purpose. Shadow one workflow and collect baseline human time, errors, cycle time, and cost.
+
+Exit when the organization can name the candidate workflow, affected systems, data classes, owner, baseline, and prohibited actions.
+
+### Stage 1: a read-only paved road
+
+Ship one golden path with registered deployment, approved model access, requester identity, scoped retrieval, shared telemetry, evaluation cases, budgets, and a support runbook. The agent may research and prepare work but cannot change a system of record.
+
+Exit when sampled runs are reconstructable and the domain team can measure accepted outcomes and correction effort.
+
+### Stage 2: bounded action
+
+Add one typed write action behind the tool gateway. Enforce policy immediately before execution. Use short-lived grants, idempotency, an approval or delegated mandate, postcondition verification, and rollback or compensation.
+
+Restato's [Agent Governance control-plane guide](/blog/agent-governance-control-plane/) covers this action path in detail.
+
+Exit when the team has demonstrated authorization, a duplicate-safe retry, a rejected out-of-scope action, a verified change, and a timed revocation exercise.
+
+### Stage 3: multi-team fleet
+
+Onboard a second domain using the same registry, run envelope, telemetry, and action gateway patterns. Add dependency views, reusable tool products, cross-agent budgets, portfolio risk reporting, canaries, and decommissioning automation.
+
+This stage proves whether a platform exists. If every new team still needs a custom identity, logger, evaluator, approval flow, and incident process, the first implementation was an application with shared branding.
+
+## A 90-day plan
+
+**Days 1-30: prove the complete loop.** Select one repetitive workflow with measurable value and bounded risk. Inventory dependencies. Establish the run envelope and registry. Deploy in read-only or shadow mode. Build a small evaluation set from real cases. Capture baseline and agent outcomes in the same units.
+
+**Days 31-60: add one controlled effect.** Publish a typed action through the gateway. Connect user and agent identity. Enforce policy, approval, expiry, idempotency, and postcondition checks. Run failure drills for model outage, tool timeout, partial success, revoked grant, and malicious retrieved content.
+
+**Days 61-90: test reuse.** Onboard a second team without copying the first agent. Measure time to first traced run, time to policy-compliant write, and the number of platform exceptions. Document the golden path, owner contract, support model, and retirement procedure. Fund broader rollout only if reuse is visible in those numbers.
+
+NIST's [AI Risk Management Framework](https://www.nist.gov/itl/ai-risk-management-framework) and [Generative AI Profile](https://nvlpubs.nist.gov/nistpubs/ai/NIST.AI.600-1.pdf) provide useful Govern, Map, Measure, and Manage outcomes for reviewing the program. NIST notes that AI RMF 1.0 is being revised, so map controls to outcomes rather than freezing a checklist. [ISO/IEC 42001:2023](https://www.iso.org/standard/42001) describes an organization-wide AI management system and continual improvement. A platform can produce evidence for those processes; deploying one does not establish compliance or certification.
+
+## Measure accepted work, not agent activity
+
+Agent count is a vanity metric. Token volume may mean adoption, waste, or a retry loop.
+
+Use a scorecard tied to business and control outcomes:
+
+| Metric | What it tells you |
+| --- | --- |
+| Accepted outcome rate | How often completed work is usable without material rework |
+| Human correction minutes | Whether the agent saves attention rather than shifting it to review |
+| Safe completion rate | Share of runs that finish within policy, budget, and verification requirements |
+| Cost per accepted outcome | Economic efficiency across models and workflows |
+| P95 end-to-end cycle time | User-visible speed including tools, approvals, and retries |
+| Evidence completeness | Whether a sampled run can be reconstructed from durable records |
+| Mean containment time | How quickly authority is effectively reduced after a stop decision |
+| Deployment change-failure rate | Whether prompt, model, tool, or policy changes cause regressions |
+| Time to onboard a second workflow | Whether platform components are actually reusable |
+
+Report by workflow and risk tier. An aggregate score can hide one expensive success case behind thousands of cheap summaries.
+
+## The platform test
+
+An enterprise agent platform is working when a new domain team can ship a registered, evaluated, observable, policy-bound agent without inventing identity, connectors, telemetry, and incident response again.
+
+It is failing when the central team becomes the only group allowed to change an agent, or when every team can deploy anything but nobody can explain what ran.
+
+Start with one complete business loop. Standardize the run envelope, identity chain, action gateway, telemetry, evaluation evidence, and retirement path. Let domain teams keep ownership of meaning and outcomes. Then test the architecture with a second workflow.
+
+The durable platform is not the bot catalog. It is the set of contracts that lets agents change while the company's authority, evidence, and business definitions remain understandable.
+
+## Primary resources
+
+- [NIST AI Risk Management Framework](https://www.nist.gov/itl/ai-risk-management-framework)
+- [NIST Generative AI Profile](https://nvlpubs.nist.gov/nistpubs/ai/NIST.AI.600-1.pdf)
+- [ISO/IEC 42001:2023 overview](https://www.iso.org/standard/42001)
+- [OWASP Top 10 for Agentic Applications 2026](https://genai.owasp.org/resource/owasp-top-10-for-agentic-applications-for-2026/)
+- [MCP authorization specification](https://modelcontextprotocol.io/specification/2025-11-25/basic/authorization)
+- [A2A protocol specification](https://a2a-protocol.org/v0.3.0/specification/)
+- [OpenTelemetry GenAI observability](https://opentelemetry.io/blog/2026/genai-observability/)
+- [Microsoft Foundry Agent Service](https://learn.microsoft.com/en-us/azure/foundry/agents/overview)
+- [Amazon Bedrock AgentCore](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/what-is-bedrock-agentcore.html)
+- [Google Cloud enterprise agent governance](https://docs.cloud.google.com/gemini-enterprise-agent-platform/govern)
+- [OpenAI Frontier](https://openai.com/business/frontier/)
+- [OpenAI AgentKit lifecycle update](https://openai.com/index/introducing-agentkit/)
