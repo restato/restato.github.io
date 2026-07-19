@@ -137,10 +137,10 @@ export default function DdayCalculator() {
               <p className="text-lg text-[var(--color-text-muted)] mb-2">{eventName}</p>
             )}
             <p className={`text-6xl font-bold ${result.isUpcoming ? 'text-primary-500' : 'text-[var(--color-text)]'}`}>
-              D{result.isUpcoming ? '-' : '+'}{result.days}
+              {result.days === 0 ? 'D-Day' : `D${result.isUpcoming ? '-' : '+'}${result.days}`}
             </p>
             <p className="text-[var(--color-text-muted)] mt-2">
-              {result.isUpcoming ? `${result.days}일 남았습니다` : `${result.days}일 지났습니다`}
+              {result.days === 0 ? '오늘입니다' : result.isUpcoming ? `${result.days}일 남았습니다` : `${result.days}일 지났습니다`}
             </p>
           </div>
 

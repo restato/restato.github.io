@@ -36,7 +36,7 @@ describe('DdayCalculator', () => {
     fireEvent.change(dateInput, { target: { value: futureDateStr } });
 
     // Should show D-30 or similar
-    expect(screen.getByText(/D-|일|days/i)).toBeInTheDocument();
+    expect(screen.getAllByText(/D-|일|days/i).length).toBeGreaterThan(0);
   });
 
   it('shows D-Day for today', async () => {
@@ -46,11 +46,12 @@ describe('DdayCalculator', () => {
     const dateInput = document.querySelector('input[type="date"]') as HTMLInputElement;
 
     // Set today's date
-    const today = new Date().toISOString().split('T')[0];
+    const now = new Date();
+    const today = new Date(now.getTime() - now.getTimezoneOffset() * 60_000).toISOString().split('T')[0];
     fireEvent.change(dateInput, { target: { value: today } });
 
     // Should show D-Day
-    expect(screen.getByText(/D-Day|D-0|0일/i)).toBeInTheDocument();
+    expect(screen.getByText('D-Day')).toBeInTheDocument();
   });
 
   it('calculates days since past date', async () => {
@@ -71,6 +72,7 @@ describe('DdayCalculator', () => {
   });
 
   it('allows adding event name', async () => {
+    vi.useRealTimers();
     render(<DdayCalculator />);
     const user = userEvent.setup({ delay: null });
 
