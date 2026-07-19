@@ -2,6 +2,8 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { fireEvent, render, screen } from '@testing-library/react';
 import ExifViewer from '../ExifViewer';
 import ImageMetadataViewer from '../ImageMetadataViewer';
+import BackgroundRemover from '../BackgroundRemover';
+import AppStoreScreenshotResizer from '../AppStoreScreenshotResizer';
 import './testUtils';
 
 class ArrayBufferReader {
@@ -54,6 +56,24 @@ describe('file selection results', () => {
     expect((await screen.findAllByText('비공개.png')).length).toBeGreaterThanOrEqual(2);
     expect(screen.getByText('image/png')).toBeInTheDocument();
     expect(screen.getByText('100 × 50')).toBeInTheDocument();
+  });
+
+  it('loads a local image into the background-removal workflow', async () => {
+    const { container } = render(<BackgroundRemover />);
+    const input = container.querySelector('input[type="file"]')!;
+    fireEvent.change(input, { target: { files: [new File(['x'], '배경.png', { type: 'image/png' })] } });
+
+    expect(await screen.findByText('100 x 50 • 1 Bytes')).toBeInTheDocument();
+    expect(screen.getByRole('img', { name: 'Original' })).toHaveAttribute('src', 'blob:local-preview');
+  });
+
+  it('loads a local screenshot into the App Store resize workflow', async () => {
+    const { container } = render(<AppStoreScreenshotResizer />);
+    const input = container.querySelector('input[type="file"]')!;
+    fireEvent.change(input, { target: { files: [new File(['x'], '스토어.png', { type: 'image/png' })] } });
+
+    expect(await screen.findByRole('img', { name: 'Crop preview' })).toHaveAttribute('src', 'blob:local-preview');
+    expect(screen.getByText('1320 × 2868px')).toBeInTheDocument();
   });
 
 });

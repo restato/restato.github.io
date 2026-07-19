@@ -28,9 +28,9 @@
 | box-shadow | ✓ | — | — | — | — | — | ✓ | ✓ | — |
 | image-resizer | — | — | — | — | — | — | ✓ | ✓ | ✓ |
 | exif | ✓ | — | — | — | ✓ | — | ✓ | ✓ | ✓ |
-| background-remover | — | — | — | — | — | — | — | ✓ | ✓ |
+| background-remover | ✓ | — | — | — | ✓ | — | ✓ | ✓ | ✓ |
 | image-metadata | ✓ | — | — | — | ✓ | — | ✓ | ✓ | ✓ |
-| appstore-screenshot | — | — | — | — | — | — | — | ✓ | ✓ |
+| appstore-screenshot | ✓ | — | — | ✓ | ✓ | — | ✓ | ✓ | ✓ |
 | utm | ✓ | ✓ | — | — | — | ✓ | ✓ | ✓ | — |
 | timer | ✓ | — | — | ✓ | — | ✓ | ✓ | ✓ | — |
 | pomodoro | ✓ | — | — | — | — | ✓ | ✓ | ✓ | — |
