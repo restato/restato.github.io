@@ -1,0 +1,36 @@
+---
+title: Align Astro MDX frontmatter with the live schema
+description: Read the active Astro collection schema and validate generated MDX
+  against it before publication.
+date: 2026-07-20
+tags:
+  - content-schema
+  - build
+knowledgeId: solutions/align-astro-mdx-frontmatter.md
+verifiedAt: 2026-07-20
+draft: false
+---
+
+Read the active Astro collection schema and validate generated MDX against it before publication.
+
+## 문제와 원인
+
+The content generator and the active Astro collection schema use different names for the publication date field.
+
+## 해결 방법
+
+Treat `src/content/config.ts` as authoritative, generate its required `date` field, and run the Astro production build before publication.
+
+## 적용할 수 있는 조건
+
+Use this when an Astro content collection rejects generated MDX frontmatter or when multiple writing tools target the same collection.
+
+## 적용하면 안 되는 조건
+
+Do not rename a live schema field without checking every page and component that reads it.
+
+## 검증
+
+Run `npm run build` in the public blog repository after generating the MDX file.
+
+The current public blog commit `d7d1bdd9530a5da35bf7b7f96a01ad55ce7b4c69` builds with `date` as the required blog date field.
