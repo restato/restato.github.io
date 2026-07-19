@@ -64,7 +64,7 @@ describe('Base64Tool', () => {
 
     const output = screen.getAllByRole('textbox')[1];
     // Verify it produces valid Base64
-    expect(output.getAttribute('value')).toMatch(/^[A-Za-z0-9+/=]+$/);
+    expect((output as HTMLTextAreaElement).value).toMatch(/^[A-Za-z0-9+/=]+$/);
   });
 
   it('swaps input and output when swap button is clicked', async () => {
