@@ -97,6 +97,19 @@ describe('legacy simple tool behavior', () => {
     expect(count).toHaveValue(1);
   });
 
+  it('generates the maximum word count repeatedly', () => {
+    vi.spyOn(Math, 'random').mockReturnValue(0);
+    const { container } = render(<LoremIpsumGenerator />);
+    fireEvent.click(screen.getByRole('button', { name: '단어' }));
+    const count = container.querySelector('input[type="number"]')!;
+    fireEvent.change(count, { target: { value: '1000' } });
+    fireEvent.click(screen.getByRole('button', { name: '생성' }));
+    const result = screen.getByText((text, element) => element?.tagName === 'P' && text.startsWith('Lorem ipsum'));
+    expect(result.textContent?.trim().split(/\s+/)).toHaveLength(1000);
+    fireEvent.click(screen.getByRole('button', { name: '생성' }));
+    expect(result.textContent?.trim().split(/\s+/)).toHaveLength(1000);
+  });
+
   it('converts English keyboard input to Korean and swaps the direction', () => {
     const { container } = render(<KorEngConverter />);
     const textareas = container.querySelectorAll('textarea');

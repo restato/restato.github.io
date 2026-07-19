@@ -7,7 +7,7 @@
 | qr-code | ✓ | ✓ | N/A | ✓ | ✓ | ✓ | ✓ | ✓ | — |
 | password | ✓ | ✓ | N/A | ✓ | N/A | ✓ | ✓ | ✓ | — |
 | uuid | ✓ | N/A | N/A | ✓ | N/A | ✓ | ✓ | ✓ | — |
-| lorem-ipsum | ✓ | ✓ | ✓ | — | N/A | — | ✓ | ✓ | — |
+| lorem-ipsum | ✓ | ✓ | ✓ | ✓ | N/A | ✓ | ✓ | ✓ | — |
 | color-palette | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | — |
 | hash | ✓ | ✓ | N/A | — | ✓ | ✓ | ✓ | ✓ | — |
 | color | ✓ | — | ✓ | — | — | ✓ | ✓ | ✓ | — |
