@@ -5,6 +5,7 @@ import { describe, expect, it } from 'vitest';
 
 const pagePath = join(process.cwd(), 'src/pages/projects/roomfit-3d.astro');
 const mainLayoutPath = join(process.cwd(), 'src/layouts/MainLayout.astro');
+const headerPath = join(process.cwd(), 'src/components/Header.astro');
 
 describe('RoomFit project detail page', () => {
   it('contains the approved public product contract', () => {
@@ -49,5 +50,14 @@ describe('RoomFit project detail page', () => {
 
     expect(source).toContain('lockLanguage?: boolean');
     expect(source).toContain('lockLanguage={lockLanguage}');
+    expect(source).toContain('<Header lang={lang} lockLanguage={lockLanguage} />');
+  });
+
+  it('keeps the shared navigation in English when the page language is locked', () => {
+    const source = readFileSync(headerPath, 'utf8');
+
+    expect(source).toContain("const { lang = 'ko', lockLanguage = false } = Astro.props");
+    expect(source).toContain('navTranslations[item.labelKey][lang]');
+    expect(source).toContain('if (lockLanguage) return lang;');
   });
 });
