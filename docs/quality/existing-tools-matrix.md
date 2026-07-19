@@ -49,5 +49,5 @@
 ## Gaps and interpretation
 
 - Every Mobile checkmark is an executable 375px viewport, coarse-pointer/touch contract that renders the tool and proves a named primary control accepts focus. CSS overflow and layout visuals require a browser E2E check and are intentionally not inferred from this contract.
-- The Privacy checkmarks for six file tools come from `fileToolsPrivacy.test.tsx`, which selects a non-Latin filename and observes no `fetch` request. They establish the current client-side selection boundary; external P2P/network disclosure remains separately documented for anonymous chat and is not represented as a no-upload checkmark.
+- The Privacy checkmarks for six file tools come from `fileToolsPrivacy.test.tsx`, which selects a non-Latin filename and observes neither a `fetch` request nor `XMLHttpRequest.send`. They establish the current client-side selection boundary; external P2P/network disclosure remains separately documented for anonymous chat and is not represented as a no-upload checkmark.
 - Rows without a focused suite are not evidence that the tool lacks behavior; they identify the untested legacy backlog.

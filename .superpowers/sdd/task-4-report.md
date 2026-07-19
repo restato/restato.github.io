@@ -70,7 +70,7 @@ npx vitest run src/components/llm-wiki/__tests__/useLlmWikiExperience.test.tsx -
 
 All five focused commands exited 0.
 
-## Final coverage gate
+## Earlier coverage gate (superseded by later remediation)
 
 The exact required command was re-verified in normal parallel configuration:
 
@@ -78,7 +78,7 @@ The exact required command was re-verified in normal parallel configuration:
 npm run test:coverage -- --run
 ```
 
-The matching machine-readable audit (`--reporter=json --outputFile=.superpowers/sdd/task-4-final-coverage.json`) recorded **37 files, 268 tests, 0 failed files, and 0 failed tests** locally. The JSON is ignored by Git; this Markdown report is the retained branch evidence.
+The matching machine-readable audit (`--reporter=json --outputFile=.superpowers/sdd/task-4-final-coverage.json`) recorded **37 files, 268 tests, 0 failed files, and 0 failed tests** at that point in time. The JSON is ignored by Git; it is not retained evidence for the later remediation work below.
 
 The earlier read-only URL errors came from module-level mutation in image tests, not an inherent need to serialize the suite. Scoped stubs fixed that root cause, so global serialization, worker limits, and the 15-second default timeout were removed. The comprehensive LLM-workbench journey retains its local 30-second allowance because it deliberately drives scenario, compilation, terminal, graph, format, and reset interactions. Normal-parallel V8 coverage was checked with `--fileParallelism --maxWorkers=4 --testTimeout=5000`.
 
@@ -99,3 +99,11 @@ Final commits added during reconciliation:
 - `9fc2464` test: allow covered interaction flows to complete
 - `e5d914c` test: budget the complete wiki simulation flow
 - `c8aaf6a` test: serialize shared browser coverage suites
+
+## Post-review remediation
+
+- MD5 now has standard empty, ASCII, non-Latin, repeat-input, and clipboard vectors; SHA-1/256/384/512 also render their standard `Test` vectors through the Web Crypto path (`57e27f1`).
+- D-Day parses `YYYY-MM-DD` as a local calendar date and its focused suite passed in both Los Angeles and Seoul time zones (`d613966`).
+- The Firebase fake now models nested paths, subscriptions, and transactional room reservations. The focused suite verifies an occupied room and concurrent joins admit exactly one guest (`a4cfc5a`).
+- Mobile coverage is an executable 375px/coarse-pointer contract for all 41 tools: a named primary control is rendered and accepts focus. The six image tools additionally select a non-Latin filename and prove neither `fetch` nor `XMLHttpRequest.send` was called (`0fb6f76`, `ae612f1`, `2bfd48a`).
+- The conservative behavior matrix now includes deterministic coin/dice, percent empty handling, lorem generation, keyboard conversion, age calculation, and UTM generation/clear tests (`58da05f`, `a915b32`). It still has documented uncovered behavior cells; this report does not treat the earlier coverage count as final completion evidence.
