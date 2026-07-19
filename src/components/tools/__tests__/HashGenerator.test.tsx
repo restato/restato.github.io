@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import HashGenerator from '../HashGenerator';
+import HashGenerator, { md5 } from '../HashGenerator';
 import './testUtils';
 
 // Mock crypto.subtle
@@ -55,15 +55,25 @@ describe('HashGenerator', () => {
     expect(screen.getByText('SHA-512')).toBeInTheDocument();
   });
 
-  it('generates hash on input', async () => {
+  it.each([
+    ['', 'd41d8cd98f00b204e9800998ecf8427e'],
+    ['Hello', '8b1a9953c4611296a827abf8c47804d7'],
+    ['안녕하세요', '209bebae3eb7363d9b080a66f9e306ef'],
+  ])('generates the standard MD5 vector for %j', (input, expected) => {
+    expect(md5(input)).toBe(expected);
+  });
+
+  it('renders the standard MD5 value after repeated input', async () => {
     render(<HashGenerator />);
     const user = userEvent.setup();
 
     const input = screen.getByPlaceholderText('해시할 텍스트를 입력하세요');
     await user.type(input, 'Hello');
+    await user.clear(input);
+    await user.type(input, 'Hello');
 
     await waitFor(() => expect(mockDigest).toHaveBeenCalled());
-    expect(screen.getAllByText(/^[0-9a-f]{32,}$/i)).toHaveLength(5);
+    expect(screen.getByText('8b1a9953c4611296a827abf8c47804d7')).toBeInTheDocument();
   });
 
   it('generates each Web Crypto hash variant after input', async () => {
@@ -92,9 +102,9 @@ describe('HashGenerator', () => {
     await user.type(input, 'Test');
 
     const copyButtons = screen.getAllByText('복사');
-    if (copyButtons.length > 0) {
-      await user.click(copyButtons[0]);
-    }
+    await user.click(copyButtons[0]);
+
+    expect(mockWriteText).toHaveBeenCalledWith('0cbc6611f5540bd0809a388dc95a615b');
   });
 
   it('handles empty input', () => {

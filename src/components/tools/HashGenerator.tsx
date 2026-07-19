@@ -12,17 +12,13 @@ async function generateHash(text: string, algorithm: Algorithm): Promise<string>
 }
 
 // Simple MD5 implementation (for client-side, not crypto.subtle)
-function md5(string: string): string {
+export function md5(string: string): string {
   function rotateLeft(value: number, shift: number): number {
     return (value << shift) | (value >>> (32 - shift));
   }
 
   function addUnsigned(x: number, y: number): number {
-    const result = (x & 0x7fffffff) + (y & 0x7fffffff);
-    if (x & 0x80000000 || y & 0x80000000) {
-      return result ^ 0x80000000;
-    }
-    return result;
+    return (x + y) >>> 0;
   }
 
   function F(x: number, y: number, z: number): number { return (x & y) | (~x & z); }
