@@ -38,8 +38,13 @@ npm test -- --run src/components/llm-wiki/__tests__/LlmWikiExperience.test.tsx
 - `be4d708` test: read Base64 controlled output
 - `3320e92` test: align chat interaction fixtures
 - `2f7ea2d` fix(tool): preserve chat room state in Firebase mock
+- `2f7e452` test: use Dutch pay quick-count controls
 
 ## Remaining concerns
 
 - The matrix is deliberately conservative: mobile and file-privacy browser coverage are not present in the legacy suite and are not claimed.
 - Full coverage verification is still required after the remaining legacy tool test suites are reconciled.
+
+## Continued reconciliation
+
+Dutch Pay's six failures were a single stale-interaction group: the component intentionally exposes quick 2/3/4/5/6/7/8/10 participant buttons, while tests attempted to edit a removed second spinbutton. The test now selects the real controls and verifies the documented upward rounding for uneven shares. Focused verification passed 6/6.
