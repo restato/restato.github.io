@@ -43,8 +43,57 @@ npm test -- --run src/components/llm-wiki/__tests__/LlmWikiExperience.test.tsx
 ## Remaining concerns
 
 - The matrix is deliberately conservative: mobile and file-privacy browser coverage are not present in the legacy suite and are not claimed.
-- Full coverage verification is still required after the remaining legacy tool test suites are reconciled.
+- Full coverage verification is complete; the remaining concerns are coverage gaps, not failing verification.
 
 ## Continued reconciliation
 
 Dutch Pay's six failures were a single stale-interaction group: the component intentionally exposes quick 2/3/4/5/6/7/8/10 participant buttons, while tests attempted to edit a removed second spinbutton. The test now selects the real controls and verifies the documented upward rounding for uneven shares. Focused verification passed 6/6.
+
+## Final legacy-suite reconciliation
+
+- ColorConverter 8/8, DiscountCalculator 6/6, and DdayCalculator 5/5 passed after their selectors were aligned with the rendered cards/results. The D-day reconciliation also exposed and fixed the product case for a same-day target: it now displays `D-Day` rather than `D+0` (`9b0023f`).
+- HashGenerator 6/6 now verifies its rendered five-algorithm card set and live hash output instead of a removed selector (`380a973`).
+- RegexTester 6/6 now exercises the current pattern, flags, match, invalid-pattern, and capture-group controls (`9354f81`).
+- BmiCalculator 6/6 now submits the calculator before asserting precise BMI/category output (`775a121`).
+- The aggregate `allTools.test.tsx` smoke/accessibility suite passed 39/39 after the final three groups.
+- The LLM wiki hook suite was rerun in isolation after a transient parallel-run observation and passed 3/3.
+
+Focused commands used for the final groups:
+
+```sh
+npx vitest run src/components/tools/__tests__/HashGenerator.test.tsx --reporter=verbose
+npx vitest run src/components/tools/__tests__/RegexTester.test.tsx --reporter=verbose
+npx vitest run src/components/tools/__tests__/BmiCalculator.test.tsx --reporter=verbose
+npx vitest run src/components/tools/__tests__/allTools.test.tsx --reporter=verbose
+npx vitest run src/components/llm-wiki/__tests__/useLlmWikiExperience.test.tsx --reporter=verbose
+```
+
+All five focused commands exited 0.
+
+## Final coverage gate
+
+The exact required command completed with the shared serial browser-test configuration:
+
+```sh
+npm run test:coverage -- --run
+```
+
+The matching machine-readable audit (`--reporter=json --outputFile=.superpowers/sdd/task-4-final-coverage.json`) recorded **37 files, 268 tests, 0 failed files, and 0 failed tests**.
+
+V8 coverage exposed that parallel jsdom files contend for shared URL/canvas/Image globals and that realistic multi-step UI tests can exceed Vitest's 5-second default while instrumented. The test configuration therefore uses a 15-second default timeout, serial file execution, and a 30-second budget only for the comprehensive LLM-workbench flow. Focused coverage verified the image URL stub isolation (14/14), UUID/Regex interaction group (13/13), and LLM workbench flow (2/2).
+
+Final commits added during reconciliation:
+
+- `f295906` test: allow repeated text counter values
+- `6310183` test: inspect color converter preview
+- `3db7f26` test: allow repeated discount results
+- `9b0023f` fix(tool): label same-day countdowns
+- `380a973` test: cover rendered hash algorithms
+- `9354f81` test: target regex tester controls
+- `775a121` test: submit BMI calculator inputs
+- `7cdf72e` test: allow complete LLM wiki interaction flow
+- `e777d46` test: isolate image URL mocks
+- `0a3e29b` test: allow repeated UUID generation flow
+- `9fc2464` test: allow covered interaction flows to complete
+- `e5d914c` test: budget the complete wiki simulation flow
+- `c8aaf6a` test: serialize shared browser coverage suites
