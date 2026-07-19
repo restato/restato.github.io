@@ -16,6 +16,9 @@ import DiffTool from '../DiffTool';
 import GradientGenerator from '../GradientGenerator';
 import BoxShadowGenerator from '../BoxShadowGenerator';
 import ColorPalette from '../ColorPalette';
+import TimestampConverter from '../TimestampConverter';
+import JwtDecoder from '../JwtDecoder';
+import CronGenerator from '../CronGenerator';
 import './testUtils';
 
 afterEach(() => {
@@ -213,5 +216,33 @@ describe('legacy simple tool behavior', () => {
 
     expect(screen.getAllByText('#ff0000').length).toBeGreaterThan(0);
     expect(screen.getAllByText('#00ffff').length).toBeGreaterThan(0);
+  });
+
+  it('converts a Unix timestamp into its ISO date representation', () => {
+    const { container } = render(<TimestampConverter />);
+    const timestamp = container.querySelector('input[type="text"]')!;
+    fireEvent.change(timestamp, { target: { value: '1704067200' } });
+
+    expect(screen.getByText('2024-01-01T00:00:00.000Z')).toBeInTheDocument();
+  });
+
+  it('decodes a JWT example and presents malformed-token feedback', () => {
+    render(<JwtDecoder />);
+    fireEvent.click(screen.getByRole('button', { name: '예제 불러오기' }));
+    expect(screen.getByText('HS256')).toBeInTheDocument();
+    expect(screen.getByText('John Doe')).toBeInTheDocument();
+
+    fireEvent.change(screen.getByPlaceholderText('eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...'), { target: { value: 'broken' } });
+    expect(screen.getByText('Invalid JWT format (should have 3 parts)')).toBeInTheDocument();
+  });
+
+  it('updates cron expression and its human-readable schedule from controls', () => {
+    render(<CronGenerator />);
+    fireEvent.click(screen.getByRole('button', { name: '평일 9시' }));
+
+    expect(screen.getByText('0 9 * * 1-5')).toBeInTheDocument();
+    expect(screen.getByText(/평일에/)).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: '*/15' }));
+    expect(screen.getByText('*/15 9 * * 1-5')).toBeInTheDocument();
   });
 });
