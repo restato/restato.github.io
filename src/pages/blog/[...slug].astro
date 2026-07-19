@@ -19,6 +19,12 @@ const formattedDate = post.data.date.toLocaleDateString('en-US', {
   day: 'numeric',
 });
 
+const formatKnowledgeDate = (date: Date) => date.toLocaleDateString('en-US', {
+  year: 'numeric',
+  month: 'long',
+  day: 'numeric',
+});
+
 // Get reading time estimate (roughly 200 words per minute in Korean)
 const content = post.body;
 const wordCount = content.split(/\s+/).length;
@@ -68,6 +74,17 @@ const readingTime = Math.max(1, Math.ceil(wordCount / 200));
         <p class="text-lg text-[var(--color-text-muted)] mb-6 leading-relaxed">
           {post.data.description}
         </p>
+
+        <!-- Knowledge provenance -->
+        {post.data.knowledgeId && post.data.verifiedAt && (
+          <p
+            data-knowledge-id={post.data.knowledgeId}
+            class="text-sm text-[var(--color-text-muted)] mb-6"
+          >
+            Verified {formatKnowledgeDate(post.data.verifiedAt)}
+            {post.data.updated && ` · Updated ${formatKnowledgeDate(post.data.updated)}`}
+          </p>
+        )}
 
         <!-- Tags -->
         {post.data.tags.length > 0 && (
