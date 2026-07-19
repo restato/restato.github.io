@@ -188,6 +188,37 @@ describe('legacy simple tool behavior', () => {
     expect(screen.getByText('05:00')).toBeInTheDocument();
   });
 
+  it('keeps Pomodoro duration settings within their one-to-sixty-minute boundary', () => {
+    render(<PomodoroTimer />);
+    fireEvent.click(screen.getByRole('button', { name: '설정' }));
+    const settings = screen.getAllByRole('spinbutton');
+
+    fireEvent.change(settings[0], { target: { value: '0' } });
+    expect(settings[0]).toHaveValue(1);
+    fireEvent.change(settings[0], { target: { value: '61' } });
+    expect(settings[0]).toHaveValue(60);
+    fireEvent.change(settings[0], { target: { value: '' } });
+    expect(settings[0]).toHaveValue(1);
+  });
+
+  it('handles empty, invalid, boundary, non-Latin, and repeated timestamp input', () => {
+    const { container } = render(<TimestampConverter />);
+    const timestamp = container.querySelector('input[type="text"]')!;
+
+    fireEvent.change(timestamp, { target: { value: '1704067200' } });
+    expect(screen.getByText('2024-01-01T00:00:00.000Z')).toBeInTheDocument();
+    fireEvent.change(timestamp, { target: { value: '' } });
+    expect(screen.queryByText('2024-01-01T00:00:00.000Z')).not.toBeInTheDocument();
+    fireEvent.change(timestamp, { target: { value: 'not-a-timestamp' } });
+    expect(timestamp).toHaveValue('');
+    fireEvent.change(timestamp, { target: { value: '한글' } });
+    expect(timestamp).toHaveValue('');
+    fireEvent.change(timestamp, { target: { value: '0' } });
+    expect(screen.getByText('1970-01-01T00:00:00.000Z')).toBeInTheDocument();
+    fireEvent.change(timestamp, { target: { value: '946684800' } });
+    expect(screen.getByText('2000-01-01T00:00:00.000Z')).toBeInTheDocument();
+  });
+
   it('converts a local KST date-time into the world-clock rows', () => {
     const { container } = render(<WorldClock />);
     const date = container.querySelector('input[type="date"]')!;
@@ -198,6 +229,38 @@ describe('legacy simple tool behavior', () => {
 
     expect(screen.getAllByText('Tokyo').length).toBeGreaterThanOrEqual(2);
     expect(screen.getAllByText('09:00').length).toBeGreaterThanOrEqual(2);
+  });
+
+  it('suppresses incomplete world-clock conversions and recomputes repeated times', () => {
+    const { container } = render(<WorldClock />);
+    const date = container.querySelector('input[type="date"]')!;
+    const time = container.querySelector('input[type="time"]')!;
+
+    fireEvent.change(date, { target: { value: '2026-07-20' } });
+    expect(screen.getAllByText('Mumbai')).toHaveLength(1);
+    fireEvent.change(time, { target: { value: '00:00' } });
+    expect(screen.getAllByText('00:00').length).toBeGreaterThanOrEqual(2);
+    expect(screen.getAllByText('Mumbai')).toHaveLength(2);
+    fireEvent.change(time, { target: { value: '23:59' } });
+    expect(screen.getAllByText('23:59').length).toBeGreaterThanOrEqual(2);
+    fireEvent.change(time, { target: { value: '' } });
+    expect(screen.getAllByText('Mumbai')).toHaveLength(1);
+  });
+
+  it('normalizes empty and invalid timer fields and accepts the largest duration', () => {
+    const { container } = render(<TimerStopwatch />);
+    fireEvent.click(screen.getByRole('button', { name: '타이머' }));
+    const inputs = container.querySelectorAll('input[type="number"]');
+
+    fireEvent.change(inputs[0], { target: { value: '' } });
+    expect(inputs[0]).toHaveValue(0);
+    fireEvent.change(inputs[1], { target: { value: '-1' } });
+    expect(inputs[1]).toHaveValue(0);
+    fireEvent.change(inputs[0], { target: { value: '23' } });
+    fireEvent.change(inputs[1], { target: { value: '59' } });
+    fireEvent.change(inputs[2], { target: { value: '59' } });
+    fireEvent.click(screen.getByRole('button', { name: '시작' }));
+    expect(screen.getByText('23:59:59')).toBeInTheDocument();
   });
 
   it('renders markdown, including non-Latin headings, and clears it', () => {

@@ -279,7 +279,11 @@ export default function PomodoroTimer() {
                     max="60"
                     value={settings[key as keyof Settings]}
                     onChange={(e) => {
-                      const newSettings = { ...settings, [key]: Number(e.target.value) };
+                      const parsedValue = Number(e.target.value);
+                      const value = Number.isFinite(parsedValue)
+                        ? Math.max(1, Math.min(60, parsedValue))
+                        : 1;
+                      const newSettings = { ...settings, [key]: value };
                       setSettings(newSettings);
                       if (!isRunning) {
                         setTimeLeft(getDuration(mode));
