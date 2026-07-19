@@ -8,7 +8,7 @@
 
 Restato will become a privacy-first collection of genuinely useful browser tools rather than a high-volume collection of thin landing pages. Existing tools must work reliably before the catalog expands. New pages are indexable only when the tool, localized interface, localized metadata, help content, and automated tests are complete.
 
-The site will retain its current static Astro deployment on GitHub Pages. User-entered text and files are processed in the browser. No tool may require a runtime backend or transmit user content to a third-party API. Anonymous usage analytics may be enabled separately, subject to consent requirements, but must never contain tool inputs, file contents, file names, generated values, or stable personal identifiers.
+The site will retain its current static Astro deployment on GitHub Pages. Processing tools handle user-entered text and files in the browser and do not transmit that content to a third-party processing API. Explicit communication tools may send content to the intended peer and must disclose signaling, relay, and peer-transfer behavior accurately. Anonymous usage analytics may be enabled separately, subject to consent requirements, but must never contain tool inputs, file contents, file names, generated values, or stable personal identifiers.
 
 ### Success priorities
 
@@ -78,7 +78,7 @@ Each tool record must define:
 - category and task cluster;
 - supported languages and localization-completeness state;
 - localized name, short description, title, meta description, and search intent;
-- privacy mode and browser capabilities used;
+- privacy mode (`local-only`, `local-with-assets`, `local-with-network-data`, or `peer-to-peer`) and browser/network capabilities used;
 - related tool slugs;
 - content module containing overview, use cases, steps, examples, limitations, privacy notes, and visible FAQs;
 - indexability state;

@@ -11,7 +11,7 @@
 ## Global Constraints
 
 - Keep GitHub Pages static output.
-- Tool inputs and files never leave the browser.
+- Processing-tool inputs and files never leave the browser; explicit communication tools may send content only to the intended peer and must disclose signaling, relay, and transfer behavior.
 - Existing public slugs remain valid.
 - Use two-space indentation, semicolons, and single quotes.
 - Write a failing test and observe the expected failure before every behavior change.
@@ -123,7 +123,7 @@ Expected: FAIL because the registry modules do not exist.
 ```ts
 export type Language = 'ko' | 'en' | 'ja' | 'zh-CN' | 'zh-TW' | 'es' | 'pt' | 'de' | 'fr' | 'it' | 'id' | 'hi';
 export type LocalizationStatus = 'complete' | 'fallback';
-export type ToolPrivacyMode = 'local-only' | 'local-with-assets';
+export type ToolPrivacyMode = 'local-only' | 'local-with-assets' | 'local-with-network-data' | 'peer-to-peer';
 
 export interface ToolContent {
   status: LocalizationStatus;
@@ -156,12 +156,12 @@ export interface ToolDefinition {
 
 - [ ] **Step 4: Migrate the existing 41 records without changing copy**
 
-Move current entries into `registry.ts`, add accurate `privacyMode`, relations, English/Korean/Japanese content status, and compatibility exports from `src/data/tools.ts`.
+Move current entries into `registry.ts`, add accurate privacy modes based on actual network behavior, manually curated meaningful relations, English/Korean/Japanese content status, and compatibility exports from `src/data/tools.ts`. Classify anonymous chat as `peer-to-peer`; classify tools that fetch non-user network data as `local-with-network-data`; use `local-with-assets` only when runtime assets are downloaded for local processing.
 
 - [ ] **Step 5: Run registry and existing tests**
 
 Run: `npm test -- --run src/data/tools/__tests__/registry.test.ts src/components/tools/__tests__/allTools.test.tsx`
-Expected: PASS.
+Expected: registry tests PASS. Record the four previously identified component/i18n smoke failures as the baseline backlog for Task 4; Task 2 is not responsible for changing those components.
 
 - [ ] **Step 6: Commit**
 
