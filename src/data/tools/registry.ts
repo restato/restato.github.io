@@ -988,12 +988,6 @@ const registryToolConfigs: ToolConfig[] = [
   },
 ];
 
-const privacyByLanguage: Record<ExistingToolLanguage, string> = {
-  ko: '모든 처리는 브라우저에서 실행되며 데이터가 서버로 전송되지 않습니다.',
-  en: 'All processing happens in your browser and no data is sent to servers.',
-  ja: 'すべての処理はブラウザで実行され、データがサーバーに送信されることはありません。',
-};
-
 const privacyModesBySlug: Record<string, ToolPrivacyMode> = {
   // @imgly/background-removal downloads runtime model assets, then processes locally.
   'background-remover': 'local-with-assets',
@@ -1001,6 +995,29 @@ const privacyModesBySlug: Record<string, ToolPrivacyMode> = {
   'llm-cost': 'local-with-network-data',
   // Chat messages travel through a PeerJS data connection between participants.
   'anonymous-chat': 'peer-to-peer',
+};
+
+const privacyDisclosuresByMode: Record<ToolPrivacyMode, Record<ExistingToolLanguage, string>> = {
+  'local-only': {
+    ko: '이 도구는 입력한 값을 브라우저에서 로컬로 처리합니다. 입력한 값은 외부 서비스로 전송되지 않습니다.',
+    en: 'This tool processes the values you provide locally in your browser. It does not send those values to an external service.',
+    ja: 'このツールは入力した値をブラウザ内でローカルに処理します。入力した値が外部サービスに送信されることはありません。',
+  },
+  'local-with-assets': {
+    ko: '배경 제거에 필요한 모델 및 WASM 자산은 최초 실행 시 IMG.LY 자산 서버에서 다운로드될 수 있습니다. 선택한 이미지 바이트는 업로드되지 않으며 브라우저에서 로컬로 처리됩니다.',
+    en: 'The model and WASM assets required for background removal may be downloaded from IMG.LY asset servers on first use. Selected image bytes are not uploaded and are processed locally in your browser.',
+    ja: '背景除去に必要なモデルと WASM アセットは、初回実行時に IMG.LY のアセットサーバーからダウンロードされる場合があります。選択した画像のバイトはアップロードされません。ブラウザ内でローカルに処理されます。',
+  },
+  'local-with-network-data': {
+    ko: '현재 환율을 표시하기 위해 외부 환율 서비스에 요청합니다. 입력한 토큰 수, 모델 선택 및 비용 계산 값은 이 요청에 전송되지 않으며 브라우저에서 처리됩니다.',
+    en: 'Current exchange-rate data is requested from an external exchange-rate service. Your token counts, model selections, and cost-calculation values are not sent with that request and stay in your browser.',
+    ja: '現在の為替レートを表示するため、外部の為替レートサービスにリクエストします。入力したトークン数、モデルの選択、費用計算の値はそのリクエストに送信されません。ブラウザ内で処理されます。',
+  },
+  'peer-to-peer': {
+    ko: '익명 채팅은 연결 설정을 위해 PeerJS 시그널링과 STUN/TURN 인프라를 사용하며 네트워크 조건에 따라 TURN 릴레이를 경유할 수 있습니다. 메시지는 의도한 상대 피어에게 전송되며 애플리케이션 서버에 메시지 내용을 저장하도록 설계되지 않았습니다. 방 연결 정보는 연결을 조정하기 위해 별도 서비스에 일시적으로 기록될 수 있습니다.',
+    en: 'Anonymous chat uses PeerJS signaling and STUN/TURN infrastructure to establish a connection, and may use a TURN relay depending on network conditions. Messages transfer to the intended peer and are not designed to be stored as message content on the application server. Room connection metadata may be temporarily recorded by a separate service to coordinate the connection.',
+    ja: '匿名チャットは接続確立のために PeerJS シグナリングと STUN/TURN インフラを使用し、ネットワーク条件によっては TURN リレーを経由する場合があります。メッセージは意図した相手のピアに転送され、アプリケーションサーバーにメッセージ内容を保存するようには設計されていません。接続を調整するため、ルーム接続メタデータが別サービスに一時的に記録される場合があります。',
+  },
 };
 
 const relatedSlugsByTool: Record<string, string[]> = {
@@ -1060,7 +1077,11 @@ const clustersByCategory: Record<string, string> = {
   text: 'text',
 };
 
-function createContent(language: ExistingToolLanguage, seo: ToolSEO): ToolContent {
+function createContent(
+  language: ExistingToolLanguage,
+  seo: ToolSEO,
+  privacyMode: ToolPrivacyMode,
+): ToolContent {
   return {
     status: 'fallback',
     name: seo.title.split(' - ')[0],
@@ -1071,7 +1092,7 @@ function createContent(language: ExistingToolLanguage, seo: ToolSEO): ToolConten
     steps: [],
     examples: [],
     limitations: [],
-    privacy: privacyByLanguage[language],
+    privacy: privacyDisclosuresByMode[privacyMode][language],
     faq: [],
   };
 }
@@ -1085,8 +1106,13 @@ function getPrivacyMode(slug: string): ToolPrivacyMode {
 }
 
 function createLocalizedContent(tool: ToolConfig): Localized<ToolContent> {
+  const privacyMode = getPrivacyMode(tool.slug);
+
   return Object.fromEntries(
-    existingToolLanguages.map(language => [language, createContent(language, tool.seo[language])]),
+    existingToolLanguages.map(language => [
+      language,
+      createContent(language, tool.seo[language], privacyMode),
+    ]),
   ) as Localized<ToolContent>;
 }
 

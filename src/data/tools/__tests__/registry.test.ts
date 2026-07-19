@@ -45,6 +45,53 @@ describe('toolsRegistry', () => {
     expect(getTool('image-resizer')?.privacyMode).toBe('local-only');
   });
 
+  it('discloses non-local privacy behavior in every existing locale', () => {
+    const expectedPhrases = {
+      'anonymous-chat': {
+        ko: ['PeerJS', 'STUN/TURN', '상대 피어'],
+        en: ['PeerJS', 'STUN/TURN', 'intended peer'],
+        ja: ['PeerJS', 'STUN/TURN', '相手のピア'],
+      },
+      'llm-cost': {
+        ko: ['외부 환율 서비스', '전송되지'],
+        en: ['external exchange-rate service', 'not sent'],
+        ja: ['外部の為替レートサービス', '送信されません'],
+      },
+      'background-remover': {
+        ko: ['모델 및 WASM', '다운로드', '업로드되지'],
+        en: ['model and WASM', 'downloaded', 'not uploaded'],
+        ja: ['モデルと WASM', 'ダウンロード', 'アップロードされません'],
+      },
+    } as const;
+
+    for (const [slug, localizedPhrases] of Object.entries(expectedPhrases)) {
+      const tool = getTool(slug);
+      expect(tool).toBeDefined();
+
+      for (const [language, phrases] of Object.entries(localizedPhrases)) {
+        const privacy = tool?.content[language as 'ko' | 'en' | 'ja']?.privacy ?? '';
+        for (const phrase of phrases) {
+          expect(privacy).toContain(phrase);
+        }
+      }
+    }
+  });
+
+  it('does not use the false generic no-data-sent statement for non-local modes', () => {
+    const genericDisclosures = {
+      ko: '모든 처리는 브라우저에서 실행되며 데이터가 서버로 전송되지 않습니다.',
+      en: 'All processing happens in your browser and no data is sent to servers.',
+      ja: 'すべての処理はブラウザで実行され、データがサーバーに送信されることはありません。',
+    } as const;
+
+    for (const slug of ['anonymous-chat', 'llm-cost', 'background-remover']) {
+      const tool = getTool(slug);
+      for (const language of ['ko', 'en', 'ja'] as const) {
+        expect(tool?.content[language]?.privacy).not.toBe(genericDisclosures[language]);
+      }
+    }
+  });
+
   it('uses curated cross-category relations for singleton and specialized tools', () => {
     expect(getTool('utm')?.related).toEqual(['url-encoder', 'qr-code', 'base64']);
     expect(getTool('background-remover')?.related).toEqual([
