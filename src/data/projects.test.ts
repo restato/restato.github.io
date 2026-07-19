@@ -44,4 +44,21 @@ describe('project catalog', () => {
 
     expect(source).toContain('including Local Price Extractor');
   });
+
+  it('documents the Local Price Extractor install flow and experimental boundary', () => {
+    const source = readFileSync(
+      join(process.cwd(), 'src/pages/projects/local-price-extractor.astro'),
+      'utf8',
+    );
+
+    expect(source).toContain('Experimental Prototype');
+    expect(source).toContain('2 accepted');
+    expect(source).toContain('0 rejected');
+    expect(source).toContain('chrome://extensions');
+    expect(source).toContain('현재 페이지 분석');
+    expect(source).toContain('Korean extraction is experimental');
+    expect(source).toContain('https://github.com/restato/local-price-extractor');
+    expect(source).toContain("'@type': 'SoftwareApplication'");
+    expect(source).not.toContain('Open Live App');
+  });
 });
