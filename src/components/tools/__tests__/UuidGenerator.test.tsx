@@ -21,8 +21,7 @@ describe('UuidGenerator', () => {
 
     await user.click(screen.getByText('생성'));
 
-    const textarea = screen.getByRole('textbox');
-    const uuid = textarea.getAttribute('value') || '';
+    const uuid = screen.getByRole('code').textContent || '';
 
     // UUID v4 format: xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx
     expect(uuid).toMatch(/^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i);
@@ -39,8 +38,7 @@ describe('UuidGenerator', () => {
 
     await user.click(screen.getByText('생성'));
 
-    const textarea = screen.getByRole('textbox');
-    const uuids = (textarea.getAttribute('value') || '').split('\n');
+    const uuids = screen.getAllByRole('code').map((code) => code.textContent || '');
 
     expect(uuids.length).toBe(5);
   });
@@ -54,8 +52,7 @@ describe('UuidGenerator', () => {
 
     await user.click(screen.getByText('생성'));
 
-    const textarea = screen.getByRole('textbox');
-    const uuid = textarea.getAttribute('value') || '';
+    const uuid = screen.getByRole('code').textContent || '';
 
     expect(uuid).toMatch(/^[0-9A-F-]+$/);
   });
@@ -69,8 +66,7 @@ describe('UuidGenerator', () => {
 
     await user.click(screen.getByText('생성'));
 
-    const textarea = screen.getByRole('textbox');
-    const uuid = textarea.getAttribute('value') || '';
+    const uuid = screen.getByRole('code').textContent || '';
 
     expect(uuid).not.toContain('-');
     expect(uuid.length).toBe(32); // 32 hex chars without hyphens
@@ -99,8 +95,7 @@ describe('UuidGenerator', () => {
 
     await user.click(screen.getByText('생성'));
 
-    const textarea = screen.getByRole('textbox');
-    const uuids = (textarea.getAttribute('value') || '').split('\n');
+    const uuids = screen.getAllByRole('code').map((code) => code.textContent || '');
 
     const uniqueUuids = new Set(uuids);
     expect(uniqueUuids.size).toBe(uuids.length);

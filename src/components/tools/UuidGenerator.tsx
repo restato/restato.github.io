@@ -20,7 +20,7 @@ export default function UuidGenerator() {
   const tc = translations.tools.common;
 
   const [uuids, setUuids] = useState<string[]>([generateUUID()]);
-  const [count, setCount] = useState(1);
+  const [count, setCount] = useState('1');
   const [uppercase, setUppercase] = useState(false);
   const [hyphens, setHyphens] = useState(true);
   const [copiedIndex, setCopiedIndex] = useState<number | null>(null);
@@ -28,7 +28,8 @@ export default function UuidGenerator() {
 
   const generate = useCallback(() => {
     const newUuids: string[] = [];
-    for (let i = 0; i < count; i++) {
+    const normalizedCount = Math.max(1, Math.min(100, Number(count) || 1));
+    for (let i = 0; i < normalizedCount; i++) {
       let uuid = generateUUID();
       if (!hyphens) uuid = uuid.replace(/-/g, '');
       if (uppercase) uuid = uuid.toUpperCase();
@@ -79,7 +80,8 @@ export default function UuidGenerator() {
             min="1"
             max="100"
             value={count}
-            onChange={(e) => setCount(Math.max(1, Math.min(100, Number(e.target.value))))}
+            onChange={(e) => setCount(e.target.value)}
+            onBlur={() => setCount(String(Math.max(1, Math.min(100, Number(count) || 1))))}
             className="w-20 px-3 py-2 rounded-lg border border-[var(--color-border)]
               bg-[var(--color-card)] text-[var(--color-text)] text-center
               focus:outline-none focus:ring-2 focus:ring-primary-500"
