@@ -22,12 +22,12 @@ describe('JsonFormatter', () => {
     const user = userEvent.setup();
 
     const input = screen.getByPlaceholderText('JSON을 입력하세요');
-    await user.type(input, '{"name":"test","value":123}');
+    fireEvent.change(input, { target: { value: '{"name":"test","value":123}' } });
 
     await user.click(screen.getByText('포매팅'));
 
     const output = screen.getAllByRole('textbox')[1];
-    const formattedValue = output.getAttribute('value') || '';
+    const formattedValue = (output as HTMLTextAreaElement).value;
     expect(formattedValue).toContain('"name": "test"');
   });
 
@@ -36,7 +36,7 @@ describe('JsonFormatter', () => {
     const user = userEvent.setup();
 
     const input = screen.getByPlaceholderText('JSON을 입력하세요');
-    await user.type(input, '{  "name"  :  "test"  }');
+    fireEvent.change(input, { target: { value: '{  "name"  :  "test"  }' } });
 
     await user.click(screen.getByText('압축'));
 
@@ -49,7 +49,7 @@ describe('JsonFormatter', () => {
     const user = userEvent.setup();
 
     const input = screen.getByPlaceholderText('JSON을 입력하세요');
-    await user.type(input, '{"valid": true}');
+    fireEvent.change(input, { target: { value: '{"valid": true}' } });
 
     await user.click(screen.getByText('검증'));
 
@@ -61,7 +61,7 @@ describe('JsonFormatter', () => {
     const user = userEvent.setup();
 
     const input = screen.getByPlaceholderText('JSON을 입력하세요');
-    await user.type(input, '{invalid json}');
+    fireEvent.change(input, { target: { value: '{invalid json}' } });
 
     await user.click(screen.getByText('검증'));
 
@@ -75,7 +75,7 @@ describe('JsonFormatter', () => {
     await user.click(screen.getByText('샘플 불러오기'));
 
     const input = screen.getByPlaceholderText('JSON을 입력하세요');
-    expect(input.getAttribute('value')).toContain('Sample Object');
+    expect((input as HTMLTextAreaElement).value).toContain('Sample Object');
   });
 
   it('respects indent size setting', async () => {
@@ -87,12 +87,12 @@ describe('JsonFormatter', () => {
     await user.selectOptions(indentSelect, '4');
 
     const input = screen.getByPlaceholderText('JSON을 입력하세요');
-    await user.type(input, '{"a":"b"}');
+    fireEvent.change(input, { target: { value: '{"a":"b"}' } });
 
     await user.click(screen.getByText('포매팅'));
 
     const output = screen.getAllByRole('textbox')[1];
-    const formattedValue = output.getAttribute('value') || '';
+    const formattedValue = (output as HTMLTextAreaElement).value;
     expect(formattedValue).toContain('    '); // 4 spaces
   });
 
@@ -104,7 +104,7 @@ describe('JsonFormatter', () => {
     const user = userEvent.setup();
 
     const input = screen.getByPlaceholderText('JSON을 입력하세요');
-    await user.type(input, '{"test":1}');
+    fireEvent.change(input, { target: { value: '{"test":1}' } });
 
     await user.click(screen.getByText('포매팅'));
     await user.click(screen.getByText('복사'));
@@ -117,12 +117,12 @@ describe('JsonFormatter', () => {
     const user = userEvent.setup();
 
     const input = screen.getByPlaceholderText('JSON을 입력하세요');
-    await user.type(input, '{"a":{"b":{"c":1}}}');
+    fireEvent.change(input, { target: { value: '{"a":{"b":{"c":1}}}' } });
 
     await user.click(screen.getByText('포매팅'));
 
     const output = screen.getAllByRole('textbox')[1];
-    expect(output.getAttribute('value')).toContain('"c": 1');
+    expect((output as HTMLTextAreaElement).value).toContain('"c": 1');
   });
 
   it('handles arrays correctly', async () => {
@@ -130,7 +130,7 @@ describe('JsonFormatter', () => {
     const user = userEvent.setup();
 
     const input = screen.getByPlaceholderText('JSON을 입력하세요');
-    await user.type(input, '[1,2,3]');
+    fireEvent.change(input, { target: { value: '[1,2,3]' } });
 
     await user.click(screen.getByText('포매팅'));
 
