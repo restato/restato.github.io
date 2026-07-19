@@ -83,6 +83,20 @@ describe('legacy simple tool behavior', () => {
     expect(screen.getByText((text, element) => element?.tagName === 'P' && /^Lorem ipsum \S+$/.test(text))).toBeInTheDocument();
   });
 
+  it('normalizes empty and negative lorem word counts before generating output', () => {
+    const { container } = render(<LoremIpsumGenerator />);
+    fireEvent.click(screen.getByRole('button', { name: '단어' }));
+    const count = container.querySelector('input[type="number"]')!;
+
+    fireEvent.change(count, { target: { value: '' } });
+    expect(count).toHaveValue(1);
+    fireEvent.click(screen.getByRole('button', { name: '생성' }));
+    expect(screen.getByText((text, element) => element?.tagName === 'P' && text.startsWith('Lorem ipsum'))).toBeInTheDocument();
+
+    fireEvent.change(count, { target: { value: '-5' } });
+    expect(count).toHaveValue(1);
+  });
+
   it('converts English keyboard input to Korean and swaps the direction', () => {
     const { container } = render(<KorEngConverter />);
     const textareas = container.querySelectorAll('textarea');
@@ -115,18 +129,23 @@ describe('legacy simple tool behavior', () => {
     expect(screen.getByText('URL과 필수 파라미터를 입력하세요')).toBeInTheDocument();
   });
 
-  it('redraws a QR canvas when text and size change', () => {
-    const context = { fillStyle: '', fillRect: vi.fn() } as unknown as CanvasRenderingContext2D;
+  it('redraws a QR canvas for empty and repeated text changes', () => {
+    const fillRect = vi.fn();
+    const context = { fillStyle: '', fillRect } as unknown as CanvasRenderingContext2D;
     vi.spyOn(HTMLCanvasElement.prototype, 'getContext').mockReturnValue(context);
     const { container } = render(<QRCodeGenerator />);
     const input = screen.getByPlaceholderText('URL 또는 텍스트를 입력하세요');
     const size = container.querySelector('input[type="range"]')!;
 
+    fireEvent.change(input, { target: { value: '' } });
+    expect(context.fillRect).toHaveBeenCalled();
+    const callsAfterEmptyValue = fillRect.mock.calls.length;
+
     fireEvent.change(input, { target: { value: '한글 QR' } });
     fireEvent.change(size, { target: { value: '128' } });
 
     expect(container.querySelector('canvas')).toHaveAttribute('width', '128');
-    expect(context.fillRect).toHaveBeenCalled();
+    expect(fillRect.mock.calls.length).toBeGreaterThan(callsAfterEmptyValue);
   });
 
   it('runs, records, and resets a stopwatch', () => {
