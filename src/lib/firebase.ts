@@ -83,7 +83,7 @@ export async function joinRoom(roomId: string, peerId: string): Promise<Room | n
   // 게스트로 참가
   await set(ref(getDb(), `rooms/${roomId}/guestPeerId`), peerId);
 
-  return room;
+  return { ...room, guestPeerId: peerId };
 }
 
 // 방 정보 조회

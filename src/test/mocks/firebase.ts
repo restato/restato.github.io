@@ -3,13 +3,28 @@ import { vi } from 'vitest';
 // Mock database structure
 let mockDatabase: Record<string, any> = {};
 
+function getData(path: string) {
+  if (path in mockDatabase) return mockDatabase[path];
+
+  const prefix = `${path}/`;
+  const children = Object.entries(mockDatabase)
+    .filter(([key]) => key.startsWith(prefix))
+    .reduce<Record<string, any>>((result, [key, value]) => {
+      const child = key.slice(prefix.length).split('/')[0];
+      result[child] = value;
+      return result;
+    }, {});
+
+  return Object.keys(children).length > 0 ? children : undefined;
+}
+
 // Mock Firebase App
 export const mockApp = {};
 
 // Mock Database functions
 export const get = vi.fn((ref: any) => {
   const path = ref._path;
-  const data = mockDatabase[path];
+  const data = getData(path);
 
   return Promise.resolve({
     exists: () => data !== undefined,
@@ -41,8 +56,8 @@ export const onValue = vi.fn((ref: any, callback: Function) => {
 
   // Immediately call callback with current value
   callback({
-    exists: () => mockDatabase[path] !== undefined,
-    val: () => mockDatabase[path],
+    exists: () => getData(path) !== undefined,
+    val: () => getData(path),
   });
 
   // Return unsubscribe function
