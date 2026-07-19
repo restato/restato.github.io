@@ -48,9 +48,9 @@ describe('toolsRegistry', () => {
   it('discloses non-local privacy behavior in every existing locale', () => {
     const expectedPhrases = {
       'anonymous-chat': {
-        ko: ['PeerJS', 'STUN/TURN', '상대 피어'],
-        en: ['PeerJS', 'STUN/TURN', 'intended peer'],
-        ja: ['PeerJS', 'STUN/TURN', '相手のピア'],
+        ko: ['PeerJS', 'STUN을 사용해 직접 WebRTC 연결', '상대 피어', 'STUN으로 직접 연결을 설정하지 못할 수 있으며'],
+        en: ['PeerJS', 'STUN-assisted direct WebRTC connection', 'intended peer', 'direct connection may fail'],
+        ja: ['PeerJS', 'STUN を利用した直接の WebRTC 接続', '相手のピア', '直接接続を確立できない場合があります'],
       },
       'llm-cost': {
         ko: ['외부 환율 서비스', '전송되지'],
@@ -74,6 +74,12 @@ describe('toolsRegistry', () => {
           expect(privacy).toContain(phrase);
         }
       }
+    }
+  });
+
+  it('does not claim TURN or relay behavior for anonymous chat', () => {
+    for (const language of ['ko', 'en', 'ja'] as const) {
+      expect(getTool('anonymous-chat')?.content[language]?.privacy).not.toMatch(/TURN|relay|릴레이|リレー/i);
     }
   });
 

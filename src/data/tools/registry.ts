@@ -1014,9 +1014,9 @@ const privacyDisclosuresByMode: Record<ToolPrivacyMode, Record<ExistingToolLangu
     ja: '現在の為替レートを表示するため、外部の為替レートサービスにリクエストします。入力したトークン数、モデルの選択、費用計算の値はそのリクエストに送信されません。ブラウザ内で処理されます。',
   },
   'peer-to-peer': {
-    ko: '익명 채팅은 연결 설정을 위해 PeerJS 시그널링과 STUN/TURN 인프라를 사용하며 네트워크 조건에 따라 TURN 릴레이를 경유할 수 있습니다. 메시지는 의도한 상대 피어에게 전송되며 애플리케이션 서버에 메시지 내용을 저장하도록 설계되지 않았습니다. 방 연결 정보는 연결을 조정하기 위해 별도 서비스에 일시적으로 기록될 수 있습니다.',
-    en: 'Anonymous chat uses PeerJS signaling and STUN/TURN infrastructure to establish a connection, and may use a TURN relay depending on network conditions. Messages transfer to the intended peer and are not designed to be stored as message content on the application server. Room connection metadata may be temporarily recorded by a separate service to coordinate the connection.',
-    ja: '匿名チャットは接続確立のために PeerJS シグナリングと STUN/TURN インフラを使用し、ネットワーク条件によっては TURN リレーを経由する場合があります。メッセージは意図した相手のピアに転送され、アプリケーションサーバーにメッセージ内容を保存するようには設計されていません。接続を調整するため、ルーム接続メタデータが別サービスに一時的に記録される場合があります。',
+    ko: '익명 채팅은 연결 설정을 위해 PeerJS 시그널링과 STUN을 사용해 직접 WebRTC 연결을 시도합니다. 메시지는 의도한 상대 피어에게 전송됩니다. STUN으로 직접 연결을 설정하지 못할 수 있으며, 이 경우 채팅 연결이 실패할 수 있습니다. 애플리케이션 서버에 메시지 내용을 저장하도록 설계되지 않았지만, 방 연결 정보는 연결을 조정하기 위해 별도 서비스에 일시적으로 기록될 수 있습니다.',
+    en: 'Anonymous chat uses PeerJS signaling and a STUN-assisted direct WebRTC connection to establish a session. Messages transfer to the intended peer. A direct connection may fail when STUN cannot establish a path. Message content is not designed to be stored on the application server, but room connection metadata may be temporarily recorded by a separate service to coordinate the connection.',
+    ja: '匿名チャットは接続確立のために PeerJS シグナリングと STUN を利用した直接の WebRTC 接続を試みます。メッセージは意図した相手のピアに転送されます。STUN で直接接続を確立できない場合があります。その場合、チャット接続が失敗することがあります。アプリケーションサーバーにメッセージ内容を保存するようには設計されていませんが、接続を調整するため、ルーム接続メタデータが別サービスに一時的に記録される場合があります。',
   },
 };
 
