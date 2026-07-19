@@ -1,0 +1,234 @@
+---
+title: "Codex vs Claude Code: Models, Speed, and Effort Without the Confusion"
+description: "A practical comparison of Codex and Claude Code models, reasoning effort, fast modes, context options, permissions, and task-specific defaults."
+date: 2026-07-20
+tags: ["Codex", "Claude Code", "AI Agent", "Model Selection", "Developer Tools"]
+---
+
+The model picker has become its own engineering problem.
+
+Codex asks about Sol, Terra, Luna, reasoning effort, Fast mode, Max, and Ultra. Claude Code has Fable, Opus, Sonnet, Haiku, `opusplan`, effort, Fast mode, `ultracode`, `ultrathink`, and optional 1M context. Several of those controls sit next to one another even though they change completely different things.
+
+Here is the short answer: **leave the default model and effort alone for ordinary coding. Change one setting only when you can name the constraint you are solving: capability, latency, cost, context, or autonomy.**
+
+For Codex, the documented Power default is GPT-5.6 Sol at medium reasoning. For Claude Code, `/model default` follows your account, provider, admin policy, and client version. If you want an explicit daily Claude configuration, Sonnet at its default effort is the practical starting point. Move to Sol or Opus for hard, ambiguous work. Use Fast mode when waiting is the problem. Lower effort when the task is easy. Those are different moves.
+
+This comparison reflects official documentation checked on July 20, 2026. Both products change quickly, so the version check near the end matters.
+
+## Five controls are hiding inside the picker
+
+Treat the options as five independent axes.
+
+| Control | What it changes | What it does not change |
+| --- | --- | --- |
+| Model | Capability, behavior, base latency, and price | Permission to edit, run, or deploy |
+| Effort | How much reasoning the selected model spends | The model family or service tier |
+| Fast mode | Service priority and response latency | Reasoning depth by itself |
+| Context | How much history or code can fit in one session | Guaranteed attention or correctness |
+| Autonomy | Which tools and side effects may proceed | Model intelligence |
+
+This clears up most of the naming mess. A faster service tier is not a smaller model. A lower effort setting is not Fast mode. Ultra and `ultracode` involve orchestration, not merely a longer internal monologue. Auto permissions do not make a model smarter.
+
+When a run feels slow, first ask why. If the model is thinking too much about a tiny task, lower effort. If the work needs the same quality but the interactive delay is annoying, consider Fast mode. If the task is cheap and mechanical, change the model. If the agent is stopping at every shell command, inspect permissions rather than buying more intelligence.
+
+## Codex model map: Sol, Terra, and Luna
+
+OpenAI's current [Codex model guide](https://learn.chatgpt.com/docs/models) describes three GPT-5.6 roles:
+
+| Codex choice | Intended role | Good starting tasks |
+| --- | --- | --- |
+| GPT-5.6 Sol | Complex, open-ended work with more judgment and polish | Ambiguous features, difficult debugging, architecture, deep review |
+| GPT-5.6 Terra | Everyday workhorse balancing intelligence and efficiency | Routine implementation, repository exploration, normal code review |
+| GPT-5.6 Luna | Clear, repeatable, high-volume work | Extraction, classification, transformations, structured summaries |
+
+The `gpt-5.6` API alias points to Sol. OpenAI's current API list prices are $5/$30 per million input/output tokens for Sol, $2.50/$15 for Terra, and $1/$6 for Luna. Those are API prices, not the cost of a Codex task under a ChatGPT subscription. Restato's [GPT-5.6 model guide](/blog/gpt-5-6-sol-terra-luna-api-guide/) covers the API comparison in more detail.
+
+The naming is refreshingly legible once you ignore the rest of the picker:
+
+- Sol when the task is fuzzy and expensive to get wrong.
+- Terra when you know the work and want a capable default.
+- Luna when the expected output is narrow enough to validate automatically.
+
+Do not route by file count alone. A one-line authentication bug can demand more judgment than a 200-file mechanical rename.
+
+## Claude Code model map: Fable, Opus, Sonnet, and Haiku
+
+Claude Code exposes family aliases rather than asking everyone to memorize full model IDs. The live [model configuration page](https://code.claude.com/docs/en/model-config) currently defines these useful choices:
+
+| Claude Code choice | Intended role | Important detail |
+| --- | --- | --- |
+| `best` | Most capable model available to the organization | Uses Fable 5 when available, otherwise latest Opus |
+| `fable` | Hardest, longest-running tasks | Fable 5; highest capability and price in the current public catalog |
+| `opus` | Complex reasoning and agentic coding | Currently Opus 4.8 on the Anthropic API |
+| `sonnet` | Daily coding | Currently Sonnet 5 on the Anthropic API |
+| `haiku` | Simple, latency-sensitive work | Current Haiku 4.5 family |
+| `opusplan` | Opus for planning, Sonnet for execution | A product routing mode, not a separate model |
+
+Provider choice complicates the aliases. Anthropic API currently maps `opus` to Opus 4.8 and `sonnet` to Sonnet 5, while Bedrock, Google Cloud, Microsoft Foundry, and Claude Platform on AWS can map them differently. Pin a full model ID when reproducibility matters. Use the alias when you want Anthropic's recommended version to move over time.
+
+The current [Claude model catalog](https://platform.claude.com/docs/en/about-claude/models/overview) lists Fable 5 at $10/$50, Opus 4.8 at $5/$25, Sonnet 5 at $2/$10 through August 31, 2026 and $3/$15 afterward, and Haiku 4.5 at $1/$5 per million input/output tokens. Again, these are API list prices. Subscription limits, usage credits, prompt caching, and cloud-provider charges are separate.
+
+Fable 5, Opus 4.8, and Sonnet 5 have 1M-token context in the current catalog. Haiku 4.5 has 200K. That does not mean a million-token session is the default answer to a large repository. Long sessions cost more to reread, carry more stale decisions, and are harder to review. Use the extra context when the task depends on it, not because the picker offers it.
+
+## Effort names look comparable, but they are not units
+
+Both products expose a ladder that roughly runs from low to medium, high, extra high, and max. It is tempting to compare Codex High with Claude Code High as if both were 70 on the same scale. They are not.
+
+OpenAI says higher reasoning effort can improve complex work but takes longer and uses more tokens. Its UI may label the lower setting Light and the upper setting Extra High, while the CLI and configuration use names such as `low`, `medium`, `high`, and `xhigh`. Model and account support determine whether Max is present.
+
+Anthropic says its effort scale is calibrated per model. The same level name can represent different underlying behavior across Claude models. Current Fable 5, Opus 4.8, and Sonnet 5 support `low`, `medium`, `high`, `xhigh`, and `max`. Their documented default is `high`. Max is session-scoped in the ordinary settings flow and may overthink or show diminishing returns.
+
+A useful translation is based on the job, not the label:
+
+| Effort | Use it for | Avoid it for |
+| --- | --- | --- |
+| Low / Light | A precise edit, lookup, format conversion, or deterministic cleanup | Root-cause analysis with several plausible causes |
+| Medium | Normal implementation with a clear definition of done | High-risk migration or architecture tradeoff |
+| High / Extra High | Difficult debugging, broad review, ambiguous refactor, security-sensitive reasoning | Repetitive bulk work with strong validators |
+| Max | A rare, hard problem where another attempt is costly and time is available | A permanent default |
+
+The best rule in both products is boring: use the lowest effort that reliably passes your checks. If medium repeatedly misses an important class of errors, promote that task class to high. Do not promote the whole day.
+
+## Fast mode buys lower latency, not deeper thought
+
+Fast mode is the most frequently misunderstood control.
+
+Codex Fast mode runs supported models faster at a higher credit or API service-tier cost. OpenAI currently documents a 1.5x speed increase. GPT-5.6 uses ChatGPT credits at 2.5x the Standard rate in Fast mode. It is available in the desktop app, CLI, and IDE extension for eligible ChatGPT-sign-in sessions. API-key usage follows API pricing instead of ChatGPT credit multipliers.
+
+Claude Code Fast mode is also a service configuration, not a new model. Anthropic currently documents up to 2.5x faster responses for supported Opus models. The live page supports Opus 4.8 and the retiring Opus 4.7 Fast path; it does not support Sonnet or Haiku. Opus 4.8 Fast mode is listed at $10/$50 per million input/output tokens versus $5/$25 at standard API pricing. The current docs say the toggle is available in the Claude Code CLI, not the VS Code extension.
+
+| Situation | Better move |
+| --- | --- |
+| Simple task is thinking too long | Lower effort |
+| Same difficult task must respond sooner | Turn on Fast mode |
+| Cheap repeated transformation | Use a smaller model |
+| Long autonomous run finishes while you do other work | Keep Standard mode and let it run |
+| Permission prompts interrupt every step | Change the permission policy carefully |
+
+Fast mode can be useful during live debugging, when each pause breaks concentration. It is usually wasteful for a background refactor or CI job. Enabling it halfway through a long Claude conversation can also make the existing context expensive because the service must process that context at the fast rate.
+
+## Max, Ultra, ultracode, ultrathink, and opusplan
+
+These names sound like the top five settings on the same arcade machine. They are not.
+
+### Codex Max and Ultra
+
+Max gives one selected model more room to reason about one hard task. Ultra goes beyond a single-agent run: Codex can split suitable work across subagents and consolidate the result. Ultra helps when the task has genuinely independent parts, such as reviewing security, test coverage, and maintainability in parallel. It adds little to a narrow edit that cannot be decomposed.
+
+### Claude Code max and ultracode
+
+Claude `max` is the deepest model effort setting and may spend tokens without a fixed constraint. `ultracode` is a Claude Code orchestration setting. Current documentation says it sends `xhigh` effort and plans a dynamic workflow for substantive tasks. It is session-only and requires a recent client.
+
+### Claude Code ultrathink
+
+Putting `ultrathink` in a prompt requests deeper reasoning for that turn. Anthropic explicitly notes that it does not change the effort value sent to the API. It is a prompt instruction, not a hidden tier above max.
+
+### Claude Code opusplan
+
+`opusplan` uses Opus while planning and Sonnet during execution. It is the cleanest built-in answer when architecture needs a stronger model but most code generation does not. The tradeoff is obvious: a plan can look good and still fail during execution, so tests and review remain part of the preset.
+
+## Four presets cover most real work
+
+You do not need a personal routing engine on day one. Start with four presets and change them only after observing failures or cost.
+
+### 1. Quick, well-scoped change
+
+Examples: rename a field, update one test, extract a structured list, explain a known function.
+
+| Product | Starting preset |
+| --- | --- |
+| Codex | Terra or Luna, Low/Light, Standard speed |
+| Claude Code | Sonnet or Haiku, Low, Standard speed |
+
+Use the smaller model only when the completion criteria are obvious. A patch that compiles but changes semantics was not a cheap task after all.
+
+### 2. Everyday feature work
+
+Examples: implement an endpoint, fix a normal bug, update several files with tests.
+
+| Product | Starting preset |
+| --- | --- |
+| Codex | Power default: Sol Medium; Terra Medium when efficiency matters |
+| Claude Code | Sonnet at its default effort, currently High on Sonnet 5 |
+
+This is where most users should stay. The agent has enough room to plan and verify without paying the maximum reasoning cost on every turn.
+
+### 3. Ambiguous or high-risk work
+
+Examples: race condition, data migration, security review, unfamiliar architecture, a failure with several interacting causes.
+
+| Product | Starting preset |
+| --- | --- |
+| Codex | Sol High or Extra High; Max only after the normal run is insufficient |
+| Claude Code | Opus 4.8 High or Extra High; Fable 5 for the longest and hardest tasks when available |
+
+State the risk, required evidence, and stop conditions in the prompt. A premium model with a vague objective can spend more time producing a polished answer to the wrong problem.
+
+### 4. Parallel, long-running work
+
+Examples: a repository-wide audit with independent workstreams or a multi-part migration.
+
+| Product | Starting preset |
+| --- | --- |
+| Codex | Sol with Ultra when the work can be split; isolated worktrees |
+| Claude Code | `ultracode` or explicit agents; `opusplan` when planning and implementation deserve different models |
+
+Parallelism adds coordination cost and can create overlapping edits. Split by ownership boundary or evidence type, not by arbitrary file counts.
+
+## Which product fits which workflow?
+
+There is no honest universal winner here without a shared task set, repeated runs, and a scoring method. The product decision is more stable than a one-week model leaderboard.
+
+Choose Codex first when you want the ChatGPT and Codex workflow as one system, prefer its desktop review and multi-repository experience, want local/worktree/cloud execution in the same app, or expect to use the Sol/Terra/Luna family and Codex's multi-agent controls.
+
+Choose Claude Code first when your workflow is built around terminal automation, `CLAUDE.md`, hooks, plugins, and explicit tool rules; when `opusplan` fits your plan/execute split; or when your organization routes models through Anthropic API, Bedrock, Google Cloud, or Foundry.
+
+The gap is narrower than old comparisons suggest. Codex has a CLI and IDE extension in addition to its desktop and cloud surfaces. Claude Code now has desktop, web, mobile monitoring, SSH, cloud sessions, automatic worktrees, and visual review in addition to the terminal. Neither product is simply “the GUI one” or “the CLI one.”
+
+If both fit, run a small evaluation on your own work. Pick ten completed tasks: a tiny edit, two normal features, two bugs, a migration, a review, a repository exploration, a test repair, and one task that previously went badly. Score task success, human correction time, wall-clock time, retries, and usage. Productive coding is the full loop, not tokens per second.
+
+## Intelligence and permission are separate decisions
+
+A model setting answers “how should the agent reason?” A permission setting answers “what may it do?” Raising effort does not make `--dangerously-bypass-approvals-and-sandbox` safer. Switching Claude Code to Opus does not make `bypassPermissions` a reasonable host-machine default.
+
+Codex separates sandbox policy and approval policy from model and reasoning configuration. Claude Code exposes modes including default, accept edits, plan, auto, `dontAsk`, and `bypassPermissions`. Claude's Auto mode adds classifier checks, but its own documentation calls the feature a research preview and says it does not guarantee safety.
+
+Use read-only or plan modes while you are still deciding what should change. Use isolated worktrees for concurrent edits. Reserve bypass modes for an external container or VM whose credentials, network, and filesystem blast radius are already constrained. Restato's [Agent Governance guide](/blog/agent-governance-control-plane/) covers the larger authority and evidence model.
+
+## Verify what your installed version exposes
+
+The live documentation can be newer than your local binary. Start troubleshooting the picker with:
+
+```bash
+codex --version
+claude --version
+```
+
+Then inspect `/model`, `/status`, and the product's update command before assuming your plan or region lacks a feature.
+
+This matters today. Claude's current documentation says Sonnet 5 needs Claude Code 2.1.197 or later, Opus 4.8 needs 2.1.154, Fable 5 needs 2.1.170, and `--effort ultracode` needs 2.1.203. Provider mappings and organization allowlists can still hide a model after you update.
+
+Codex model availability also depends on authentication, account eligibility, and the active catalog. Some effort levels appear only for supported models and accounts. Fast mode has different billing behavior for ChatGPT sign-in and API-key authentication.
+
+For automation, avoid floating aliases when an unreviewed model change would be risky. Pin the model, effort, speed tier, permissions, and evaluation command together. For interactive work, aliases are convenient because they follow the vendor's recommended current model.
+
+## Conclusion
+
+The menus look complicated because they combine five decisions. Make them one at a time.
+
+Start with Codex Power or Claude Code's default daily model. Keep the default effort. Turn on Fast mode only when latency is worth the surcharge. Reach for Max when one problem needs deeper reasoning, and use Ultra or `ultracode` only when the work has parts that can run independently. Treat permissions as a separate safety boundary.
+
+Then watch the result. If the task passed its tests with room to spare, try a cheaper model or lower effort next time. If it failed because the agent missed a dependency or misunderstood the goal, raise capability or improve the task definition. If it was correct but painfully slow, that is when Fast mode earns its name.
+
+## Official resources
+
+- [Codex models and reasoning effort](https://learn.chatgpt.com/docs/models)
+- [Codex Fast mode](https://learn.chatgpt.com/docs/agent-configuration/speed)
+- [Codex environments](https://learn.chatgpt.com/docs/environments/modes)
+- [OpenAI API model catalog](https://developers.openai.com/api/docs/models)
+- [Claude Code model configuration](https://code.claude.com/docs/en/model-config)
+- [Claude Code Fast mode](https://code.claude.com/docs/en/fast-mode)
+- [Claude Code permission modes](https://code.claude.com/docs/en/permission-modes)
+- [Claude Code Desktop](https://code.claude.com/docs/en/desktop)
+- [Claude model overview](https://platform.claude.com/docs/en/about-claude/models/overview)
+- [Claude API pricing](https://platform.claude.com/docs/en/about-claude/pricing)
