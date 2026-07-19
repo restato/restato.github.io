@@ -135,3 +135,45 @@ describe('Tool Functionality Patterns', () => {
     expect(textareas.length).toBeGreaterThanOrEqual(2);
   });
 });
+
+describe('Mobile viewport interaction contract', () => {
+  const originalMatchMedia = window.matchMedia;
+  const originalInnerWidth = window.innerWidth;
+
+  beforeEach(() => {
+    Object.defineProperty(window, 'innerWidth', { configurable: true, value: 375 });
+    Object.defineProperty(navigator, 'maxTouchPoints', { configurable: true, value: 1 });
+    window.matchMedia = vi.fn().mockImplementation((query: string) => ({
+      matches: query.includes('max-width') || query.includes('pointer: coarse'),
+      media: query,
+      addEventListener: vi.fn(),
+      removeEventListener: vi.fn(),
+      addListener: vi.fn(),
+      removeListener: vi.fn(),
+      dispatchEvent: vi.fn(),
+    }));
+  });
+
+  afterEach(() => {
+    Object.defineProperty(window, 'innerWidth', { configurable: true, value: originalInnerWidth });
+    window.matchMedia = originalMatchMedia;
+  });
+
+  toolComponents.forEach(({ name, Component }) => {
+    it(`${name} keeps a named keyboard-focusable primary control at 375px`, () => {
+      render(<Component />);
+      const primaryControl = [
+        ...screen.queryAllByRole('button').filter((button) => !button.hasAttribute('disabled') && Boolean(button.textContent?.trim())),
+        ...screen.queryAllByRole('textbox'),
+        ...screen.queryAllByRole('spinbutton'),
+        ...screen.queryAllByRole('slider'),
+        ...Array.from(document.querySelectorAll<HTMLInputElement>('input:not([disabled])')),
+      ][0];
+
+      expect(primaryControl).toBeDefined();
+      expect(primaryControl).toHaveAccessibleName();
+      primaryControl!.focus();
+      expect(primaryControl).toHaveFocus();
+    });
+  });
+});

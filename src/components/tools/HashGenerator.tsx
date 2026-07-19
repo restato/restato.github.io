@@ -231,6 +231,7 @@ export default function HashGenerator() {
           {t(tc.input)}
         </label>
         <textarea
+          aria-label={t(tc.input)}
           value={input}
           onChange={(e) => handleInputChange(e.target.value)}
           placeholder={t(tt.inputPlaceholder)}

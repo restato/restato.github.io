@@ -172,10 +172,11 @@ export default function AgeCalculator() {
     <div className="flex flex-col gap-6">
       {/* Birth Date Input */}
       <div className="space-y-2">
-        <label className="block text-sm font-medium text-[var(--color-text)]">
+        <label htmlFor="birth-date" className="block text-sm font-medium text-[var(--color-text)]">
           {t(tc.birthDate)}
         </label>
         <input
+          id="birth-date"
           type="date"
           value={birthDate}
           onChange={(e) => setBirthDate(e.target.value)}
