@@ -1,0 +1,82 @@
+import { afterEach, describe, expect, it, vi } from 'vitest';
+import { act, fireEvent, render, screen } from '@testing-library/react';
+import CoinFlip from '../CoinFlip';
+import DiceRoller from '../DiceRoller';
+import LoremIpsumGenerator from '../LoremIpsumGenerator';
+import PercentCalculator from '../PercentCalculator';
+import KorEngConverter from '../KorEngConverter';
+import './testUtils';
+
+afterEach(() => {
+  vi.useRealTimers();
+  vi.restoreAllMocks();
+});
+
+describe('legacy simple tool behavior', () => {
+  it('records a deterministic coin flip and clears its history', () => {
+    vi.useFakeTimers();
+    vi.spyOn(Math, 'random').mockReturnValue(0.25);
+    render(<CoinFlip />);
+
+    fireEvent.click(screen.getByRole('button', { name: '🪙 동전 던지기' }));
+    expect(screen.getByRole('button', { name: '던지는 중...' })).toBeDisabled();
+    act(() => {
+      vi.advanceTimersByTime(1000);
+    });
+
+    expect(screen.getByText('앞면!')).toBeInTheDocument();
+    expect(screen.getByText(/앞면: 1회/)).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: '초기화' }));
+    expect(screen.queryByText('앞면!')).not.toBeInTheDocument();
+  });
+
+  it('rolls a configured dice preset within its advertised boundary', () => {
+    vi.useFakeTimers();
+    vi.spyOn(Math, 'random').mockReturnValue(0.99);
+    render(<DiceRoller />);
+
+    fireEvent.click(screen.getByRole('button', { name: '2D6' }));
+    fireEvent.click(screen.getByRole('button', { name: '🎲 2D6 굴리기' }));
+    act(() => {
+      vi.advanceTimersByTime(800);
+    });
+
+    expect(screen.getByText('12', { selector: 'p' })).toBeInTheDocument();
+    expect(screen.getByText('(범위: 2 ~ 12)')).toBeInTheDocument();
+  });
+
+  it('calculates a percentage and suppresses output for empty input', () => {
+    const { container } = render(<PercentCalculator />);
+    const inputs = container.querySelectorAll('input[type="number"]');
+
+    fireEvent.change(inputs[0], { target: { value: '25' } });
+    fireEvent.change(inputs[1], { target: { value: '100' } });
+    fireEvent.click(screen.getByRole('button', { name: '계산하기' }));
+    expect(screen.getByText('25은(는) 100의 25.00%입니다')).toBeInTheDocument();
+
+    fireEvent.change(inputs[0], { target: { value: '' } });
+    fireEvent.click(screen.getByRole('button', { name: '계산하기' }));
+    expect(screen.queryByText(/25\.00%입니다/)).not.toBeInTheDocument();
+  });
+
+  it('generates the requested number of lorem words', () => {
+    const { container } = render(<LoremIpsumGenerator />);
+    fireEvent.click(screen.getByRole('button', { name: '단어' }));
+    const count = container.querySelector('input[type="number"]')!;
+    fireEvent.change(count, { target: { value: '3' } });
+    fireEvent.click(screen.getByRole('button', { name: '생성' }));
+
+    expect(screen.getByText((text, element) => element?.tagName === 'P' && /^Lorem ipsum \S+$/.test(text))).toBeInTheDocument();
+  });
+
+  it('converts English keyboard input to Korean and swaps the direction', () => {
+    const { container } = render(<KorEngConverter />);
+    const textareas = container.querySelectorAll('textarea');
+    fireEvent.change(textareas[0], { target: { value: 'dk' } });
+
+    expect(textareas[1]).toHaveValue('아');
+    fireEvent.click(screen.getByRole('button', { name: '🔄' }));
+    expect(textareas[0]).toHaveValue('아');
+    expect(textareas[1]).toHaveValue('dk');
+  });
+});
