@@ -59,6 +59,19 @@ describe('legacy simple tool behavior', () => {
     expect(screen.getByText('(범위: 2 ~ 12)')).toBeInTheDocument();
   });
 
+  it('rolls the configured dice repeatedly', () => {
+    vi.useFakeTimers();
+    vi.spyOn(Math, 'random').mockReturnValue(0);
+    render(<DiceRoller />);
+    const roll = screen.getByRole('button', { name: '🎲 1D6 굴리기' });
+    fireEvent.click(roll);
+    act(() => vi.advanceTimersByTime(800));
+    expect(screen.getByText('1', { selector: 'p' })).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: '🎲 1D6 굴리기' }));
+    act(() => vi.advanceTimersByTime(800));
+    expect(screen.getByText('1', { selector: 'p' })).toBeInTheDocument();
+  });
+
   it('calculates a percentage and suppresses output for empty input', () => {
     const { container } = render(<PercentCalculator />);
     const inputs = container.querySelectorAll('input[type="number"]');
@@ -131,6 +144,15 @@ describe('legacy simple tool behavior', () => {
     fireEvent.click(screen.getByRole('button', { name: '🔄' }));
     expect(textareas[0]).toHaveValue('아');
     expect(textareas[1]).toHaveValue('dk');
+  });
+
+  it('clears the Korean keyboard conversion output with empty input', () => {
+    const { container } = render(<KorEngConverter />);
+    const textareas = container.querySelectorAll('textarea');
+    fireEvent.change(textareas[0], { target: { value: 'dk' } });
+    expect(textareas[1]).toHaveValue('아');
+    fireEvent.change(textareas[0], { target: { value: '' } });
+    expect(textareas[1]).toHaveValue('');
   });
 
   it('calculates international age from a selected birth date', () => {
