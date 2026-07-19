@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useTranslation } from '../../i18n/useTranslation';
 import type { Language } from '../../i18n';
 
@@ -16,28 +16,21 @@ interface Category {
 }
 
 interface ToolsGridProps {
+  lang: Language;
   tools: Tool[];
   categories: Category[];
 }
 
-export default function ToolsGrid({ tools, categories }: ToolsGridProps) {
-  const { t, lang } = useTranslation();
+export default function ToolsGrid({ lang, tools, categories }: ToolsGridProps) {
+  const { t } = useTranslation();
   const [selectedCategory, setSelectedCategory] = useState('all');
-  const [mounted, setMounted] = useState(false);
-
-  useEffect(() => {
-    setMounted(true);
-  }, []);
 
   const filteredTools = selectedCategory === 'all'
     ? tools
     : tools.filter(tool => tool.category === selectedCategory);
 
-  // Use Korean as fallback during SSR, then switch to user's language
-  const currentLang = mounted ? lang : 'ko';
-
   const getLocalizedText = (obj: { ko: string; en: string; ja: string }) => {
-    return obj[currentLang as Language] || obj.ko;
+    return obj[lang as keyof typeof obj] || obj.ko;
   };
 
   return (
@@ -64,7 +57,7 @@ export default function ToolsGrid({ tools, categories }: ToolsGridProps) {
         {filteredTools.map((tool) => (
           <a
             key={tool.slug}
-            href={tool.slug.startsWith('/') ? tool.slug : `/tools/${tool.slug}`}
+            href={tool.slug.startsWith('/') ? tool.slug : `/${lang}/tools/${tool.slug}`}
             className="group p-6 rounded-xl bg-[var(--color-card)] border border-[var(--color-border)]
               hover:border-primary-500 hover:shadow-lg transition-all"
           >

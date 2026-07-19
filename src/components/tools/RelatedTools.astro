@@ -1,13 +1,13 @@
 ---
-import { toolsConfig, type Language } from '../../data/tools';
+import { getTool, type Language, type ToolDefinition } from '../../data/tools';
 
 interface Props {
   currentSlug: string;
-  currentCategory: string;
+  currentCategory?: string;
   lang?: Language;
 }
 
-const { currentSlug, currentCategory, lang = 'ko' } = Astro.props;
+const { currentSlug, lang = 'ko' } = Astro.props;
 
 const translations = {
   ko: '관련 도구',
@@ -17,19 +17,13 @@ const translations = {
 
 const relatedTitle = translations[lang] || translations.ko;
 
-// Get tools from toolsConfig and filter related ones
-const relatedTools = toolsConfig
-  .filter(tool => tool.slug !== currentSlug)
-  .sort((a, b) => {
-    if (a.category === currentCategory && b.category !== currentCategory) return -1;
-    if (a.category !== currentCategory && b.category === currentCategory) return 1;
-    return 0;
-  })
-  .slice(0, 4)
+const relatedTools = (getTool(currentSlug)?.related ?? [])
+  .map(getTool)
+  .filter((tool): tool is ToolDefinition => Boolean(tool))
   .map(tool => ({
     slug: tool.slug,
-    title: tool.seo[lang]?.title.split(' - ')[0] || tool.seo.ko.title.split(' - ')[0],
-    description: tool.seo[lang]?.description || tool.seo.ko.description,
+    title: tool.content[lang]?.name || tool.content.ko?.name || tool.slug,
+    description: tool.content[lang]?.description || tool.content.ko?.description || '',
     icon: tool.icon,
   }));
 ---

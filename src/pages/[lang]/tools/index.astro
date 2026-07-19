@@ -5,7 +5,7 @@ import RecentTools from '../../../components/tools/RecentTools';
 import ToolsGrid from '../../../components/tools/ToolsGrid';
 import ToolsPageHeader from '../../../components/tools/ToolsPageHeader';
 import ToolsPageInfo from '../../../components/tools/ToolsPageInfo';
-import { toolsConfig, categories, type Language } from '../../../data/tools';
+import { categories, toolsRegistry, type Language, type ToolDefinition } from '../../../data/tools';
 
 const languages: Language[] = ['ko', 'en', 'ja'];
 
@@ -41,35 +41,26 @@ const alternateUrls = languages.map(l => ({
   url: `https://restato.github.io/${l}/tools`
 }));
 
-// Transform toolsConfig to the format expected by ToolsGrid
-const tools = toolsConfig.map(tool => ({
-  slug: tool.slug,
+const getToolText = (tool: ToolDefinition, language: 'ko' | 'en' | 'ja', field: 'name' | 'description') => {
+  return tool.content[language]?.[field] || tool.content.ko?.[field] || tool.slug;
+};
+
+// Transform registry entries to the format expected by ToolsGrid.
+const tools = toolsRegistry.map(tool => ({
+  slug: tool.slug === 'anonymous-chat' ? `/${lang}/anonymous-chat` : tool.slug,
   title: {
-    ko: tool.seo.ko.title.split(' - ')[0],
-    en: tool.seo.en.title.split(' - ')[0],
-    ja: tool.seo.ja.title.split(' - ')[0],
+    ko: getToolText(tool, 'ko', 'name'),
+    en: getToolText(tool, 'en', 'name'),
+    ja: getToolText(tool, 'ja', 'name'),
   },
   description: {
-    ko: tool.seo.ko.description,
-    en: tool.seo.en.description,
-    ja: tool.seo.ja.description,
+    ko: getToolText(tool, 'ko', 'description'),
+    en: getToolText(tool, 'en', 'description'),
+    ja: getToolText(tool, 'ja', 'description'),
   },
   icon: tool.icon,
   category: tool.category,
 }));
-
-// Also add anonymous chat to tools list
-tools.push({
-  slug: `/${lang}/anonymous-chat`,
-  title: { ko: '익명 채팅', en: 'Anonymous Chat', ja: '匿名チャット' },
-  description: {
-    ko: '무료 익명 1:1 실시간 채팅. P2P 연결로 서버에 저장되지 않는 안전한 채팅.',
-    en: 'Free anonymous 1:1 real-time chat. Secure P2P connection, nothing stored on servers.',
-    ja: '無料匿名1:1リアルタイムチャット。P2P接続でサーバーに保存されない安全なチャット。',
-  },
-  icon: '💬',
-  category: 'productivity',
-});
 
 const seo = seoContent[lang];
 ---
@@ -93,7 +84,7 @@ const seo = seoContent[lang];
     <RecentTools client:load className="mb-8" basePath={`/${lang}/tools`} />
 
     <!-- Tools Grid with i18n support -->
-    <ToolsGrid client:load tools={tools} categories={categories} basePath={`/${lang}/tools`} />
+    <ToolsGrid client:load lang={lang} tools={tools} categories={categories} />
 
     <!-- Info with i18n support -->
     <ToolsPageInfo client:load />

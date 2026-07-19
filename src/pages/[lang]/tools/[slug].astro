@@ -4,7 +4,7 @@ import RelatedTools from '../../../components/tools/RelatedTools.astro';
 import ShareButton from '../../../components/tools/ShareButton';
 import FavoriteButton from '../../../components/tools/FavoriteButton';
 import BookmarkPrompt from '../../../components/tools/BookmarkPrompt';
-import { toolsConfig, type Language } from '../../../data/tools';
+import { getPublishedTools, type Language, type ToolDefinition } from '../../../data/tools';
 
 // Import all tool components explicitly (required for Astro hydration)
 import QRCodeGenerator from '../../../components/tools/QRCodeGenerator';
@@ -58,12 +58,6 @@ const uiStrings = {
     privacy: '모든 처리는 브라우저에서 실행 (데이터 서버 전송 없음)',
     responsive: '모바일, 태블릿, 데스크톱 모두 지원',
     multilang: '한국어, 영어, 일본어 지원',
-    faqFree: '은(는) 무료인가요?',
-    faqFreeAnswer: '네, 완전히 무료이며 회원가입도 필요없습니다. 모든 처리는 브라우저에서 이루어지므로 데이터가 서버로 전송되지 않습니다.',
-    faqMobile: '모바일에서도 사용할 수 있나요?',
-    faqMobileAnswer: '네, 모든 기기에서 사용 가능합니다. 반응형 디자인으로 모바일, 태블릿, 데스크톱 모두 지원합니다.',
-    faqPrivacy: '데이터가 서버로 전송되나요?',
-    faqPrivacyAnswer: '아니요, 모든 처리는 사용자의 브라우저에서 이루어집니다. 개인정보가 서버로 전송되지 않아 안전합니다.',
   },
   en: {
     home: 'Home',
@@ -73,12 +67,6 @@ const uiStrings = {
     privacy: 'All processing happens in your browser (no data sent to servers)',
     responsive: 'Works on mobile, tablet, and desktop',
     multilang: 'Supports Korean, English, and Japanese',
-    faqFree: ' - Is it free?',
-    faqFreeAnswer: 'Yes, it is completely free and no signup is required. All processing is done in your browser, so no data is sent to servers.',
-    faqMobile: 'Can I use it on mobile?',
-    faqMobileAnswer: 'Yes, it works on all devices. The responsive design supports mobile, tablet, and desktop.',
-    faqPrivacy: 'Is my data sent to servers?',
-    faqPrivacyAnswer: 'No, all processing is done in your browser. Your data is never sent to servers, so it is safe.',
   },
   ja: {
     home: 'ホーム',
@@ -88,22 +76,16 @@ const uiStrings = {
     privacy: 'すべての処理はブラウザで実行（サーバーへのデータ送信なし）',
     responsive: 'モバイル、タブレット、デスクトップ対応',
     multilang: '韓国語、英語、日本語対応',
-    faqFree: 'は無料ですか？',
-    faqFreeAnswer: 'はい、完全に無料で会員登録も不要です。すべての処理はブラウザで行われるため、データはサーバーに送信されません。',
-    faqMobile: 'モバイルでも使えますか？',
-    faqMobileAnswer: 'はい、すべてのデバイスで使用できます。レスポンシブデザインでモバイル、タブレット、デスクトップすべてに対応しています。',
-    faqPrivacy: 'データはサーバーに送信されますか？',
-    faqPrivacyAnswer: 'いいえ、すべての処理はユーザーのブラウザで行われます。個人情報がサーバーに送信されることはなく、安全です。',
   },
 };
 
 const languages: Language[] = ['ko', 'en', 'ja'];
 
 export function getStaticPaths() {
-  const paths: { params: { lang: string; slug: string }; props: { tool: typeof toolsConfig[0]; lang: Language } }[] = [];
+  const paths: { params: { lang: string; slug: string }; props: { tool: ToolDefinition; lang: Language } }[] = [];
 
   for (const lang of ['ko', 'en', 'ja'] as Language[]) {
-    for (const tool of toolsConfig) {
+    for (const tool of getPublishedTools().filter(tool => tool.slug !== 'anonymous-chat')) {
       paths.push({
         params: { lang, slug: tool.slug },
         props: { tool, lang }
@@ -115,7 +97,12 @@ export function getStaticPaths() {
 }
 
 const { tool, lang } = Astro.props;
-const seo = tool.seo[lang];
+const content = tool.content[lang] ?? tool.content.ko;
+if (!content) {
+  throw new Error(`Missing localized content for ${tool.slug}`);
+}
+
+const seo = content;
 const ui = uiStrings[lang];
 
 // Generate alternate URLs for hreflang
@@ -127,46 +114,13 @@ const alternateUrls = languages.map(l => ({
 const pageTitle = `${seo.title} | Restato`;
 const canonicalUrl = `https://restato.github.io/${lang}/tools/${tool.slug}`;
 
-// Extract short title for FAQ
-const shortTitle = seo.title.split(' - ')[0];
-
-// FAQ Schema
-const faqSchema = {
-  "@context": "https://schema.org",
-  "@type": "FAQPage",
-  "mainEntity": [
-    {
-      "@type": "Question",
-      "name": `${shortTitle}${ui.faqFree}`,
-      "acceptedAnswer": {
-        "@type": "Answer",
-        "text": ui.faqFreeAnswer
-      }
-    },
-    {
-      "@type": "Question",
-      "name": ui.faqMobile,
-      "acceptedAnswer": {
-        "@type": "Answer",
-        "text": ui.faqMobileAnswer
-      }
-    },
-    {
-      "@type": "Question",
-      "name": ui.faqPrivacy,
-      "acceptedAnswer": {
-        "@type": "Answer",
-        "text": ui.faqPrivacyAnswer
-      }
-    }
-  ]
-};
+const shortTitle = seo.name;
 
 // WebApplication Schema
 const appSchema = {
   "@context": "https://schema.org",
   "@type": "WebApplication",
-  "name": seo.title,
+  "name": seo.name,
   "description": seo.description,
   "url": canonicalUrl,
   "applicationCategory": "UtilityApplication",
@@ -182,6 +136,31 @@ const appSchema = {
   },
   "inLanguage": lang
 };
+
+const breadcrumbSchema = {
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    {
+      "@type": "ListItem",
+      "position": 1,
+      "name": ui.home,
+      "item": `https://restato.github.io/${lang}`
+    },
+    {
+      "@type": "ListItem",
+      "position": 2,
+      "name": ui.tools,
+      "item": `https://restato.github.io/${lang}/tools`
+    },
+    {
+      "@type": "ListItem",
+      "position": 3,
+      "name": seo.name,
+      "item": canonicalUrl
+    }
+  ]
+};
 ---
 
 <MainLayout
@@ -190,8 +169,8 @@ const appSchema = {
   lang={lang}
   alternateUrls={alternateUrls}
 >
-  <script type="application/ld+json" set:html={JSON.stringify(faqSchema)} />
   <script type="application/ld+json" set:html={JSON.stringify(appSchema)} />
+  <script type="application/ld+json" set:html={JSON.stringify(breadcrumbSchema)} />
 
   <div class="max-w-4xl mx-auto px-4 py-8">
     <!-- Breadcrumb -->
