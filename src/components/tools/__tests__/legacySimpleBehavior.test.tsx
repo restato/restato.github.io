@@ -5,6 +5,8 @@ import DiceRoller from '../DiceRoller';
 import LoremIpsumGenerator from '../LoremIpsumGenerator';
 import PercentCalculator from '../PercentCalculator';
 import KorEngConverter from '../KorEngConverter';
+import AgeCalculator from '../AgeCalculator';
+import UtmBuilder from '../UtmBuilder';
 import './testUtils';
 
 afterEach(() => {
@@ -78,5 +80,26 @@ describe('legacy simple tool behavior', () => {
     fireEvent.click(screen.getByRole('button', { name: '🔄' }));
     expect(textareas[0]).toHaveValue('아');
     expect(textareas[1]).toHaveValue('dk');
+  });
+
+  it('calculates international age from a selected birth date', () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date('2026-07-20T12:00:00'));
+    render(<AgeCalculator />);
+
+    fireEvent.change(screen.getByLabelText('생년월일'), { target: { value: '2000-07-20' } });
+
+    expect(screen.getByText('26세')).toBeInTheDocument();
+    expect(screen.getByText('게자리')).toBeInTheDocument();
+  });
+
+  it('builds an example UTM URL and clears it again', () => {
+    render(<UtmBuilder />);
+    fireEvent.click(screen.getByRole('button', { name: '예제 불러오기' }));
+
+    expect(screen.getByText(/utm_source=facebook/)).toBeInTheDocument();
+    expect(screen.getByText(/utm_content=banner_v1/)).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: '초기화' }));
+    expect(screen.getByText('URL과 필수 파라미터를 입력하세요')).toBeInTheDocument();
   });
 });
