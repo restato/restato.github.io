@@ -68,6 +68,18 @@ describe('JsonFormatter', () => {
     expect(screen.getByText('유효하지 않은 JSON')).toBeInTheDocument();
   });
 
+  it('reports empty input as invalid and formats non-Latin JSON keys', async () => {
+    render(<JsonFormatter />);
+    const input = screen.getByPlaceholderText('JSON을 입력하세요');
+
+    fireEvent.change(input, { target: { value: '' } });
+    fireEvent.click(screen.getByText('검증'));
+    expect(screen.getByText('유효하지 않은 JSON')).toBeInTheDocument();
+    fireEvent.change(input, { target: { value: '{"제목":"도구"}' } });
+    fireEvent.click(screen.getByText('포매팅'));
+    expect((screen.getAllByRole('textbox')[1] as HTMLTextAreaElement).value).toContain('"제목": "도구"');
+  });
+
   it('loads sample JSON when clicking sample button', async () => {
     render(<JsonFormatter />);
     const user = userEvent.setup();

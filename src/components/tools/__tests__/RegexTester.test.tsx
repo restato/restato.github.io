@@ -74,6 +74,20 @@ describe('RegexTester', () => {
     expect(screen.getByText(/invalid regular expression/i)).toBeInTheDocument();
   });
 
+  it('suppresses output for empty test text and matches non-Latin text', () => {
+    render(<RegexTester />);
+    const inputs = screen.getAllByRole('textbox');
+
+    fireEvent.change(inputs[0], { target: { value: 'before' } });
+    fireEvent.change(inputs[2], { target: { value: 'before' } });
+    expect(screen.getByText(/매치\s*\(1\)/)).toBeInTheDocument();
+    fireEvent.change(inputs[2], { target: { value: '' } });
+    expect(screen.queryByText(/매치\s*\(1\)/)).not.toBeInTheDocument();
+    fireEvent.change(inputs[0], { target: { value: '한글' } });
+    fireEvent.change(inputs[2], { target: { value: '한글 도구' } });
+    expect(screen.getByText(/매치\s*\(1\)/)).toBeInTheDocument();
+  });
+
   it('highlights matching groups', async () => {
     render(<RegexTester />);
     const user = userEvent.setup();
