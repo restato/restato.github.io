@@ -252,6 +252,11 @@ describe('legacy simple tool behavior', () => {
 
     expect(screen.getByText(/box-shadow:/)).toBeInTheDocument();
     expect(screen.getByText(/12px/)).toBeInTheDocument();
+
+    fireEvent.change(numericInputs[1], { target: { value: '0' } });
+    expect(screen.getByText(/0px/)).toBeInTheDocument();
+    fireEvent.change(numericInputs[1], { target: { value: '24' } });
+    expect(screen.getByText(/24px/)).toBeInTheDocument();
   });
 
   it('creates a complementary palette from a chosen base color', () => {
