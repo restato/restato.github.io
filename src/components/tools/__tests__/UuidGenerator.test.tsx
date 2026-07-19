@@ -99,5 +99,5 @@ describe('UuidGenerator', () => {
 
     const uniqueUuids = new Set(uuids);
     expect(uniqueUuids.size).toBe(uuids.length);
-  }, 15_000);
+  });
 });
