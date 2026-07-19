@@ -1,0 +1,295 @@
+---
+title: "Build an Ontology-Driven AI Agent"
+description: "Design a vendor-neutral operational agent with a domain model, constrained actions, policy checks, approval, idempotency, audit logs, and deployment-focused evaluation."
+date: 2026-07-20
+tags: ["Ontology", "AI Agent", "Architecture", "MCP", "Engineering"]
+---
+
+A customer asks why a high-value order has not shipped. A support agent can retrieve the order and summarize the delay. An operational agent is expected to do more: find inventory at another facility, check transfer and shipping policy, estimate the cost, request approval if necessary, and execute the change without buying the upgrade twice.
+
+That workflow crosses entities, relationships, policies, and state changes. A larger prompt will not make those boundaries reliable. **A dependable operational agent should reason over an explicit domain model and act only through typed, authorized, idempotent, and auditable contracts.**
+
+This guide builds a vendor-neutral reference architecture for that pattern. It does not require Palantir, a graph database, or OWL. Read [Ontology as the Operating Layer for AI Agents](/blog/ontology-operating-layer-for-ai-agents/) for the strategic case and [Inside Palantir Ontology](/blog/inside-palantir-ontology/) for an integrated platform implementation. The [graph database and ontology guide](/blog/ai-engineer-graph-databases-ontology/) covers the underlying graph and semantic-web concepts.
+
+The commerce model and contracts below are original reference designs. They were checked as structured examples, not deployed against a production order system.
+
+## Start with competency questions, not classes
+
+Ontology projects become expensive when teams start by listing every noun in the company. Start with the decisions the agent must support.
+
+The Stanford guide [Ontology Development 101](https://protege.stanford.edu/publications/ontology_development/ontology101.pdf) recommends competency questions to bound an ontology and test whether it contains enough information. For the delayed-order workflow, useful questions include:
+
+- Which open orders are likely to miss their promised date?
+- Which order lines are blocked by inventory or shipment state?
+- Can inventory be reassigned from another facility without breaking a higher-priority commitment?
+- Which shipping upgrades are permitted for this customer, order value, and region?
+- Who must approve the additional cost?
+- Which facts explain the recommendation?
+- Has this action already been attempted or completed?
+
+These questions define the first model. Product catalog enrichment, marketing segments, and warehouse robotics can wait unless the pilot needs them.
+
+The pilot also needs an explicit completion criterion: produce a valid intervention proposal for delayed orders, route it to the correct approval path, execute approved changes once, and retain enough evidence to reconstruct the decision.
+
+## Define the minimum domain model
+
+A small commerce ontology can begin with eight object types.
+
+| Object | Responsibility | Important fields |
+|---|---|---|
+| `Customer` | Buyer identity and service context | ID, tier, region, risk flags |
+| `Order` | Commercial commitment | ID, status, promised date, total, customer ID |
+| `OrderLine` | Product and quantity commitment | order ID, SKU, quantity |
+| `InventoryReservation` | Allocated stock | order line, facility, quantity, state |
+| `Shipment` | Fulfillment movement | carrier, service, status, ETA, cost |
+| `Facility` | Inventory and fulfillment location | region, capabilities, cutoff time |
+| `Policy` | Versioned business rule reference | type, version, effective period |
+| `ActionRequest` | Proposed or executed change | action, arguments, state, actor, evidence |
+
+Relationships make the decision navigable:
+
+```text
+Customer ──places────────▶ Order
+Order ─────contains──────▶ OrderLine
+OrderLine ─reserved_by───▶ InventoryReservation
+InventoryReservation ───▶ Facility
+Order ─────fulfilled_by──▶ Shipment
+ActionRequest ─affects───▶ Order, Shipment, InventoryReservation
+ActionRequest ─governed_by▶ Policy
+```
+
+Give each object a stable identifier and a version or update token. The agent must know which state it used when proposing an action. If the shipment changed after retrieval, the executor should reject the stale proposal and force a new read.
+
+The `Policy` object does not need to contain executable policy code. It can identify the rule version and evidence used by a separate policy decision point. Keeping the reference in the domain model makes the decision traceable without asking the ontology to become the policy engine.
+
+## Choose representation and storage separately
+
+The word ontology does not choose a database for you.
+
+[OWL 2](https://www.w3.org/TR/owl2-overview/) is useful when formal class semantics, interoperability, or reasoning matter. [SHACL](https://www.w3.org/TR/shacl/) can validate RDF graphs against shapes and constraints. Property graphs are convenient for relationship-heavy traversal. A relational database may be the best starting point when transactions, existing tooling, and operational ownership matter more than formal inference.
+
+| Need | Reasonable starting point |
+|---|---|
+| One operational system and strong transactions | Relational tables plus typed application models |
+| Frequent multi-hop traversal across changing relationships | Property graph, possibly alongside the system of record |
+| Shared vocabulary and formal inference across organizations | RDF and OWL, with SHACL for validation |
+| Existing systems of record plus cross-domain semantics | Hybrid semantic layer over relational and graph sources |
+
+The [OWL 2 Primer](https://www.w3.org/TR/owl2-primer/) notes that OWL is declarative, follows an open-world assumption, and is not a database or syntax-conformance framework. Do not use the absence of an OWL fact as permission to perform a transaction. Operational validation needs a closed result.
+
+For a first pilot, keep writes in the authoritative transactional services. The ontology layer can resolve identity and assemble context while action executors call those services through explicit contracts.
+
+## Turn business operations into typed action contracts
+
+Do not expose `run_sql`, `call_api`, or a general shell to the model. Give it narrow business actions.
+
+An action definition should include:
+
+- A stable name and version
+- Typed inputs and outputs
+- Objects and fields it may read or modify
+- Preconditions and concurrency checks
+- Policy input and possible decisions
+- Approval class
+- Idempotency and retry behavior
+- Audit fields and expected side effects
+
+Here is a compact contract for the example workflow:
+
+```json
+{
+  "name": "expedite_shipment",
+  "version": "1.0",
+  "inputSchema": {
+    "type": "object",
+    "additionalProperties": false,
+    "required": ["orderId", "orderVersion", "targetService", "reason"],
+    "properties": {
+      "orderId": { "type": "string", "minLength": 1 },
+      "orderVersion": { "type": "integer", "minimum": 1 },
+      "targetService": { "enum": ["two_day", "next_day"] },
+      "reason": { "type": "string", "minLength": 10, "maxLength": 500 }
+    }
+  },
+  "authorization": {
+    "decision": "shipping.expedite",
+    "context": ["actor", "customerTier", "orderTotal", "incrementalCost", "region"]
+  },
+  "approval": {
+    "requiredWhen": "incrementalCost > actor.approvalLimit"
+  },
+  "execution": {
+    "idempotencyKey": "actionRequestId",
+    "concurrencyCheck": "orderVersion"
+  }
+}
+```
+
+This is a reference contract, not an MCP extension or a standard schema. The `inputSchema` shape follows ordinary JSON Schema conventions and can be translated into an MCP tool definition. The authorization, approval, and execution metadata belong to the application control plane.
+
+The [MCP tools specification](https://modelcontextprotocol.io/specification/2025-11-25/server/tools) requires servers to validate tool inputs and implement access controls. It also supports output schemas. A valid schema narrows arguments; it does not decide whether the action is appropriate.
+
+## Put authorization and approval outside the model
+
+The model may recommend an action and explain its reasoning. It should not be the final authority on its own permissions.
+
+Build a policy input from deterministic context:
+
+```json
+{
+  "actor": { "id": "user-42", "roles": ["support-lead"], "approvalLimit": 25 },
+  "action": "shipping.expedite",
+  "resource": { "orderId": "ord-4821", "region": "KR", "total": 340 },
+  "environment": { "incrementalCost": 18, "customerTier": "gold" }
+}
+```
+
+A policy engine returns a bounded decision such as:
+
+```json
+{
+  "decision": "allow",
+  "policyVersion": "shipping-policy-2026-07",
+  "reasonCodes": ["ROLE_ALLOWED", "WITHIN_COST_LIMIT"]
+}
+```
+
+[Open Policy Agent](https://www.openpolicyagent.org/docs) is one implementation option. Its architecture separates policy decision-making from enforcement and evaluates structured input. A custom service can provide the same boundary if the rule set is small.
+
+The executor enforces the result. `deny` stops execution. `needs_approval` creates an approval task with the proposed change and evidence. `allow` proceeds only if the referenced object versions still match.
+
+Approval should be risk-based. A fixed confirmation step on every action trains users to click through. Require approval for costs above a limit, irreversible changes, sensitive objects, policy exceptions, or low-confidence entity resolution. Keep the criteria in deterministic configuration.
+
+## Design the executor for retries and partial failure
+
+An agent may lose its connection after the carrier accepted an upgrade but before the response arrived. Retrying the same request blindly can purchase the upgrade twice.
+
+[RFC 9110](https://www.rfc-editor.org/rfc/rfc9110.html#name-idempotent-methods) defines an operation as idempotent when repeated identical requests have the same intended server effect as one request. For application actions, use an idempotency key tied to the durable `ActionRequest`.
+
+A safe execution path is:
+
+```text
+1. Create ActionRequest(actionRequestId, proposed, evidence)
+2. Validate schema and current object versions
+3. Evaluate policy and approval state
+4. Atomically mark ActionRequest as executing
+5. Call the downstream service with actionRequestId as idempotency key
+6. Persist the normalized result and changed object versions
+7. Mark the request succeeded, failed, or outcome_unknown
+```
+
+When the downstream system cannot support idempotency, add a result lookup before retrying. If the effect cannot be determined safely, route the request to a person instead of guessing.
+
+Idempotency has a boundary. It does not undo notifications, vendor calls, or other downstream side effects unless those systems participate in the same contract. Define compensating actions or manual escalation for partial success.
+
+## Use a guarded runtime loop
+
+The model belongs in a larger state machine:
+
+```text
+user request
+   ↓
+resolve object IDs and versions ──missing/ambiguous──▶ ask for clarification
+   ↓
+assemble linked facts and policy context
+   ↓
+model proposes a typed action ──invalid schema──────▶ reject or repair once
+   ↓
+validate domain preconditions ──stale/invalid───────▶ refresh and replan
+   ↓
+policy decision ──deny───────────▶ explain denial
+   │
+   └──needs approval─────────────▶ wait for decision
+   ↓ allow
+execute with idempotency key ────▶ record success, failure, or unknown outcome
+   ↓
+verify changed state
+   ↓
+return result with evidence
+```
+
+Put hard limits on repair and retry loops. A model that keeps changing arguments until policy allows an action is probing the boundary, not solving the task.
+
+The [MCP authorization specification](https://modelcontextprotocol.io/specification/2025-11-25/basic/authorization) defines OAuth-based authorization for HTTP transports and includes scope guidance intended to avoid excessive permission requests. Transport authorization is necessary, but it remains separate from the domain decision that this actor may expedite this order for this cost.
+
+## Audit the decision, not just the API call
+
+An HTTP access log says that an endpoint returned 200. It does not explain why the action was proposed or whether the agent used current evidence.
+
+A minimal action event should retain:
+
+```json
+{
+  "actionRequestId": "ar-20260720-0017",
+  "action": "expedite_shipment@1.0",
+  "actorId": "user-42",
+  "agentConfigVersion": "shipping-agent-12",
+  "sourceVersions": { "order": 17, "shipment": 5 },
+  "normalizedArguments": { "orderId": "ord-4821", "targetService": "two_day" },
+  "policy": { "version": "shipping-policy-2026-07", "decision": "allow" },
+  "approval": null,
+  "execution": { "status": "succeeded", "resultId": "ship-9938" },
+  "recordedAt": "2026-07-20T00:17:54+09:00"
+}
+```
+
+Decide retention and access separately from collection. Arguments and context may contain personal or commercially sensitive data. Store identifiers and reason codes where full prompt text is unnecessary, and apply the same data permissions used by the operational systems.
+
+## Evaluate trajectories and business outcomes
+
+Final-answer accuracy is too narrow for an agent that changes state. Build cases with expected paths and prohibited side effects.
+
+| Metric | Failure it exposes |
+|---|---|
+| Entity-resolution accuracy | The agent acted on the wrong order or shipment. |
+| Action-selection accuracy | It chose a valid but inappropriate operation. |
+| Argument-validity rate | The proposal failed schema or domain validation. |
+| Policy-violation count | A denied action reached the executor. |
+| Approval-routing accuracy | The wrong person approved or approval was skipped. |
+| Duplicate-side-effect count | Retry handling repeated a business effect. |
+| State-verification pass rate | Execution reported success but state did not match. |
+| Business outcome | The intervention improved the promised result at acceptable cost. |
+
+The [NIST AI RMF Measure playbook](https://airc.nist.gov/airmf-resources/playbook/measure/) recommends fit-for-purpose metrics, documented test methods, testing in deployment-like conditions, and production monitoring. Use real workflow cases after removing personal data and secrets. Include denied actions, stale versions, ambiguous IDs, downstream timeouts, policy changes, and partial failures.
+
+Evaluation should protect boundaries as well as average quality. One unauthorized write is not offset by 99 polished explanations.
+
+## Roll out in four bounded stages
+
+Autonomy should expand when evidence supports it.
+
+### Stage 1: Read only
+
+The agent resolves objects, assembles context, and explains options. It cannot create action requests. Measure entity resolution, evidence quality, and operator usefulness.
+
+### Stage 2: Shadow recommendations
+
+The agent produces typed proposals while operators continue the existing workflow. Compare proposals with actual decisions and record disagreements.
+
+### Stage 3: Approved writes
+
+Valid proposals enter a human approval queue. The executor handles idempotency, version checks, and audit. Measure approval quality, overrides, failures, and recovery time.
+
+### Stage 4: Narrow autonomous writes
+
+Allow only reversible, low-cost actions with strong evaluation results and clear monitoring. Keep higher-risk actions behind approval. Add a kill switch and an owner responsible for incident response.
+
+Do not make "fully autonomous" the target. The useful endpoint may be an agent that prepares excellent decisions and executes only a small, stable subset.
+
+## Conclusion
+
+An ontology-driven agent is not an LLM connected to a graph. It is a system in which domain identity, relationships, constraints, policy, actions, and evidence agree on the same operational objects.
+
+Start with one decision loop. Model only the objects required by its competency questions. Keep state changes behind typed action contracts, deterministic authorization, version checks, idempotency, and audit. Run the agent read-only and in shadow mode before approved writes. Expand autonomy only when trajectory and business metrics justify it.
+
+## Primary sources
+
+- [Ontology Development 101](https://protege.stanford.edu/publications/ontology_development/ontology101.pdf)
+- [OWL 2 Web Ontology Language overview](https://www.w3.org/TR/owl2-overview/)
+- [OWL 2 Primer](https://www.w3.org/TR/owl2-primer/)
+- [SHACL specification](https://www.w3.org/TR/shacl/)
+- [MCP tools specification](https://modelcontextprotocol.io/specification/2025-11-25/server/tools)
+- [MCP authorization specification](https://modelcontextprotocol.io/specification/2025-11-25/basic/authorization)
+- [Open Policy Agent documentation](https://www.openpolicyagent.org/docs)
+- [RFC 9110: Idempotent methods](https://www.rfc-editor.org/rfc/rfc9110.html#name-idempotent-methods)
+- [NIST AI RMF Measure playbook](https://airc.nist.gov/airmf-resources/playbook/measure/)
