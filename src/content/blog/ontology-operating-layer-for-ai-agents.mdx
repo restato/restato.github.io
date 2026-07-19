@@ -1,0 +1,187 @@
+---
+title: "Ontology as the Operating Layer for AI Agents"
+description: "Why operational AI agents need an explicit model of business objects, relationships, policies, permissions, and actions, and when that extra layer is worth building."
+date: 2026-07-20
+tags: ["ontology", "AI Agent", "Architecture", "Knowledge Graph", "Engineering"]
+---
+
+Suppose an agent has a `refund_order` tool. The function accepts an order ID and an amount. Its schema is valid, the API is reachable, and the model can call it correctly.
+
+The hard questions begin after that setup is finished. Which record is the authoritative order? Is the customer eligible for a refund? Does the payment state permit one? Who may approve the amount? What should happen to inventory, loyalty points, and an open shipment? The tool signature does not answer any of these questions.
+
+An operational agent needs a shared model of the business and a controlled way to change it. This is where ontology becomes useful. **An ontology becomes an operating layer for agents when domain semantics are joined to validation, policy, action contracts, and feedback. A graph alone is not enough.**
+
+If RDF, OWL, graph databases, and GraphRAG are new to you, start with the [AI engineer's guide to graph databases and ontology](/blog/ai-engineer-graph-databases-ontology/). This article addresses a different problem: turning domain meaning into a governable execution boundary for AI agents.
+
+## What is missing between enterprise data and an agent
+
+Most enterprise agent stacks already contain several useful pieces:
+
+- Systems of record store customers, orders, assets, and transactions.
+- Search or RAG retrieves documents and unstructured context.
+- APIs and tools expose operations.
+- An LLM interprets requests and chooses what to do next.
+
+Each piece solves a real problem, but the stack still lacks a common answer to questions such as these:
+
+- Are `account`, `customer`, and `buyer` the same entity in this workflow?
+- Which relationships are valid between an order, payment, shipment, and return?
+- Which state transitions are permitted?
+- Which policy applies to this user, object, action, and environment?
+- What evidence must be recorded when an action changes external state?
+
+A prompt can describe some of these rules. That works for a small prototype, then becomes difficult to inspect and reuse. The CRM prompt develops one definition of customer, the support prompt develops another, and the fulfillment agent receives a third. A rule hidden in prose also has no enforcement power unless deterministic software checks it.
+
+The missing component is not more context. It is an explicit domain and action model shared by the systems that retrieve, decide, authorize, execute, and audit work.
+
+## Schema, knowledge graph, ontology, and operating layer
+
+These terms often get collapsed into one architecture box. They are related, but they have different jobs.
+
+| Layer | Primary job | What it does not provide by itself |
+|---|---|---|
+| Database schema | Shape stored records and constraints | Shared meaning across systems |
+| RDF or property graph | Represent entities and relationships | Business policy or executable operations |
+| Ontology | Define domain concepts, relationships, and formal meaning | Transaction execution and runtime authorization |
+| Operational ontology layer | Connect domain meaning to validation, policy, actions, and observation | Guaranteed correctness or autonomous safety |
+
+The [RDF 1.1 Concepts specification](https://www.w3.org/TR/rdf11-concepts/) defines a graph as a set of subject-predicate-object triples. It also makes clear that RDF does not define an interaction model. A graph can say that an order belongs to a customer; that statement does not cancel the order or decide who is allowed to do so.
+
+[OWL 2](https://www.w3.org/TR/owl2-overview/) adds formally defined meaning through classes, properties, individuals, and axioms. It can support inference and consistency checks. But the [OWL 2 Primer](https://www.w3.org/TR/owl2-primer/) explicitly distinguishes OWL from a programming language, a database framework, and a syntax-conformance system. OWL also follows an open-world assumption: a missing fact may be unknown rather than false.
+
+That distinction matters in production. If an ontology has no statement proving that a customer is blocked, an agent cannot safely infer that the customer is allowed. Operational decisions usually require a validation and policy boundary with closed, explicit outcomes such as `allow`, `deny`, or `needs_approval`.
+
+"Operating layer" is not a W3C term. It is an engineering model for the additional responsibilities required when an agent can change real systems.
+
+## The five responsibilities of an operational ontology
+
+A useful operational layer has five distinct responsibilities. They may live in one platform or several services.
+
+### Stable identity
+
+The system needs a durable way to resolve references across sources. A support ticket that mentions order `4821` must resolve to the same business object used by billing and fulfillment, including source provenance and freshness.
+
+This is more demanding than named-entity extraction. The agent needs to know which object is authoritative, whether two records refer to the same entity, and which version it read before proposing a change.
+
+### Typed relationships
+
+Relationships supply decision context. A refund may depend on the order's payment, shipment, return, customer tier, and applicable policy. Modeling these links explicitly makes the context inspectable and reusable outside one prompt.
+
+The representation can be relational, graph-based, RDF, or hybrid. OWL 2 itself defines profiles with different implementation trade-offs; [OWL 2 QL](https://www.w3.org/TR/owl2-overview/#Profiles) was designed to work with relational query technology. "Ontology" does not imply "buy a graph database."
+
+### Validation and constraints
+
+Formal meaning and data validation are different concerns. For RDF systems, [SHACL](https://www.w3.org/TR/shacl/) defines shapes and constraints for validating data graphs. In other stacks, database constraints, JSON Schema, or application validators may fill the same role.
+
+The important architectural property is a deterministic result. An LLM may propose that an order move from `shipped` to `cancelled`; a validator should reject the transition without asking the model to grade its own proposal.
+
+### Policy context
+
+Authorization depends on more than a tool name. It may include the user, business role, object classification, refund amount, jurisdiction, time, and current workflow state.
+
+A policy decision point keeps this logic outside model inference. [Open Policy Agent](https://www.openpolicyagent.org/docs) is one example: it separates policy decision-making from enforcement and evaluates structured input. The agent can explain why approval is needed, but the executor must enforce the decision.
+
+### Action contracts and evidence
+
+An action should define more than input parameters. It needs preconditions, affected resources, authorization context, approval requirements, retry behavior, expected results, and audit fields.
+
+The [Model Context Protocol tools specification](https://modelcontextprotocol.io/specification/2025-11-25/server/tools) provides input and output schemas for model-controlled tools. Its security section requires servers to validate inputs and implement access controls, and recommends confirmation for sensitive operations, result validation, and tool-usage logging. Those controls surround the model rather than relying on it.
+
+## How ontology changes the agent loop
+
+A loosely controlled agent loop looks like this:
+
+```text
+request → retrieve text → choose tool → call API → answer
+```
+
+An ontology-driven operational loop has more checkpoints:
+
+```text
+request
+   ↓
+resolve business objects and current versions
+   ↓
+assemble linked facts and applicable policy context
+   ↓
+propose a typed action
+   ↓
+validate inputs and state transition
+   ↓
+authorize or request approval
+   ↓
+execute with retry and concurrency controls
+   ↓
+record decision, result, and changed versions
+   ↓
+evaluate the trajectory and business outcome
+```
+
+The LLM still does important work. It interprets ambiguous language, searches relevant context, compares options, and produces a proposed action. It does not get to redefine the domain or grant itself authority during execution.
+
+This also makes failures easier to diagnose. A bad outcome can be traced to entity resolution, stale data, an invalid proposal, a policy error, an execution failure, or an evaluation gap. Without these boundaries, all of those failures look like "the agent was wrong."
+
+## What the ontology does not guarantee
+
+An ontology does not make an agent correct. Several failure modes remain:
+
+- The source data may be stale, incomplete, or incorrectly mapped.
+- The model may resolve the wrong entity or propose the wrong action.
+- A valid action may still produce a poor business outcome.
+- Policy may be incomplete or misconfigured.
+- Concurrent writes may invalidate the state used for the decision.
+- A downstream API may partially succeed and then time out.
+
+Human approval is not a universal fix either. A confirmation dialog shown without enough evidence becomes a reflexive click. Approval should include the proposed change, affected objects, policy result, material side effects, and a clear alternative.
+
+The MCP specification uses `SHOULD`, rather than `MUST`, for keeping a human able to deny tool invocations. That is protocol guidance, not proof that every implementation includes a safe approval experience. Architecture reviews need to inspect the actual client and executor behavior.
+
+## When this architecture is worth the cost
+
+Ontology work has a real maintenance cost. Concepts change, source mappings drift, policies accumulate exceptions, and ownership can become political. Do not build an enterprise-wide model because the diagram looks clean.
+
+The investment becomes easier to justify when several of these conditions hold:
+
+| Signal | Why it matters |
+|---|---|
+| The same concepts appear in several systems | Shared identity and semantics reduce per-agent mapping work. |
+| Decisions require multi-hop relationships | Explicit links make the decision context reusable and inspectable. |
+| Agents can create material side effects | Typed actions and policy checks limit what can change. |
+| Rules vary by role, object, or environment | Structured policy context is easier to enforce than prompt prose. |
+| Several workflows reuse the same actions | The model becomes infrastructure rather than one project's overhead. |
+| Audit or incident reconstruction matters | Decision and execution evidence must survive beyond a chat transcript. |
+
+The case is weak for a read-only FAQ assistant, a narrow workflow over one well-designed API, or a prototype whose domain is still changing weekly. In those cases, typed tools and ordinary application validation may be enough.
+
+## A CTO adoption test
+
+Before funding a platform program, choose one bounded decision loop and answer seven questions:
+
+1. Which business decision will improve?
+2. Which systems disagree about the relevant entities today?
+3. Which state changes will the agent be allowed to propose?
+4. Which policies and approvals must be enforced outside the model?
+5. Which teams will own definitions and source mappings?
+6. Which evidence will prove that a decision and action were correct?
+7. What result would justify expanding the model to a second workflow?
+
+A reasonable first pilot is not "model the company." It is "resolve delayed orders, recommend one of three approved interventions, and record why." Start read-only, run the agent in shadow mode, then allow approved writes if evaluation data supports the change.
+
+The [NIST AI Risk Management Framework Measure playbook](https://airc.nist.gov/airmf-resources/playbook/measure/) recommends fit-for-purpose metrics, testing under conditions similar to deployment, documented test methods, and post-deployment monitoring. For an operational agent, that means measuring the action trajectory as well as the final response: entity resolution, action selection, argument validity, policy decisions, approval routing, execution results, and business outcomes.
+
+## Conclusion
+
+An LLM can interpret language and propose work. It does not arrive with your organization's identities, relationships, policies, or authority model.
+
+Ontology helps when it makes those concepts explicit and reusable. The operating layer appears only after that semantic model is connected to deterministic validation, policy enforcement, constrained actions, and evidence. For a first implementation, pick one risky and repetitive decision loop, model only what it needs, and expand after the logs and evaluations show that reuse is real.
+
+## Primary sources
+
+- [OWL 2 Web Ontology Language overview](https://www.w3.org/TR/owl2-overview/)
+- [OWL 2 Primer](https://www.w3.org/TR/owl2-primer/)
+- [RDF 1.1 Concepts and Abstract Syntax](https://www.w3.org/TR/rdf11-concepts/)
+- [SHACL specification](https://www.w3.org/TR/shacl/)
+- [MCP tools specification](https://modelcontextprotocol.io/specification/2025-11-25/server/tools)
+- [MCP authorization specification](https://modelcontextprotocol.io/specification/2025-11-25/basic/authorization)
+- [Open Policy Agent documentation](https://www.openpolicyagent.org/docs)
+- [NIST AI RMF Measure playbook](https://airc.nist.gov/airmf-resources/playbook/measure/)
