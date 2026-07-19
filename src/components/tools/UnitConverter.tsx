@@ -254,6 +254,7 @@ export default function UnitConverter() {
         <div className="flex justify-center">
           <button
             onClick={swapUnits}
+            aria-label={t({ ko: '변환 단위 맞바꾸기', en: 'Swap conversion units', ja: '変換単位を入れ替え' })}
             className="p-2 rounded-full bg-[var(--color-card)] hover:bg-[var(--color-card-hover)]
               border border-[var(--color-border)] transition-colors"
           >
