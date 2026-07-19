@@ -97,4 +97,28 @@ describe('DdayCalculator', () => {
       expect(nameInputs[0]).toHaveValue('Birthday');
     }
   });
+
+  it('clears empty and malformed targets without retaining a previous result', () => {
+    render(<DdayCalculator />);
+    const dateInput = document.querySelector('input[type="date"]') as HTMLInputElement;
+
+    fireEvent.change(dateInput, { target: { value: '2024-06-16' } });
+    expect(screen.getByText('D-1')).toBeInTheDocument();
+    fireEvent.change(dateInput, { target: { value: '' } });
+    expect(screen.queryByText('D-1')).not.toBeInTheDocument();
+    fireEvent.change(dateInput, { target: { value: 'not-a-date' } });
+    expect(screen.queryByText('D-1')).not.toBeInTheDocument();
+  });
+
+  it('calculates a one-day boundary and saves a non-Latin event name', () => {
+    render(<DdayCalculator />);
+    const dateInput = document.querySelector('input[type="date"]') as HTMLInputElement;
+    const nameInput = screen.getByRole('textbox');
+
+    fireEvent.change(dateInput, { target: { value: '2024-06-16' } });
+    fireEvent.change(nameInput, { target: { value: '여름 휴가' } });
+    expect(screen.getByText('D-1')).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: 'D-Day 저장하기' }));
+    expect(screen.getByText('여름 휴가')).toBeInTheDocument();
+  });
 });

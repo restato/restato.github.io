@@ -81,6 +81,11 @@ export default function AgeCalculator() {
     const birth = new Date(birthDate);
     const today = new Date();
 
+    if (Number.isNaN(birth.getTime()) || birth > today) {
+      setResult(null);
+      return;
+    }
+
     // Korean age (만 나이 + 1, but since 2023 Korea uses international age)
     const koreanAge = today.getFullYear() - birth.getFullYear() + 1;
 

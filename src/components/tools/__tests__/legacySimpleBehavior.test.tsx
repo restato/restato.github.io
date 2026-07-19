@@ -132,6 +132,24 @@ describe('legacy simple tool behavior', () => {
     expect(screen.getByText('게자리')).toBeInTheDocument();
   });
 
+  it('clears empty and future age dates, handles today, and recomputes repeated birthdays', () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date('2026-07-20T12:00:00'));
+    render(<AgeCalculator />);
+    const birthDate = screen.getByLabelText('생년월일');
+
+    fireEvent.change(birthDate, { target: { value: '2000-07-20' } });
+    expect(screen.getByText('26세')).toBeInTheDocument();
+    fireEvent.change(birthDate, { target: { value: '' } });
+    expect(screen.queryByText('26세')).not.toBeInTheDocument();
+    fireEvent.change(birthDate, { target: { value: '2026-07-20' } });
+    expect(screen.getAllByText('0세')).toHaveLength(1);
+    fireEvent.change(birthDate, { target: { value: '2001-07-20' } });
+    expect(screen.getByText('25세')).toBeInTheDocument();
+    fireEvent.change(birthDate, { target: { value: '2026-07-21' } });
+    expect(screen.queryByText('-1세')).not.toBeInTheDocument();
+  });
+
   it('builds an example UTM URL and clears it again', () => {
     render(<UtmBuilder />);
     fireEvent.click(screen.getByRole('button', { name: '예제 불러오기' }));
