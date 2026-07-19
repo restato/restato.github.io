@@ -74,8 +74,9 @@ export default function UuidGenerator() {
       <div className="flex flex-wrap gap-4 items-center">
         {/* Count */}
         <div className="flex items-center gap-2">
-          <label className="text-sm text-[var(--color-text)]">{t(tt.count)}:</label>
+          <label htmlFor="uuid-count" className="text-sm text-[var(--color-text)]">{t(tt.count)}:</label>
           <input
+            id="uuid-count"
             type="number"
             min="1"
             max="100"

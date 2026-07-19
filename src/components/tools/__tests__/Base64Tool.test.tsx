@@ -74,13 +74,10 @@ describe('Base64Tool', () => {
     const input = screen.getByPlaceholderText('텍스트를 입력하세요');
     await user.type(input, 'Test');
 
-    const swapButton = screen.getByRole('button', { name: '' }); // SVG button
-    const buttons = screen.getAllByRole('button');
-    const swapBtn = buttons.find(btn => btn.querySelector('svg path[d*="M7 16V4"]'));
+    const swapButton = screen.getByRole('button', { name: '입력과 출력 바꾸기' });
+    await user.click(swapButton);
 
-    if (swapBtn) {
-      await user.click(swapBtn);
-    }
+    expect(input).toHaveValue('VGVzdA==');
   });
 
   it('copies output to clipboard', async () => {

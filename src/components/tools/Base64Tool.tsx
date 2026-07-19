@@ -124,6 +124,11 @@ export default function Base64Tool() {
         <button
           onClick={swapInputOutput}
           disabled={!output}
+          aria-label={t({
+            ko: '입력과 출력 바꾸기',
+            en: 'Swap input and output',
+            ja: '入力と出力を入れ替える',
+          })}
           className="p-2 rounded-full bg-[var(--color-card)] hover:bg-[var(--color-card-hover)]
             border border-[var(--color-border)] transition-colors disabled:opacity-50"
         >

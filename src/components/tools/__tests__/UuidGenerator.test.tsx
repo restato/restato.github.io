@@ -32,7 +32,7 @@ describe('UuidGenerator', () => {
     const user = userEvent.setup();
 
     // Change count to 5
-    const countInput = screen.getByRole('spinbutton');
+    const countInput = screen.getByRole('spinbutton', { name: /개수/ });
     await user.clear(countInput);
     await user.type(countInput, '5');
 
@@ -89,7 +89,7 @@ describe('UuidGenerator', () => {
     render(<UuidGenerator />);
     const user = userEvent.setup();
 
-    const countInput = screen.getByRole('spinbutton');
+    const countInput = screen.getByRole('spinbutton', { name: /개수/ });
     await user.clear(countInput);
     await user.type(countInput, '10');
 
