@@ -237,6 +237,23 @@ describe('legacy simple tool behavior', () => {
     expect(screen.getAllByText('#00ffff').length).toBeGreaterThan(0);
   });
 
+  it('keeps the palette color valid for empty, malformed, non-Latin, boundary, and repeated edits', () => {
+    const { container } = render(<ColorPalette />);
+    const hexInput = container.querySelector('input[type="text"]')!;
+
+    fireEvent.change(hexInput, { target: { value: '' } });
+    expect(hexInput).toHaveValue('#3b82f6');
+    fireEvent.change(hexInput, { target: { value: '#not-a-color' } });
+    expect(hexInput).toHaveValue('#3b82f6');
+    fireEvent.change(hexInput, { target: { value: '파랑' } });
+    expect(hexInput).toHaveValue('#3b82f6');
+
+    fireEvent.change(hexInput, { target: { value: '#000000' } });
+    expect(hexInput).toHaveValue('#000000');
+    fireEvent.change(hexInput, { target: { value: '#ffffff' } });
+    expect(hexInput).toHaveValue('#ffffff');
+  });
+
   it('converts a Unix timestamp into its ISO date representation', () => {
     const { container } = render(<TimestampConverter />);
     const timestamp = container.querySelector('input[type="text"]')!;

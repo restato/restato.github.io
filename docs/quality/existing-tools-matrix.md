@@ -5,14 +5,14 @@
 | Slug | Valid | Empty | Invalid | Boundary | Non-Latin | Repeat | Output | Mobile | Privacy |
 |---|---:|---:|---:|---:|---:|---:|---:|---:|---:|
 | qr-code | ✓ | ✓ | N/A | ✓ | ✓ | ✓ | ✓ | ✓ | — |
-| password | ✓ | — | — | ✓ | N/A | ✓ | ✓ | ✓ | — |
+| password | ✓ | ✓ | N/A | ✓ | N/A | ✓ | ✓ | ✓ | — |
 | uuid | ✓ | N/A | N/A | ✓ | N/A | ✓ | ✓ | ✓ | — |
 | lorem-ipsum | ✓ | ✓ | ✓ | — | N/A | — | ✓ | ✓ | — |
-| color-palette | ✓ | — | — | — | — | — | ✓ | ✓ | — |
+| color-palette | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | — |
 | hash | ✓ | ✓ | N/A | — | ✓ | ✓ | ✓ | ✓ | — |
 | color | ✓ | — | ✓ | — | — | ✓ | ✓ | ✓ | — |
 | unit | ✓ | ✓ | — | ✓ | ✓ | ✓ | ✓ | ✓ | — |
-| base64 | ✓ | — | ✓ | — | ✓ | ✓ | ✓ | ✓ | — |
+| base64 | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | — |
 | image-converter | ✓ | — | — | — | ✓ | ✓ | ✓ | ✓ | ✓ |
 | text-counter | ✓ | ✓ | N/A | — | ✓ | ✓ | ✓ | ✓ | — |
 | markdown | ✓ | ✓ | — | — | ✓ | — | ✓ | ✓ | — |

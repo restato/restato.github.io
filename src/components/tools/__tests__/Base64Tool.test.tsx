@@ -108,4 +108,14 @@ describe('Base64Tool', () => {
 
     expect(input).toHaveValue('');
   });
+
+  it('keeps an empty value blank and encodes a long boundary-sized input', () => {
+    render(<Base64Tool />);
+    const [input, output] = screen.getAllByRole('textbox');
+    expect(input).toHaveValue('');
+    expect(output).toHaveValue('');
+
+    fireEvent.change(input, { target: { value: 'a'.repeat(4096) } });
+    expect(output).toHaveValue('YWFh'.repeat(1365) + 'YQ==');
+  });
 });
