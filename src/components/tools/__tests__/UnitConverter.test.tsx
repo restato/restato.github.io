@@ -137,4 +137,11 @@ describe('UnitConverter', () => {
 
     expect(resultInput).toHaveValue('');
   });
+
+  it('suppresses a non-numeric unit conversion result', () => {
+    render(<UnitConverter />);
+    const input = screen.getByRole('spinbutton');
+    fireEvent.change(input, { target: { value: 'not-a-number' } });
+    expect(screen.getByRole('textbox')).toHaveValue('');
+  });
 });

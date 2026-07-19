@@ -73,6 +73,21 @@ describe('ColorConverter', () => {
     expect(hexInput).toBeInTheDocument();
   });
 
+  it('retains empty and non-Latin HEX drafts while clamping RGB boundaries', () => {
+    render(<ColorConverter />);
+    const hexInput = screen.getAllByRole('textbox')[0];
+    const rgb = screen.getAllByRole('spinbutton');
+
+    fireEvent.change(hexInput, { target: { value: '' } });
+    expect(hexInput).toHaveValue('');
+    fireEvent.change(hexInput, { target: { value: '파랑' } });
+    expect(hexInput).toHaveValue('파랑');
+    fireEvent.change(rgb[0], { target: { value: '-1' } });
+    expect(rgb[0]).toHaveValue(0);
+    fireEvent.change(rgb[0], { target: { value: '256' } });
+    expect(rgb[0]).toHaveValue(255);
+  });
+
   it('copies color value to clipboard', async () => {
     const mockWriteText = vi.fn().mockResolvedValue(undefined);
     Object.assign(navigator.clipboard, { writeText: mockWriteText });
