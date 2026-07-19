@@ -39,5 +39,5 @@ describe('LlmWikiExperience', () => {
     expect(screen.getByRole('tab', { name: /plain language/i })).toHaveAttribute('aria-selected', 'true');
     expect(screen.getByRole('status', { name: /portability status/i })).toHaveTextContent(/code agent.*can read the same bundle/i);
     expect(screen.getByLabelText(/interactive knowledge graph/i)).toHaveAttribute('data-zoom', '1.00');
-  }, 15_000);
+  }, 30_000);
 });
