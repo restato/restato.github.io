@@ -238,6 +238,11 @@ describe('legacy simple tool behavior', () => {
     fireEvent.change(angle, { target: { value: '45' } });
 
     expect(screen.getByText(/linear-gradient\(45deg/)).toBeInTheDocument();
+
+    fireEvent.change(angle, { target: { value: '0' } });
+    expect(screen.getByText(/linear-gradient\(0deg/)).toBeInTheDocument();
+    fireEvent.change(angle, { target: { value: '360' } });
+    expect(screen.getByText(/linear-gradient\(360deg/)).toBeInTheDocument();
   });
 
   it('updates a box shadow layer and renders its CSS output', () => {
