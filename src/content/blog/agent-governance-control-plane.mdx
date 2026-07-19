@@ -1,0 +1,246 @@
+---
+title: "Agent Governance: Build a Control Plane for AI Agents"
+description: "A practical architecture for governing AI agents through inventory, risk-tiered autonomy, policy enforcement, versioned evidence, change gates, and incident controls."
+date: 2026-07-20
+tags: ["AI Agent", "Governance", "Security", "Architecture", "Engineering"]
+---
+
+An agent can pass an evaluation on Friday and become a different operational system on Monday. Its model may change. A tool may gain a new endpoint. A prompt may broaden its mandate. A memory store may preserve instructions that no reviewer saw.
+
+Most governance programs are not built for that rate of change. They produce a policy, an approval form, and a dashboard. Meanwhile, the real authority of the agent remains distributed across prompts, API tokens, tool servers, application code, and human habits.
+
+**Agent governance should be an executable control plane: a system that knows which agents exist, decides what each run may do, records the basis for that decision, and can reduce or revoke authority without redeploying the agent.**
+
+This is not a compliance shortcut. It is the engineering substrate that makes risk review, security operations, and assurance possible.
+
+## Governance begins with a different question
+
+Traditional application governance asks whether a system was approved for production. Agent governance must also ask what the system is allowed to decide and change on this specific run.
+
+That difference comes from agency. A conventional service exposes operations chosen in advance by developers. An agent selects among tools, assembles a sequence, interprets intermediate results, and may adapt the plan. The model does not need unrestricted credentials to create trouble; it only needs one valid path whose combined effect exceeds the intended mandate.
+
+The [OWASP Top 10 for Agentic Applications 2026](https://genai.owasp.org/resource/owasp-top-10-for-agentic-applications-for-2026/) reflects this expanded attack surface. Its categories include goal hijacking, tool misuse, identity and privilege abuse, memory and context poisoning, insecure inter-agent communication, cascading failures, and rogue agents.
+
+A useful governance program therefore needs answers to six operational questions:
+
+1. Which agent and deployment initiated the run?
+2. What business purpose and owner justify it?
+3. Which tools, resources, and data may it use now?
+4. Which policy and system versions governed the decision?
+5. What evidence shows what happened?
+6. How can the organization stop the next action?
+
+If those answers require several teams to reconstruct logs after an incident, governance exists on paper but not in the action path.
+
+## Separate the control plane from the execution plane
+
+The execution plane contains the model loop, memory, tools, and application state. It proposes and performs work. The control plane registers agents, evaluates policy, issues scoped authority, records decisions, monitors risk, and revokes access.
+
+```text
+                         governance control plane
+  registry ──> risk tier ──> policy decision ──> evidence ledger
+      │             │                │                   │
+      └──────── change gate ─────────┴──── revoke / stop ┘
+                                     │
+                              allow / constrain /
+                              require approval / deny
+                                     │
+  user ──> agent runtime ──> tool gateway ──> business systems
+                         execution plane
+```
+
+The boundary matters for two reasons. First, the agent must not be the final judge of its own authority. It can propose an action and provide context, but enforcement belongs in a gateway, service, database policy, or other component outside the model loop. Second, governance must survive framework changes. Replacing the orchestration library should not erase the inventory, policy history, or incident controls.
+
+This is the same separation used by general policy systems. [Open Policy Agent](https://www.openpolicyagent.org/docs/deploy), for example, describes a policy decision point that evaluates rules on behalf of policy enforcement points in applications. OPA is one implementation option, not a required component. The important property is that policy decisions and enforcement remain explicit and independently testable.
+
+## Define the seven records that make a run governable
+
+Start with a small data model. Avoid a large governance portal that stores documents but cannot answer runtime questions.
+
+| Record | Minimum contents | Why it exists |
+| --- | --- | --- |
+| Agent definition | stable ID, purpose, owner, allowed environments, risk tier | Names the governed subject |
+| Deployment | model, prompt, tools, skills, memory, evaluator, artifact versions | Identifies the system that actually ran |
+| Tool grant | principal, operations, resource scope, environment, expiry | Limits usable authority |
+| Run | requester, agent deployment, objective, time, parent run | Connects a task to its context |
+| Policy decision | input facts, policy version, result, constraints, reason | Explains why an action proceeded or stopped |
+| Evidence event | proposed action, tool request, result reference, verifier outcome | Reconstructs execution without storing every secret |
+| Incident | affected runs and resources, containment action, owner, resolution | Connects operational response to governance changes |
+
+These records form a version tuple for every material action:
+
+```text
+agent_id + deployment_id + grant_id + policy_version + run_id + decision_id
+```
+
+The tuple prevents a common audit failure. A team may possess a prompt from today, an access policy from last month, and a tool log with no deployment identifier. Each artifact is real, but together they do not prove which controls applied to the action under review.
+
+Keep evidence references immutable and make retention proportional to risk. Do not copy raw prompts, credentials, personal data, or full tool responses into a central ledger by default. Record hashes, bounded summaries, decision inputs, and links to access-controlled telemetry where possible.
+
+## Assign autonomy by consequence, not model confidence
+
+A model's confidence is not a reliable measure of business impact. Classify actions by reversibility, affected parties, data sensitivity, financial exposure, and blast radius instead.
+
+One workable tiering model is:
+
+| Tier | Typical action | Default control |
+| --- | --- | --- |
+| 0: observe | Search approved documents, summarize logs | Allow and record |
+| 1: prepare | Draft a message, create a proposed patch, assemble a plan | Allow in a sandbox; require review before effect |
+| 2: bounded change | Update a low-risk record within a narrow scope | Allow with policy constraints and post-action verification |
+| 3: consequential change | Send an external message, change production configuration, spend money | Require explicit approval or a tightly defined delegated mandate |
+| 4: prohibited | Disable controls, export restricted data, self-expand privileges | Deny regardless of model request |
+
+The tiers are an engineering starting point, not a standard. Each organization needs its own mapping. The important move is to attach controls to the proposed effect. “Write access” is too broad: drafting a pull request and merging it to a protected branch are different actions even if both use the same provider.
+
+Approval should also be a policy result, not a modal dialog placed in front of every tool. A reviewer needs the proposed change, affected resources, risk factors, evidence, expiry, and exact authority being granted. Approval fatigue is a control failure; it trains people to authorize requests they cannot evaluate.
+
+## Put policy decisions in the action path
+
+Evaluate policy immediately before a consequential tool call, using facts that the enforcement point can verify. A decision input might include:
+
+```json
+{
+  "principal": "agent:invoice-reconciler",
+  "deployment": "deploy_2026_07_20_4",
+  "action": "invoice.issue_refund",
+  "resource": "invoice:inv_8451",
+  "amount_usd": 180,
+  "environment": "production",
+  "requester": "user:ops_37",
+  "risk_tier": 3,
+  "grant": "grant_91",
+  "evaluation_status": "passed"
+}
+```
+
+Return more than `allow: true`. A useful decision can constrain amount, resource, duration, tool arguments, or required verifier:
+
+```json
+{
+  "decision": "require_approval",
+  "reason": "refund exceeds delegated limit",
+  "policy_version": "refund-policy@31",
+  "constraints": {
+    "approver_role": "finance_manager",
+    "expires_in_seconds": 900
+  },
+  "decision_id": "dec_7f2"
+}
+```
+
+Enforce the result at the tool boundary. The runtime should not be able to omit the decision ID, substitute a broader token, or call the upstream API through an ungoverned path.
+
+For MCP-based tools, the current [MCP authorization specification](https://modelcontextprotocol.io/specification/2025-11-25/basic/authorization) recommends least-privilege scope selection and requires resource indicators for protected resources. Transport authorization still does not answer whether this agent should issue this refund now. Protocol scopes and business policy solve different layers of the problem.
+
+Restato's [ontology operating layer guide](/blog/ontology-operating-layer-for-ai-agents/) explains how typed actions and external policy decisions fit together. The [implementation guide](/blog/build-ontology-driven-ai-agent/) goes deeper into action contracts, idempotency, and verification.
+
+## Govern every change after deployment
+
+An agent deployment is a bundle. Changing any of these elements can change behavior:
+
+- model or inference configuration
+- system prompt, policy prompt, or examples
+- tool schema, endpoint, or downstream permission
+- skill, plugin, or dependency
+- retrieval source, memory policy, or data classification
+- planner, verifier, retry, or fallback logic
+
+Version the bundle and define which changes trigger which gates. A documentation correction may need only automated checks. Adding a production write tool should require a new threat model, evaluation cases, owner approval, and staged rollout. A model upgrade may keep the same purpose but still change tool selection and refusal behavior.
+
+Do not let a passing evaluation live forever. Bind evaluation results to the deployment version and risk tier. Expire grants, rerun relevant cases after material changes, and canary higher-risk deployments with a narrower population or smaller action limits.
+
+This turns change management into a diff: what changed, which risks it affects, which tests cover those risks, and who accepted the residual exposure.
+
+## Make evidence useful before an incident
+
+Audit logs often fail in one of two directions. They are either too thin to reconstruct a decision or so verbose that sensitive context is duplicated everywhere.
+
+Design evidence around questions an operator will ask:
+
+- What objective did the agent receive?
+- Which inputs were trusted, untrusted, or retrieved?
+- Which action did it propose and which arguments reached the tool?
+- What policy decision, approval, and grant authorized the call?
+- What state changed, and did the postcondition verifier pass?
+- Which related runs may share the same prompt, memory, tool, or credential?
+
+OPA's [decision log format](https://www.openpolicyagent.org/docs/management-decision-logs) illustrates a useful pattern: include the policy query, input, bundle metadata, and a decision identifier, while masking sensitive fields before export.
+
+Evidence quality can be tested. Pick a production run and ask an engineer who did not build the agent to reconstruct the version tuple, decision path, and resulting state. If the answer depends on oral history, the system is not yet auditable.
+
+## Design the stop path before increasing autonomy
+
+A kill switch that requires a full deployment is not a kill switch. The control plane should support several containment levels:
+
+1. revoke one run or delegated grant;
+2. disable one tool or operation for an agent;
+3. move a deployment to read-only mode;
+4. block an agent definition across environments;
+5. revoke a credential or isolate an upstream integration.
+
+Define who may trigger each level, how quickly it propagates, and whether enforcement fails open or closed when the policy service is unavailable. The answer can differ by action. A search feature may degrade safely; a payment or production change usually should not proceed without a valid decision.
+
+After containment, preserve evidence, find sibling deployments that share the affected component, and turn the incident into a policy or evaluation regression test. NIST AI RMF's [Manage 4.1](https://airc.nist.gov/airmf-resources/airmf/5-sec-core/) explicitly connects post-deployment monitoring with override, decommissioning, incident response, recovery, and change management.
+
+## Measure whether governance works
+
+Counting approved policies or completed training says little about runtime control. Track outcomes that expose missing coverage and slow response:
+
+| Metric | What it reveals |
+| --- | --- |
+| Unknown-agent rate | Runs or tool calls that cannot be mapped to a registered agent and owner |
+| Unversioned-run rate | Material actions missing the full deployment and policy tuple |
+| Policy-bypass count | Calls reaching a protected system without a valid decision |
+| Evidence completeness | Sampled actions reconstructable without manual log archaeology |
+| Stale-grant age | Authority that outlives the task, owner, or deployment |
+| Approval override rate | Whether approval rules are calibrated or routinely bypassed |
+| Mean containment time | Time from a stop decision to effective revocation |
+| Rollback verification rate | Reversions whose business postconditions were actually checked |
+
+Set targets by risk tier. A Tier 0 summarizer and a Tier 3 financial agent should not consume the same governance budget. Review exceptions as product signals: repeated emergency bypasses may indicate a broken workflow, while constant low-value approvals may show that the policy is too coarse.
+
+## A 30-day rollout
+
+Do not begin by buying a universal governance platform. Begin with one consequential workflow and build the smallest complete loop.
+
+**Week 1: inventory and ownership.** Register the agent, deployment components, owner, purpose, environments, tools, data classes, and current credentials. Identify ungoverned paths to the same downstream systems.
+
+**Week 2: risk and policy.** Classify actions by consequence. Move one consequential operation behind an enforcement point. Make the policy return allow, constrain, require approval, or deny, with a reason and version.
+
+**Week 3: evidence and change gates.** Emit the version tuple and decision ID for every protected action. Add tests for policy rules and agent evaluations for the risky workflow. Define which bundle changes invalidate approval.
+
+**Week 4: containment and exercise.** Revoke a grant, force read-only mode, and simulate a compromised deployment. Measure propagation and reconstruction time. Fix the gaps before adding another agent or expanding authority.
+
+After the first loop works, standardize the records and gateways that teams can reuse. Centralize visibility and policy distribution, but keep enforcement close enough to the protected resource that agents cannot route around it.
+
+## Standards and regulation are mappings, not decorations
+
+The [NIST AI RMF Core](https://airc.nist.gov/airmf-resources/airmf/5-sec-core/) treats governance as a cross-cutting function and calls for AI-system inventory, clear responsibilities, ongoing monitoring, safe decommissioning, incident response, and change management. Its framework and [Playbook](https://airc.nist.gov/airmf-resources/playbook/) are voluntary, and NIST notes that AI RMF 1.0 is being revised. Use the outcomes to test coverage, not as a static badge.
+
+[ISO/IEC 42001:2023](https://www.iso.org/standard/42001) defines requirements for establishing and continually improving an organization-wide AI management system. A runtime control plane can supply evidence to that management system, but this article does not establish conformity or certification.
+
+For high-risk systems within its scope, the [EU AI Act](https://eur-lex.europa.eu/legal-content/en/TXT/?uri=CELEX%3A32024R1689) includes requirements concerning logging and human oversight. Applicability depends on the system, role, and context. The European Commission's [implementation timeline](https://digital-strategy.ec.europa.eu/en/policies/regulatory-framework-ai) was still changing near the general 2 August 2026 application date, so legal teams should verify the current text and guidance rather than copy dates from an old checklist.
+
+The practical sequence is simple: identify obligations and internal commitments, map them to control-plane records and enforcement points, test those controls, and preserve the resulting evidence. Do not start with a framework acronym and work backward toward screenshots.
+
+## Conclusion
+
+Agent governance becomes real at the moment an agent tries to act. The system should know who the agent is, which deployment is running, what authority applies, which policy made the decision, what changed, and how to stop the next call.
+
+Build that path for one consequential workflow. Inventory the agent, tier its actions, enforce policy outside the model, bind evidence to versions, rehearse revocation, and measure reconstruction and containment. Then reuse the pattern across the fleet.
+
+A governance document can state intent. A control plane turns that intent into a decision the organization can enforce, explain, and change.
+
+## Primary resources
+
+- [NIST AI Risk Management Framework](https://www.nist.gov/itl/ai-risk-management-framework)
+- [NIST AI RMF Core](https://airc.nist.gov/airmf-resources/airmf/5-sec-core/)
+- [NIST AI RMF Playbook](https://airc.nist.gov/airmf-resources/playbook/)
+- [NIST Generative AI Profile](https://nvlpubs.nist.gov/nistpubs/ai/NIST.AI.600-1.pdf)
+- [ISO/IEC 42001:2023 overview](https://www.iso.org/standard/42001)
+- [Regulation (EU) 2024/1689](https://eur-lex.europa.eu/legal-content/en/TXT/?uri=CELEX%3A32024R1689)
+- [European Commission AI Act timeline](https://digital-strategy.ec.europa.eu/en/policies/regulatory-framework-ai)
+- [OWASP Top 10 for Agentic Applications 2026](https://genai.owasp.org/resource/owasp-top-10-for-agentic-applications-for-2026/)
+- [Open Policy Agent deployment model](https://www.openpolicyagent.org/docs/deploy)
+- [Model Context Protocol authorization](https://modelcontextprotocol.io/specification/2025-11-25/basic/authorization)
