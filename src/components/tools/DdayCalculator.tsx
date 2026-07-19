@@ -9,6 +9,17 @@ interface DdayResult {
   progress?: number;
 }
 
+export function parseLocalDate(value: string): Date {
+  const [year, month, day] = value.split('-').map(Number);
+  return new Date(year, month - 1, day);
+}
+
+export function differenceInCalendarDays(target: Date, today: Date): number {
+  const targetDay = Date.UTC(target.getFullYear(), target.getMonth(), target.getDate());
+  const todayDay = Date.UTC(today.getFullYear(), today.getMonth(), today.getDate());
+  return (targetDay - todayDay) / (1000 * 60 * 60 * 24);
+}
+
 export default function DdayCalculator() {
   const [targetDate, setTargetDate] = useState('');
   const [eventName, setEventName] = useState('');
@@ -28,13 +39,12 @@ export default function DdayCalculator() {
       return;
     }
 
-    const target = new Date(targetDate);
-    target.setHours(0, 0, 0, 0);
+    const target = parseLocalDate(targetDate);
     const today = new Date();
     today.setHours(0, 0, 0, 0);
 
     const diffTime = target.getTime() - today.getTime();
-    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    const diffDays = differenceInCalendarDays(target, today);
     const diffHours = Math.ceil(diffTime / (1000 * 60 * 60));
 
     setResult({
@@ -179,9 +189,9 @@ export default function DdayCalculator() {
           <h3 className="font-medium text-[var(--color-text)] mb-3">📌 저장된 D-Day</h3>
           <div className="space-y-2">
             {savedDdays.map((dday, index) => {
-              const target = new Date(dday.date);
+              const target = parseLocalDate(dday.date);
               const today = new Date();
-              const diff = Math.ceil((target.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
+              const diff = differenceInCalendarDays(target, today);
 
               return (
                 <div

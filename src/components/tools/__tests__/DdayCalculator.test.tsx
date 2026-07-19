@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import DdayCalculator from '../DdayCalculator';
+import DdayCalculator, { differenceInCalendarDays, parseLocalDate } from '../DdayCalculator';
 import './testUtils';
 
 describe('DdayCalculator', () => {
@@ -13,6 +13,21 @@ describe('DdayCalculator', () => {
 
   afterEach(() => {
     vi.useRealTimers();
+  });
+
+  it('parses a date-only value at local calendar midnight', () => {
+    const date = parseLocalDate('2024-06-15');
+
+    expect(date.getFullYear()).toBe(2024);
+    expect(date.getMonth()).toBe(5);
+    expect(date.getDate()).toBe(15);
+    expect(date.getHours()).toBe(0);
+  });
+
+  it('compares local calendar days without UTC date-only drift', () => {
+    expect(differenceInCalendarDays(parseLocalDate('2024-06-15'), parseLocalDate('2024-06-15'))).toBe(0);
+    expect(differenceInCalendarDays(parseLocalDate('2024-06-16'), parseLocalDate('2024-06-15'))).toBe(1);
+    expect(differenceInCalendarDays(parseLocalDate('2024-06-14'), parseLocalDate('2024-06-15'))).toBe(-1);
   });
 
   it('renders date input', () => {
