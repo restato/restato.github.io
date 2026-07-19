@@ -72,6 +72,16 @@ vi.mock('../../i18n/useTranslation', () => ({
           connectingMessage: { ko: '연결 준비 중...', en: 'Preparing connection...', ja: '接続準備中...' },
           emptyChat: { ko: '메시지를 입력하여 대화를 시작하세요!', en: 'Type a message to start chatting!', ja: 'メッセージを入力して会話を始めましょう！' },
         },
+        security: {
+          title: { ko: '안심하고 대화하세요', en: 'Chat with confidence', ja: '安心してチャット' },
+          noStorage: { ko: '대화 내용이 저장되지 않습니다', en: 'Messages are not stored', ja: 'メッセージは保存されません' },
+          p2p: { ko: 'P2P 직접 연결', en: 'Direct P2P connection', ja: 'P2Pダイレクト接続' },
+          sessionLimit: { ko: '1시간 후 자동 종료', en: 'Auto-ends after 1 hour', ja: '1時間後に自動終了' },
+        },
+        quickGuide: {
+          share: { ko: '링크를 공유하세요', en: 'Share your link', ja: 'リンクを共有してください' },
+          random: { ko: '무작위 연결을 기다리세요', en: 'Wait for a random connection', ja: 'ランダム接続を待ってください' },
+        },
       },
     },
   }),
@@ -97,6 +107,7 @@ vi.mock('../../hooks/useTimeFormat', () => ({
 const mockLocation = {
   hash: '',
   origin: 'https://example.com',
+  pathname: '/anonymous-chat',
 };
 Object.defineProperty(window, 'location', {
   value: mockLocation,
@@ -135,7 +146,7 @@ describe('Chat', () => {
 
     it('displays loading spinner during initialization', () => {
       render(<Chat />);
-      expect(screen.getByRole('status')).toBeInTheDocument();
+      expect(document.querySelector('svg.animate-spin')).toBeInTheDocument();
     });
   });
 
@@ -293,18 +304,8 @@ describe('Chat', () => {
       });
 
       const input = screen.getByPlaceholderText('메시지를 입력하세요...');
-      await act(async () => {
-        input.focus();
-        await new Promise(r => setTimeout(r, 0));
-      });
-
-      // Type into input
-      await act(async () => {
-        const event = new Event('input', { bubbles: true });
-        Object.defineProperty(event, 'target', { value: { value: 'Hello' } });
-        input.value = 'Hello';
-        input.dispatchEvent(event);
-      });
+      const user = userEvent.setup();
+      await user.type(input, 'Hello');
 
       const form = screen.getByRole('form');
       await act(async () => {
