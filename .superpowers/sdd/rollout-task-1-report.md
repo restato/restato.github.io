@@ -90,3 +90,36 @@ integration action was performed.
 
 `git diff --check` completed without whitespace errors. Generated Playwright
 artifacts were moved to Trash rather than retained in the worktree.
+
+## Follow-up: extension-noise fail-closed correction
+
+Reviewer feedback identified that the original extension-noise predicate also
+looked at console-message text. A site script could therefore emit a string
+beginning with `chrome-extension://` and evade the console-error assertion.
+
+### RED
+
+Added the catalog regression `fails closed when a site console error mimics an
+extension URL`, which emits `console.error('chrome-extension://mimic-site-error')`
+from the page and expects the collector assertion to throw.
+
+```sh
+npx playwright test tests/e2e/catalog.spec.ts --project=mobile-390 --reporter=line
+```
+
+Status: failed as intended — 1 failed, 3 passed. The regression received
+`function did not throw`, proving message text incorrectly suppressed the error.
+
+### GREEN
+
+The noise exception now uses only Playwright's verified console
+`message.location().url` and accepts only `chrome-extension://` or
+`moz-extension://` schemes. `pageerror` has no verified source URL, so it is
+always captured; neither its message nor its stack is used as attribution.
+
+```sh
+npx playwright test tests/e2e/catalog.spec.ts --project=desktop --project=mobile-390 --reporter=line
+```
+
+Status: passed — 8/8 in 12.1 seconds, including the fail-closed regression and
+the three localized catalog checks on both projects.

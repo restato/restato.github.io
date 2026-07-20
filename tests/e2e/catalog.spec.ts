@@ -8,6 +8,14 @@ import {
 
 const languages = ['ko', 'en', 'ja'] as const;
 
+test('fails closed when a site console error mimics an extension URL', async ({ page }) => {
+  assertNoUnexpectedConsoleErrors(page);
+  await page.goto('/en/tools', { waitUntil: 'networkidle' });
+  await page.evaluate(() => console.error('chrome-extension://mimic-site-error'));
+
+  expect(() => assertNoUnexpectedConsoleErrors(page)).toThrow('chrome-extension://mimic-site-error');
+});
+
 for (const language of languages) {
   test(`${language} catalog resolves every localized tool link without mobile overflow`, async ({ page }, testInfo) => {
     const sentinelSecret = `catalog-browser-secret-${language}`;

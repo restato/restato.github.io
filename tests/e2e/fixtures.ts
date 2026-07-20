@@ -15,11 +15,10 @@ interface RequestState {
 const consoleStates = new WeakMap<Page, ConsoleState>();
 const requestStates = new WeakMap<Page, RequestState>();
 
-function isBrowserExtensionNoise(message: string, sourceUrl?: string): boolean {
+function isBrowserExtensionNoise(sourceUrl?: string): boolean {
   // Browser extensions are outside this site. Ignore only errors whose source is
-  // explicitly an extension URL, never generic network or script failures.
-  return /^(chrome|moz)-extension:\/\//.test(sourceUrl ?? '')
-    || /^(chrome|moz)-extension:\/\//.test(message);
+  // explicitly an extension URL, never message text that site code can imitate.
+  return /^(chrome|moz)-extension:\/\//.test(sourceUrl ?? '');
 }
 
 function getConsoleState(page: Page): ConsoleState {
@@ -28,7 +27,7 @@ function getConsoleState(page: Page): ConsoleState {
 
   const state: ConsoleState = { errors: [], overflowed: false };
   const capture = (message: string, sourceUrl?: string) => {
-    if (isBrowserExtensionNoise(message, sourceUrl)) return;
+    if (isBrowserExtensionNoise(sourceUrl)) return;
     if (state.errors.length === MAX_CAPTURED_EVENTS) {
       state.overflowed = true;
       return;
@@ -39,7 +38,9 @@ function getConsoleState(page: Page): ConsoleState {
   page.on('console', (message) => {
     if (message.type() === 'error') capture(message.text(), message.location().url);
   });
-  page.on('pageerror', (error) => capture(error.message, error.stack));
+  // Playwright's pageerror Error has no verified source URL. Do not infer one
+  // from its message or stack, because either can contain user-controlled text.
+  page.on('pageerror', (error) => capture(error.message));
   consoleStates.set(page, state);
   return state;
 }
