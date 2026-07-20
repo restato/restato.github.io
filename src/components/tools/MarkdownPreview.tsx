@@ -131,9 +131,9 @@ export default function MarkdownPreview() {
   return (
     <div className="flex flex-col gap-6">
       {/* Editor and Preview Grid */}
-      <div className="grid md:grid-cols-2 gap-4">
+      <div className="grid min-w-0 md:grid-cols-2 gap-4">
         {/* Editor */}
-        <div className="space-y-2">
+        <div className="min-w-0 space-y-2">
           <div className="flex justify-between items-center">
             <label className="text-sm font-medium text-[var(--color-text)]">
               {t(tt.editor)}
@@ -158,7 +158,7 @@ export default function MarkdownPreview() {
         </div>
 
         {/* Preview */}
-        <div className="space-y-2">
+        <div className="min-w-0 space-y-2">
           <div className="flex justify-between items-center">
             <label className="text-sm font-medium text-[var(--color-text)]">
               {t(tt.preview)}

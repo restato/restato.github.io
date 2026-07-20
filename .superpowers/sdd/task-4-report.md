@@ -145,3 +145,12 @@ npm run test:browser-mobile
 ```
 
 The final normal-parallel gate used `npm run test:coverage -- --run` with Vitest's default exclusions preserved plus `e2e/**` (the Playwright-owned suite) and completed **46/46 files and 387/387 tests** with no failures.
+
+## Third independent re-review remediation
+
+- The browser contract now uses explicit Chromium mobile settings rather than a device descriptor: `viewport: { width: 375, height: 812 }`, `isMobile: true`, and `hasTouch: true`. Every route asserts that exact viewport. The independent `npm run test:browser-mobile` command builds the static site before Playwright starts its own preview (`reuseExistingServer: false`, 120-second preview startup budget).
+- The final independent command completed the production build/sitemap, then passed **41/41** Playwright routes in 1.6 minutes. It includes the missing-Firebase anonymous-chat path and clicks Start New Chat, which remains safely in the error state without constructing a chat service.
+- Each file route uses `setInputFiles` with a valid PNG fixture and waits for a named meaningful result (converted filename, original/crop preview, or metadata result). It records requests after selection and rejects any external request that contains the fixture name or bytes; external runtime GET assets and analytics telemetry without user payload are not uploads.
+- Image Resizer and App Store Screenshot Resizer now install fetch/XHR spies before selecting a file and assert no send after their transform and actual download. Converter, Background Remover, EXIF, and Image Metadata apply the same completed-workflow boundary, including the Converter's permitted local `data:` re-fetch. This supersedes the earlier selection-only privacy wording.
+- RED/GREEN: missing-config `reconnect()` originally constructed `ChatService`; its new hook regression failed with one constructor call, then passed after `isFirebaseConfigured()` guards reconnect and reports `error` instead.
+- Final normal-parallel coverage after this review: **47/47 files and 388/388 tests passed**. Age timezone verification remained green at **2/2** in both `America/Los_Angeles` and `Asia/Seoul`.

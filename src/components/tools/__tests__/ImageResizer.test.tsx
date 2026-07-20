@@ -181,6 +181,9 @@ describe('ImageResizer', () => {
   });
 
   it('downloads the generated preview when ready', async () => {
+    const localFetch = vi.fn();
+    vi.stubGlobal('fetch', localFetch);
+    const xhrSend = vi.spyOn(XMLHttpRequest.prototype, 'send');
     render(<ImageResizer />);
     await uploadImage();
 
@@ -189,5 +192,7 @@ describe('ImageResizer', () => {
 
     expect(click).toHaveBeenCalledTimes(1);
     expect(mockToDataURL).toHaveBeenCalled();
+    expect(localFetch).not.toHaveBeenCalled();
+    expect(xhrSend).not.toHaveBeenCalled();
   });
 });

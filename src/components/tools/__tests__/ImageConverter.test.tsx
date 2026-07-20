@@ -64,6 +64,7 @@ describe('ImageConverter', () => {
       blob: async () => new Blob(['local conversion source'], { type: 'image/png' }),
     }));
     vi.stubGlobal('fetch', localFetch);
+    const xhrSend = vi.spyOn(XMLHttpRequest.prototype, 'send');
     const download = vi.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(() => {});
     const { container } = render(<ImageConverter />);
     const input = container.querySelector('input[type="file"]')!;
@@ -84,6 +85,7 @@ describe('ImageConverter', () => {
     expect(init?.body).toBeUndefined();
     expect(String(init ?? '')).not.toContain('비공개-원본.png');
     expect(String(init ?? '')).not.toContain('private image bytes');
+    expect(xhrSend).not.toHaveBeenCalled();
   });
 
   it('ignores empty and unsupported file selections', () => {

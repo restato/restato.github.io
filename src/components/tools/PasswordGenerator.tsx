@@ -99,13 +99,13 @@ export default function PasswordGenerator() {
         <label className="block text-sm font-medium text-[var(--color-text)]">
           {t(tc.result)}
         </label>
-        <div className="flex gap-2">
+        <div className="flex min-w-0 gap-2">
           <input
             type="text"
             value={password}
             readOnly
             placeholder={t({ ko: '생성된 비밀번호', en: 'Generated password', ja: '生成されたパスワード' })}
-            className="flex-1 px-4 py-3 rounded-lg border border-[var(--color-border)]
+            className="min-w-0 flex-1 px-4 py-3 rounded-lg border border-[var(--color-border)]
               bg-[var(--color-card)] text-[var(--color-text)] font-mono text-lg
               focus:outline-none"
           />

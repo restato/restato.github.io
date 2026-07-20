@@ -111,14 +111,14 @@ export default function RegexTester() {
         <label className="block text-sm font-medium text-[var(--color-text)]">
           {t(tt.pattern)}
         </label>
-        <div className="flex items-center gap-2">
+        <div className="flex min-w-0 items-center gap-2">
           <span className="text-[var(--color-text-muted)]">/</span>
           <input
             type="text"
             value={pattern}
             onChange={(e) => setPattern(e.target.value)}
             placeholder="[a-z]+"
-            className="flex-1 px-4 py-2 rounded-lg border border-[var(--color-border)]
+            className="min-w-0 flex-1 px-4 py-2 rounded-lg border border-[var(--color-border)]
               bg-[var(--color-card)] text-[var(--color-text)] font-mono
               focus:outline-none focus:ring-2 focus:ring-primary-500"
           />

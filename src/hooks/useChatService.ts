@@ -73,6 +73,11 @@ export function useChatService(options: UseChatServiceOptions) {
   }, []);
 
   const reconnect = useCallback((callbacks: Omit<UseChatServiceOptions, 'initialRoomId'>) => {
+    if (!isFirebaseConfigured()) {
+      callbacks.onStatusChange('error');
+      return null;
+    }
+
     if (chatServiceRef.current) {
       chatServiceRef.current.disconnect();
     }

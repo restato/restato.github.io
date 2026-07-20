@@ -12,7 +12,7 @@
     "test": "vitest",
     "test:ui": "vitest --ui",
     "test:coverage": "vitest --coverage",
-    "test:browser-mobile": "playwright test --project=mobile"
+    "test:browser-mobile": "npm run build && playwright test --project=mobile"
   },
   "dependencies": {
     "@astrojs/mdx": "^4.0.0",

@@ -22,9 +22,13 @@ describe('BackgroundRemover output boundary', () => {
     vi.stubGlobal('fetch', vi.fn());
   });
 
-  afterEach(() => vi.unstubAllGlobals());
+  afterEach(() => {
+    vi.restoreAllMocks();
+    vi.unstubAllGlobals();
+  });
 
   it('processes locally and downloads the resulting blob', async () => {
+    const xhrSend = vi.spyOn(XMLHttpRequest.prototype, 'send');
     const { container } = render(<BackgroundRemover />);
     const file = new File(['private-image-bytes'], '비공개.png', { type: 'image/png' });
     fireEvent.change(container.querySelector('input[type="file"]')!, { target: { files: [file] } });
@@ -38,5 +42,6 @@ describe('BackgroundRemover output boundary', () => {
     expect(click).toHaveBeenCalledTimes(1);
     expect(URL.createObjectURL).toHaveBeenLastCalledWith(expect.any(Blob));
     expect(fetch).not.toHaveBeenCalled();
+    expect(xhrSend).not.toHaveBeenCalled();
   });
 });

@@ -82,6 +82,9 @@ describe('AppStoreScreenshotResizer', () => {
   });
 
   it('generates and downloads a processed screenshot', async () => {
+    const localFetch = vi.fn();
+    vi.stubGlobal('fetch', localFetch);
+    const xhrSend = vi.spyOn(XMLHttpRequest.prototype, 'send');
     render(<AppStoreScreenshotResizer />);
     const input = document.querySelector('input[type="file"]') as HTMLInputElement;
     fireEvent.change(input, { target: { files: [new File(['private-image'], '비공개.png', { type: 'image/png' })] } });
@@ -94,5 +97,7 @@ describe('AppStoreScreenshotResizer', () => {
     fireEvent.click(screen.getAllByRole('button').at(-1)!);
 
     await waitFor(() => expect(click).toHaveBeenCalledTimes(1));
+    expect(localFetch).not.toHaveBeenCalled();
+    expect(xhrSend).not.toHaveBeenCalled();
   });
 });
