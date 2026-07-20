@@ -29,3 +29,5 @@ After the controller reproduced 27 Astro type errors, the type boundary between 
 - `src/components/NumberGuess.tsx:104:9`: unused `getHintColor`.
 
 `npm run verify` was invoked again after the type remediation, but its full Vitest child exceeded this worker's response window and was intentionally terminated so the controller can run the complete chain in a unified session. No successful full-verification claim is made here. No unrelated production source changes were made to work around that execution limitation.
+
+The controller's subsequent build reached the localized tool-detail route and found that Astro hoists `getStaticPaths`, so it cannot close over a module-local route-language constant. The route list now lives inside `getStaticPaths`; no other route generator captures such a module-local list. The controller will rerun the build and complete verification from this clean commit.

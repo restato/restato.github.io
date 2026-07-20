@@ -51,8 +51,6 @@ import AppStoreScreenshotResizer from '../../../components/tools/AppStoreScreens
 
 type RouteLanguage = 'ko' | 'en' | 'ja';
 
-const routeLanguages: RouteLanguage[] = ['ko', 'en', 'ja'];
-
 // Localized UI strings
 const uiStrings = {
   ko: {
@@ -83,6 +81,7 @@ const uiStrings = {
 
 export function getStaticPaths() {
   const paths: { params: { lang: RouteLanguage; slug: string }; props: { tool: ToolDefinition; lang: RouteLanguage } }[] = [];
+  const routeLanguages: RouteLanguage[] = ['ko', 'en', 'ja'];
 
   for (const lang of routeLanguages) {
     for (const tool of getPublishedTools().filter(tool => tool.slug !== 'anonymous-chat')) {
