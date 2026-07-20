@@ -16,6 +16,8 @@
     "test:browser-mobile": "npm run build && playwright test e2e/mobile-tools.spec.ts --project=mobile",
     "test:a11y": "npm run build && playwright test tests/e2e/accessibility.spec.ts --project=desktop --project=mobile-390",
     "test:e2e": "npm run build && playwright test",
+    "check:bundles": "npm run build && node scripts/check-bundles.mjs dist",
+    "lighthouse": "npm run build && lhci autorun",
     "validate:site": "node scripts/validate-site.mjs dist",
     "verify": "npm test -- --run && npm run check && npm run build && npm run validate:site"
   },
@@ -38,6 +40,7 @@
   "devDependencies": {
     "@astrojs/check": "^0.9.9",
     "@axe-core/playwright": "^4.12.1",
+    "@lhci/cli": "^0.15.1",
     "@playwright/test": "^1.61.1",
     "@testing-library/dom": "^10.4.1",
     "@testing-library/jest-dom": "^6.9.1",

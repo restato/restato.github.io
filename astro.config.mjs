@@ -28,6 +28,11 @@ export default defineConfig({
     tailwind(),
   ],
   output: 'static',
+  vite: {
+    build: {
+      manifest: true,
+    },
+  },
   markdown: {
     shikiConfig: {
       theme: 'github-dark',
