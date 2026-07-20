@@ -292,6 +292,7 @@ export default function ImageResizer() {
 
       {/* File Input */}
       <input
+        id="image-file-input"
         ref={fileInputRef}
         type="file"
         aria-label="이미지 파일 선택"
@@ -302,7 +303,9 @@ export default function ImageResizer() {
 
       {/* Drop Zone */}
       {!original && (
-        <div
+        <button
+          type="button"
+          aria-label="이미지 파일 선택"
           onClick={() => fileInputRef.current?.click()}
           onDrop={handleDrop}
           onDragOver={handleDragOver}
@@ -321,7 +324,7 @@ export default function ImageResizer() {
           <p className="text-[var(--color-text-muted)] text-center">
             {t(tt.dropzone)}
           </p>
-        </div>
+        </button>
       )}
 
       {/* Image Loaded */}
@@ -359,10 +362,11 @@ export default function ImageResizer() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {/* Width */}
               <div className="space-y-2">
-                <label className="text-sm font-medium text-[var(--color-text)]">
+                <label htmlFor="image-width" className="text-sm font-medium text-[var(--color-text)]">
                   {t(tt.width)} (px)
                 </label>
                 <input
+                  id="image-width"
                   type="number"
                   min="1"
                   max="10000"
@@ -376,10 +380,11 @@ export default function ImageResizer() {
 
             {/* Height */}
               <div className="space-y-2">
-                <label className="text-sm font-medium text-[var(--color-text)]">
+                <label htmlFor="image-height" className="text-sm font-medium text-[var(--color-text)]">
                   {t(tt.height)} (px)
                 </label>
                 <input
+                  id="image-height"
                   type="number"
                   min="1"
                   max="10000"
@@ -396,10 +401,11 @@ export default function ImageResizer() {
           {/* Preset Settings */}
           {resizeMode === 'preset' && (
             <div className="space-y-3">
-              <label className="text-sm font-medium text-[var(--color-text)]">
+              <label htmlFor="image-preset" className="text-sm font-medium text-[var(--color-text)]">
                 {t(tt.preset)}
               </label>
               <select
+                id="image-preset"
                 value={selectedPresetId}
                 onChange={(e) => setSelectedPresetId(e.target.value)}
                 className="w-full px-4 py-2 rounded-lg border border-[var(--color-border)]
@@ -452,8 +458,9 @@ export default function ImageResizer() {
             {/* Quality */}
             {settings.format !== 'png' && (
               <div className="flex items-center gap-2">
-                <label className="text-sm text-[var(--color-text)]">{t(tt.quality)}:</label>
+                <label htmlFor="image-quality" className="text-sm text-[var(--color-text)]">{t(tt.quality)}:</label>
                 <input
+                  id="image-quality"
                   type="range"
                   min="10"
                   max="100"
@@ -467,8 +474,9 @@ export default function ImageResizer() {
 
             {/* Format */}
             <div className="flex items-center gap-2">
-              <label className="text-sm text-[var(--color-text)]">{t(tt.format)}:</label>
+              <label htmlFor="image-format" className="text-sm text-[var(--color-text)]">{t(tt.format)}:</label>
               <select
+                id="image-format"
                 value={settings.format}
                 onChange={(e) => setSettings((prev) => ({
                   ...prev,

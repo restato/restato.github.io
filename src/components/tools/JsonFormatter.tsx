@@ -118,8 +118,9 @@ export default function JsonFormatter() {
 
         {/* Indent size */}
         <div className="flex items-center gap-2 ml-auto">
-          <span className="text-sm text-[var(--color-text-muted)]">Indent:</span>
+          <label htmlFor="json-indent" className="text-sm text-[var(--color-text-muted)]">Indent:</label>
           <select
+            id="json-indent"
             value={indentSize}
             onChange={(e) => setIndentSize(Number(e.target.value))}
             className="px-2 py-1 rounded border border-[var(--color-border)]
@@ -134,7 +135,7 @@ export default function JsonFormatter() {
 
       {/* Validation Status */}
       {isValid !== null && (
-        <div className={`p-3 rounded-lg flex items-center gap-2 ${
+        <div role="status" aria-live="polite" className={`p-3 rounded-lg flex items-center gap-2 ${
           isValid
             ? 'bg-green-100 dark:bg-green-900/20 border border-green-200 dark:border-green-800 text-green-600 dark:text-green-400'
             : 'bg-red-100 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-red-600 dark:text-red-400'
@@ -168,10 +169,11 @@ export default function JsonFormatter() {
       <div className="grid md:grid-cols-2 gap-4">
         {/* Input */}
         <div className="space-y-2">
-          <label className="block text-sm font-medium text-[var(--color-text)]">
+          <label htmlFor="json-input" className="block text-sm font-medium text-[var(--color-text)]">
             {t(tc.input)}
           </label>
           <textarea
+            id="json-input"
             value={input}
             onChange={(e) => {
               setInput(e.target.value);
@@ -190,7 +192,7 @@ export default function JsonFormatter() {
         {/* Output */}
         <div className="space-y-2">
           <div className="flex justify-between items-center">
-            <label className="block text-sm font-medium text-[var(--color-text)]">
+            <label htmlFor="json-output" className="block text-sm font-medium text-[var(--color-text)]">
               {t(tc.output)}
             </label>
             <button
@@ -204,6 +206,7 @@ export default function JsonFormatter() {
             </button>
           </div>
           <textarea
+            id="json-output"
             value={output}
             readOnly
             rows={15}

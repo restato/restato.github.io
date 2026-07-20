@@ -73,10 +73,11 @@ export default function TextCounter() {
 
       {/* Text Input */}
       <div className="space-y-2">
-        <label className="block text-sm font-medium text-[var(--color-text)]">
+        <label htmlFor="text-counter-input" className="block text-sm font-medium text-[var(--color-text)]">
           {t(tc.input)}
         </label>
         <textarea
+          id="text-counter-input"
           value={text}
           onChange={(e) => setText(e.target.value)}
           placeholder={t(tt.placeholder)}

@@ -130,6 +130,19 @@ describe('ImageResizer', () => {
     expect(screen.queryByRole('button', { name: '리사이즈' })).not.toBeInTheDocument();
   });
 
+  it('exposes post-upload settings controls by their visible labels', async () => {
+    render(<ImageResizer />);
+    await uploadImage();
+
+    expect(screen.getByRole('spinbutton', { name: '너비 (px)' })).toBeInTheDocument();
+    expect(screen.getByRole('spinbutton', { name: '높이 (px)' })).toBeInTheDocument();
+    expect(screen.getByRole('slider', { name: '품질:' })).toBeInTheDocument();
+    expect(screen.getByRole('combobox', { name: '포맷:' })).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole('button', { name: '프리셋' }));
+    expect(screen.getByRole('combobox', { name: '프리셋 선택' })).toBeInTheDocument();
+  });
+
   it('switches crop mode between free and output ratio', async () => {
     render(<ImageResizer />);
     await uploadImage();
