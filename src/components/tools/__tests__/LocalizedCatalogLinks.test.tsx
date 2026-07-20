@@ -21,7 +21,7 @@ describe('localized catalog links', () => {
     await userEvent.type(screen.getByRole('textbox'), 'anonymous');
     expect(screen.getByRole('link', { name: /Anonymous Chat/ }))
       .toHaveAttribute('href', '/fr/anonymous-chat/');
-    expect(screen.getByPlaceholderText('Search tools... (⌘K)')).toBeInTheDocument();
+    expect(screen.getByPlaceholderText('Rechercher un outil… (⌘K)')).toBeInTheDocument();
   });
 
   it('recent tools use the current locale and anonymous-chat special route', () => {
@@ -30,21 +30,21 @@ describe('localized catalog links', () => {
 
     expect(screen.getByRole('link', { name: /Anonymous Chat/ }))
       .toHaveAttribute('href', '/zh-TW/anonymous-chat/');
-    expect(screen.getByRole('heading', { name: 'Recently used' })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: '最近使用' })).toBeInTheDocument();
   });
 
-  it('renders the localized hub header in English fallback during SSR', () => {
+  it('renders the hub header in the requested language during SSR', () => {
     render(<ToolsPageHeader lang="fr" />);
 
-    expect(screen.getByRole('heading', { name: 'Online Tools' })).toBeInTheDocument();
-    expect(screen.getByText('Home')).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: 'Outils gratuits en ligne' })).toBeInTheDocument();
+    expect(screen.getByText('Accueil')).toBeInTheDocument();
   });
 
-  it('renders hub information in English fallback during SSR without a hydration swap', () => {
+  it('renders hub information in the requested language during SSR', () => {
     render(<ToolsPageInfo lang="fr" />);
 
-    expect(screen.getByRole('heading', { name: 'ℹ️ Information' })).toBeInTheDocument();
-    expect(screen.getByText(/Works on both mobile and desktop/)).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: 'ℹ️ Informations sur les outils' })).toBeInTheDocument();
+    expect(screen.getByText(/Fonctionne sur mobile et ordinateur/)).toBeInTheDocument();
     expect(screen.queryByText('ℹ️ 정보')).not.toBeInTheDocument();
   });
 });

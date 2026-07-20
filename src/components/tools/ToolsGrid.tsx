@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import type { Language } from '../../i18n';
 import { getLocalizedToolHref } from './toolLinks';
+import { catalogUi } from '../../i18n/tool-ui';
 
 interface Tool {
   slug: string;
@@ -12,7 +13,7 @@ interface Tool {
 
 interface Category {
   id: string;
-  label: { ko: string; en: string; ja: string };
+  label: string | { ko: string; en: string; ja: string };
 }
 
 interface ToolsGridProps {
@@ -34,12 +35,6 @@ export default function ToolsGrid({ lang, tools, categories }: ToolsGridProps) {
   const getDisplayText = (value: Tool['title']) =>
     typeof value === 'string' ? value : getLocalizedText(value);
 
-  const countCopy = {
-    ko: { prefix: '총', suffix: '의 도구가 있습니다.', unit: '개' },
-    en: { prefix: 'Total', suffix: ' tools available.', unit: '' },
-    ja: { prefix: '合計', suffix: 'のツールがあります。', unit: '個' },
-  };
-  const count = countCopy[lang as keyof typeof countCopy] || countCopy.en;
 
   return (
     <div>
@@ -55,7 +50,7 @@ export default function ToolsGrid({ lang, tools, categories }: ToolsGridProps) {
                 : 'bg-[var(--color-card)] hover:bg-[var(--color-card-hover)] text-[var(--color-text)] border border-[var(--color-border)]'
               }`}
           >
-            {getLocalizedText(category.label)}
+            {typeof category.label === 'string' ? category.label : getLocalizedText(category.label)}
           </button>
         ))}
       </div>
@@ -89,9 +84,7 @@ export default function ToolsGrid({ lang, tools, categories }: ToolsGridProps) {
 
       {/* Tool Count */}
       <div className="mt-8 text-center text-[var(--color-text-muted)]">
-        {count.prefix}{' '}
-        <span className="font-bold text-[var(--color-text)]">{filteredTools.length}{count.unit}</span>
-        {count.suffix}
+        <span className="font-bold text-[var(--color-text)]">{catalogUi[lang].count(filteredTools.length)}</span>
       </div>
     </div>
   );

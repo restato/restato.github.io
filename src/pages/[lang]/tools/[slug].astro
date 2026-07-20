@@ -9,6 +9,7 @@ import { getLocalizedToolPageMetadata } from '../../../data/tools/pageMetadata';
 import { supportedLanguages } from '../../../data/tools/locales';
 import type { Language } from '../../../data/tools/types';
 import { getToolFallbackNotice } from '../../../i18n/landing';
+import { interactiveFallbackNotice as interactiveNotices, sharedToolUi } from '../../../i18n/tool-ui';
 
 // Import all tool components explicitly (required for Astro hydration)
 import QRCodeGenerator from '../../../components/tools/QRCodeGenerator';
@@ -52,36 +53,6 @@ import DiceRoller from '../../../components/tools/DiceRoller';
 import KorEngConverter from '../../../components/tools/KorEngConverter';
 import AppStoreScreenshotResizer from '../../../components/tools/AppStoreScreenshotResizer';
 
-type ExistingRouteLanguage = 'ko' | 'en' | 'ja';
-
-// Localized UI strings
-const uiStrings = {
-  ko: {
-    home: '홈',
-    tools: '도구',
-    usageGuide: '사용 안내',
-    free: '완전 무료, 회원가입 불필요',
-    responsive: '모바일, 태블릿, 데스크톱 모두 지원',
-    multilang: '한국어, 영어, 일본어 지원',
-  },
-  en: {
-    home: 'Home',
-    tools: 'Tools',
-    usageGuide: 'Usage Guide',
-    free: 'Completely free, no signup required',
-    responsive: 'Works on mobile, tablet, and desktop',
-    multilang: 'Supports Korean, English, and Japanese',
-  },
-  ja: {
-    home: 'ホーム',
-    tools: 'ツール',
-    usageGuide: '使い方ガイド',
-    free: '完全無料、会員登録不要',
-    responsive: 'モバイル、タブレット、デスクトップ対応',
-    multilang: '韓国語、英語、日本語対応',
-  },
-};
-
 export function getStaticPaths() {
   const paths: { params: { lang: Language; slug: string }; props: { tool: ToolDefinition; lang: Language } }[] = [];
 
@@ -99,10 +70,12 @@ export function getStaticPaths() {
 
 const { tool, lang } = Astro.props;
 const { content, robots, alternateUrls } = getLocalizedToolPageMetadata(tool, lang);
-const privacy = content.privacy;
 const seo = content;
-const ui = uiStrings[lang as ExistingRouteLanguage] ?? uiStrings.en;
 const fallbackNotice = getToolFallbackNotice(tool, lang);
+const helpUi = sharedToolUi[lang];
+const interactiveFallbackNotice = !['ko', 'en', 'ja'].includes(lang)
+  ? interactiveNotices[lang]
+  : null;
 
 const pageTitle = `${seo.title} | Restato`;
 const canonicalUrl = `https://restato.github.io/${lang}/tools/${tool.slug}`;
@@ -137,13 +110,13 @@ const breadcrumbSchema = {
     {
       "@type": "ListItem",
       "position": 1,
-      "name": ui.home,
+      "name": helpUi.home,
       "item": `https://restato.github.io/${lang}/tools`
     },
     {
       "@type": "ListItem",
       "position": 2,
-      "name": ui.tools,
+      "name": helpUi.tools,
       "item": `https://restato.github.io/${lang}/tools`
     },
     {
@@ -153,6 +126,16 @@ const breadcrumbSchema = {
       "item": canonicalUrl
     }
   ]
+};
+
+const faqSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'FAQPage',
+  mainEntity: content.faq.map(item => ({
+    '@type': 'Question',
+    name: item.question,
+    acceptedAnswer: { '@type': 'Answer', text: item.answer },
+  })),
 };
 ---
 
@@ -165,15 +148,17 @@ const breadcrumbSchema = {
 >
   <script type="application/ld+json" set:html={JSON.stringify(appSchema)} />
   <script type="application/ld+json" set:html={JSON.stringify(breadcrumbSchema)} />
+  <script type="application/ld+json" set:html={JSON.stringify(faqSchema)} />
 
   <div class="max-w-4xl mx-auto px-4 py-8">
     {fallbackNotice && <p class="mb-6 rounded-lg border border-amber-300 bg-amber-50 p-4 text-sm text-amber-900 dark:border-amber-700 dark:bg-amber-950/30 dark:text-amber-200">{fallbackNotice}</p>}
+    {interactiveFallbackNotice && <p class="mb-6 rounded-lg border border-blue-300 bg-blue-50 p-4 text-sm text-blue-900 dark:border-blue-700 dark:bg-blue-950/30 dark:text-blue-200">{interactiveFallbackNotice}</p>}
     <!-- Breadcrumb -->
     <nav class="text-sm mb-6">
       <ol class="flex items-center gap-2">
-        <li><a href={`/${lang}/tools`} class="text-[var(--color-text-muted)] hover:text-primary-500">{ui.home}</a></li>
+        <li><a href={`/${lang}/tools`} class="text-[var(--color-text-muted)] hover:text-primary-500">{helpUi.home}</a></li>
         <li class="text-[var(--color-text-muted)]">/</li>
-        <li><a href={`/${lang}/tools`} class="text-[var(--color-text-muted)] hover:text-primary-500">{ui.tools}</a></li>
+        <li><a href={`/${lang}/tools`} class="text-[var(--color-text-muted)] hover:text-primary-500">{helpUi.tools}</a></li>
         <li class="text-[var(--color-text-muted)]">/</li>
         <li class="text-[var(--color-text)]">{shortTitle}</li>
       </ol>
@@ -241,31 +226,35 @@ const breadcrumbSchema = {
       {tool.slug === 'appstore-screenshot' && <AppStoreScreenshotResizer client:load />}
     </div>
 
+    <section class="mt-8 space-y-8 rounded-xl border border-[var(--color-border)] bg-[var(--color-card)] p-6">
+      <div>
+        <h2 class="mb-3 text-xl font-semibold text-[var(--color-text)]">{helpUi.usageGuide}</h2>
+        <p class="text-[var(--color-text-muted)]">{content.overview}</p>
+        <ol class="mt-4 list-decimal space-y-2 pl-5 text-[var(--color-text-muted)]">
+          {content.steps.map(step => <li>{step}</li>)}
+        </ol>
+      </div>
+      <div>
+        <h2 class="mb-3 text-xl font-semibold text-[var(--color-text)]">{helpUi.output}</h2>
+        <ul class="list-disc space-y-2 pl-5 text-[var(--color-text-muted)]">{content.examples.map(example => <li>{example}</li>)}</ul>
+      </div>
+      <div>
+        <h2 class="mb-3 text-xl font-semibold text-[var(--color-text)]">{helpUi.limitations}</h2>
+        <ul class="list-disc space-y-2 pl-5 text-[var(--color-text-muted)]">{content.limitations.map(limitation => <li>{limitation}</li>)}</ul>
+      </div>
+      <div>
+        <h2 class="mb-3 text-xl font-semibold text-[var(--color-text)]">{helpUi.privacy}</h2>
+        <p class="text-[var(--color-text-muted)]">{content.privacy}</p>
+      </div>
+      <div>
+        <h2 class="mb-3 text-xl font-semibold text-[var(--color-text)]">{helpUi.faq}</h2>
+        <div class="space-y-4">{content.faq.map(item => <details><summary class="cursor-pointer font-medium text-[var(--color-text)]">{item.question}</summary><p class="mt-2 text-[var(--color-text-muted)]">{item.answer}</p></details>)}</div>
+      </div>
+    </section>
+
     <!-- Related Tools -->
     <RelatedTools currentSlug={tool.slug} currentCategory={tool.category} lang={lang} />
 
-    <!-- Info Section -->
-    <section class="mt-8 p-6 rounded-xl bg-[var(--color-card)] border border-[var(--color-border)]">
-      <h2 class="text-lg font-semibold text-[var(--color-text)] mb-4">{ui.usageGuide}</h2>
-      <ul class="space-y-2 text-sm text-[var(--color-text-muted)]">
-        <li class="flex items-start gap-2">
-          <span class="text-green-500">✓</span>
-          <span>{ui.free}</span>
-        </li>
-        <li class="flex items-start gap-2">
-          <span class="text-green-500">✓</span>
-          <span>{privacy}</span>
-        </li>
-        <li class="flex items-start gap-2">
-          <span class="text-green-500">✓</span>
-          <span>{ui.responsive}</span>
-        </li>
-        <li class="flex items-start gap-2">
-          <span class="text-green-500">✓</span>
-          <span>{ui.multilang}</span>
-        </li>
-      </ul>
-    </section>
   </div>
 
   <!-- Bookmark Prompt -->

@@ -57,7 +57,7 @@ describe('RoomFit project detail page', () => {
     const source = readFileSync(headerPath, 'utf8');
 
     expect(source).toContain("const { lang = 'ko', lockLanguage = false } = Astro.props");
-    expect(source).toContain('getTranslation(navTranslations[item.labelKey], lang)');
+    expect(source).toContain('{chrome.nav[item.labelKey]}');
     expect(source).toContain('if (lockLanguage) return lang;');
   });
 });

@@ -1,5 +1,7 @@
 ---
 import { getTool, type Language, type ToolDefinition } from '../../data/tools';
+import { relatedToolsTitle } from '../../i18n/tool-ui';
+import { getLocalizedToolHref } from './toolLinks';
 
 interface Props {
   currentSlug: string;
@@ -9,13 +11,7 @@ interface Props {
 
 const { currentSlug, lang = 'ko' } = Astro.props;
 
-const translations: Partial<Record<Language, string>> = {
-  ko: '관련 도구',
-  en: 'Related Tools',
-  ja: '関連ツール',
-};
-
-const relatedTitle = translations[lang] || translations.ko;
+const relatedTitle = relatedToolsTitle[lang];
 
 const relatedTools = (getTool(currentSlug)?.related ?? [])
   .map(getTool)
@@ -35,7 +31,7 @@ const relatedTools = (getTool(currentSlug)?.related ?? [])
   <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
     {relatedTools.map((tool) => (
       <a
-        href={`/${lang}/tools/${tool.slug}`}
+        href={getLocalizedToolHref(tool.slug, lang)}
         class="group flex items-center gap-4 p-4 rounded-xl
           bg-[var(--color-card)] border border-[var(--color-border)]
           hover:border-primary-500 hover:shadow-md transition-all"

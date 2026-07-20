@@ -1,0 +1,51 @@
+export interface LocalizedProfile {
+  name: string;
+  input: string;
+  output: string;
+}
+
+export const localizedProfilesCore: Record<'ko', Record<string, LocalizedProfile>> = {
+  ko: {
+    'qr-code': { name: 'QR 코드 생성기', input: 'URL 또는 짧은 텍스트', output: '스캔 가능한 QR 이미지' },
+    password: { name: '비밀번호 생성기', input: '길이와 문자 구성 규칙', output: '무작위 보안 비밀번호' },
+    uuid: { name: 'UUID v4 생성기', input: '생성 개수와 대소문자 옵션', output: '무작위 UUID v4 식별자' },
+    'lorem-ipsum': { name: '로렘 입숨 생성기', input: '문단·문장·단어 개수', output: '레이아웃용 더미 문구' },
+    'color-palette': { name: '색상 팔레트 생성기', input: '기준 색상과 배색 규칙', output: '조화로운 색상 팔레트' },
+    hash: { name: '해시 생성기', input: '원문과 해시 알고리즘', output: '16진수 해시 다이제스트' },
+    color: { name: '색상 코드 변환기', input: 'HEX·RGB·HSL 색상값', output: '동일 색상의 다른 표기값' },
+    unit: { name: '단위 변환기', input: '수치와 원본·대상 단위', output: '대상 단위로 환산한 수치' },
+    base64: { name: 'Base64 인코더·디코더', input: '일반 텍스트 또는 Base64 문자열', output: '인코딩 또는 디코딩한 텍스트' },
+    'image-converter': { name: '이미지 형식 변환기', input: '이미지 파일과 출력 형식', output: '선택한 형식의 이미지 파일' },
+    'text-counter': { name: '텍스트 카운터', input: '분석할 텍스트', output: '글자·단어·줄·문장 개수' },
+    markdown: { name: '마크다운 미리보기', input: '마크다운 원문', output: '실시간으로 렌더링한 미리보기' },
+    diff: { name: '텍스트 차이 비교기', input: '원본 텍스트와 수정 텍스트', output: '추가·삭제 부분을 표시한 비교 결과' },
+    json: { name: 'JSON 포매터', input: 'JSON 문자열', output: '정렬·압축·검증한 JSON' },
+    regex: { name: '정규식 테스터', input: '정규식 패턴·플래그·검사 문자열', output: '일치 범위와 캡처 그룹' },
+    'url-encoder': { name: 'URL 인코더·디코더', input: '일반 문자열 또는 URL 인코딩 문자열', output: '인코딩 또는 디코딩한 문자열' },
+    'jwt-decoder': { name: 'JWT 디코더', input: 'JSON Web Token 문자열', output: '해석한 헤더와 페이로드 JSON' },
+    cron: { name: 'Cron 표현식 생성기', input: '반복 주기와 실행 시각', output: 'Cron 표현식과 읽기 쉬운 일정' },
+    timestamp: { name: '타임스탬프 변환기', input: 'Unix 타임스탬프 또는 날짜·시간', output: '사람이 읽는 시각과 epoch 값' },
+    'llm-cost': { name: 'LLM 비용 계산기', input: '모델·입출력 토큰 수·통화', output: '모델별 예상 API 사용 비용' },
+    gradient: { name: 'CSS 그라데이션 생성기', input: '색상·방향·색상 정지점', output: '그라데이션 미리보기와 CSS 코드' },
+    'box-shadow': { name: 'CSS 박스 그림자 생성기', input: '위치·흐림·확산·색상 값', output: '그림자 미리보기와 CSS 코드' },
+    'image-resizer': { name: '이미지 크기 조절기', input: '이미지·자르기 영역·목표 크기', output: '크기가 조절된 이미지 파일' },
+    exif: { name: 'EXIF 정보 뷰어', input: 'EXIF 정보가 포함된 이미지', output: '카메라와 촬영 조건 메타데이터' },
+    'background-remover': { name: '이미지 배경 제거기', input: '전경 피사체가 있는 이미지', output: '배경이 투명한 이미지' },
+    'image-metadata': { name: '이미지 메타데이터 뷰어', input: '검사할 이미지 파일', output: '크기·형식·용량·색상 정보' },
+    'appstore-screenshot': { name: '앱스토어 스크린샷 크기 조절기', input: '스크린샷과 기기 크기 프리셋', output: '스토어 등록 규격 이미지' },
+    utm: { name: 'UTM 링크 생성기', input: '목적지 URL과 캠페인 매개변수', output: '추적 매개변수가 붙은 캠페인 URL' },
+    timer: { name: '타이머·스톱워치', input: '카운트다운 시간 또는 측정 동작', output: '남은 시간 또는 경과 시간' },
+    pomodoro: { name: '포모도로 타이머', input: '집중·휴식 시간과 반복 횟수', output: '집중 주기를 안내하는 타이머' },
+    'world-clock': { name: '세계 시계', input: '도시 또는 시간대', output: '여러 지역의 현재 현지 시각' },
+    percent: { name: '퍼센트 계산기', input: '기준값과 백분율', output: '백분율 값 또는 증감률' },
+    discount: { name: '할인 계산기', input: '원가·할인율·세금', output: '할인액과 최종 결제 금액' },
+    bmi: { name: 'BMI 계산기', input: '키와 몸무게', output: '체질량지수와 참고 범위' },
+    age: { name: '나이 계산기', input: '생년월일과 기준일', output: '달력 기준 나이와 경과 기간' },
+    dday: { name: '디데이 계산기', input: '목표 달력 날짜', output: '남거나 지난 날짜 수' },
+    'dutch-pay': { name: '더치페이 계산기', input: '총액·인원·팁·개별 조정액', output: '사람별 부담 금액' },
+    'coin-flip': { name: '동전 던지기', input: '동전 던지기 실행', output: '앞면 또는 뒷면 결과' },
+    dice: { name: '주사위 굴리기', input: '주사위 종류와 개수', output: '개별 눈과 합계' },
+    'kor-eng': { name: '한영 키보드 변환기', input: '잘못된 자판 배열로 입력한 글자', output: '한글 또는 영문 자판으로 복원한 글자' },
+    'anonymous-chat': { name: '익명 P2P 채팅', input: '방 링크와 채팅 메시지', output: '상대 피어와의 1:1 직접 대화' },
+  },
+};

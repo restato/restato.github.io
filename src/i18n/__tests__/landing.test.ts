@@ -52,7 +52,7 @@ describe('localized landing pages', () => {
       readFile(landingPagePath, 'utf8'),
     ]);
 
-    expect(hubSource).toContain("!requestedContent || requestedContent.status === 'fallback'");
+    expect(hubSource).toContain('getCatalogCardContent(tool, lang)');
     expect(landingSource).toContain("content?.status === 'fallback'");
     expect(hubSource).toContain('getToolCatalogPublicationState');
     expect(hubSource).toContain('<ToolSearch client:load lang={lang} tools={tools} />');

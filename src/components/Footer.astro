@@ -1,4 +1,9 @@
 ---
+import type { Language } from '../data/tools/types';
+import { sharedToolUi } from '../i18n/tool-ui';
+
+interface Props { lang?: Language }
+const { lang = 'ko' } = Astro.props;
 const currentYear = new Date().getFullYear();
 ---
 
@@ -48,7 +53,7 @@ const currentYear = new Date().getFullYear();
       </div>
 
       <p class="text-sm text-[var(--color-text-muted)]">
-        &copy; {currentYear} Restato. Built with Astro.
+        &copy; {currentYear} Restato. {sharedToolUi[lang].footer}
       </p>
     </div>
   </div>

@@ -2,6 +2,7 @@ import { getIndexableLanguages, getPublishedTools, getTool } from './registry';
 import { supportedLanguages } from './locales';
 import type { Language, ToolContent, ToolDefinition } from './types';
 import { supportedLanguagePattern } from '../../i18n/urlUtils';
+import { getCatalogCardContent, getPublicationState, isSubstantiveToolContent } from '../../i18n/completeness';
 
 const siteUrl = 'https://restato.github.io';
 const localizedRedirectToolSlugs = new Set(['image-crop-resizer']);
@@ -25,7 +26,7 @@ export interface ToolCatalogPublicationState {
 
 const isCatalogLanguageComplete = (lang: Language): boolean => {
   const tools = getPublishedTools();
-  return tools.length > 0 && tools.every(tool => tool.content[lang]?.status === 'complete');
+  return tools.length > 0 && tools.every(tool => isSubstantiveToolContent(tool, lang));
 };
 
 export function getToolCatalogPublicationState(lang: Language): ToolCatalogPublicationState {
@@ -43,24 +44,14 @@ export function getLocalizedToolPageMetadata(
   tool: ToolDefinition,
   lang: Language,
 ): LocalizedToolPageMetadata {
-  const content = tool.content[lang] ?? tool.content.en ?? tool.content.ko;
-  if (!content) {
-    throw new Error(`Missing localized content for ${tool.slug}`);
-  }
-
-  const indexableLanguages = getIndexableLanguages(tool);
-  const isIndexable = indexableLanguages.includes(lang);
+  const { content } = getCatalogCardContent(tool, lang);
+  const state = getPublicationState(tool, lang);
 
   return {
     content,
     privacy: content.privacy,
-    robots: isIndexable ? 'index, follow' : 'noindex, follow',
-    alternateUrls: indexableLanguages.map(language => ({
-      lang: language,
-      url: tool.slug === 'anonymous-chat'
-        ? `${siteUrl}/${language}/anonymous-chat`
-        : `${siteUrl}/${language}/tools/${tool.slug}`,
-    })),
+    robots: state.robots,
+    alternateUrls: state.alternates,
   };
 }
 

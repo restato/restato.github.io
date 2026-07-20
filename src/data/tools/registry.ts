@@ -1,13 +1,13 @@
-import { existingToolLanguages } from './locales';
+import { supportedLanguages } from './locales';
 import type { Language, Localized, ToolContent, ToolDefinition, ToolPrivacyMode } from './types';
+import { createCompleteLocalizedContent } from './localizedContent';
+import { isSubstantiveToolContent } from '../../i18n/completeness';
 
 export interface ToolSEO {
   title: string;
   description: string;
   keywords: string[];
 }
-
-type ExistingToolLanguage = (typeof existingToolLanguages)[number];
 
 export interface ToolConfig {
   slug: string;
@@ -997,29 +997,6 @@ const privacyModesBySlug: Record<string, ToolPrivacyMode> = {
   'anonymous-chat': 'peer-to-peer',
 };
 
-const privacyDisclosuresByMode: Record<ToolPrivacyMode, Record<ExistingToolLanguage, string>> = {
-  'local-only': {
-    ko: '이 도구는 입력한 값을 브라우저에서 로컬로 처리합니다. 입력한 값은 외부 서비스로 전송되지 않습니다.',
-    en: 'This tool processes the values you provide locally in your browser. It does not send those values to an external service.',
-    ja: 'このツールは入力した値をブラウザ内でローカルに処理します。入力した値が外部サービスに送信されることはありません。',
-  },
-  'local-with-assets': {
-    ko: '배경 제거에 필요한 모델 및 WASM 자산은 최초 실행 시 IMG.LY 자산 서버에서 다운로드될 수 있습니다. 선택한 이미지 바이트는 업로드되지 않으며 브라우저에서 로컬로 처리됩니다.',
-    en: 'The model and WASM assets required for background removal may be downloaded from IMG.LY asset servers on first use. Selected image bytes are not uploaded and are processed locally in your browser.',
-    ja: '背景除去に必要なモデルと WASM アセットは、初回実行時に IMG.LY のアセットサーバーからダウンロードされる場合があります。選択した画像のバイトはアップロードされません。ブラウザ内でローカルに処理されます。',
-  },
-  'local-with-network-data': {
-    ko: '현재 환율을 표시하기 위해 외부 환율 서비스에 요청합니다. 입력한 토큰 수, 모델 선택 및 비용 계산 값은 이 요청에 전송되지 않으며 브라우저에서 처리됩니다.',
-    en: 'Current exchange-rate data is requested from an external exchange-rate service. Your token counts, model selections, and cost-calculation values are not sent with that request and stay in your browser.',
-    ja: '現在の為替レートを表示するため、外部の為替レートサービスにリクエストします。入力したトークン数、モデルの選択、費用計算の値はそのリクエストに送信されません。ブラウザ内で処理されます。',
-  },
-  'peer-to-peer': {
-    ko: '익명 채팅은 연결 설정을 위해 PeerJS 시그널링과 STUN을 사용해 직접 WebRTC 연결을 시도합니다. TURN 릴레이는 구성하지 않습니다. 메시지는 의도한 상대 피어에게 전송됩니다. STUN으로 직접 연결을 설정하지 못할 수 있으며, 이 경우 채팅 연결이 실패할 수 있습니다. 애플리케이션 서버에 메시지 내용을 저장하도록 설계되지 않았지만, 방 연결 정보는 연결을 조정하기 위해 별도 서비스에 일시적으로 기록될 수 있습니다.',
-    en: 'Anonymous chat uses PeerJS signaling and a STUN-assisted direct WebRTC connection to establish a session. No TURN relay is configured. Messages transfer to the intended peer. A direct connection may fail when STUN cannot establish a path. Message content is not designed to be stored on the application server, but room connection metadata may be temporarily recorded by a separate service to coordinate the connection.',
-    ja: '匿名チャットは接続確立のために PeerJS シグナリングと STUN を利用した直接の WebRTC 接続を試みます。TURN リレーは構成していません。メッセージは意図した相手のピアに転送されます。STUN で直接接続を確立できない場合があります。その場合、チャット接続が失敗することがあります。アプリケーションサーバーにメッセージ内容を保存するようには設計されていませんが、接続を調整するため、ルーム接続メタデータが別サービスに一時的に記録される場合があります。',
-  },
-};
-
 const relatedSlugsByTool: Record<string, string[]> = {
   'qr-code': ['url-encoder', 'utm', 'uuid'],
   password: ['uuid', 'hash', 'jwt-decoder'],
@@ -1077,26 +1054,6 @@ const clustersByCategory: Record<string, string> = {
   text: 'text',
 };
 
-function createContent(
-  language: ExistingToolLanguage,
-  seo: ToolSEO,
-  privacyMode: ToolPrivacyMode,
-): ToolContent {
-  return {
-    status: 'fallback',
-    name: seo.title.split(' - ')[0],
-    title: seo.title,
-    description: seo.description,
-    searchIntent: seo.keywords.join(', '),
-    overview: seo.description,
-    steps: [],
-    examples: [],
-    limitations: [],
-    privacy: privacyDisclosuresByMode[privacyMode][language],
-    faq: [],
-  };
-}
-
 function getRelatedSlugs(tool: ToolConfig): string[] {
   return relatedSlugsByTool[tool.slug] ?? [];
 }
@@ -1107,28 +1064,28 @@ function getPrivacyMode(slug: string): ToolPrivacyMode {
 
 function createLocalizedContent(tool: ToolConfig): Localized<ToolContent> {
   const privacyMode = getPrivacyMode(tool.slug);
-
-  return Object.fromEntries(
-    existingToolLanguages.map(language => [
-      language,
-      createContent(language, tool.seo[language], privacyMode),
-    ]),
-  ) as Localized<ToolContent>;
+  return createCompleteLocalizedContent(tool.slug, privacyMode);
 }
 
-export const toolsRegistry: ToolDefinition[] = registryToolConfigs.map(tool => ({
-  slug: tool.slug,
-  icon: tool.icon,
-  category: tool.category,
-  cluster: clustersByCategory[tool.category] ?? tool.category,
-  component: tool.component,
-  privacyMode: getPrivacyMode(tool.slug),
-  related: getRelatedSlugs(tool),
-  content: createLocalizedContent(tool),
-  indexableLanguages: [],
-  released: true,
-  updatedAt: '2026-07-20',
-}));
+export const toolsRegistry: ToolDefinition[] = registryToolConfigs.map(tool => {
+  const definition: ToolDefinition = {
+    slug: tool.slug,
+    icon: tool.icon,
+    category: tool.category,
+    cluster: clustersByCategory[tool.category] ?? tool.category,
+    component: tool.component,
+    privacyMode: getPrivacyMode(tool.slug),
+    related: getRelatedSlugs(tool),
+    content: createLocalizedContent(tool),
+    indexableLanguages: [],
+    released: true,
+    updatedAt: '2026-07-20',
+  };
+  definition.indexableLanguages = supportedLanguages.filter(language =>
+    isSubstantiveToolContent(definition, language),
+  );
+  return definition;
+});
 
 export function getTool(slug: string): ToolDefinition | undefined {
   return toolsRegistry.find(tool => tool.slug === slug);
@@ -1142,5 +1099,5 @@ export function getIndexableLanguages(toolOrSlug: ToolDefinition | string): Lang
   const tool = typeof toolOrSlug === 'string' ? getTool(toolOrSlug) : toolOrSlug;
   if (!tool) return [];
 
-  return tool.indexableLanguages.filter(language => tool.content[language]?.status === 'complete');
+  return tool.indexableLanguages.filter(language => isSubstantiveToolContent(tool, language));
 }

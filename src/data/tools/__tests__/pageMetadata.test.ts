@@ -29,15 +29,16 @@ describe('localized tool page metadata', () => {
     expect(metadata.privacy).toContain(expectedDisclosure);
   });
 
-  it('keeps fallback localizations public but non-indexable and without hreflang alternates', () => {
+  it('publishes a complete localization with reciprocal hreflang alternates', () => {
     const metadata = getLocalizedToolPageMetadata(getTool('background-remover')!, 'en');
 
-    expect(metadata.robots).toBe('noindex, follow');
-    expect(metadata.alternateUrls).toEqual([]);
+    expect(metadata.robots).toBe('index, follow');
+    expect(metadata.alternateUrls).toHaveLength(12);
   });
 
   it('describes localized incomplete content differently from English fallback content', () => {
-    const tool = getTool('json')!;
+    const source = getTool('json')!;
+    const tool = { ...source, content: { ...source.content, ko: { ...source.content.ko!, status: 'fallback' as const }, fr: undefined } };
     expect(getToolFallbackNotice(tool, 'ko')).toContain('일부');
     expect(getToolFallbackNotice(tool, 'fr')).toBe(landingContent.fr.fallbackNotice);
   });
@@ -49,25 +50,25 @@ describe('localized tool page metadata', () => {
       content: {
         ...source.content,
         en: { ...source.content.en!, status: 'complete' as const },
+        fr: undefined,
       },
     };
 
     expect(getToolFallbackNotice(tool, 'fr')).toBe(landingContent.fr.fallbackNotice);
   });
 
-  it('keeps fallback catalogs non-indexable and out of reciprocal alternates', () => {
-    expect(getToolCatalogPublicationState('fr')).toEqual({
-      robots: 'noindex, follow',
-      alternateUrls: [],
-    });
+  it('indexes a catalog only after every tool record in the locale is complete', () => {
+    const state = getToolCatalogPublicationState('fr');
+    expect(state.robots).toBe('index, follow');
+    expect(state.alternateUrls).toHaveLength(12);
   });
 
-  it('filters fallback tool and anonymous-chat URLs out of the sitemap without removing public routes', () => {
-    expect(isIndexableLocalizedToolUrl('/ko/tools/background-remover')).toBe(false);
-    expect(isIndexableLocalizedToolUrl('/en/anonymous-chat')).toBe(false);
+  it('includes complete tool and catalog URLs while excluding compatibility redirects', () => {
+    expect(isIndexableLocalizedToolUrl('/ko/tools/background-remover')).toBe(true);
+    expect(isIndexableLocalizedToolUrl('/en/anonymous-chat')).toBe(true);
     expect(isIndexableLocalizedToolUrl('/ko/tools/image-crop-resizer')).toBe(false);
-    expect(isIndexableLocalizedToolUrl('/ko/tools')).toBe(false);
-    expect(isIndexableLocalizedToolUrl('/fr/tools/')).toBe(false);
+    expect(isIndexableLocalizedToolUrl('/ko/tools')).toBe(true);
+    expect(isIndexableLocalizedToolUrl('/fr/tools/')).toBe(true);
     expect(isIndexableLocalizedToolUrl('/en/blog/not-a-tool')).toBe(true);
   });
 
@@ -89,8 +90,9 @@ describe('localized tool page metadata', () => {
     const astroConfigSource = readFileSync(astroConfigPath, 'utf8');
 
     expect(detailSource).toContain('getLocalizedToolPageMetadata');
-    expect(detailSource).toContain('const privacy = content.privacy');
-    expect(detailSource).toContain('<span>{privacy}</span>');
+    expect(detailSource).toContain('const faqSchema');
+    expect(detailSource).toContain('content.faq.map');
+    expect(detailSource).toContain('{content.privacy}');
     expect(detailSource).toContain('robots={robots}');
     expect(detailSource).toContain('alternateUrls={alternateUrls}');
     expect(catalogSource).toContain('getPublishedTools');

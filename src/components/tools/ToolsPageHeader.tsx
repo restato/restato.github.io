@@ -1,27 +1,12 @@
 import type { Language } from '../../data/tools/types';
+import { catalogUi, sharedToolUi } from '../../i18n/tool-ui';
 
 interface ToolsPageHeaderProps {
   lang?: Language;
 }
 
-const copy = {
-  ko: {
-    home: '홈', tools: '도구', heading: '온라인 도구',
-    description: '개발자, 디자이너, 마케터, PM을 위한 유용한 웹 도구 모음입니다. 무료로 사용할 수 있습니다.',
-  },
-  en: {
-    home: 'Home', tools: 'Tools', heading: 'Online Tools',
-    description: 'A collection of useful web tools for developers, designers, marketers, and PMs. Free to use.',
-  },
-  ja: {
-    home: 'ホーム', tools: 'ツール', heading: 'オンラインツール',
-    description: '開発者、デザイナー、マーケター、PM向けの便利なウェブツール集です。無料でご利用いただけます。',
-  },
-};
-
 export default function ToolsPageHeader({ lang = 'en' }: ToolsPageHeaderProps) {
-  const uiLanguage = lang === 'ko' || lang === 'ja' ? lang : 'en';
-  const text = copy[uiLanguage];
+  const text = { home: sharedToolUi[lang].home, tools: sharedToolUi[lang].tools, heading: sharedToolUi[lang].catalogTitle, description: catalogUi[lang].description };
 
   return (
     <>

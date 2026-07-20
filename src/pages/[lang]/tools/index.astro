@@ -8,8 +8,10 @@ import ToolsPageInfo from '../../../components/tools/ToolsPageInfo';
 import { categories, getPublishedTools } from '../../../data/tools';
 import { supportedLanguages } from '../../../data/tools/locales';
 import type { Language } from '../../../data/tools/types';
-import { getToolFallbackNotice, landingContent } from '../../../i18n/landing';
+import { landingContent } from '../../../i18n/landing';
 import { getToolCatalogPublicationState } from '../../../data/tools/pageMetadata';
+import { getCatalogCardContent } from '../../../i18n/completeness';
+import { categoryTranslations, type ToolCategory } from '../../../i18n/tool-ui';
 
 export function getStaticPaths() {
   return supportedLanguages.map(lang => ({ params: { lang } }));
@@ -35,19 +37,28 @@ const seoContent = {
 
 // Transform registry entries to the format expected by ToolsGrid.
 const tools = getPublishedTools().map(tool => {
-  const content = tool.content[lang] ?? tool.content.en ?? tool.content.ko;
-  const requestedContent = tool.content[lang];
-  if (!content) throw new Error(`Missing catalog content for ${tool.slug}`);
+  const resolved = getCatalogCardContent(tool, lang);
+  const content = resolved.content;
   return {
     slug: tool.slug,
     title: content.name,
     description: content.description,
     icon: tool.icon,
     category: tool.category,
-    fallback: !requestedContent || requestedContent.status === 'fallback',
-    fallbackNotice: getToolFallbackNotice(tool, lang),
+    fallback: resolved.usesFallback,
+    fallbackNotice: resolved.notice,
   };
 });
+
+const categoryKeyById: Record<string, ToolCategory> = {
+  all: 'all', calculator: 'calculators', generators: 'generators', converters: 'converters',
+  text: 'text', developer: 'developer', designer: 'design', image: 'image', random: 'random',
+  marketer: 'marketing', productivity: 'productivity',
+};
+const localizedCategories = categories.map(category => ({
+  id: category.id,
+  label: categoryTranslations[lang][categoryKeyById[category.id] ?? 'all'],
+}));
 
 const seo = seoContent[lang as keyof typeof seoContent] ?? landingContent[lang];
 const usesFallback = tools.some(tool => tool.fallback);
@@ -76,7 +87,7 @@ const { robots, alternateUrls } = getToolCatalogPublicationState(lang);
     <RecentTools client:load lang={lang} className="mb-8" />
 
     <!-- Tools Grid with i18n support -->
-    <ToolsGrid client:load lang={lang} tools={tools} categories={categories} />
+    <ToolsGrid client:load lang={lang} tools={tools} categories={localizedCategories} />
 
     <!-- Info with i18n support -->
     <ToolsPageInfo client:load lang={lang} />

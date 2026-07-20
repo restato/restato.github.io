@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import type { Language } from '../../data/tools/types';
 import { getLocalizedToolHref } from './toolLinks';
+import { catalogUi } from '../../i18n/tool-ui';
 
 interface Tool {
   slug: string;
@@ -58,7 +59,7 @@ export default function RecentTools({ className = '', lang = 'en' }: RecentTools
   }, []);
 
   if (tools.length === 0) return null;
-  const heading = lang === 'ko' ? '최근 사용' : lang === 'ja' ? '最近使用したツール' : 'Recently used';
+  const heading = catalogUi[lang].recent;
 
   return (
     <div className={`${className}`}>

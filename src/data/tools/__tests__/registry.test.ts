@@ -34,7 +34,9 @@ describe('toolsRegistry', () => {
     expect(getTool('json')?.component).toBe('JsonFormatter');
     expect(getTool('missing-tool')).toBeUndefined();
     expect(getPublishedTools()).toEqual(toolsRegistry.filter(tool => tool.released));
-    expect(getIndexableLanguages('json')).toEqual([]);
+    expect(getIndexableLanguages('json')).toEqual([
+      'ko', 'en', 'ja', 'zh-CN', 'zh-TW', 'es', 'pt', 'de', 'fr', 'it', 'id', 'hi',
+    ]);
     expect(getIndexableLanguages('missing-tool')).toEqual([]);
   });
 

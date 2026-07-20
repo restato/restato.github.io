@@ -1,6 +1,7 @@
 import { useState, useMemo, useRef, useEffect } from 'react';
 import type { Language } from '../../data/tools/types';
 import { getLocalizedToolHref } from './toolLinks';
+import { catalogUi } from '../../i18n/tool-ui';
 
 export interface SearchableTool {
   slug: string;
@@ -54,11 +55,8 @@ interface ToolSearchProps {
 }
 
 export default function ToolSearch({ lang = 'en', tools = defaultTools }: ToolSearchProps) {
-  const ui = lang === 'ko'
-    ? { placeholder: '도구 검색... (⌘K)', noResults: '검색 결과가 없습니다', tryAnother: '다른 키워드로 검색해보세요' }
-    : lang === 'ja'
-      ? { placeholder: 'ツールを検索... (⌘K)', noResults: '検索結果がありません', tryAnother: '別のキーワードをお試しください' }
-      : { placeholder: 'Search tools... (⌘K)', noResults: 'No tools found', tryAnother: 'Try another keyword' };
+  const copy = catalogUi[lang];
+  const ui = { placeholder: copy.search, noResults: copy.noResults, tryAnother: copy.tryAnother };
   const [query, setQuery] = useState('');
   const [isOpen, setIsOpen] = useState(false);
   const [selectedIndex, setSelectedIndex] = useState(0);

@@ -23,8 +23,8 @@ describe('ToolsGrid', () => {
   });
 
   it.each([
-    ['en', 'Total 1 tools available.'],
-    ['ja', '合計 1個のツールがあります。'],
+    ['en', '1 tools'],
+    ['ja', '1個のツール'],
   ] as const)('renders the tool count in the supplied %s locale during SSR', (lang, expectedCount) => {
     const { container } = render(<ToolsGrid lang={lang} tools={[tool]} categories={[allCategory]} />);
 
@@ -54,12 +54,12 @@ describe('ToolsGrid', () => {
       .toHaveAttribute('href', '/zh-CN/anonymous-chat/');
   });
 
-  it('renders pre-resolved English fallback text for a new locale', () => {
+  it('renders pre-resolved card text with requested-locale catalog controls', () => {
     const { container } = render(<ToolsGrid lang="fr" tools={[tool]} categories={[allCategory]} />);
 
     expect(screen.getByRole('heading', { name: 'JSON Formatter' })).toBeInTheDocument();
     expect(screen.getByText('Format JSON.')).toBeInTheDocument();
     expect(screen.getByRole('link', { name: /JSON Formatter/ })).toHaveAttribute('href', '/fr/tools/json/');
-    expect(container).toHaveTextContent('Total 1 tools available.');
+    expect(container).toHaveTextContent('1 outils');
   });
 });
