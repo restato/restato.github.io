@@ -45,7 +45,7 @@ export function maskWord(word: string, guessedLetters: Set<string>): string {
 }
 
 export default function HangmanGame() {
-  const { t, language } = useTranslation();
+  const { t, lang } = useTranslation();
   const [currentWordItem, setCurrentWordItem] = useState<WordItem>(() => pickRandomWord(WORDS));
   const [guessedLetters, setGuessedLetters] = useState<Set<string>>(new Set());
   const [wrongGuesses, setWrongGuesses] = useState(0);
@@ -94,7 +94,7 @@ export default function HangmanGame() {
 
       <div className="text-center">
         <p className="text-sm text-[var(--color-text-muted)] mb-2">
-          {t({ ko: '힌트', en: 'Hint', ja: 'ヒント' })}: {currentWordItem.hint[language]}
+          {t({ ko: '힌트', en: 'Hint', ja: 'ヒント' })}: {currentWordItem.hint[lang]}
         </p>
         <p className="text-3xl md:text-4xl tracking-[0.45em] font-bold text-primary-500">{maskedWord}</p>
       </div>

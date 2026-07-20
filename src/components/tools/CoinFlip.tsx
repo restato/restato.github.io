@@ -14,7 +14,7 @@ export default function CoinFlip() {
 
     // Animation duration
     setTimeout(() => {
-      const outcome = Math.random() < 0.5 ? 'heads' : 'tails';
+      const outcome: 'heads' | 'tails' = Math.random() < 0.5 ? 'heads' : 'tails';
       setResult(outcome);
       setHistory((prev) => [outcome, ...prev].slice(0, 20));
       setStats((prev) => ({

@@ -20,6 +20,8 @@ The validator tries exact generated paths first, after stripping query strings/f
 
 ## Verification status
 
+After the controller reproduced 27 Astro type errors, the type boundary between the 12-language registry and the three published static routes was made explicit with `RouteLanguage` in the localized page routes. Literal state, translation-map, test-mock, and stale-prop errors were repaired without widening those routes. A fresh `npm run check` completed with **0 errors** (85 existing hints), and focused component coverage passed **5 files / 90 tests**.
+
 `npm run check` reached Astro diagnostics and printed no error diagnostics before the execution cell was terminated. It printed three pre-existing warnings:
 
 - `src/components/Chat.tsx:79:51`: deprecated `React.FormEvent`.

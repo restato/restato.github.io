@@ -4,7 +4,7 @@ import RelatedTools from '../../../components/tools/RelatedTools.astro';
 import ShareButton from '../../../components/tools/ShareButton';
 import FavoriteButton from '../../../components/tools/FavoriteButton';
 import BookmarkPrompt from '../../../components/tools/BookmarkPrompt';
-import { getPublishedTools, type Language, type ToolDefinition } from '../../../data/tools';
+import { getPublishedTools, type ToolDefinition } from '../../../data/tools';
 import { getLocalizedToolPageMetadata } from '../../../data/tools/pageMetadata';
 
 // Import all tool components explicitly (required for Astro hydration)
@@ -49,6 +49,10 @@ import DiceRoller from '../../../components/tools/DiceRoller';
 import KorEngConverter from '../../../components/tools/KorEngConverter';
 import AppStoreScreenshotResizer from '../../../components/tools/AppStoreScreenshotResizer';
 
+type RouteLanguage = 'ko' | 'en' | 'ja';
+
+const routeLanguages: RouteLanguage[] = ['ko', 'en', 'ja'];
+
 // Localized UI strings
 const uiStrings = {
   ko: {
@@ -78,9 +82,9 @@ const uiStrings = {
 };
 
 export function getStaticPaths() {
-  const paths: { params: { lang: string; slug: string }; props: { tool: ToolDefinition; lang: Language } }[] = [];
+  const paths: { params: { lang: RouteLanguage; slug: string }; props: { tool: ToolDefinition; lang: RouteLanguage } }[] = [];
 
-  for (const lang of ['ko', 'en', 'ja'] as Language[]) {
+  for (const lang of routeLanguages) {
     for (const tool of getPublishedTools().filter(tool => tool.slug !== 'anonymous-chat')) {
       paths.push({
         params: { lang, slug: tool.slug },

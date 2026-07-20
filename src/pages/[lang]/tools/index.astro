@@ -5,9 +5,11 @@ import RecentTools from '../../../components/tools/RecentTools';
 import ToolsGrid from '../../../components/tools/ToolsGrid';
 import ToolsPageHeader from '../../../components/tools/ToolsPageHeader';
 import ToolsPageInfo from '../../../components/tools/ToolsPageInfo';
-import { categories, getPublishedTools, type Language, type ToolDefinition } from '../../../data/tools';
+import { categories, getPublishedTools, type ToolDefinition } from '../../../data/tools';
 
-const languages: Language[] = ['ko', 'en', 'ja'];
+type RouteLanguage = 'ko' | 'en' | 'ja';
+
+const languages: RouteLanguage[] = ['ko', 'en', 'ja'];
 
 export function getStaticPaths() {
   return [
@@ -17,7 +19,7 @@ export function getStaticPaths() {
   ];
 }
 
-const { lang } = Astro.params as { lang: Language };
+const { lang } = Astro.params as { lang: RouteLanguage };
 
 // SEO content per language
 const seoContent = {
@@ -41,7 +43,7 @@ const alternateUrls = languages.map(l => ({
   url: `https://restato.github.io/${l}/tools`
 }));
 
-const getToolText = (tool: ToolDefinition, language: 'ko' | 'en' | 'ja', field: 'name' | 'description') => {
+const getToolText = (tool: ToolDefinition, language: RouteLanguage, field: 'name' | 'description') => {
   return tool.content[language]?.[field] || tool.content.ko?.[field] || tool.slug;
 };
 
@@ -77,11 +79,11 @@ const seo = seoContent[lang];
 
     <!-- Search -->
     <div class="mb-6">
-      <ToolSearch client:load basePath={`/${lang}/tools`} />
+      <ToolSearch client:load />
     </div>
 
     <!-- Recent Tools -->
-    <RecentTools client:load className="mb-8" basePath={`/${lang}/tools`} />
+    <RecentTools client:load className="mb-8" />
 
     <!-- Tools Grid with i18n support -->
     <ToolsGrid client:load lang={lang} tools={tools} categories={categories} />

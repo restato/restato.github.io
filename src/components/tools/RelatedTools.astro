@@ -9,7 +9,7 @@ interface Props {
 
 const { currentSlug, lang = 'ko' } = Astro.props;
 
-const translations = {
+const translations: Partial<Record<Language, string>> = {
   ko: '관련 도구',
   en: 'Related Tools',
   ja: '関連ツール',

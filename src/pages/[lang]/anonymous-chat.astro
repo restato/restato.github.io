@@ -1,7 +1,7 @@
 ---
 import MainLayout from '../../layouts/MainLayout.astro';
 import Chat from '../../components/Chat.tsx';
-import { getTool, type Language } from '../../data/tools';
+import { getTool } from '../../data/tools';
 import { getLocalizedToolPageMetadata } from '../../data/tools/pageMetadata';
 
 export function getStaticPaths() {
@@ -12,7 +12,9 @@ export function getStaticPaths() {
   ];
 }
 
-const { lang } = Astro.params as { lang: Language };
+type RouteLanguage = 'ko' | 'en' | 'ja';
+
+const { lang } = Astro.params as { lang: RouteLanguage };
 const tool = getTool('anonymous-chat');
 if (!tool) {
   throw new Error('Anonymous chat is missing from the tool registry');

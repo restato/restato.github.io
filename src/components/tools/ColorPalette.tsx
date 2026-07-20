@@ -178,7 +178,7 @@ export default function ColorPalette() {
     setBaseColor(hex);
   };
 
-  const harmonyOptions: { value: HarmonyType; label: typeof tt.complementary }[] = [
+  const harmonyOptions: { value: HarmonyType; label: typeof tt[keyof typeof tt] }[] = [
     { value: 'complementary', label: tt.complementary },
     { value: 'triadic', label: tt.triadic },
     { value: 'analogous', label: tt.analogous },

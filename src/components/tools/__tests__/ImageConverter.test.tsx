@@ -22,7 +22,7 @@ class ConvertedImage {
   }
 }
 
-const toDataURL = vi.fn((mimeType: string) => `data:${mimeType};base64,QUJD`);
+const toDataURL = vi.fn((mimeType?: string, _quality?: number) => `data:${mimeType};base64,QUJD`);
 
 describe('ImageConverter', () => {
   beforeEach(() => {
@@ -60,7 +60,7 @@ describe('ImageConverter', () => {
   }, 30_000);
 
   it('downloads completed local conversions and only re-fetches their local data URL', async () => {
-    const localFetch = vi.fn(async () => ({
+    const localFetch = vi.fn(async (_input: RequestInfo | URL, _init?: RequestInit) => ({
       blob: async () => new Blob(['local conversion source'], { type: 'image/png' }),
     }));
     vi.stubGlobal('fetch', localFetch);
@@ -80,7 +80,10 @@ describe('ImageConverter', () => {
 
     fireEvent.click(screen.getByRole('button', { name: '다시 변환' }));
     await waitFor(() => expect(localFetch).toHaveBeenCalledTimes(1));
-    const [url, init] = localFetch.mock.calls[0];
+    const call = localFetch.mock.calls[0];
+    expect(call).toBeDefined();
+    if (!call) throw new Error('Expected the local data URL fetch call');
+    const [url, init] = call;
     expect(String(url)).toMatch(/^data:image\//);
     expect(init?.body).toBeUndefined();
     expect(String(init ?? '')).not.toContain('비공개-원본.png');

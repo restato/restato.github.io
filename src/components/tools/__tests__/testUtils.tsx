@@ -1,5 +1,6 @@
 // Test utilities for tool components
-import { render, RenderResult } from '@testing-library/react';
+import { render } from '@testing-library/react';
+import type { RenderResult } from '@testing-library/react';
 import { vi, beforeEach, afterEach } from 'vitest';
 import type { ReactElement } from 'react';
 

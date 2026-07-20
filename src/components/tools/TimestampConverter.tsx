@@ -227,7 +227,7 @@ export default function TimestampConverter() {
               className="w-full p-2 rounded-lg text-left hover:bg-[var(--color-bg)]
                 text-[var(--color-text-muted)] transition-colors flex justify-between"
             >
-              <span>{'labelKey' in item ? t(tc[item.labelKey]) : item.label}</span>
+              <span>{'labelKey' in item && item.labelKey ? t(tc[item.labelKey]) : item.label}</span>
               <span className="font-mono text-sm">{item.getTs()}</span>
             </button>
           ))}

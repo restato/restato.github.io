@@ -2,7 +2,7 @@
  * Smoke tests to verify all tools render without crashing
  * These tests ensure basic rendering works for each tool component
  */
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import './testUtils';
 
