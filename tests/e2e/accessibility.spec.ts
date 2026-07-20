@@ -86,6 +86,9 @@ test('keyboard navigation operates the responsive disclosure when no dialog is p
 });
 
 test('keyboard file selection, announced JSON result, and focused download work with valid fixtures', async ({ page }) => {
+  const interactionSentinel = 'a11y-keyboard-content-sentinel';
+  assertNoContentUpload(page, [interactionSentinel]);
+
   await page.goto('/ko/tools/image-resizer', { waitUntil: 'networkidle' });
 
   const imagePicker = page.getByRole('button', { name: '이미지 파일 선택' });
@@ -95,13 +98,14 @@ test('keyboard file selection, announced JSON result, and focused download work 
   await page.keyboard.press('Enter');
   const chooser = await chooserPromise;
   await chooser.setFiles({
-    name: 'accessibility-fixture.png',
+    name: `${interactionSentinel}.png`,
     mimeType: 'image/png',
     buffer: transparentPng,
   });
 
   const downloadButton = page.getByRole('button', { name: '다운로드' });
   await expect(downloadButton).toBeVisible();
+  await assertNoSeriousOrCriticalAxeViolations(page);
   await downloadButton.focus();
   await expect(downloadButton).toBeFocused();
   const downloadPromise = page.waitForEvent('download');
@@ -110,7 +114,9 @@ test('keyboard file selection, announced JSON result, and focused download work 
 
   await page.goto('/ko/tools/json', { waitUntil: 'networkidle' });
   const jsonInput = page.getByRole('textbox', { name: '입력' });
-  await jsonInput.fill('{"확인":true}');
+  await jsonInput.fill(`{"value":"${interactionSentinel}"}`);
   await page.getByRole('button', { name: '포매팅' }).press('Enter');
   await expect(page.getByRole('status')).toContainText('유효한 JSON');
+  await assertNoSeriousOrCriticalAxeViolations(page);
+  assertNoContentUpload(page, [interactionSentinel]);
 });

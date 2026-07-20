@@ -62,3 +62,12 @@ absent. Generated `test-results/` artifacts were moved to Trash before handoff.
   tests its equivalent keyboard disclosure interaction instead.
 - Desktop and mobile remain explicit Playwright projects; the accessibility
   script names both rather than relying on a broad test glob.
+
+## Follow-up: dynamic-state and privacy coverage
+
+- The interaction contract now installs the outbound-content collector before
+  navigation, uses one sentinel in both the selected filename and formatted
+  JSON value, and asserts the collector after all keyboard interactions. This
+  fails on a sentinel in a request URL (including a GET query) or request body.
+- Axe now also scans the post-upload image state and the rendered JSON result,
+  rather than limiting coverage to each route's initial DOM.
