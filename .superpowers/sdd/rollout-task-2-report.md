@@ -71,3 +71,23 @@ absent. Generated `test-results/` artifacts were moved to Trash before handoff.
   fails on a sentinel in a request URL (including a GET query) or request body.
 - Axe now also scans the post-upload image state and the rendered JSON result,
   rather than limiting coverage to each route's initial DOM.
+
+## Follow-up: download contrast
+
+The controller's dynamic-state axe run found the white download label on
+`bg-green-500` at a 2.27:1 contrast ratio. A focused regression first required
+the download button to use `bg-green-700 hover:bg-green-800`; it failed against
+the previous `bg-green-500 hover:bg-green-600` classes and passed after the
+token change:
+
+```text
+$ npm test -- --run src/components/tools/__tests__/ImageResizer.test.tsx
+
+✓ src/components/tools/__tests__/ImageResizer.test.tsx (11 tests)
+Test Files  1 passed (1)
+Tests  11 passed (11)
+```
+
+`green-700` preserves the semantic success/download color while lifting white
+text above the 4.5:1 normal-text threshold. The controller will rerun the full
+browser contract.

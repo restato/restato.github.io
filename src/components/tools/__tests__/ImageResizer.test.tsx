@@ -201,7 +201,10 @@ describe('ImageResizer', () => {
     await uploadImage();
 
     const click = vi.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(() => undefined);
-    fireEvent.click(screen.getByRole('button', { name: '다운로드' }));
+    const downloadButton = screen.getByRole('button', { name: '다운로드' });
+
+    expect(downloadButton).toHaveClass('bg-green-700', 'hover:bg-green-800');
+    fireEvent.click(downloadButton);
 
     expect(click).toHaveBeenCalledTimes(1);
     expect(mockToDataURL).toHaveBeenCalled();
