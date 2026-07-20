@@ -1,6 +1,7 @@
 ---
 import MainLayout from '../../layouts/MainLayout.astro';
 import { getCollection } from 'astro:content';
+import { toBlogTagSlug } from '../../lib/blogTags';
 
 export async function getStaticPaths() {
   const posts = await getCollection('blog');
@@ -74,7 +75,7 @@ const readingTime = Math.max(1, Math.ceil(wordCount / 200));
           <div class="flex flex-wrap gap-2">
             {post.data.tags.map((tag: string) => (
               <a
-                href={`/blog/tag/${tag}`}
+                href={`/blog/tag/${toBlogTagSlug(tag)}`}
                 class="text-sm px-3 py-1 rounded-lg bg-primary-500/10 text-primary-600 dark:text-primary-400
                        hover:bg-primary-500/20 transition-colors font-medium"
               >

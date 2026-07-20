@@ -2,19 +2,19 @@
 import MainLayout from '../../../layouts/MainLayout.astro';
 import BlogCard from '../../../components/BlogCard.astro';
 import { getCollection } from 'astro:content';
+import { getBlogTagEntries, toBlogTagSlug } from '../../../lib/blogTags';
 
 export async function getStaticPaths() {
   const posts = await getCollection('blog', ({ data }) => !data.draft);
 
-  // Get all unique tags
-  const allTags = [...new Set(posts.flatMap(post => post.data.tags))];
+  const tagEntries = getBlogTagEntries(posts.flatMap(post => post.data.tags));
 
-  return allTags.map(tag => ({
-    params: { tag },
+  return tagEntries.map(({ label, slug }) => ({
+    params: { tag: slug },
     props: {
-      tag,
+      tag: label,
       posts: posts
-        .filter(post => post.data.tags.includes(tag))
+        .filter(post => post.data.tags.some(postTag => toBlogTagSlug(postTag) === slug))
         .sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf())
     }
   }));
@@ -24,7 +24,7 @@ const { tag, posts } = Astro.props;
 
 // Get all unique tags for the filter section
 const allPosts = await getCollection('blog', ({ data }) => !data.draft);
-const allTags = [...new Set(allPosts.flatMap(post => post.data.tags))].sort();
+const allTagEntries = getBlogTagEntries(allPosts.flatMap(post => post.data.tags));
 ---
 
 <MainLayout
@@ -51,7 +51,7 @@ const allTags = [...new Set(allPosts.flatMap(post => post.data.tags))].sort();
       </div>
 
       <!-- Tags Filter -->
-      {allTags.length > 0 && (
+      {allTagEntries.length > 0 && (
         <div class="mb-10 pb-6 border-b border-[var(--color-border)]">
           <div class="flex flex-wrap gap-2 items-center">
             <span class="text-sm font-medium text-[var(--color-text-muted)] mr-1">Tags</span>
@@ -63,17 +63,17 @@ const allTags = [...new Set(allPosts.flatMap(post => post.data.tags))].sort();
             >
               All
             </a>
-            {allTags.map(t => (
+            {allTagEntries.map(entry => (
               <a
-                href={`/blog/tag/${t}`}
+                href={`/blog/tag/${entry.slug}`}
                 class:list={[
                   "text-sm px-3 py-1.5 rounded-lg border transition-colors font-medium",
-                  t === tag
+                  entry.label === tag
                     ? "bg-primary-500 text-white border-primary-500"
                     : "bg-[var(--color-card)] border-[var(--color-border)] hover:border-primary-500/50 hover:text-primary-600 dark:hover:text-primary-400"
                 ]}
               >
-                {t}
+                {entry.label}
               </a>
             ))}
           </div>

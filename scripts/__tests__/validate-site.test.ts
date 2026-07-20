@@ -4,7 +4,7 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { promisify } from 'node:util';
 import { afterEach, describe, expect, it } from 'vitest';
-import { resolveGeneratedPath, validateSite } from '../validate-site.mjs';
+import { createGeneratedPathIndex, resolveGeneratedPath, validateSite } from '../validate-site.mjs';
 
 const fixtureDirectories: string[] = [];
 const execFile = promisify(execFileCallback);
@@ -27,7 +27,7 @@ async function createFixture(files: Record<string, string>) {
 }
 
 function page(options: {
-  canonical: string;
+  canonical?: string;
   alternates?: Array<[string, string]>;
   body?: string;
 }) {
@@ -35,7 +35,11 @@ function page(options: {
     ?.map(([lang, href]) => `<link rel="alternate" hreflang="${lang}" href="${href}">`)
     .join('') ?? '';
 
-  return `<!doctype html><html><head><link rel="canonical" href="${options.canonical}">${alternates}</head><body>${options.body ?? ''}</body></html>`;
+  const canonical = options.canonical
+    ? `<link rel="canonical" href="${options.canonical}">`
+    : '';
+
+  return `<!doctype html><html><head>${canonical}${alternates}</head><body>${options.body ?? ''}</body></html>`;
 }
 
 describe('validateSite', () => {
@@ -58,6 +62,16 @@ describe('validateSite', () => {
     const result = await validateSite(directory);
 
     expect(result.errors).toContain('index.html: expected exactly one canonical link, found 2');
+  });
+
+  it('reports pages without a canonical link', async () => {
+    const directory = await createFixture({
+      'index.html': page({}),
+    });
+
+    const result = await validateSite(directory);
+
+    expect(result.errors).toContain('index.html: expected exactly one canonical link, found 0');
   });
 
   it('reports internal links whose generated target is missing', async () => {
@@ -106,7 +120,7 @@ describe('validateSite', () => {
         ].join(''),
       }),
       'guide/index.html': page({ canonical: 'https://restato.github.io/guide/' }),
-      'legacy/index.html': '<!doctype html><meta http-equiv="refresh" content="0;url=/guide/"><a href="/guide/">Redirecting</a>',
+      'legacy/index.html': '<!doctype html><head><link rel="canonical" href="https://restato.github.io/guide/"><meta http-equiv="refresh" content="0;url=/guide/"></head><a href="/guide/">Redirecting</a>',
       'assets/guide.pdf': 'fixture',
     });
 
@@ -129,7 +143,7 @@ describe('validateSite', () => {
     expect(result.errors).toEqual([]);
   });
 
-  it('resolves route casing against generated output paths', async () => {
+  it('reports route casing that does not exactly match generated output paths', async () => {
     const directory = await createFixture({
       'index.html': page({
         canonical: 'https://restato.github.io/',
@@ -140,18 +154,30 @@ describe('validateSite', () => {
 
     const result = await validateSite(directory);
 
-    expect(result.errors).toEqual([]);
+    expect(result.errors).toContain(
+      'index.html: internal link /blog/tag/AI differs by case from generated path /blog/tag/ai',
+    );
   });
 
   it('reports an ambiguous case-folded internal path instead of hiding it', () => {
-    const result = resolveGeneratedPath('/blog/tag/aI', new Set([
+    const result = resolveGeneratedPath('/blog/tag/aI', createGeneratedPathIndex(new Set([
       '/blog/tag/AI',
       '/blog/tag/ai',
-    ]));
+    ])));
 
     expect(result).toEqual({
       status: 'ambiguous',
       matches: ['/blog/tag/AI', '/blog/tag/ai'],
+    });
+  });
+
+  it('reuses a precomputed exact and folded path index during resolution', () => {
+    const index = createGeneratedPathIndex(new Set(['/guide', '/assets/guide.pdf']));
+
+    expect(resolveGeneratedPath('/guide/', index)).toEqual({ status: 'found' });
+    expect(resolveGeneratedPath('/assets/GUIDE.pdf', index)).toEqual({
+      status: 'case-mismatch',
+      matches: ['/assets/guide.pdf'],
     });
   });
 

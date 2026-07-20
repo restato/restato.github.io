@@ -67,15 +67,19 @@ function alternateLinks(page) {
   }));
 }
 
-export function resolveGeneratedPath(pathname, generatedPathnames) {
-  const generatedPathnamesIgnoringCase = new Map();
+export function createGeneratedPathIndex(generatedPathnames) {
+  const foldedPathnames = new Map();
   for (const generatedPathname of generatedPathnames) {
     const caseFolded = generatedPathname.toLocaleLowerCase('en-US');
-    const matches = generatedPathnamesIgnoringCase.get(caseFolded) ?? new Set();
+    const matches = foldedPathnames.get(caseFolded) ?? new Set();
     matches.add(generatedPathname);
-    generatedPathnamesIgnoringCase.set(caseFolded, matches);
+    foldedPathnames.set(caseFolded, matches);
   }
 
+  return { exactPathnames: generatedPathnames, foldedPathnames };
+}
+
+export function resolveGeneratedPath(pathname, pathIndex) {
   const normalized = normalizePathname(pathname);
   const candidates = [
     normalized,
@@ -83,14 +87,14 @@ export function resolveGeneratedPath(pathname, generatedPathnames) {
     normalizePathname(`${normalized}.html`),
   ];
 
-  if (candidates.some(candidate => generatedPathnames.has(candidate))) {
+  if (candidates.some(candidate => pathIndex.exactPathnames.has(candidate))) {
     return { status: 'found' };
   }
 
   for (const candidate of candidates) {
-    const matches = generatedPathnamesIgnoringCase.get(candidate.toLocaleLowerCase('en-US'));
+    const matches = pathIndex.foldedPathnames.get(candidate.toLocaleLowerCase('en-US'));
     if (!matches) continue;
-    if (matches.size === 1) return { status: 'found' };
+    if (matches.size === 1) return { status: 'case-mismatch', matches: [...matches] };
     return { status: 'ambiguous', matches: [...matches].sort() };
   }
 
@@ -129,24 +133,30 @@ export async function validateSite(distDir) {
     ...generatedFiles,
     ...pagesByPathname.keys(),
   ]);
+  const pathIndex = createGeneratedPathIndex(generatedPathnames);
 
   const errors = [];
   for (const page of pages) {
     const canonicals = page.$('link[rel~="canonical"][href]').toArray();
-    if (canonicals.length > 1) {
+    if (canonicals.length !== 1) {
       errors.push(`${page.relativePath}: expected exactly one canonical link, found ${canonicals.length}`);
     }
 
     page.$('a[href]').each((_, element) => {
       const href = page.$(element).attr('href');
       const url = getInternalUrl(href, page.pathname);
-      const target = url && resolveGeneratedPath(url.pathname, generatedPathnames);
+      const target = url && resolveGeneratedPath(url.pathname, pathIndex);
       if (target?.status === 'missing') {
         errors.push(`${page.relativePath}: broken internal link ${href}`);
       }
       if (target?.status === 'ambiguous') {
         errors.push(
           `${page.relativePath}: ambiguous internal link ${href} (case-insensitive matches ${target.matches.join(', ')})`,
+        );
+      }
+      if (target?.status === 'case-mismatch') {
+        errors.push(
+          `${page.relativePath}: internal link ${href} differs by case from generated path ${target.matches[0]}`,
         );
       }
     });

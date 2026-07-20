@@ -2,12 +2,12 @@
 import MainLayout from '../../layouts/MainLayout.astro';
 import BlogCard from '../../components/BlogCard.astro';
 import { getCollection } from 'astro:content';
+import { getBlogTagEntries } from '../../lib/blogTags';
 
 const posts = (await getCollection('blog', ({ data }) => !data.draft))
   .sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf());
 
-// Get all unique tags
-const allTags = [...new Set(posts.flatMap(post => post.data.tags))].sort();
+const allTags = getBlogTagEntries(posts.flatMap(post => post.data.tags));
 ---
 
 <MainLayout title="Blog | Restato" description="Development logs, learnings, and thoughts." lang="en">
@@ -29,12 +29,12 @@ const allTags = [...new Set(posts.flatMap(post => post.data.tags))].sort();
             <span class="text-sm font-medium text-[var(--color-text-muted)] mr-1">Tags</span>
             {allTags.map(tag => (
               <a
-                href={`/blog/tag/${tag}`}
+                href={`/blog/tag/${tag.slug}`}
                 class="text-sm px-3 py-1.5 rounded-lg bg-[var(--color-card)] border border-[var(--color-border)]
                        hover:border-primary-500/50 hover:text-primary-600 dark:hover:text-primary-400
                        transition-colors font-medium"
               >
-                {tag}
+                {tag.label}
               </a>
             ))}
           </div>
