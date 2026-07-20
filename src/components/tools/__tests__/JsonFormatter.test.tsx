@@ -54,6 +54,7 @@ describe('JsonFormatter', () => {
     await user.click(screen.getByText('검증'));
 
     expect(screen.getByText('유효한 JSON')).toBeInTheDocument();
+    expect(screen.getByRole('status')).toHaveClass('text-green-700', 'dark:text-green-400');
   });
 
   it('shows invalid status for invalid JSON', async () => {
@@ -66,6 +67,7 @@ describe('JsonFormatter', () => {
     await user.click(screen.getByText('검증'));
 
     expect(screen.getByText('유효하지 않은 JSON')).toBeInTheDocument();
+    expect(screen.getByRole('status')).toHaveClass('text-red-700', 'dark:text-red-400');
   });
 
   it('reports empty input as invalid and formats non-Latin JSON keys', async () => {

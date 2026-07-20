@@ -91,3 +91,20 @@ Tests  11 passed (11)
 `green-700` preserves the semantic success/download color while lifting white
 text above the 4.5:1 normal-text threshold. The controller will rerun the full
 browser contract.
+
+## Follow-up: JSON result contrast
+
+The controller found the valid JSON status's `text-green-600` on
+`bg-green-100` at 3.0:1. The matching invalid status also used a light
+`text-red-600` token on `bg-red-100`, so both light-mode status branches were
+updated to `text-green-700` and `text-red-700`; their dark `*-400` tokens are
+unchanged. A focused class regression was RED for both original tokens, then
+GREEN after the update:
+
+```text
+$ npm test -- --run src/components/tools/__tests__/JsonFormatter.test.tsx
+
+✓ src/components/tools/__tests__/JsonFormatter.test.tsx (11 tests)
+Test Files  1 passed (1)
+Tests  11 passed (11)
+```

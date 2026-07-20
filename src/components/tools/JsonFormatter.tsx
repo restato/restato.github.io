@@ -137,8 +137,8 @@ export default function JsonFormatter() {
       {isValid !== null && (
         <div role="status" aria-live="polite" className={`p-3 rounded-lg flex items-center gap-2 ${
           isValid
-            ? 'bg-green-100 dark:bg-green-900/20 border border-green-200 dark:border-green-800 text-green-600 dark:text-green-400'
-            : 'bg-red-100 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-red-600 dark:text-red-400'
+            ? 'bg-green-100 dark:bg-green-900/20 border border-green-200 dark:border-green-800 text-green-700 dark:text-green-400'
+            : 'bg-red-100 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-400'
         }`}>
           {isValid ? (
             <>
