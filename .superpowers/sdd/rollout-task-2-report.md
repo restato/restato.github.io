@@ -108,3 +108,20 @@ $ npm test -- --run src/components/tools/__tests__/JsonFormatter.test.tsx
 Test Files  1 passed (1)
 Tests  11 passed (11)
 ```
+
+## Follow-up: JSON error-detail contrast
+
+The reviewer found the detailed parse error (`text-red-600` on `bg-red-50`) at
+approximately 4.415:1. The error-detail regression was RED against that class
+and is GREEN with `text-red-700`; dark `text-red-400` remains unchanged. The
+browser interaction also now fills invalid JSON after its valid-result scan,
+asserts the invalid status, and runs axe on that dynamic error state. Focused
+unit verification remains:
+
+```text
+$ npm test -- --run src/components/tools/__tests__/JsonFormatter.test.tsx
+
+✓ src/components/tools/__tests__/JsonFormatter.test.tsx (11 tests)
+Test Files  1 passed (1)
+Tests  11 passed (11)
+```

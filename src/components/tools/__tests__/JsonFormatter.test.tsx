@@ -68,6 +68,9 @@ describe('JsonFormatter', () => {
 
     expect(screen.getByText('유효하지 않은 JSON')).toBeInTheDocument();
     expect(screen.getByRole('status')).toHaveClass('text-red-700', 'dark:text-red-400');
+    const errorDetail = document.querySelector('code');
+    expect(errorDetail).toHaveTextContent('JSON');
+    expect(errorDetail).toHaveClass('text-red-700', 'dark:text-red-400');
   });
 
   it('reports empty input as invalid and formats non-Latin JSON keys', async () => {

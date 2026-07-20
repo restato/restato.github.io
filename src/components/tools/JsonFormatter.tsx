@@ -161,7 +161,7 @@ export default function JsonFormatter() {
       {/* Error Message */}
       {error && (
         <div className="p-3 rounded-lg bg-red-50 dark:bg-red-900/10 border border-red-200 dark:border-red-800">
-          <code className="text-sm text-red-600 dark:text-red-400 break-all">{error}</code>
+          <code className="text-sm text-red-700 dark:text-red-400 break-all">{error}</code>
         </div>
       )}
 

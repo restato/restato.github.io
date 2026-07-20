@@ -118,5 +118,10 @@ test('keyboard file selection, announced JSON result, and focused download work 
   await page.getByRole('button', { name: '포매팅' }).press('Enter');
   await expect(page.getByRole('status')).toContainText('유효한 JSON');
   await assertNoSeriousOrCriticalAxeViolations(page);
+
+  await jsonInput.fill('{invalid json}');
+  await page.getByRole('button', { name: '검증' }).press('Enter');
+  await expect(page.getByRole('status')).toContainText('유효하지 않은 JSON');
+  await assertNoSeriousOrCriticalAxeViolations(page);
   assertNoContentUpload(page, [interactionSentinel]);
 });
