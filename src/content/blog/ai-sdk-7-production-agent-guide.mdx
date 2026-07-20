@@ -1,0 +1,341 @@
+---
+title: "AI SDK 7 프로덕션 에이전트 가이드: 승인, WorkflowAgent, HarnessAgent"
+description: "Vercel AI SDK 7에서 도구 승인, durable 실행, Codex·Claude Code 하네스, 타임아웃과 관측성을 운영 기준으로 구성하는 방법을 설명합니다."
+date: 2026-07-20
+tags: ["AI SDK", "Vercel", "AI Agent", "TypeScript", "Automation"]
+---
+
+AI SDK 7의 핵심은 모델 호출 함수가 하나 더 늘어난 것이 아닙니다. 짧은 데모를 실제 서비스로 옮길 때 필요한 **승인, 재시작 복구, 실행 격리, 타임아웃, 관측성**이 한 계층에 모였다는 점이 더 중요합니다. 이 글에서는 기능 목록 대신 `ToolLoopAgent`, `WorkflowAgent`, `HarnessAgent`를 어떤 기준으로 나누고, 쓰기 작업이 있는 에이전트를 어떻게 안전하게 운영할지 정리합니다.
+
+Vercel은 2026년 6월 25일 [AI SDK 7](https://vercel.com/blog/ai-sdk-7)을 발표했습니다. 이번 버전은 에이전트 개발, 실행, 외부 하네스 통합, 관측성, 실시간 멀티모달 기능을 함께 확장했습니다. 모든 기능을 한 번에 도입하기보다 먼저 **실패했을 때 무엇을 보존해야 하는지**와 **어떤 작업에 사람 승인이 필요한지**를 정하는 편이 좋습니다.
+
+## 먼저 세 가지 실행 방식을 구분해야 합니다
+
+AI SDK 7을 도입할 때 가장 흔한 실수는 모든 작업을 하나의 에이전트 클래스로 해결하려는 것입니다. 실행 시간이 짧은 상담 에이전트와, 몇 시간 뒤 승인을 받고 다시 시작해야 하는 배포 에이전트는 요구사항이 다릅니다.
+
+| 선택 | 적합한 작업 | 핵심 이유 |
+|---|---|---|
+| `ToolLoopAgent` | 한 요청 안에서 끝나는 조사, 분류, 조회 | 반복 도구 호출을 간단하게 구성할 수 있음 |
+| `WorkflowAgent` | 승인 대기, 장기 실행, 재배포 후 재개 | 워크플로 상태와 스트림을 durable하게 보존 |
+| `HarnessAgent` | Codex·Claude Code 같은 완성된 코딩 에이전트 실행 | 모델 호출이 아니라 하네스 전체를 공통 인터페이스로 감쌈 |
+
+판단 기준은 간단합니다.
+
+- 프로세스가 종료돼도 작업을 이어야 한다면 `WorkflowAgent`가 필요합니다.
+- 저장소를 읽고 수정하며 명령을 실행하는 코딩 작업이라면 `HarnessAgent`와 샌드박스를 검토합니다.
+- 한 번의 HTTP 요청 안에서 읽기 위주의 도구 호출이 끝난다면 `ToolLoopAgent`로 시작합니다.
+
+에이전트 플랫폼 전체의 경계를 먼저 설계해야 한다면 [Enterprise Agent Platform 아키텍처 가이드](/blog/enterprise-agent-platform-architecture-guide/)도 함께 볼 수 있습니다. AI SDK는 그중 런타임과 실행 제어 계층을 구현하는 선택지입니다.
+
+## 쓰기 도구는 모델 프롬프트가 아니라 정책으로 막습니다
+
+"위험한 작업은 조심해서 실행해"라는 시스템 프롬프트만으로 삭제, 결제, 게시, 이메일 전송을 통제하면 안 됩니다. 모델이 도구를 선택한 뒤에도 애플리케이션이 실행 권한을 별도로 판단해야 합니다.
+
+AI SDK 7은 일반 생성 함수와 `ToolLoopAgent`에서 에이전트 수준의 `toolApproval` 정책을 지원합니다. 다음 예시는 블로그 게시 도구를 항상 사용자 승인 대상으로 지정합니다.
+
+```ts
+import { ToolLoopAgent, tool } from 'ai';
+import { z } from 'zod';
+
+const publishPost = tool({
+  description: '검토가 끝난 MDX 글을 기본 브랜치에 게시합니다.',
+  inputSchema: z.object({
+    slug: z.string(),
+    commitMessage: z.string(),
+  }),
+  execute: async ({ slug, commitMessage }) => {
+    return publishToGitHub({ slug, commitMessage });
+  },
+});
+
+export const editorAgent = new ToolLoopAgent({
+  model,
+  instructions: [
+    '기존 글과 검색 의도를 먼저 비교합니다.',
+    '게시 도구를 호출하기 전에 변경 파일과 근거를 요약합니다.',
+  ].join('\n'),
+  tools: { publishPost },
+  toolApproval: {
+    publishPost: 'user-approval',
+  },
+  timeout: {
+    totalMs: 60_000,
+    stepMs: 15_000,
+    toolMs: 10_000,
+  },
+});
+```
+
+여기서 중요한 부분은 승인 UI 자체가 아닙니다. 승인 요청에 다음 정보가 들어가야 합니다.
+
+1. 어떤 도구가 실행되는가
+2. 어떤 입력값으로 실행되는가
+3. 어떤 외부 효과가 생기는가
+4. 실패하거나 중복 실행되면 어떻게 복구하는가
+
+예를 들어 "게시 승인"보다 "`src/content/blog/example.mdx`를 `master`에 커밋"이 더 좋은 승인 문구입니다. 사용자가 결과를 예측할 수 있어야 승인에 의미가 있습니다.
+
+AI SDK 공식 [도구 호출 문서](https://ai-sdk.dev/docs/ai-sdk-core/tools-and-tool-calling)는 승인 요청과 응답이 별도의 모델 호출로 이어지는 흐름을 설명합니다. 거절된 도구를 모델이 반복 요청하지 않도록 시스템 규칙도 추가하는 편이 안전합니다.
+
+## 승인 대기가 길어지면 WorkflowAgent로 옮깁니다
+
+일반 서버 함수에서 승인 요청을 만든 뒤 사용자가 몇 시간 후 응답하면, 그 사이 배포나 프로세스 재시작이 일어날 수 있습니다. 메모리에만 상태를 보관했다면 처음부터 다시 실행해야 합니다.
+
+`WorkflowAgent`는 `@ai-sdk/workflow` 패키지에서 durable 에이전트 루프를 제공합니다. 도구 호출, 상태, 스트림, 사람 승인을 워크플로 경계 안에 두기 때문에 중단 후 재개가 필요한 작업에 적합합니다.
+
+```bash
+pnpm add ai@latest @ai-sdk/workflow workflow zod
+```
+
+```ts
+import { tool, isLoopFinished, isStepCount } from 'ai';
+import { WorkflowAgent, type ModelCallStreamPart } from '@ai-sdk/workflow';
+import { getWritable } from 'workflow';
+import { z } from 'zod';
+
+const publishPost = tool({
+  description: '검증된 글을 GitHub에 게시합니다.',
+  inputSchema: z.object({
+    path: z.string(),
+    expectedSha: z.string().optional(),
+  }),
+  contextSchema: z.object({
+    repository: z.string(),
+    branch: z.string(),
+  }),
+  needsApproval: true,
+  execute: async ({ path, expectedSha }, { context }) => {
+    return publishFile({
+      repository: context.repository,
+      branch: context.branch,
+      path,
+      expectedSha,
+    });
+  },
+});
+
+const contentAgent = new WorkflowAgent({
+  model,
+  instructions: '조사, 작성, 검토가 끝난 파일만 게시합니다.',
+  tools: { publishPost },
+  runtimeContext: {
+    runType: 'scheduled-content',
+  },
+  toolsContext: {
+    publishPost: {
+      repository: 'restato/restato.github.io',
+      branch: 'master',
+    },
+  },
+});
+
+export async function runContentWorkflow(messages) {
+  'use workflow';
+
+  return contentAgent.stream({
+    messages,
+    writable: getWritable<ModelCallStreamPart>(),
+    stopWhen: [isLoopFinished(), isStepCount(12)],
+  });
+}
+```
+
+`WorkflowAgent`에서는 승인 여부를 도구의 `needsApproval`에 둡니다. Vercel의 [DurableAgent에서 WorkflowAgent로 이전하는 공식 가이드](https://vercel.com/kb/guide/durableagent-to-workflowagent)는 일반 `ToolLoopAgent`의 `toolApproval`과 `WorkflowAgent`의 `needsApproval`을 구분하고 있습니다.
+
+### 컨텍스트에는 연결 객체를 넣지 않습니다
+
+`runtimeContext`와 `toolsContext`는 단계 사이에서 보존되고 재생될 수 있습니다. 따라서 데이터베이스 클라이언트, SDK 인스턴스, 함수 같은 객체를 넣지 말고 직렬화 가능한 값만 넣어야 합니다.
+
+나쁜 예:
+
+```ts
+runtimeContext: {
+  githubClient,
+  database,
+}
+```
+
+좋은 예:
+
+```ts
+runtimeContext: {
+  tenantId: 'restato',
+  runId: 'content-2026-07-20',
+}
+
+toolsContext: {
+  publishPost: {
+    repository: 'restato/restato.github.io',
+    branch: 'master',
+  },
+}
+```
+
+실제 클라이언트는 도구 실행 단계에서 다시 생성합니다. 그래야 재시도와 리플레이가 동일한 입력으로 동작합니다.
+
+## 코딩 에이전트는 HarnessAgent로 분리합니다
+
+Codex나 Claude Code는 단순한 모델 래퍼가 아닙니다. 세션, 파일 편집, 권한, 컨텍스트 압축, 스킬, 명령 실행, 서브에이전트 같은 하네스 기능을 갖고 있습니다. 이 기능을 `generateText` 위에 다시 구현하면 유지보수 범위가 급격히 커집니다.
+
+AI SDK 7의 실험적 `HarnessAgent`는 기존 코딩 하네스를 AI SDK의 `Agent` 인터페이스로 감쌉니다. Vercel은 2026년 6월 12일 [Codex·Claude Code·Pi 하네스 통합](https://vercel.com/changelog/program-agent-harnesses-with-ai-sdk)을 공개했습니다.
+
+```ts
+import { HarnessAgent } from '@ai-sdk/harness/agent';
+import { claudeCode } from '@ai-sdk/harness-claude-code';
+import { createVercelSandbox } from '@ai-sdk/sandbox-vercel';
+
+const codingAgent = new HarnessAgent({
+  harness: claudeCode,
+  sandbox: createVercelSandbox({
+    runtime: 'node24',
+    ports: [4321],
+  }),
+  instructions: [
+    '작은 변경 단위로 작업합니다.',
+    '수정 후 테스트와 빌드를 실행합니다.',
+    '기본 브랜치에 직접 푸시하기 전에 변경 내용을 보고합니다.',
+  ].join('\n'),
+  skills: [
+    {
+      name: 'review-content-change',
+      description: 'MDX와 내부 링크, frontmatter 스키마를 검토합니다.',
+      content: 'src/content/config.ts를 기준으로 필수 필드를 검증합니다.',
+    },
+  ],
+});
+```
+
+하네스를 통합해도 샌드박스와 권한 정책은 생략할 수 없습니다. 저장소를 수정하는 에이전트에는 다음 제한을 먼저 둡니다.
+
+- 작업 디렉터리를 한 저장소로 제한
+- 비밀키를 필요한 도구에만 전달
+- 네트워크 접근을 허용 목록으로 제한
+- 셸 명령 시간과 전체 실행 시간을 분리해 제한
+- 기본 브랜치 쓰기를 승인 대상으로 지정
+- 같은 작업이 재실행돼도 결과가 중복되지 않도록 설계
+
+Claude Code 자체의 프로젝트 규칙과 스킬 구성이 필요하다면 [Harness Engineering 가이드](/blog/harness-engineering-guide-claude-code/)가 더 직접적인 출발점입니다. `HarnessAgent`는 그 하네스를 애플리케이션 런타임에 연결하는 계층입니다.
+
+## 타임아웃은 하나가 아니라 네 종류로 나눕니다
+
+에이전트는 일반 API 요청보다 멈출 지점이 많습니다.
+
+- 모델 스트림이 연결된 뒤 새 청크가 오지 않을 수 있습니다.
+- 외부 도구가 응답하지 않을 수 있습니다.
+- 한 단계는 정상이어도 전체 반복이 끝나지 않을 수 있습니다.
+- 승인 대기는 의도적으로 오래 지속될 수 있습니다.
+
+AI SDK 7은 전체, 단계, 청크, 도구별 타임아웃을 구분합니다. 모든 값을 같은 숫자로 두기보다 실패 성격에 맞춰 설정해야 합니다.
+
+```ts
+const timeout = {
+  totalMs: 120_000,
+  stepMs: 30_000,
+  chunkMs: 5_000,
+  toolMs: 15_000,
+  tools: {
+    searchDocsMs: 10_000,
+    runBuildMs: 60_000,
+  },
+};
+```
+
+승인 대기는 일반 도구 타임아웃과 분리해야 합니다. 사용자의 응답을 기다리는 상태를 "도구가 멈춤"으로 처리하면 durable 실행의 장점이 사라집니다.
+
+## 관측성은 토큰 수보다 실행 경로를 봐야 합니다
+
+프로덕션 에이전트에서 총 토큰 수만 기록하면 실패 원인을 찾기 어렵습니다. 최소한 다음 단위를 연결해야 합니다.
+
+```text
+run
+└─ model call
+   ├─ step 1
+   │  ├─ tool approval
+   │  └─ tool execution
+   ├─ step 2
+   │  └─ model retry
+   └─ final result
+```
+
+AI SDK 7은 전역 텔레메트리 통합, 생명주기 콜백, 단계별 성능 통계를 강화했습니다. 운영 로그에는 다음 식별자를 일관되게 넣는 편이 좋습니다.
+
+- `runId`: 한 작업 전체
+- `callId`: 개별 모델 호출
+- `toolCallId`: 도구 요청과 결과
+- `approvalId`: 승인 요청과 응답
+- `tenantId` 또는 `projectId`: 비용과 권한 경계
+- 모델, 종료 이유, 지연 시간, 입력·출력 토큰
+
+프롬프트와 도구 결과를 그대로 기록하면 개인정보나 비밀 정보가 관측 시스템으로 복제될 수 있습니다. 입력·출력 본문은 기본적으로 최소화하고, 디버깅 환경에서만 제한적으로 활성화하는 편이 안전합니다.
+
+## AI SDK 6에서 7로 옮길 때 확인할 항목
+
+Vercel은 자동 변환 명령과 마이그레이션 스킬을 제공합니다.
+
+```bash
+npx @ai-sdk/codemod v7
+npx skills add vercel/ai --skill migrate-ai-sdk-v6-to-v7
+```
+
+자동 변환이 끝나도 다음 항목은 직접 확인해야 합니다.
+
+1. 쓰기 도구의 승인 정책이 유지되는가
+2. 장기 작업이 `WorkflowAgent`로 이동해야 하는가
+3. 저장 메시지를 `ModelMessage`와 `UIMessage` 경계에서 올바르게 변환하는가
+4. `maxSteps`가 `stopWhen` 조건으로 바뀌었는가
+5. 런타임 컨텍스트가 직렬화 가능한가
+6. 실험적 API의 버전을 정확히 고정했는가
+7. 스트림 변환과 재연결이 배포 후에도 동작하는가
+
+AI SDK 공식 [버전 정책](https://ai-sdk.dev/docs/migration-guides/versioning)에 따르면 `experimental_` 또는 `Experimental_` 접두사가 붙은 API는 minor나 patch 릴리스에서도 바뀔 수 있습니다. MCP Apps, realtime, 일부 harness 기능을 운영에 사용한다면 범위 버전보다 정확한 버전을 고정하고 릴리스 노트를 확인해야 합니다.
+
+## 작은 서비스라면 이 순서로 도입합니다
+
+처음부터 durable workflow, sandbox, telemetry backend를 모두 붙일 필요는 없습니다. 다음 순서가 현실적입니다.
+
+### 1단계: 읽기 전용 ToolLoopAgent
+
+조회와 분석 도구만 연결하고, 단계 수와 타임아웃을 제한합니다. 이 단계에서 평가 데이터와 실패 로그를 모읍니다.
+
+### 2단계: 쓰기 도구에 승인 추가
+
+게시, 삭제, 결제, 외부 전송 도구에 승인 정책을 적용합니다. 승인 화면에는 실제 입력과 외부 효과를 표시합니다.
+
+### 3단계: 중단 복구가 필요한 작업만 WorkflowAgent로 이동
+
+모든 요청을 durable하게 만들지 않습니다. 승인 대기, 긴 배치 작업, 재배포 후 재개가 필요한 흐름만 옮깁니다.
+
+### 4단계: 코딩 작업을 HarnessAgent와 샌드박스로 분리
+
+기존 코딩 에이전트의 세션과 스킬을 재사용하고, 파일 시스템과 네트워크 권한을 격리합니다.
+
+### 5단계: 실행 경로 기반 관측성과 평가 추가
+
+성공 여부만 보지 말고 어떤 단계와 도구에서 지연, 거절, 재시도가 발생했는지 추적합니다.
+
+## 발행 전 프로덕션 체크리스트
+
+- [ ] 쓰기와 외부 전송 도구에 명시적인 승인 정책이 있습니다.
+- [ ] 승인 요청이 도구명, 입력, 예상 효과를 보여줍니다.
+- [ ] 재시도해도 중복 결제나 중복 커밋이 생기지 않습니다.
+- [ ] 전체·단계·청크·도구 타임아웃이 분리돼 있습니다.
+- [ ] 장기 실행 상태가 프로세스 메모리에만 저장되지 않습니다.
+- [ ] 컨텍스트에는 직렬화 가능한 값만 들어갑니다.
+- [ ] 코드 실행과 저장소 수정은 샌드박스에서 수행합니다.
+- [ ] 관측 로그에서 민감한 프롬프트와 도구 결과를 최소화합니다.
+- [ ] 실험적 패키지는 정확한 버전으로 고정합니다.
+- [ ] 배포 중단, 승인 거절, 도구 타임아웃을 각각 테스트했습니다.
+
+## 결론
+
+AI SDK 7을 도입하는 가장 좋은 기준은 "새 기능을 얼마나 많이 쓰는가"가 아닙니다. **짧은 모델 루프, 오래 지속되는 워크플로, 완성된 코딩 하네스를 서로 다른 실행 경계로 분리했는가**가 더 중요합니다.
+
+읽기 위주의 짧은 요청은 `ToolLoopAgent`로 시작하고, 사람 승인과 재시작 복구가 필요한 흐름만 `WorkflowAgent`로 옮기세요. Codex나 Claude Code를 서비스 안에서 실행한다면 기능을 다시 만들기보다 `HarnessAgent`와 샌드박스로 감싸는 편이 낫습니다. 마지막으로 승인, 타임아웃, 관측성은 프롬프트가 아니라 코드와 정책으로 관리해야 합니다.
+
+## 공식 자료
+
+- [AI SDK 7 발표](https://vercel.com/blog/ai-sdk-7)
+- [Codex·Claude Code·Pi를 HarnessAgent로 실행하기](https://vercel.com/changelog/program-agent-harnesses-with-ai-sdk)
+- [DurableAgent에서 WorkflowAgent로 마이그레이션](https://vercel.com/kb/guide/durableagent-to-workflowagent)
+- [AI SDK 도구 호출과 승인](https://ai-sdk.dev/docs/ai-sdk-core/tools-and-tool-calling)
+- [AI SDK 버전 및 실험적 API 정책](https://ai-sdk.dev/docs/migration-guides/versioning)
