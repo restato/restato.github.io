@@ -1,4 +1,4 @@
-import { supportedLanguages } from './locales';
+import { existingToolLanguages, supportedLanguages } from './locales';
 import type { Language, Localized, ToolContent, ToolDefinition, ToolPrivacyMode } from './types';
 import { createCompleteLocalizedContent } from './localizedContent';
 import { isSubstantiveToolContent } from '../../i18n/completeness';
@@ -8,6 +8,8 @@ export interface ToolSEO {
   description: string;
   keywords: string[];
 }
+
+type ExistingToolLanguage = (typeof existingToolLanguages)[number];
 
 export interface ToolConfig {
   slug: string;
