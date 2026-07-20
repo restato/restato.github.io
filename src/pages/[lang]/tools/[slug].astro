@@ -6,6 +6,9 @@ import FavoriteButton from '../../../components/tools/FavoriteButton';
 import BookmarkPrompt from '../../../components/tools/BookmarkPrompt';
 import { getPublishedTools, type ToolDefinition } from '../../../data/tools';
 import { getLocalizedToolPageMetadata } from '../../../data/tools/pageMetadata';
+import { supportedLanguages } from '../../../data/tools/locales';
+import type { Language } from '../../../data/tools/types';
+import { landingContent } from '../../../i18n/landing';
 
 // Import all tool components explicitly (required for Astro hydration)
 import QRCodeGenerator from '../../../components/tools/QRCodeGenerator';
@@ -49,7 +52,7 @@ import DiceRoller from '../../../components/tools/DiceRoller';
 import KorEngConverter from '../../../components/tools/KorEngConverter';
 import AppStoreScreenshotResizer from '../../../components/tools/AppStoreScreenshotResizer';
 
-type RouteLanguage = 'ko' | 'en' | 'ja';
+type ExistingRouteLanguage = 'ko' | 'en' | 'ja';
 
 // Localized UI strings
 const uiStrings = {
@@ -80,10 +83,9 @@ const uiStrings = {
 };
 
 export function getStaticPaths() {
-  const paths: { params: { lang: RouteLanguage; slug: string }; props: { tool: ToolDefinition; lang: RouteLanguage } }[] = [];
-  const routeLanguages: RouteLanguage[] = ['ko', 'en', 'ja'];
+  const paths: { params: { lang: Language; slug: string }; props: { tool: ToolDefinition; lang: Language } }[] = [];
 
-  for (const lang of routeLanguages) {
+  for (const lang of supportedLanguages) {
     for (const tool of getPublishedTools().filter(tool => tool.slug !== 'anonymous-chat')) {
       paths.push({
         params: { lang, slug: tool.slug },
@@ -99,7 +101,8 @@ const { tool, lang } = Astro.props;
 const { content, robots, alternateUrls } = getLocalizedToolPageMetadata(tool, lang);
 const privacy = content.privacy;
 const seo = content;
-const ui = uiStrings[lang];
+const ui = uiStrings[lang as ExistingRouteLanguage] ?? uiStrings.en;
+const fallbackNotice = !tool.content[lang] ? landingContent[lang].fallbackNotice : null;
 
 const pageTitle = `${seo.title} | Restato`;
 const canonicalUrl = `https://restato.github.io/${lang}/tools/${tool.slug}`;
@@ -164,6 +167,7 @@ const breadcrumbSchema = {
   <script type="application/ld+json" set:html={JSON.stringify(breadcrumbSchema)} />
 
   <div class="max-w-4xl mx-auto px-4 py-8">
+    {fallbackNotice && <p class="mb-6 rounded-lg border border-amber-300 bg-amber-50 p-4 text-sm text-amber-900 dark:border-amber-700 dark:bg-amber-950/30 dark:text-amber-200">{fallbackNotice}</p>}
     <!-- Breadcrumb -->
     <nav class="text-sm mb-6">
       <ol class="flex items-center gap-2">

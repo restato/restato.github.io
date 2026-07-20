@@ -1,5 +1,6 @@
 import { getIndexableLanguages, getTool } from './registry';
 import type { Language, ToolContent, ToolDefinition } from './types';
+import { supportedLanguagePattern } from '../../i18n/urlUtils';
 
 const siteUrl = 'https://restato.github.io';
 const localizedRedirectToolSlugs = new Set(['image-crop-resizer']);
@@ -20,7 +21,7 @@ export function getLocalizedToolPageMetadata(
   tool: ToolDefinition,
   lang: Language,
 ): LocalizedToolPageMetadata {
-  const content = tool.content[lang] ?? tool.content.ko;
+  const content = tool.content[lang] ?? tool.content.en ?? tool.content.ko;
   if (!content) {
     throw new Error(`Missing localized content for ${tool.slug}`);
   }
@@ -43,8 +44,8 @@ export function getLocalizedToolPageMetadata(
 
 export function isIndexableLocalizedToolUrl(url: string): boolean {
   const pathname = new URL(url, siteUrl).pathname;
-  const toolMatch = pathname.match(/^\/(ko|en|ja)\/tools\/([^/]+)\/?$/);
-  const anonymousChatMatch = pathname.match(/^\/(ko|en|ja)\/anonymous-chat\/?$/);
+  const toolMatch = pathname.match(new RegExp(`^/(${supportedLanguagePattern})/tools/([^/]+)/?$`));
+  const anonymousChatMatch = pathname.match(new RegExp(`^/(${supportedLanguagePattern})/anonymous-chat/?$`));
   const match = toolMatch ?? anonymousChatMatch;
 
   if (!match) return true;

@@ -1,0 +1,92 @@
+---
+import MainLayout from '../../layouts/MainLayout.astro';
+import { getPublishedTools } from '../../data/tools';
+import { supportedLanguages } from '../../data/tools/locales';
+import type { Language, ToolDefinition } from '../../data/tools/types';
+import { landingContent } from '../../i18n/landing';
+import { getAlternateUrls } from '../../i18n/urlUtils';
+
+export function getStaticPaths() {
+  return supportedLanguages.map(lang => ({ params: { lang } }));
+}
+
+const { lang } = Astro.params as { lang: Language };
+const copy = landingContent[lang];
+const alternateUrls = getAlternateUrls(`/${lang}/`, 'https://restato.github.io');
+const tools = getPublishedTools();
+
+const clusterNames: Record<Language, Record<string, string>> = {
+  ko: { calculators: '계산', converters: '변환', design: '디자인', developer: '개발', generators: '생성', image: '이미지', marketing: '마케팅', productivity: '생산성', random: '랜덤', text: '텍스트' },
+  en: { calculators: 'Calculators', converters: 'Converters', design: 'Design', developer: 'Developer', generators: 'Generators', image: 'Images', marketing: 'Marketing', productivity: 'Productivity', random: 'Random', text: 'Text' },
+  ja: { calculators: '計算', converters: '変換', design: 'デザイン', developer: '開発', generators: '生成', image: '画像', marketing: 'マーケティング', productivity: '生産性', random: 'ランダム', text: 'テキスト' },
+  'zh-CN': { calculators: '计算', converters: '转换', design: '设计', developer: '开发', generators: '生成', image: '图像', marketing: '营销', productivity: '效率', random: '随机', text: '文本' },
+  'zh-TW': { calculators: '計算', converters: '轉換', design: '設計', developer: '開發', generators: '產生', image: '圖片', marketing: '行銷', productivity: '效率', random: '隨機', text: '文字' },
+  es: { calculators: 'Cálculo', converters: 'Conversión', design: 'Diseño', developer: 'Desarrollo', generators: 'Generadores', image: 'Imágenes', marketing: 'Marketing', productivity: 'Productividad', random: 'Aleatorio', text: 'Texto' },
+  pt: { calculators: 'Cálculo', converters: 'Conversão', design: 'Design', developer: 'Desenvolvimento', generators: 'Geradores', image: 'Imagens', marketing: 'Marketing', productivity: 'Produtividade', random: 'Aleatório', text: 'Texto' },
+  de: { calculators: 'Rechnen', converters: 'Umwandeln', design: 'Design', developer: 'Entwicklung', generators: 'Generatoren', image: 'Bilder', marketing: 'Marketing', productivity: 'Produktivität', random: 'Zufall', text: 'Text' },
+  fr: { calculators: 'Calcul', converters: 'Conversion', design: 'Design', developer: 'Développement', generators: 'Générateurs', image: 'Images', marketing: 'Marketing', productivity: 'Productivité', random: 'Aléatoire', text: 'Texte' },
+  it: { calculators: 'Calcolo', converters: 'Conversione', design: 'Design', developer: 'Sviluppo', generators: 'Generatori', image: 'Immagini', marketing: 'Marketing', productivity: 'Produttività', random: 'Casuale', text: 'Testo' },
+  id: { calculators: 'Kalkulasi', converters: 'Konversi', design: 'Desain', developer: 'Pengembangan', generators: 'Generator', image: 'Gambar', marketing: 'Pemasaran', productivity: 'Produktivitas', random: 'Acak', text: 'Teks' },
+  hi: { calculators: 'गणना', converters: 'रूपांतरण', design: 'डिज़ाइन', developer: 'डेवलपमेंट', generators: 'जनरेटर', image: 'इमेज', marketing: 'मार्केटिंग', productivity: 'उत्पादकता', random: 'रैंडम', text: 'टेक्स्ट' },
+};
+
+const groupedTools = tools.reduce<Record<string, ToolDefinition[]>>((groups, tool) => {
+  (groups[tool.cluster] ??= []).push(tool);
+  return groups;
+}, {});
+
+const getDisplayContent = (tool: ToolDefinition) =>
+  tool.content[lang] ?? tool.content.en ?? tool.content.ko;
+---
+
+<MainLayout
+  title={copy.title}
+  description={copy.description}
+  canonical={`https://restato.github.io/${lang}/`}
+  lang={lang}
+  lockLanguage={true}
+  alternateUrls={alternateUrls}
+>
+  <div class="max-w-6xl mx-auto px-4 py-10">
+    <header class="max-w-3xl mb-10">
+      <h1 class="text-4xl font-bold text-[var(--color-text)] mb-4">{copy.heading}</h1>
+      <p class="text-lg text-[var(--color-text-muted)]">{copy.intro}</p>
+      <p class="mt-3 text-sm text-[var(--color-text-muted)]">🔒 {copy.localPrivacy}</p>
+    </header>
+
+    <section aria-labelledby="tool-clusters-heading">
+      <div class="flex flex-wrap items-center justify-between gap-3 mb-6">
+        <h2 id="tool-clusters-heading" class="text-2xl font-semibold text-[var(--color-text)]">{copy.clusters}</h2>
+        <a class="text-primary-600 dark:text-primary-400 hover:underline" href={`/${lang}/tools/`}>{copy.allTools}</a>
+      </div>
+
+      <div class="space-y-10">
+        {Object.entries(groupedTools).map(([cluster, clusterTools]) => (
+          <section id={cluster} aria-labelledby={`${cluster}-heading`}>
+            <h3 id={`${cluster}-heading`} class="text-xl font-semibold text-[var(--color-text)] mb-4">
+              {clusterNames[lang][cluster] ?? clusterNames.en[cluster] ?? cluster}
+            </h3>
+            <ul class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+              {clusterTools.map(tool => {
+                const content = getDisplayContent(tool);
+                const usesFallback = !tool.content[lang];
+                return (
+                  <li>
+                    <a
+                      href={tool.slug === 'anonymous-chat' ? `/${lang}/anonymous-chat/` : `/${lang}/tools/${tool.slug}/`}
+                      class="block h-full p-5 rounded-xl border border-[var(--color-border)] bg-[var(--color-card)] hover:border-primary-500 transition-colors"
+                    >
+                      <h4 class="font-semibold text-[var(--color-text)]">{tool.icon} {content?.name ?? tool.slug}</h4>
+                      <p class="mt-2 text-sm text-[var(--color-text-muted)]">{content?.description}</p>
+                      {usesFallback && <p class="mt-3 text-xs text-amber-700 dark:text-amber-300">{copy.fallbackNotice}</p>}
+                    </a>
+                  </li>
+                );
+              })}
+            </ul>
+          </section>
+        ))}
+      </div>
+    </section>
+  </div>
+</MainLayout>

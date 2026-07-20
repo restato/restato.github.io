@@ -1,7 +1,7 @@
 ---
 import { commonTranslations } from '../i18n/translations/common';
 import { languages, type Language } from '../i18n';
-import { getBasePathFromUrl, buildLanguageUrl, supportsLanguageRouting } from '../i18n/urlUtils';
+import { getBasePathFromUrl, buildLanguageUrl, supportsLanguageRouting, supportedLanguagePattern } from '../i18n/urlUtils';
 
 interface NavItem {
   href: string;
@@ -42,6 +42,8 @@ const getNavHref = (baseHref: string): string => {
 
 const navTranslations = commonTranslations.nav;
 const darkModeTranslations = commonTranslations.ui.darkMode;
+const getTranslation = (translations: Partial<Record<Language, string>>, language: Language) =>
+  translations[language] ?? translations.en ?? translations.ko ?? '';
 ---
 
 <header class="sticky top-0 z-50 bg-[var(--color-bg)]/80 backdrop-blur-lg border-b border-[var(--color-border)]">
@@ -67,7 +69,7 @@ const darkModeTranslations = commonTranslations.ui.darkMode;
                   : 'text-[var(--color-text-muted)] hover:text-[var(--color-text)] hover:bg-[var(--color-card-hover)]'
               }`}
             >
-              {navTranslations[item.labelKey][lang]}
+              {getTranslation(navTranslations[item.labelKey], lang)}
             </a>
           </li>
         ))}
@@ -114,7 +116,7 @@ const darkModeTranslations = commonTranslations.ui.darkMode;
         id="theme-toggle-btn"
         type="button"
         class="ml-2 p-2 rounded-lg text-[var(--color-text-muted)] hover:text-[var(--color-text)] hover:bg-[var(--color-card-hover)] transition-colors"
-        aria-label={darkModeTranslations[lang]}
+        aria-label={getTranslation(darkModeTranslations, lang)}
       >
         <svg class="w-5 h-5 hidden dark:block" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"></path>
@@ -156,13 +158,13 @@ const darkModeTranslations = commonTranslations.ui.darkMode;
                 : 'text-[var(--color-text-muted)] hover:bg-[var(--color-card-hover)] hover:text-[var(--color-text)]'
             }`}
           >
-            {navTranslations[item.labelKey][lang]}
+            {getTranslation(navTranslations[item.labelKey], lang)}
           </a>
         </li>
       ))}
     </ul>
     {!lockLanguage && <div class="px-4 pb-3">
-      <div class="flex items-center gap-2">
+      <div class="flex flex-wrap items-center gap-2 max-h-44 overflow-y-auto">
         {(Object.entries(languages) as [Language, string][]).map(([code, name]) => (
           <button
             type="button"
@@ -181,12 +183,14 @@ const darkModeTranslations = commonTranslations.ui.darkMode;
   </div>
 </header>
 
-<script define:vars={{ navTranslations, darkModeTranslations, languages, lang, lockLanguage }} is:inline>
+<script define:vars={{ navTranslations, darkModeTranslations, languages, lang, lockLanguage, supportedLanguagePattern }} is:inline>
   (() => {
     const langSupportedPaths = ['/tools', '/anonymous-chat', '/games'];
+    const languagePrefixPattern = new RegExp('^/(' + supportedLanguagePattern + ')(?=/|$|[?#])');
 
     function getBasePath(pathname) {
-      return pathname.replace(/^\/(ko|en|ja)(\/|$)/, '/');
+      const withoutLanguage = pathname.replace(languagePrefixPattern, '');
+      return withoutLanguage.startsWith('/') ? withoutLanguage : '/' + withoutLanguage;
     }
 
     function supportsLangRouting(pathname) {
@@ -203,7 +207,7 @@ const darkModeTranslations = commonTranslations.ui.darkMode;
     function getCurrentLanguage() {
       if (lockLanguage) return lang;
 
-      const urlMatch = window.location.pathname.match(/^\/(ko|en|ja)(\/|$)/);
+      const urlMatch = window.location.pathname.match(languagePrefixPattern);
       if (urlMatch && languages[urlMatch[1]]) {
         localStorage.setItem('lang', urlMatch[1]);
         return urlMatch[1];

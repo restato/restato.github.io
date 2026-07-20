@@ -1,5 +1,8 @@
 ---
 import '../styles/global.css';
+import { localeMetadata } from '../i18n';
+import type { Language } from '../data/tools/types';
+import { normalizeHeadAlternates } from '../i18n/urlUtils';
 
 interface AlternateUrl {
   lang: string;
@@ -16,7 +19,7 @@ interface Props {
   author?: string;
   robots?: string;
   canonical?: string;
-  lang?: 'ko' | 'en' | 'ja';
+  lang?: Language;
   lockLanguage?: boolean;
   alternateUrls?: AlternateUrl[];
 }
@@ -36,13 +39,12 @@ const {
   alternateUrls = []
 } = Astro.props;
 
-// Locale mapping
-const localeMap: Record<string, string> = {
-  ko: 'ko_KR',
-  en: 'en_US',
-  ja: 'ja_JP'
-};
-const ogLocale = localeMap[lang] || 'ko_KR';
+const ogLocale = localeMetadata[lang].og;
+
+const normalizedAlternateUrls = normalizeHeadAlternates(alternateUrls);
+const clientLocaleMap = Object.fromEntries(
+  Object.entries(localeMetadata).map(([code, metadata]) => [code, { html: metadata.html, ogLocale: metadata.og }]),
+);
 
 const canonicalURL = canonical
   ? new URL(canonical, Astro.site)
@@ -97,7 +99,7 @@ const articleSchema = type === 'article' ? {
 ---
 
 <!doctype html>
-<html lang={lang}>
+<html lang={localeMetadata[lang].html} dir={localeMetadata[lang].dir} data-locale-map={JSON.stringify(clientLocaleMap)}>
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -110,12 +112,9 @@ const articleSchema = type === 'article' ? {
     <link rel="canonical" href={canonicalURL} />
 
     <!-- hreflang for multi-language -->
-    {alternateUrls.length > 0 && alternateUrls.map(alt => (
+    {normalizedAlternateUrls.map(alt => (
       <link rel="alternate" hreflang={alt.lang} href={alt.url} />
     ))}
-    {alternateUrls.length > 0 && (
-      <link rel="alternate" hreflang="x-default" href={alternateUrls.find(a => a.lang === 'en')?.url || canonicalURL.toString()} />
-    )}
 
     <!-- Open Graph -->
     <meta property="og:type" content={type} />
@@ -188,11 +187,7 @@ const articleSchema = type === 'article' ? {
     {!lockLanguage && (
       <script is:inline>
         (function() {
-          const langMap = {
-            ko: { html: 'ko', ogLocale: 'ko_KR' },
-            en: { html: 'en', ogLocale: 'en_US' },
-            ja: { html: 'ja', ogLocale: 'ja_JP' }
-          };
+          const langMap = JSON.parse(document.documentElement.dataset.localeMap || '{}');
 
           function updateHtmlLang(lang) {
             const config = langMap[lang];

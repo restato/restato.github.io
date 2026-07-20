@@ -3,24 +3,22 @@ import MainLayout from '../../layouts/MainLayout.astro';
 import Chat from '../../components/Chat.tsx';
 import { getTool } from '../../data/tools';
 import { getLocalizedToolPageMetadata } from '../../data/tools/pageMetadata';
+import { supportedLanguages } from '../../data/tools/locales';
+import type { Language } from '../../data/tools/types';
+import { landingContent } from '../../i18n/landing';
 
 export function getStaticPaths() {
-  return [
-    { params: { lang: 'ko' } },
-    { params: { lang: 'en' } },
-    { params: { lang: 'ja' } }
-  ];
+  return supportedLanguages.map(lang => ({ params: { lang } }));
 }
 
-type RouteLanguage = 'ko' | 'en' | 'ja';
-
-const { lang } = Astro.params as { lang: RouteLanguage };
+const { lang } = Astro.params as { lang: Language };
 const tool = getTool('anonymous-chat');
 if (!tool) {
   throw new Error('Anonymous chat is missing from the tool registry');
 }
 const { content: seo, robots, alternateUrls } = getLocalizedToolPageMetadata(tool, lang);
 const privacy = seo.privacy;
+const fallbackNotice = !tool.content[lang] ? landingContent[lang].fallbackNotice : null;
 
 const pageTitle = `${seo.title} | Restato`;
 ---
@@ -33,6 +31,7 @@ const pageTitle = `${seo.title} | Restato`;
   alternateUrls={alternateUrls}
 >
   <div class="chat-page px-4 py-2">
+    {fallbackNotice && <p class="chat-fallback">{fallbackNotice}</p>}
     <p class="chat-privacy">{privacy}</p>
     <div class="chat-container">
       <Chat client:load />
@@ -54,6 +53,16 @@ const pageTitle = `${seo.title} | Restato`;
     color: var(--color-text-muted);
     font-size: 0.875rem;
     line-height: 1.5;
+  }
+
+  .chat-fallback {
+    max-width: 48rem;
+    margin: 0 auto;
+    padding: 0.75rem 1rem;
+    border: 1px solid #f59e0b;
+    border-radius: 0.5rem;
+    color: var(--color-text);
+    font-size: 0.875rem;
   }
 
   .chat-container {

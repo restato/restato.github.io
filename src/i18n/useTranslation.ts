@@ -15,17 +15,21 @@ const translations = {
 } as const;
 
 type TranslationCategory = keyof typeof translations;
+type ExistingUiLanguage = 'ko' | 'en' | 'ja';
+
+const getExistingUiLanguage = (language: Language): ExistingUiLanguage =>
+  language === 'ko' || language === 'ja' ? language : 'en';
 
 export function useTranslation() {
-  const [lang, setLang] = useState<Language>('ko');
+  const [lang, setLang] = useState<ExistingUiLanguage>('ko');
 
   useEffect(() => {
     // Set initial language
-    setLang(getLanguage());
+    setLang(getExistingUiLanguage(getLanguage()));
 
     // Listen for language changes
     const handleLanguageChange = (e: CustomEvent<Language>) => {
-      setLang(e.detail);
+      setLang(getExistingUiLanguage(e.detail));
     };
 
     window.addEventListener('languageChange', handleLanguageChange as EventListener);
@@ -34,15 +38,15 @@ export function useTranslation() {
     };
   }, []);
 
-  const t = useCallback(<T extends Record<Language, string>>(
+  const t = useCallback(<T extends Partial<Record<Language, string>> & { ko: string }>(
     translationObj: T
   ): string => {
-    return translationObj[lang] || translationObj['ko'];
+    return translationObj[lang] || translationObj.en || translationObj.ko;
   }, [lang]);
 
   const changeLanguage = useCallback((newLang: Language) => {
     setLanguage(newLang);
-    setLang(newLang);
+    setLang(getExistingUiLanguage(newLang));
   }, []);
 
   return {

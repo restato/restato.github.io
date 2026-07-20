@@ -11,11 +11,15 @@
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import { supportedLanguagePattern } from '../src/data/tools/supportedLanguages.mjs';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const DIST_DIR = path.join(__dirname, '../dist');
 const CONTENT_DIR = path.join(__dirname, '../src/content/blog');
 const SITE_URL = 'https://restato.github.io';
+const localizedToolsPattern = new RegExp(`^/(${supportedLanguagePattern})/tools/`);
+const localizedChatPattern = new RegExp(`^/(${supportedLanguagePattern})/anonymous-chat/`);
+const localizedToolIndexPattern = new RegExp(`^/(${supportedLanguagePattern})/tools/?$`);
 
 /**
  * URLs to exclude from sitemap
@@ -44,10 +48,10 @@ function categorizeUrl(pathname) {
   if (pathname.startsWith('/blog/')) return 'blog';
 
   // Tools with language prefix (canonical URLs)
-  if (pathname.match(/^\/(ko|en|ja)\/tools/)) return 'tools';
+  if (localizedToolsPattern.test(pathname)) return 'tools';
 
   // Anonymous chat with language prefix
-  if (pathname.match(/^\/(ko|en|ja)\/anonymous-chat/)) return 'tools';
+  if (localizedChatPattern.test(pathname)) return 'tools';
 
   // Projects
   if (pathname.startsWith('/projects/')) return 'projects';
@@ -65,7 +69,7 @@ function getPriority(category, pathname) {
 
   if (category === 'tools') {
     // Tool index pages get highest priority
-    if (pathname.match(/^\/(ko|en|ja)\/tools\/?$/)) return 1.0;
+    if (localizedToolIndexPattern.test(pathname)) return 1.0;
     return 0.8;
   }
 

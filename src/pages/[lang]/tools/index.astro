@@ -6,20 +6,16 @@ import ToolsGrid from '../../../components/tools/ToolsGrid';
 import ToolsPageHeader from '../../../components/tools/ToolsPageHeader';
 import ToolsPageInfo from '../../../components/tools/ToolsPageInfo';
 import { categories, getPublishedTools, type ToolDefinition } from '../../../data/tools';
-
-type RouteLanguage = 'ko' | 'en' | 'ja';
-
-const languages: RouteLanguage[] = ['ko', 'en', 'ja'];
+import { existingToolLanguages, supportedLanguages } from '../../../data/tools/locales';
+import type { Language } from '../../../data/tools/types';
+import { landingContent } from '../../../i18n/landing';
+import { getAlternateUrls } from '../../../i18n/urlUtils';
 
 export function getStaticPaths() {
-  return [
-    { params: { lang: 'ko' } },
-    { params: { lang: 'en' } },
-    { params: { lang: 'ja' } }
-  ];
+  return supportedLanguages.map(lang => ({ params: { lang } }));
 }
 
-const { lang } = Astro.params as { lang: RouteLanguage };
+const { lang } = Astro.params as { lang: Language };
 
 // SEO content per language
 const seoContent = {
@@ -38,13 +34,10 @@ const seoContent = {
 };
 
 // Generate alternate URLs for hreflang
-const alternateUrls = languages.map(l => ({
-  lang: l,
-  url: `https://restato.github.io/${l}/tools`
-}));
+const alternateUrls = getAlternateUrls(`/${lang}/tools/`, 'https://restato.github.io');
 
-const getToolText = (tool: ToolDefinition, language: RouteLanguage, field: 'name' | 'description') => {
-  return tool.content[language]?.[field] || tool.content.ko?.[field] || tool.slug;
+const getToolText = (tool: ToolDefinition, language: Language, field: 'name' | 'description') => {
+  return tool.content[language]?.[field] || tool.content.en?.[field] || tool.content.ko?.[field] || tool.slug;
 };
 
 // Transform registry entries to the format expected by ToolsGrid.
@@ -64,16 +57,19 @@ const tools = getPublishedTools().map(tool => ({
   category: tool.category,
 }));
 
-const seo = seoContent[lang];
+const seo = seoContent[lang as keyof typeof seoContent] ?? landingContent[lang];
+const usesFallback = !existingToolLanguages.includes(lang as (typeof existingToolLanguages)[number]);
 ---
 
 <MainLayout
   title={seo.title}
   description={seo.description}
   lang={lang}
+  robots={usesFallback ? 'noindex, follow' : 'index, follow'}
   alternateUrls={alternateUrls}
 >
   <div class="max-w-6xl mx-auto px-4 py-8">
+    {usesFallback && <p class="mb-6 rounded-lg border border-amber-300 bg-amber-50 p-4 text-sm text-amber-900 dark:border-amber-700 dark:bg-amber-950/30 dark:text-amber-200">{landingContent[lang].fallbackNotice}</p>}
     <!-- Header with i18n support -->
     <ToolsPageHeader client:load />
 
