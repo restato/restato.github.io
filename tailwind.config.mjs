@@ -31,7 +31,21 @@ export default {
         },
       },
       fontFamily: {
-        sans: ['Pretendard', 'system-ui', 'sans-serif'],
+        sans: [
+          'ui-sans-serif',
+          'system-ui',
+          '-apple-system',
+          'BlinkMacSystemFont',
+          'Segoe UI',
+          'Noto Sans',
+          'Apple SD Gothic Neo',
+          'Malgun Gothic',
+          'Hiragino Sans',
+          'Yu Gothic UI',
+          'Meiryo',
+          'Arial',
+          'sans-serif',
+        ],
         mono: ['JetBrains Mono', 'Fira Code', 'monospace'],
       },
       typography: {

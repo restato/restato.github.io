@@ -9,6 +9,12 @@ module.exports = {
         '/ko/tools/image-resizer/',
       ],
       numberOfRuns: 1,
+      settings: {
+        // Fallback locale pages are intentionally noindex until translation is
+        // complete. Registry/site validation owns that policy, so omit only
+        // crawlability while preserving the aggregate SEO score gate below.
+        skipAudits: ['is-crawlable'],
+      },
     },
     assert: {
       assertions: {
