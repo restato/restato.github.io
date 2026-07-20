@@ -44,12 +44,13 @@
 | coin-flip | ✓ | N/A | N/A | N/A | N/A | ✓ | ✓ | ✓ | N/A |
 | dice | ✓ | N/A | N/A | ✓ | N/A | ✓ | ✓ | ✓ | N/A |
 | kor-eng | ✓ | ✓ | N/A | N/A | ✓ | ✓ | ✓ | ✓ | N/A |
-| anonymous-chat | ✓ | ✓ | N/A | N/A | ✓ | ✓ | ✓ | ✓ | ✓ |
+| anonymous-chat | ✓ | ✓ | N/A | N/A | ✓ | ✓ | ✓ | ✓ | N/A |
 
 ## Gaps and interpretation
 
-- Every Mobile checkmark is an executable 375px viewport, coarse-pointer/touch contract that renders the tool and proves a named primary control accepts focus. CSS overflow and layout visuals require a browser E2E check and are intentionally not inferred from this contract.
-- The Privacy checkmarks for six file tools come from `fileToolsPrivacy.test.tsx`, which selects a non-Latin filename and observes neither a `fetch` request nor `XMLHttpRequest.send`. They establish the current client-side selection boundary; external P2P/network disclosure remains separately documented for anonymous chat and is not represented as a no-upload checkmark.
+- Every Mobile checkmark is exercised by `e2e/mobile-tools.spec.ts` against the built static site at a 375px viewport. It checks meaningful render, no framework overlay or console errors, no document-level horizontal overflow, an in-viewport primary control, and a safe keyboard/text interaction for all 41 public tool/chat routes.
+- The Privacy checkmarks for six file tools come from asynchronous local-file workflow tests. They cover selected filenames and completed local previews/transforms/downloads while observing no upload request; the BackgroundRemover test additionally drives its mocked local model result and verifies no `fetch` request. ImageConverter's local data/blob processing is not classified as an external upload.
+- Anonymous chat is `N/A` for Privacy until an executable two-peer transfer-boundary test proves that message content is sent only to the intended peer. Its page disclosure is useful but not enough to earn a Privacy checkmark.
 - Rows without a focused suite are not evidence that the tool lacks behavior; they identify the untested legacy backlog.
 
 ### Audited N/A behaviors

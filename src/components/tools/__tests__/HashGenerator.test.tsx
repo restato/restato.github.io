@@ -84,6 +84,35 @@ describe('HashGenerator', () => {
     expect(screen.getByText('8b1a9953c4611296a827abf8c47804d7')).toBeInTheDocument();
   }, 30_000);
 
+  it('keeps the newest input when older Web Crypto digests finish last', async () => {
+    const resolvers = new Map<string, Array<(value: ArrayBuffer) => void>>();
+    mockDigest.mockImplementation((_: string, data: Uint8Array) => {
+      const text = new TextDecoder().decode(data);
+      return new Promise<ArrayBuffer>((resolve) => {
+        const pending = resolvers.get(text) ?? [];
+        pending.push(resolve);
+        resolvers.set(text, pending);
+      });
+    });
+
+    const resolveDigest = async (text: string) => {
+      await waitFor(() => expect(resolvers.get(text)?.length).toBeGreaterThan(0));
+      resolvers.get(text)!.shift()!(hexBuffer(webCryptoVectors['SHA-1']));
+    };
+
+    render(<HashGenerator />);
+    const input = screen.getByPlaceholderText('해시할 텍스트를 입력하세요');
+    fireEvent.change(input, { target: { value: 'older' } });
+    fireEvent.change(input, { target: { value: 'newer' } });
+
+    for (let index = 0; index < 4; index++) await resolveDigest('newer');
+    await screen.findByText(md5('newer'));
+    for (let index = 0; index < 4; index++) await resolveDigest('older');
+
+    await waitFor(() => expect(screen.getByText(md5('newer'))).toBeInTheDocument());
+    expect(screen.queryByText(md5('older'))).not.toBeInTheDocument();
+  }, 30_000);
+
   it('generates each Web Crypto hash variant after input', async () => {
     render(<HashGenerator />);
     const input = screen.getByPlaceholderText('해시할 텍스트를 입력하세요');

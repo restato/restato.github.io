@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { useTranslation } from '../../i18n/useTranslation';
 
 function generateUUID(): string {
@@ -19,12 +19,16 @@ export default function UuidGenerator() {
   const tt = translations.tools.uuid;
   const tc = translations.tools.common;
 
-  const [uuids, setUuids] = useState<string[]>([generateUUID()]);
+  const [uuids, setUuids] = useState<string[]>([]);
   const [count, setCount] = useState('1');
   const [uppercase, setUppercase] = useState(false);
   const [hyphens, setHyphens] = useState(true);
   const [copiedIndex, setCopiedIndex] = useState<number | null>(null);
   const [copiedAll, setCopiedAll] = useState(false);
+
+  useEffect(() => {
+    setUuids([generateUUID()]);
+  }, []);
 
   const generate = useCallback(() => {
     const newUuids: string[] = [];

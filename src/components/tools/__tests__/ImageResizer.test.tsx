@@ -180,10 +180,14 @@ describe('ImageResizer', () => {
     });
   });
 
-  it('shows download button when preview is ready', async () => {
+  it('downloads the generated preview when ready', async () => {
     render(<ImageResizer />);
     await uploadImage();
 
-    expect(screen.getByRole('button', { name: '다운로드' })).toBeInTheDocument();
+    const click = vi.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(() => undefined);
+    fireEvent.click(screen.getByRole('button', { name: '다운로드' }));
+
+    expect(click).toHaveBeenCalledTimes(1);
+    expect(mockToDataURL).toHaveBeenCalled();
   });
 });

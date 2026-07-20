@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { fireEvent, render, screen } from '@testing-library/react';
+import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import ImageConverter from '../ImageConverter';
 import './testUtils';
 
@@ -58,6 +58,33 @@ describe('ImageConverter', () => {
     expect(screen.getAllByText('PNG: 3 B')).toHaveLength(2);
     expect(toDataURL).toHaveBeenLastCalledWith('image/png', undefined);
   }, 30_000);
+
+  it('downloads completed local conversions and only re-fetches their local data URL', async () => {
+    const localFetch = vi.fn(async () => ({
+      blob: async () => new Blob(['local conversion source'], { type: 'image/png' }),
+    }));
+    vi.stubGlobal('fetch', localFetch);
+    const download = vi.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(() => {});
+    const { container } = render(<ImageConverter />);
+    const input = container.querySelector('input[type="file"]')!;
+
+    fireEvent.change(input, {
+      target: { files: [new File(['private image bytes'], '비공개-원본.png', { type: 'image/png' })] },
+    });
+
+    expect(await screen.findByText('비공개-원본.png')).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: '모두 다운로드' }));
+    expect(download).toHaveBeenCalledTimes(1);
+    expect(localFetch).not.toHaveBeenCalled();
+
+    fireEvent.click(screen.getByRole('button', { name: '다시 변환' }));
+    await waitFor(() => expect(localFetch).toHaveBeenCalledTimes(1));
+    const [url, init] = localFetch.mock.calls[0];
+    expect(String(url)).toMatch(/^data:image\//);
+    expect(init?.body).toBeUndefined();
+    expect(String(init ?? '')).not.toContain('비공개-원본.png');
+    expect(String(init ?? '')).not.toContain('private image bytes');
+  });
 
   it('ignores empty and unsupported file selections', () => {
     const { container } = render(<ImageConverter />);

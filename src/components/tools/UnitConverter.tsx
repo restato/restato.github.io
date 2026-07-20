@@ -225,19 +225,19 @@ export default function UnitConverter() {
         {/* From */}
         <div className="space-y-2">
           <label className="text-sm font-medium text-[var(--color-text)]">{t(tt.from)}</label>
-          <div className="flex gap-2">
+          <div className="flex min-w-0 gap-2">
             <input
               type="number"
               value={fromValue}
               onChange={(e) => setFromValue(e.target.value)}
-              className="flex-1 px-4 py-3 rounded-lg border border-[var(--color-border)]
+              className="min-w-0 flex-1 px-4 py-3 rounded-lg border border-[var(--color-border)]
                 bg-[var(--color-card)] text-[var(--color-text)] text-lg
                 focus:outline-none focus:ring-2 focus:ring-primary-500"
             />
             <select
               value={fromUnit}
               onChange={(e) => setFromUnit(e.target.value)}
-              className="px-4 py-2 rounded-lg border border-[var(--color-border)]
+              className="max-w-[45%] px-4 py-2 rounded-lg border border-[var(--color-border)]
                 bg-[var(--color-card)] text-[var(--color-text)]
                 focus:outline-none focus:ring-2 focus:ring-primary-500"
             >
@@ -268,19 +268,19 @@ export default function UnitConverter() {
         {/* To */}
         <div className="space-y-2">
           <label className="text-sm font-medium text-[var(--color-text)]">{t(tt.to)}</label>
-          <div className="flex gap-2">
+          <div className="flex min-w-0 gap-2">
             <input
               type="text"
               value={result}
               readOnly
-              className="flex-1 px-4 py-3 rounded-lg border border-[var(--color-border)]
+              className="min-w-0 flex-1 px-4 py-3 rounded-lg border border-[var(--color-border)]
                 bg-[var(--color-bg)] text-[var(--color-text)] text-lg font-medium
                 focus:outline-none"
             />
             <select
               value={toUnit}
               onChange={(e) => setToUnit(e.target.value)}
-              className="px-4 py-2 rounded-lg border border-[var(--color-border)]
+              className="max-w-[45%] px-4 py-2 rounded-lg border border-[var(--color-border)]
                 bg-[var(--color-card)] text-[var(--color-text)]
                 focus:outline-none focus:ring-2 focus:ring-primary-500"
             >

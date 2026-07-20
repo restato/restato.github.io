@@ -26,7 +26,13 @@ class LoadedImage {
 }
 
 describe('file selection results', () => {
+  let localFetch: ReturnType<typeof vi.fn>;
+  let xhrSend: ReturnType<typeof vi.spyOn>;
+
   beforeEach(() => {
+    localFetch = vi.fn();
+    vi.stubGlobal('fetch', localFetch);
+    xhrSend = vi.spyOn(XMLHttpRequest.prototype, 'send');
     vi.stubGlobal('FileReader', ArrayBufferReader);
     vi.stubGlobal('Image', LoadedImage);
     vi.stubGlobal('URL', {
@@ -36,6 +42,7 @@ describe('file selection results', () => {
   });
 
   afterEach(() => {
+    vi.restoreAllMocks();
     vi.unstubAllGlobals();
   });
 
@@ -46,6 +53,8 @@ describe('file selection results', () => {
 
     expect(await screen.findByText('EXIF 데이터를 찾을 수 없습니다')).toBeInTheDocument();
     expect(screen.getAllByText('비공개.jpg').length).toBeGreaterThan(0);
+    expect(localFetch).not.toHaveBeenCalled();
+    expect(xhrSend).not.toHaveBeenCalled();
   });
 
   it('shows selected image metadata after the preview image loads', async () => {
@@ -56,6 +65,8 @@ describe('file selection results', () => {
     expect((await screen.findAllByText('비공개.png')).length).toBeGreaterThanOrEqual(2);
     expect(screen.getByText('image/png')).toBeInTheDocument();
     expect(screen.getByText('100 × 50')).toBeInTheDocument();
+    expect(localFetch).not.toHaveBeenCalled();
+    expect(xhrSend).not.toHaveBeenCalled();
   });
 
   it('loads a local image into the background-removal workflow', async () => {

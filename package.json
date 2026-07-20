@@ -11,7 +11,8 @@
     "astro": "astro",
     "test": "vitest",
     "test:ui": "vitest --ui",
-    "test:coverage": "vitest --coverage"
+    "test:coverage": "vitest --coverage",
+    "test:browser-mobile": "playwright test --project=mobile"
   },
   "dependencies": {
     "@astrojs/mdx": "^4.0.0",
@@ -30,6 +31,7 @@
     "tailwindcss": "^3.4.0"
   },
   "devDependencies": {
+    "@playwright/test": "^1.61.1",
     "@testing-library/dom": "^10.4.1",
     "@testing-library/jest-dom": "^6.9.1",
     "@testing-library/react": "^16.0.0",

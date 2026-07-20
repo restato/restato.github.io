@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useRef } from 'react';
 import { useTranslation } from '../../i18n/useTranslation';
 
 type Algorithm = 'SHA-1' | 'SHA-256' | 'SHA-384' | 'SHA-512';
@@ -177,8 +177,11 @@ export default function HashGenerator() {
   });
   const [copiedAlgo, setCopiedAlgo] = useState<string | null>(null);
   const [isGenerating, setIsGenerating] = useState(false);
+  const generationRef = useRef(0);
 
   const generateHashes = useCallback(async (text: string) => {
+    const generation = ++generationRef.current;
+
     if (!text) {
       setHashes({
         'MD5': '',
@@ -187,6 +190,7 @@ export default function HashGenerator() {
         'SHA-384': '',
         'SHA-512': '',
       });
+      setIsGenerating(false);
       return;
     }
 
@@ -200,12 +204,12 @@ export default function HashGenerator() {
         'SHA-384': await generateHash(text, 'SHA-384'),
         'SHA-512': await generateHash(text, 'SHA-512'),
       };
-      setHashes(results);
+      if (generation === generationRef.current) setHashes(results);
     } catch (err) {
       console.error('Hash generation error:', err);
     }
 
-    setIsGenerating(false);
+    if (generation === generationRef.current) setIsGenerating(false);
   }, []);
 
   const handleInputChange = (value: string) => {

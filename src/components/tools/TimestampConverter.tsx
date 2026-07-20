@@ -8,10 +8,11 @@ export default function TimestampConverter() {
 
   const [timestamp, setTimestamp] = useState('');
   const [dateString, setDateString] = useState('');
-  const [currentTime, setCurrentTime] = useState(Date.now());
+  const [currentTime, setCurrentTime] = useState(0);
   const [unit, setUnit] = useState<'seconds' | 'milliseconds'>('seconds');
 
   useEffect(() => {
+    setCurrentTime(Date.now());
     const interval = setInterval(() => {
       setCurrentTime(Date.now());
     }, 1000);
@@ -89,11 +90,14 @@ export default function TimestampConverter() {
 
   const currentTimestamp = unit === 'milliseconds' ? currentTime : Math.floor(currentTime / 1000);
 
+  // Keep the initial server and client render deterministic; this is refreshed
+  // from Date.now() after hydration by the currentTime effect above.
+  const baseTimestamp = Math.floor(currentTime / 1000);
   const commonTimes = [
-    { labelKey: 'inOneHour' as const, getTs: () => Math.floor(Date.now() / 1000) + 3600 },
-    { labelKey: 'tomorrow' as const, getTs: () => Math.floor(Date.now() / 1000) + 86400 },
-    { labelKey: 'inOneWeek' as const, getTs: () => Math.floor(Date.now() / 1000) + 604800 },
-    { labelKey: 'inOneMonth' as const, getTs: () => Math.floor(Date.now() / 1000) + 2592000 },
+    { labelKey: 'inOneHour' as const, getTs: () => baseTimestamp + 3600 },
+    { labelKey: 'tomorrow' as const, getTs: () => baseTimestamp + 86400 },
+    { labelKey: 'inOneWeek' as const, getTs: () => baseTimestamp + 604800 },
+    { labelKey: 'inOneMonth' as const, getTs: () => baseTimestamp + 2592000 },
     { label: '2000/1/1', getTs: () => 946684800 },
     { label: '2024/1/1', getTs: () => 1704067200 },
     { label: '2025/1/1', getTs: () => 1735689600 },
@@ -121,7 +125,7 @@ export default function TimestampConverter() {
           </button>
         </div>
         <p className="text-sm text-[var(--color-text-muted)] mt-2">
-          {formatDate(new Date(currentTime))}
+          {currentTime ? formatDate(new Date(currentTime)) : '—'}
         </p>
       </div>
 

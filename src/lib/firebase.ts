@@ -5,6 +5,10 @@ import { getDatabase, ref, set, get, push, onValue, remove, runTransaction, type
 let app: FirebaseApp | null = null;
 let db: Database | null = null;
 
+export function isFirebaseConfigured(): boolean {
+  return Boolean(import.meta.env.PUBLIC_FIREBASE_DATABASE_URL && import.meta.env.PUBLIC_FIREBASE_PROJECT_ID);
+}
+
 function getFirebaseApp(): FirebaseApp {
   if (!app) {
     const firebaseConfig = {

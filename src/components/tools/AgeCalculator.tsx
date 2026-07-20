@@ -14,6 +14,15 @@ interface AgeResult {
   chineseZodiacEmoji: string;
 }
 
+function parseLocalDate(value: string): Date {
+  const [year, month, day] = value.split('-').map(Number);
+  return new Date(year, month - 1, day);
+}
+
+function formatLocalDate(date: Date): string {
+  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
+}
+
 export default function AgeCalculator() {
   const { t, translations } = useTranslation();
   const tc = translations.tools.age;
@@ -78,7 +87,7 @@ export default function AgeCalculator() {
       return;
     }
 
-    const birth = new Date(birthDate);
+    const birth = parseLocalDate(birthDate);
     const today = new Date();
 
     if (Number.isNaN(birth.getTime()) || birth > today) {
@@ -185,7 +194,7 @@ export default function AgeCalculator() {
           type="date"
           value={birthDate}
           onChange={(e) => setBirthDate(e.target.value)}
-          max={new Date().toISOString().split('T')[0]}
+          max={formatLocalDate(new Date())}
           className="w-full px-4 py-3 rounded-lg border border-[var(--color-border)]
             bg-[var(--color-card)] text-[var(--color-text)] text-lg
             focus:outline-none focus:ring-2 focus:ring-primary-500"

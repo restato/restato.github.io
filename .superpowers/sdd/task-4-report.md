@@ -125,3 +125,21 @@ The D-Day focused suite also passed **9/9** under both `TZ=America/Los_Angeles` 
 ## Normal-parallel reliability remediation
 
 The first post-expansion normal-parallel V8 run failed 9 tests, then the next failed 4 different tests. Raw output identified the same root cause: jsdom/V8 worker contention exceeded Vitest's 5-second default, not product assertions. The normal parallel worker configuration remains unchanged; `vitest.config.ts` now sets a documented 15-second `testTimeout`. A deliberately comprehensive LLM Wiki audience journey retains its narrower 60-second test-level budget. The final exact normal-parallel run completed **105/105 files and 381/381 tests**.
+
+## Second independent re-review remediation
+
+- Age Calculator now parses `YYYY-MM-DD` as a local calendar date. The new birthday/zodiac regression was RED in `America/Los_Angeles` (UTC parsing shifted the birthday one day) and GREEN at both `TZ=America/Los_Angeles` and `TZ=Asia/Seoul`.
+- Hash generation carries a monotonically increasing request generation. A deferred, out-of-order Web Crypto test was RED when an older input overwrote the newer digest, then GREEN after stale completions were ignored.
+- The 375px browser contract is a maintained Playwright suite (`e2e/mobile-tools.spec.ts`) against the static production build. It covers all 40 public tool routes plus anonymous chat: meaningful render, no error overlay or console/page errors, no document overflow, in-viewport primary-control geometry, and focus/text-or-keyboard interaction. Final Chromium result: **41 expected, 41 passed, 0 unexpected** in 94.7 seconds.
+- Browser failures found during that run were fixed at their cause: flex children in Unit/Gradient no longer overflow; UUID/World Clock/Timestamp render deterministic server/client initial state; anonymous chat reports its unconfigured static Firebase state without attempting a Firebase connection.
+- File-workflow privacy/output contracts now complete each async workflow rather than stopping at file selection. Image Converter, Image Resizer, Background Remover, EXIF Viewer, Image Metadata Viewer, and App Store Screenshot Resizer prove a rendered local result and its actual copy/download/result path. The Converter only re-fetches its local `data:` source with no request body; EXIF/Metadata observe zero fetch/XHR sends after their result renders; removal's mocked local processing produces a downloadable result without fetch. Anonymous chat Privacy remains honest `N/A` pending an executable two-peer transfer-boundary test.
+
+Focused verification used:
+
+```sh
+TZ=America/Los_Angeles npx vitest run src/components/tools/__tests__/AgeCalculator.test.tsx --reporter=verbose
+TZ=Asia/Seoul npx vitest run src/components/tools/__tests__/AgeCalculator.test.tsx --reporter=verbose
+npx vitest run src/components/tools/__tests__/HashGenerator.test.tsx src/components/tools/__tests__/ImageConverter.test.tsx src/components/tools/__tests__/fileSelectionBehavior.test.tsx src/components/tools/__tests__/BackgroundRemover.test.tsx src/components/tools/__tests__/AppStoreScreenshotResizer.test.tsx --reporter=verbose
+npm run build
+npm run test:browser-mobile
+```

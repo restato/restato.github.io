@@ -158,12 +158,12 @@ export default function GradientGenerator() {
         </div>
 
         {colorStops.map((stop, index) => (
-          <div key={index} className="flex items-center gap-3 p-3 rounded-lg bg-[var(--color-card)] border border-[var(--color-border)]">
+          <div key={index} className="flex min-w-0 items-center gap-2 p-3 rounded-lg bg-[var(--color-card)] border border-[var(--color-border)]">
             <input
               type="color"
               value={stop.color}
               onChange={(e) => updateColorStop(index, { color: e.target.value })}
-              className="w-10 h-10 rounded cursor-pointer border-0"
+              className="h-10 w-10 shrink-0 rounded cursor-pointer border-0"
             />
             <input
               type="text"
@@ -173,7 +173,7 @@ export default function GradientGenerator() {
                   updateColorStop(index, { color: e.target.value });
                 }
               }}
-              className="w-24 px-2 py-1 rounded border border-[var(--color-border)]
+              className="w-20 shrink-0 px-2 py-1 rounded border border-[var(--color-border)]
                 bg-[var(--color-bg)] text-[var(--color-text)] font-mono text-sm"
             />
             <input
@@ -182,13 +182,13 @@ export default function GradientGenerator() {
               max="100"
               value={stop.position}
               onChange={(e) => updateColorStop(index, { position: Number(e.target.value) })}
-              className="flex-1 accent-primary-500"
+              className="min-w-0 flex-1 accent-primary-500"
             />
-            <span className="w-12 text-sm text-[var(--color-text-muted)]">{stop.position}%</span>
+            <span className="w-10 shrink-0 text-sm text-[var(--color-text-muted)]">{stop.position}%</span>
             <button
               onClick={() => removeColorStop(index)}
               disabled={colorStops.length <= 2}
-              className="p-1 text-red-500 hover:bg-red-100 dark:hover:bg-red-900/30 rounded
+              className="shrink-0 p-1 text-red-500 hover:bg-red-100 dark:hover:bg-red-900/30 rounded
                 transition-colors disabled:opacity-30"
             >
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">

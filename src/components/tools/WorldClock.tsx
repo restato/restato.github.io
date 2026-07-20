@@ -63,13 +63,14 @@ function getOffsetString(offset: number): string {
 export default function WorldClock() {
   const { t, lang } = useTranslation();
 
-  const [now, setNow] = useState(new Date());
+  const [now, setNow] = useState(new Date(0));
   const [selectedZones, setSelectedZones] = useState<string[]>(['utc', 'kst', 'est', 'pst']);
   const [inputTime, setInputTime] = useState('');
   const [inputDate, setInputDate] = useState('');
   const [inputZone, setInputZone] = useState('kst');
 
   useEffect(() => {
+    setNow(new Date());
     const timer = setInterval(() => setNow(new Date()), 1000);
     return () => clearInterval(timer);
   }, []);

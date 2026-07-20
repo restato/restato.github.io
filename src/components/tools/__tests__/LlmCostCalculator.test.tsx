@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
-import LlmCostCalculator from '../LLMCostCalculator';
+import LlmCostCalculator from '../LlmCostCalculator';
 import './testUtils';
 
 describe('LlmCostCalculator', () => {
