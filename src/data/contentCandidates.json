@@ -1,7 +1,29 @@
 {
-  "updatedAt": "2026-07-19T09:00:00+09:00",
+  "updatedAt": "2026-07-20T08:56:00+09:00",
   "threshold": 85,
   "candidates": [
+    {
+      "id": "ai-sdk-7-production-agent-guide",
+      "title": "AI SDK 7 프로덕션 에이전트 가이드",
+      "topic": "Vercel AI SDK와 프로덕션 에이전트",
+      "score": 93,
+      "status": "published",
+      "action": "new-post",
+      "sourceType": "trend-watch",
+      "reason": "2026년 6월 25일 AI SDK 7 정식 발표를 기능 요약이 아니라 ToolLoopAgent·WorkflowAgent·HarnessAgent 선택, 승인, 중단 복구, 타임아웃과 관측성의 운영 기준으로 설명할 수 있음",
+      "breakdown": {
+        "timeliness": 13,
+        "readerValue": 20,
+        "fit": 15,
+        "originality": 13,
+        "evergreen": 9,
+        "evidence": 15,
+        "contentGap": 8
+      },
+      "path": "/blog/ai-sdk-7-production-agent-guide/",
+      "commit": "d65fb623f80f4fe69dc969c0fcc2fc8bbda861bf",
+      "updatedAt": "2026-07-20"
+    },
     {
       "id": "gpt-5-6-api-guide",
       "title": "GPT-5.6 Sol·Terra·Luna 선택 가이드",
@@ -26,14 +48,65 @@
     },
     {
       "id": "content-os-launch",
-      "title": "Restato Content OS 구축기",
+      "title": "GitHub를 기억으로 쓰는 Content OS 구축기",
       "topic": "AI 콘텐츠 자동화",
       "score": 88,
-      "status": "ready",
+      "status": "published",
       "action": "new-post",
       "sourceType": "project",
-      "reason": "실제 저장소에 구축한 역할별 에이전트와 자동화 구조를 개발일지로 설명할 수 있음",
-      "updatedAt": "2026-07-18"
+      "reason": "기존 자동 블로그 생성 글과 달리 정책·memory·역할별 스킬·Gap Finder·점수·후보 대시보드를 실제 저장소 파일과 코드로 설명할 수 있음",
+      "breakdown": {
+        "timeliness": 12,
+        "readerValue": 18,
+        "fit": 15,
+        "originality": 14,
+        "evergreen": 8,
+        "evidence": 15,
+        "contentGap": 6
+      },
+      "path": "/blog/github-content-os-agent-skills-workflow/",
+      "commit": "99a04abacba4fc3e59c9467c952baf0b3e4fc7a2",
+      "updatedAt": "2026-07-20"
+    },
+    {
+      "id": "openai-custom-instructions-5000",
+      "title": "ChatGPT 커스텀 지침 5,000자 확대",
+      "topic": "OpenAI와 ChatGPT",
+      "score": 61,
+      "status": "rejected",
+      "action": "skip",
+      "sourceType": "trend-watch",
+      "reason": "2026년 7월 15일 공식 변경이지만 독립 개발 글로 제공할 코드·마이그레이션·운영 판단이 부족해 짧은 릴리스 정보 이상의 콘텐츠 공백을 만들기 어려움",
+      "breakdown": {
+        "timeliness": 15,
+        "readerValue": 8,
+        "fit": 9,
+        "originality": 5,
+        "evergreen": 5,
+        "evidence": 15,
+        "contentGap": 4
+      },
+      "updatedAt": "2026-07-20"
+    },
+    {
+      "id": "codex-ios-inline-visualizations",
+      "title": "Codex iOS 인라인 시각화와 작업 제어 업데이트",
+      "topic": "Codex",
+      "score": 64,
+      "status": "rejected",
+      "action": "skip",
+      "sourceType": "trend-watch",
+      "reason": "2026년 7월 13일 공식 업데이트지만 iOS UI 개선 중심으로 개발 워크플로를 바꾸는 독립 실습이나 장기 검색 가치를 제공하기 어려움",
+      "breakdown": {
+        "timeliness": 14,
+        "readerValue": 8,
+        "fit": 11,
+        "originality": 6,
+        "evergreen": 5,
+        "evidence": 15,
+        "contentGap": 5
+      },
+      "updatedAt": "2026-07-20"
     }
   ]
 }
