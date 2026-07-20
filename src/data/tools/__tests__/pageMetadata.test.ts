@@ -42,6 +42,19 @@ describe('localized tool page metadata', () => {
     expect(getToolFallbackNotice(tool, 'fr')).toBe(landingContent.fr.fallbackNotice);
   });
 
+  it('keeps the English fallback notice when English content is complete but the requested locale is absent', () => {
+    const source = getTool('json')!;
+    const tool = {
+      ...source,
+      content: {
+        ...source.content,
+        en: { ...source.content.en!, status: 'complete' as const },
+      },
+    };
+
+    expect(getToolFallbackNotice(tool, 'fr')).toBe(landingContent.fr.fallbackNotice);
+  });
+
   it('keeps fallback catalogs non-indexable and out of reciprocal alternates', () => {
     expect(getToolCatalogPublicationState('fr')).toEqual({
       robots: 'noindex, follow',
@@ -86,8 +99,8 @@ describe('localized tool page metadata', () => {
     expect(anonymousChatSource).toContain('const privacy = seo.privacy');
     expect(anonymousChatSource).toContain('<p class="chat-privacy">{privacy}</p>');
     expect(anonymousChatSource).toContain('robots={robots}');
-    expect(detailSource).toContain("content.status === 'fallback'");
-    expect(anonymousChatSource).toContain("seo.status === 'fallback'");
+    expect(detailSource).toContain('getToolFallbackNotice(tool, lang)');
+    expect(anonymousChatSource).toContain('getToolFallbackNotice(tool, lang)');
     expect(astroConfigSource).toContain('isIndexableLocalizedToolUrl');
     expect(astroConfigSource).toContain('filter: isIndexableLocalizedToolUrl');
   });

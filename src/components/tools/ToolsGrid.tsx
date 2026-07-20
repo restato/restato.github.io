@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import type { Language } from '../../i18n';
+import { getLocalizedToolHref } from './toolLinks';
 
 interface Tool {
   slug: string;
@@ -64,7 +65,7 @@ export default function ToolsGrid({ lang, tools, categories }: ToolsGridProps) {
         {filteredTools.map((tool) => (
           <a
             key={tool.slug}
-            href={tool.slug.startsWith('/') ? tool.slug : `/${lang}/tools/${tool.slug}`}
+            href={tool.slug.startsWith('/') ? tool.slug : getLocalizedToolHref(tool.slug, lang)}
             className="group p-6 rounded-xl bg-[var(--color-card)] border border-[var(--color-border)]
               hover:border-primary-500 hover:shadow-lg transition-all"
           >

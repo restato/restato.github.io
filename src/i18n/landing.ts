@@ -142,10 +142,10 @@ const incompleteContentNotices: Partial<Record<Language, string>> = {
 
 export function getToolFallbackNotice(tool: ToolDefinition, lang: Language): string | null {
   const localizedContent = tool.content[lang];
+  if (!localizedContent) return landingContent[lang].fallbackNotice;
+
   const renderedContent = localizedContent ?? tool.content.en ?? tool.content.ko;
   if (!renderedContent || renderedContent.status === 'complete') return null;
 
-  return localizedContent
-    ? incompleteContentNotices[lang] ?? incompleteContentNotices.en!
-    : landingContent[lang].fallbackNotice;
+  return incompleteContentNotices[lang] ?? incompleteContentNotices.en!;
 }

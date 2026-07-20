@@ -16,6 +16,8 @@
 - Follow-up validation: modeled games with their real `ko`/`en`/`ja` locale boundary and safely routes other site locales to the existing English game pages.
 - Follow-up validation: localized incomplete tool content now has a truthful partial-content notice, while missing locales retain the English-fallback notice.
 - Follow-up validation: tool hub header, search states, recent heading, categories, and count render English fallback from SSR for the nine new locales.
+- Final edge review: missing requested content always retains the English-fallback notice even when English is complete; present incomplete translations retain their partial-content notice.
+- Final edge review: tool hub information renders synchronously from the route locale, and catalog cards use the shared localized tool-link helper so anonymous chat never points under `/tools/`.
 
 ## TDD evidence
 
@@ -27,6 +29,7 @@
 - GREEN: focused reviewer regression suite — 57/57 passed.
 - GREEN: expanded focused regression suite including Cron — 91/91 passed.
 - GREEN: exact `npm run check` — `Result (286 files): 0 errors, 0 warnings, 84 hints`; exit 0.
+- GREEN: final edge regression suite — 25/25 passed; exact check remained exit 0.
 
 ## Controller pending
 

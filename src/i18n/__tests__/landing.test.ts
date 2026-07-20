@@ -52,11 +52,12 @@ describe('localized landing pages', () => {
       readFile(landingPagePath, 'utf8'),
     ]);
 
-    expect(hubSource).toContain("content.status === 'fallback'");
+    expect(hubSource).toContain("!requestedContent || requestedContent.status === 'fallback'");
     expect(landingSource).toContain("content?.status === 'fallback'");
     expect(hubSource).toContain('getToolCatalogPublicationState');
     expect(hubSource).toContain('<ToolSearch client:load lang={lang} tools={tools} />');
     expect(hubSource).toContain('<RecentTools client:load lang={lang}');
+    expect(hubSource).toContain('<ToolsPageInfo client:load lang={lang} />');
   });
 
   it('preserves the full URL while keeping URL locale metadata authoritative', async () => {

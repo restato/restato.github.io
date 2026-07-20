@@ -5,6 +5,7 @@ import { beforeEach, describe, expect, it } from 'vitest';
 import RecentTools, { trackToolVisit } from '../RecentTools';
 import ToolSearch from '../ToolSearch';
 import ToolsPageHeader from '../ToolsPageHeader';
+import ToolsPageInfo from '../ToolsPageInfo';
 
 const tools = [
   { slug: 'json', title: 'JSON Formatter', description: 'Format JSON.', icon: '{ }', category: 'developer' },
@@ -37,5 +38,13 @@ describe('localized catalog links', () => {
 
     expect(screen.getByRole('heading', { name: 'Online Tools' })).toBeInTheDocument();
     expect(screen.getByText('Home')).toBeInTheDocument();
+  });
+
+  it('renders hub information in English fallback during SSR without a hydration swap', () => {
+    render(<ToolsPageInfo lang="fr" />);
+
+    expect(screen.getByRole('heading', { name: 'ℹ️ Information' })).toBeInTheDocument();
+    expect(screen.getByText(/Works on both mobile and desktop/)).toBeInTheDocument();
+    expect(screen.queryByText('ℹ️ 정보')).not.toBeInTheDocument();
   });
 });

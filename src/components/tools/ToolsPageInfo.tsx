@@ -1,46 +1,48 @@
-import { useTranslation } from '../../i18n/useTranslation';
-import { useState, useEffect } from 'react';
+import type { Language } from '../../data/tools/types';
 
-export default function ToolsPageInfo() {
-  const { t } = useTranslation();
-  const [mounted, setMounted] = useState(false);
+interface ToolsPageInfoProps {
+  lang?: Language;
+}
 
-  useEffect(() => {
-    setMounted(true);
-  }, []);
+const copy = {
+  ko: {
+    heading: 'ℹ️ 정보',
+    items: [
+      '각 도구 페이지에서 로컬 처리 또는 외부 네트워크 사용 여부를 확인할 수 있습니다.',
+      '무료로 사용 가능하며, 회원가입이 필요없습니다.',
+      '모바일과 데스크톱 모두에서 사용할 수 있습니다.',
+      '한국어, 영어, 일본어 콘텐츠를 우선 제공하며 다른 언어는 영어로 안내합니다.',
+    ],
+  },
+  en: {
+    heading: 'ℹ️ Information',
+    items: [
+      'Each tool page discloses whether processing is local or uses an external network.',
+      'Free to use. No registration required.',
+      'Works on both mobile and desktop.',
+      'Korean, English, and Japanese content is prioritized; other locales currently use English guidance.',
+    ],
+  },
+  ja: {
+    heading: 'ℹ️ 情報',
+    items: [
+      '各ツールページで、ローカル処理または外部ネットワーク利用の有無を確認できます。',
+      '無料で利用でき、会員登録は不要です。',
+      'モバイルとデスクトップの両方で利用できます。',
+      '韓国語、英語、日本語を優先し、その他の言語は現在英語で案内します。',
+    ],
+  },
+};
 
-  const infoItems = [
-    {
-      ko: '모든 도구는 브라우저에서 실행되며, 데이터가 서버로 전송되지 않습니다.',
-      en: 'All tools run in your browser. No data is sent to any server.',
-      ja: 'すべてのツールはブラウザで実行され、データはサーバーに送信されません。',
-    },
-    {
-      ko: '무료로 사용 가능하며, 회원가입이 필요없습니다.',
-      en: 'Free to use. No registration required.',
-      ja: '無料でご利用いただけます。会員登録は不要です。',
-    },
-    {
-      ko: '모바일과 데스크톱 모두에서 사용할 수 있습니다.',
-      en: 'Works on both mobile and desktop.',
-      ja: 'モバイルとデスクトップの両方でご利用いただけます。',
-    },
-    {
-      ko: '한국어, 영어, 일본어를 지원합니다.',
-      en: 'Supports Korean, English, and Japanese.',
-      ja: '韓国語、英語、日本語に対応しています。',
-    },
-  ];
+export default function ToolsPageInfo({ lang = 'en' }: ToolsPageInfoProps) {
+  const uiLanguage = lang === 'ko' || lang === 'ja' ? lang : 'en';
+  const text = copy[uiLanguage];
 
   return (
     <div className="mt-8 p-6 rounded-xl bg-[var(--color-card)] border border-[var(--color-border)]">
-      <h2 className="text-xl font-semibold text-[var(--color-text)] mb-4">
-        {mounted ? t({ ko: 'ℹ️ 정보', en: 'ℹ️ Information', ja: 'ℹ️ 情報' }) : 'ℹ️ 정보'}
-      </h2>
+      <h2 className="text-xl font-semibold text-[var(--color-text)] mb-4">{text.heading}</h2>
       <ul className="space-y-2 text-[var(--color-text-muted)]">
-        {infoItems.map((item, index) => (
-          <li key={index}>• {mounted ? t(item) : item.ko}</li>
-        ))}
+        {text.items.map(item => <li key={item}>• {item}</li>)}
       </ul>
     </div>
   );

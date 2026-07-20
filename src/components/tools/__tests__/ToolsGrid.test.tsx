@@ -19,7 +19,7 @@ describe('ToolsGrid', () => {
   it('links tool cards to the current localized route', () => {
     render(<ToolsGrid lang="ko" tools={[tool]} categories={[allCategory]} />);
 
-    expect(screen.getByRole('link', { name: /JSON/ })).toHaveAttribute('href', '/ko/tools/json');
+    expect(screen.getByRole('link', { name: /JSON/ })).toHaveAttribute('href', '/ko/tools/json/');
   });
 
   it.each([
@@ -43,12 +43,23 @@ describe('ToolsGrid', () => {
     expect(screen.getByRole('link', { name: /Anonymous Chat/ })).toHaveAttribute('href', '/ko/anonymous-chat');
   });
 
+  it('routes a registry anonymous-chat slug to its localized special route', () => {
+    render(<ToolsGrid
+      lang="zh-CN"
+      tools={[{ ...tool, slug: 'anonymous-chat', title: 'Anonymous Chat' }]}
+      categories={[allCategory]}
+    />);
+
+    expect(screen.getByRole('link', { name: /Anonymous Chat/ }))
+      .toHaveAttribute('href', '/zh-CN/anonymous-chat/');
+  });
+
   it('renders pre-resolved English fallback text for a new locale', () => {
     const { container } = render(<ToolsGrid lang="fr" tools={[tool]} categories={[allCategory]} />);
 
     expect(screen.getByRole('heading', { name: 'JSON Formatter' })).toBeInTheDocument();
     expect(screen.getByText('Format JSON.')).toBeInTheDocument();
-    expect(screen.getByRole('link', { name: /JSON Formatter/ })).toHaveAttribute('href', '/fr/tools/json');
+    expect(screen.getByRole('link', { name: /JSON Formatter/ })).toHaveAttribute('href', '/fr/tools/json/');
     expect(container).toHaveTextContent('Total 1 tools available.');
   });
 });

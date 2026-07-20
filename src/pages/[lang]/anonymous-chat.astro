@@ -18,7 +18,7 @@ if (!tool) {
 }
 const { content: seo, robots, alternateUrls } = getLocalizedToolPageMetadata(tool, lang);
 const privacy = seo.privacy;
-const fallbackNotice = seo.status === 'fallback' ? getToolFallbackNotice(tool, lang) : null;
+const fallbackNotice = getToolFallbackNotice(tool, lang);
 
 const pageTitle = `${seo.title} | Restato`;
 ---

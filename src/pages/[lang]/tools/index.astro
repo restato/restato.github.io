@@ -36,6 +36,7 @@ const seoContent = {
 // Transform registry entries to the format expected by ToolsGrid.
 const tools = getPublishedTools().map(tool => {
   const content = tool.content[lang] ?? tool.content.en ?? tool.content.ko;
+  const requestedContent = tool.content[lang];
   if (!content) throw new Error(`Missing catalog content for ${tool.slug}`);
   return {
     slug: tool.slug,
@@ -43,7 +44,7 @@ const tools = getPublishedTools().map(tool => {
     description: content.description,
     icon: tool.icon,
     category: tool.category,
-    fallback: content.status === 'fallback',
+    fallback: !requestedContent || requestedContent.status === 'fallback',
     fallbackNotice: getToolFallbackNotice(tool, lang),
   };
 });
@@ -78,6 +79,6 @@ const { robots, alternateUrls } = getToolCatalogPublicationState(lang);
     <ToolsGrid client:load lang={lang} tools={tools} categories={categories} />
 
     <!-- Info with i18n support -->
-    <ToolsPageInfo client:load />
+    <ToolsPageInfo client:load lang={lang} />
   </div>
 </MainLayout>
