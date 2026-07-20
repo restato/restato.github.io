@@ -1,12 +1,14 @@
 import { expect, test } from '@playwright/test';
 import { getPublishedTools } from '../../src/data/tools';
+import { supportedLanguages } from '../../src/data/tools/locales';
+import { getLocalizedToolHref } from '../../src/components/tools/toolLinks';
 import {
   assertNoContentUpload,
   assertNoHorizontalOverflow,
   assertNoUnexpectedConsoleErrors,
 } from './fixtures';
 
-const languages = ['ko', 'en', 'ja'] as const;
+const languages = supportedLanguages;
 
 test('fails closed when a site console error mimics an extension URL', async ({ page }) => {
   assertNoUnexpectedConsoleErrors(page);
@@ -30,11 +32,9 @@ for (const language of languages) {
       : { width: 1440, height: 1000 });
     await expect(page.locator('main')).not.toBeEmpty();
 
-    const expectedToolPaths = getPublishedTools().map((tool) => (
-      tool.slug === 'anonymous-chat'
-        ? `/${language}/anonymous-chat`
-        : `/${language}/tools/${tool.slug}`
-    )).sort();
+    const expectedToolPaths = getPublishedTools()
+      .map((tool) => getLocalizedToolHref(tool.slug, language))
+      .sort();
     const catalogLinks = page.locator('main .grid a[href]');
 
     await expect(catalogLinks).toHaveCount(expectedToolPaths.length);
