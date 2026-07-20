@@ -185,7 +185,7 @@ const getTranslation = (translations: Partial<Record<Language, string>>, languag
 
 <script define:vars={{ navTranslations, darkModeTranslations, languages, lang, lockLanguage, supportedLanguagePattern }} is:inline>
   (() => {
-    const langSupportedPaths = ['/tools', '/anonymous-chat', '/games'];
+    const langSupportedPaths = ['/', '/tools', '/anonymous-chat', '/games'];
     const languagePrefixPattern = new RegExp('^/(' + supportedLanguagePattern + ')(?=/|$|[?#])');
 
     function getBasePath(pathname) {
@@ -195,7 +195,10 @@ const getTranslation = (translations: Partial<Record<Language, string>>, languag
 
     function supportsLangRouting(pathname) {
       const basePath = getBasePath(pathname);
-      return langSupportedPaths.some((path) => basePath === path || basePath.startsWith(path + '/'));
+      const pathOnly = basePath.split(/[?#]/, 1)[0];
+      return langSupportedPaths.some((path) => path === '/'
+        ? pathOnly === '/'
+        : pathOnly === path || pathOnly.startsWith(path + '/'));
     }
 
     function buildLangUrl(pathname, lang) {
@@ -304,7 +307,7 @@ const getTranslation = (translations: Partial<Record<Language, string>>, languag
       updateLanguageUi(lang);
       window.dispatchEvent(new CustomEvent('languageChange', { detail: lang }));
 
-      const currentPath = window.location.pathname;
+      const currentPath = window.location.pathname + window.location.search + window.location.hash;
       if (supportsLangRouting(currentPath)) {
         const newUrl = buildLangUrl(currentPath, lang);
         if (newUrl !== currentPath) {

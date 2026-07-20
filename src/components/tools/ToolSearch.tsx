@@ -1,15 +1,17 @@
 import { useState, useMemo, useRef, useEffect } from 'react';
+import type { Language } from '../../data/tools/types';
+import { getLocalizedToolHref } from './toolLinks';
 
-interface Tool {
+export interface SearchableTool {
   slug: string;
   title: string;
   description: string;
   icon: string;
   category: string;
-  keywords: string[];
+  keywords?: string[];
 }
 
-const tools: Tool[] = [
+const defaultTools: SearchableTool[] = [
   // Generators
   { slug: 'qr-code', title: 'QR 코드 생성기', description: 'URL이나 텍스트를 QR 코드로 변환', icon: '📱', category: 'generators', keywords: ['qr', 'qrcode', '큐알', '큐알코드'] },
   { slug: 'password', title: '비밀번호 생성기', description: '안전한 비밀번호 생성', icon: '🔐', category: 'generators', keywords: ['password', '패스워드', '암호'] },
@@ -46,7 +48,12 @@ const tools: Tool[] = [
   { slug: 'world-clock', title: '세계 시계', description: '전 세계 시간대 확인 및 변환', icon: '🌍', category: 'productivity', keywords: ['world', 'clock', 'timezone', '세계시간', '시차', '타임존'] },
 ];
 
-export default function ToolSearch() {
+interface ToolSearchProps {
+  lang?: Language;
+  tools?: SearchableTool[];
+}
+
+export default function ToolSearch({ lang = 'en', tools = defaultTools }: ToolSearchProps) {
   const [query, setQuery] = useState('');
   const [isOpen, setIsOpen] = useState(false);
   const [selectedIndex, setSelectedIndex] = useState(0);
@@ -60,7 +67,7 @@ export default function ToolSearch() {
     return tools.filter(tool =>
       tool.title.toLowerCase().includes(lowerQuery) ||
       tool.description.toLowerCase().includes(lowerQuery) ||
-      tool.keywords.some(k => k.toLowerCase().includes(lowerQuery))
+      tool.keywords?.some(k => k.toLowerCase().includes(lowerQuery))
     ).slice(0, 8);
   }, [query]);
 
@@ -103,7 +110,7 @@ export default function ToolSearch() {
       case 'Enter':
         e.preventDefault();
         if (filteredTools[selectedIndex]) {
-          window.location.href = `/tools/${filteredTools[selectedIndex].slug}`;
+          window.location.href = getLocalizedToolHref(filteredTools[selectedIndex].slug, lang);
         }
         break;
     }
@@ -154,7 +161,7 @@ export default function ToolSearch() {
           {filteredTools.map((tool, index) => (
             <a
               key={tool.slug}
-              href={`/tools/${tool.slug}`}
+              href={getLocalizedToolHref(tool.slug, lang)}
               className={`flex items-center gap-3 px-4 py-3 transition-colors
                 ${index === selectedIndex
                   ? 'bg-primary-500/10 text-primary-500'

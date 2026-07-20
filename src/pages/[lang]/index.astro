@@ -44,7 +44,6 @@ const getDisplayContent = (tool: ToolDefinition) =>
   description={copy.description}
   canonical={`https://restato.github.io/${lang}/`}
   lang={lang}
-  lockLanguage={true}
   alternateUrls={alternateUrls}
 >
   <div class="max-w-6xl mx-auto px-4 py-10">
@@ -69,7 +68,7 @@ const getDisplayContent = (tool: ToolDefinition) =>
             <ul class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
               {clusterTools.map(tool => {
                 const content = getDisplayContent(tool);
-                const usesFallback = !tool.content[lang];
+                const usesFallback = content?.status === 'fallback' || !tool.content[lang];
                 return (
                   <li>
                     <a

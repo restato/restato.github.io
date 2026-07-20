@@ -5,11 +5,11 @@ import RecentTools from '../../../components/tools/RecentTools';
 import ToolsGrid from '../../../components/tools/ToolsGrid';
 import ToolsPageHeader from '../../../components/tools/ToolsPageHeader';
 import ToolsPageInfo from '../../../components/tools/ToolsPageInfo';
-import { categories, getPublishedTools, type ToolDefinition } from '../../../data/tools';
-import { existingToolLanguages, supportedLanguages } from '../../../data/tools/locales';
+import { categories, getPublishedTools } from '../../../data/tools';
+import { supportedLanguages } from '../../../data/tools/locales';
 import type { Language } from '../../../data/tools/types';
 import { landingContent } from '../../../i18n/landing';
-import { getAlternateUrls } from '../../../i18n/urlUtils';
+import { getToolCatalogPublicationState } from '../../../data/tools/pageMetadata';
 
 export function getStaticPaths() {
   return supportedLanguages.map(lang => ({ params: { lang } }));
@@ -33,39 +33,30 @@ const seoContent = {
   },
 };
 
-// Generate alternate URLs for hreflang
-const alternateUrls = getAlternateUrls(`/${lang}/tools/`, 'https://restato.github.io');
-
-const getToolText = (tool: ToolDefinition, language: Language, field: 'name' | 'description') => {
-  return tool.content[language]?.[field] || tool.content.en?.[field] || tool.content.ko?.[field] || tool.slug;
-};
-
 // Transform registry entries to the format expected by ToolsGrid.
-const tools = getPublishedTools().map(tool => ({
-  slug: tool.slug === 'anonymous-chat' ? `/${lang}/anonymous-chat` : tool.slug,
-  title: {
-    ko: getToolText(tool, 'ko', 'name'),
-    en: getToolText(tool, 'en', 'name'),
-    ja: getToolText(tool, 'ja', 'name'),
-  },
-  description: {
-    ko: getToolText(tool, 'ko', 'description'),
-    en: getToolText(tool, 'en', 'description'),
-    ja: getToolText(tool, 'ja', 'description'),
-  },
-  icon: tool.icon,
-  category: tool.category,
-}));
+const tools = getPublishedTools().map(tool => {
+  const content = tool.content[lang] ?? tool.content.en ?? tool.content.ko;
+  if (!content) throw new Error(`Missing catalog content for ${tool.slug}`);
+  return {
+    slug: tool.slug,
+    title: content.name,
+    description: content.description,
+    icon: tool.icon,
+    category: tool.category,
+    fallback: content.status === 'fallback',
+  };
+});
 
 const seo = seoContent[lang as keyof typeof seoContent] ?? landingContent[lang];
-const usesFallback = !existingToolLanguages.includes(lang as (typeof existingToolLanguages)[number]);
+const usesFallback = tools.some(tool => tool.fallback);
+const { robots, alternateUrls } = getToolCatalogPublicationState(lang);
 ---
 
 <MainLayout
   title={seo.title}
   description={seo.description}
   lang={lang}
-  robots={usesFallback ? 'noindex, follow' : 'index, follow'}
+  robots={robots}
   alternateUrls={alternateUrls}
 >
   <div class="max-w-6xl mx-auto px-4 py-8">
@@ -75,11 +66,11 @@ const usesFallback = !existingToolLanguages.includes(lang as (typeof existingToo
 
     <!-- Search -->
     <div class="mb-6">
-      <ToolSearch client:load />
+      <ToolSearch client:load lang={lang} tools={tools} />
     </div>
 
     <!-- Recent Tools -->
-    <RecentTools client:load className="mb-8" />
+    <RecentTools client:load lang={lang} className="mb-8" />
 
     <!-- Tools Grid with i18n support -->
     <ToolsGrid client:load lang={lang} tools={tools} categories={categories} />

@@ -4,6 +4,7 @@ import { join } from 'node:path';
 import { describe, expect, it } from 'vitest';
 import { getTool } from '../registry';
 import {
+  getToolCatalogPublicationState,
   getLocalizedToolPageMetadata,
   isIndexableLocalizedToolUrl,
 } from '../pageMetadata';
@@ -34,11 +35,19 @@ describe('localized tool page metadata', () => {
     expect(metadata.alternateUrls).toEqual([]);
   });
 
+  it('keeps fallback catalogs non-indexable and out of reciprocal alternates', () => {
+    expect(getToolCatalogPublicationState('fr')).toEqual({
+      robots: 'noindex, follow',
+      alternateUrls: [],
+    });
+  });
+
   it('filters fallback tool and anonymous-chat URLs out of the sitemap without removing public routes', () => {
     expect(isIndexableLocalizedToolUrl('/ko/tools/background-remover')).toBe(false);
     expect(isIndexableLocalizedToolUrl('/en/anonymous-chat')).toBe(false);
     expect(isIndexableLocalizedToolUrl('/ko/tools/image-crop-resizer')).toBe(false);
-    expect(isIndexableLocalizedToolUrl('/ko/tools')).toBe(true);
+    expect(isIndexableLocalizedToolUrl('/ko/tools')).toBe(false);
+    expect(isIndexableLocalizedToolUrl('/fr/tools/')).toBe(false);
     expect(isIndexableLocalizedToolUrl('/en/blog/not-a-tool')).toBe(true);
   });
 
@@ -70,6 +79,8 @@ describe('localized tool page metadata', () => {
     expect(anonymousChatSource).toContain('const privacy = seo.privacy');
     expect(anonymousChatSource).toContain('<p class="chat-privacy">{privacy}</p>');
     expect(anonymousChatSource).toContain('robots={robots}');
+    expect(detailSource).toContain("content.status === 'fallback'");
+    expect(anonymousChatSource).toContain("seo.status === 'fallback'");
     expect(astroConfigSource).toContain('isIndexableLocalizedToolUrl');
     expect(astroConfigSource).toContain('filter: isIndexableLocalizedToolUrl');
   });

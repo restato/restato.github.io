@@ -9,6 +9,10 @@
 - Added meaningful localized landing metadata/copy, localized cluster navigation, direct tool links, and visible English fallback notices for all 12 languages.
 - Generated landing, tool hub, tool detail, and anonymous-chat static paths for all 12 languages. New fallback tool pages remain `noindex, follow`.
 - Preserved the existing Korean, English, and Japanese routes and UI behavior.
+- Follow-up review: fallback notices now follow `content.status`, and fallback catalogs/details are excluded consistently from hreflang and sitemap publication.
+- Follow-up review: catalog cards and search use pre-resolved English fallback copy; search and recent-tool links preserve the active locale and anonymous-chat route.
+- Follow-up review: language switching preserves pathname, query, and hash, while URL locale metadata remains authoritative without hiding the selector.
+- Expanded Astro sitemap locale metadata to the same 12-language source of truth.
 
 ## TDD evidence
 
@@ -16,7 +20,8 @@
 - RED: landing route/content tests failed because the files were absent.
 - RED: 12-language tool hub/detail source contract failed against 3-language static paths.
 - RED: duplicate/x-default test failed because the normalization helper was absent.
-- GREEN: `npm test -- --run src/i18n/__tests__/locales.test.ts src/i18n/__tests__/landing.test.ts src/data/tools/__tests__/pageMetadata.test.ts` — 44/44 passed.
+- RED: reviewer regressions reproduced nine failures across fallback status, catalog publication, localized links, full-URL switching, and URL metadata locking.
+- GREEN: focused reviewer regression suite — 57/57 passed.
 - GREEN: `npm run check` — zero errors; only pre-existing warnings remain.
 
 ## Controller pending

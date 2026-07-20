@@ -4,8 +4,8 @@ import ToolsGrid from '../ToolsGrid';
 
 const tool = {
   slug: 'json',
-  title: { ko: 'JSON 포매터', en: 'JSON Formatter', ja: 'JSONフォーマッター' },
-  description: { ko: 'JSON을 정리합니다.', en: 'Format JSON.', ja: 'JSONを整形します。' },
+  title: 'JSON Formatter',
+  description: 'Format JSON.',
   icon: '{ }',
   category: 'developer',
 };
@@ -35,11 +35,19 @@ describe('ToolsGrid', () => {
     const chatTool = {
       ...tool,
       slug: '/ko/anonymous-chat',
-      title: { ko: '익명 채팅', en: 'Anonymous Chat', ja: '匿名チャット' },
+      title: 'Anonymous Chat',
     };
 
     render(<ToolsGrid lang="ko" tools={[chatTool]} categories={[allCategory]} />);
 
-    expect(screen.getByRole('link', { name: /익명 채팅/ })).toHaveAttribute('href', '/ko/anonymous-chat');
+    expect(screen.getByRole('link', { name: /Anonymous Chat/ })).toHaveAttribute('href', '/ko/anonymous-chat');
+  });
+
+  it('renders pre-resolved English fallback text for a new locale', () => {
+    render(<ToolsGrid lang="fr" tools={[tool]} categories={[allCategory]} />);
+
+    expect(screen.getByRole('heading', { name: 'JSON Formatter' })).toBeInTheDocument();
+    expect(screen.getByText('Format JSON.')).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: /JSON Formatter/ })).toHaveAttribute('href', '/fr/tools/json');
   });
 });

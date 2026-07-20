@@ -2,7 +2,7 @@
 import '../styles/global.css';
 import { localeMetadata } from '../i18n';
 import type { Language } from '../data/tools/types';
-import { normalizeHeadAlternates } from '../i18n/urlUtils';
+import { normalizeHeadAlternates, parseLanguage } from '../i18n/urlUtils';
 
 interface AlternateUrl {
   lang: string;
@@ -45,6 +45,7 @@ const normalizedAlternateUrls = normalizeHeadAlternates(alternateUrls);
 const clientLocaleMap = Object.fromEntries(
   Object.entries(localeMetadata).map(([code, metadata]) => [code, { html: metadata.html, ogLocale: metadata.og }]),
 );
+const metadataLanguageLocked = lockLanguage || parseLanguage(Astro.url.pathname) !== null;
 
 const canonicalURL = canonical
   ? new URL(canonical, Astro.site)
@@ -184,7 +185,7 @@ const articleSchema = type === 'article' ? {
     </script>
 
     <!-- Language Script -->
-    {!lockLanguage && (
+    {!metadataLanguageLocked && (
       <script is:inline>
         (function() {
           const langMap = JSON.parse(document.documentElement.dataset.localeMap || '{}');

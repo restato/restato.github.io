@@ -1,4 +1,6 @@
 import { useState, useEffect } from 'react';
+import type { Language } from '../../data/tools/types';
+import { getLocalizedToolHref } from './toolLinks';
 
 interface Tool {
   slug: string;
@@ -45,9 +47,10 @@ export function getRecentTools(): Tool[] {
 
 interface RecentToolsProps {
   className?: string;
+  lang?: Language;
 }
 
-export default function RecentTools({ className = '' }: RecentToolsProps) {
+export default function RecentTools({ className = '', lang = 'en' }: RecentToolsProps) {
   const [tools, setTools] = useState<Tool[]>([]);
 
   useEffect(() => {
@@ -70,7 +73,7 @@ export default function RecentTools({ className = '' }: RecentToolsProps) {
         {tools.map((tool) => (
           <a
             key={tool.slug}
-            href={`/tools/${tool.slug}`}
+            href={getLocalizedToolHref(tool.slug, lang)}
             className="flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm
               bg-[var(--color-card)] border border-[var(--color-border)]
               hover:border-primary-500 hover:text-primary-500 transition-colors"

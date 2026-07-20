@@ -3,8 +3,8 @@ import type { Language } from '../../i18n';
 
 interface Tool {
   slug: string;
-  title: { ko: string; en: string; ja: string };
-  description: { ko: string; en: string; ja: string };
+  title: string | { ko: string; en: string; ja: string };
+  description: string | { ko: string; en: string; ja: string };
   icon: string;
   category: string;
 }
@@ -28,8 +28,10 @@ export default function ToolsGrid({ lang, tools, categories }: ToolsGridProps) {
     : tools.filter(tool => tool.category === selectedCategory);
 
   const getLocalizedText = (obj: { ko: string; en: string; ja: string }) => {
-    return obj[lang as keyof typeof obj] || obj.ko;
+    return obj[lang as keyof typeof obj] || obj.en || obj.ko;
   };
+  const getDisplayText = (value: Tool['title']) =>
+    typeof value === 'string' ? value : getLocalizedText(value);
 
   const countCopy = {
     ko: { prefix: '총', suffix: '의 도구가 있습니다.', unit: '개' },
@@ -70,10 +72,10 @@ export default function ToolsGrid({ lang, tools, categories }: ToolsGridProps) {
               <span className="text-3xl">{tool.icon}</span>
               <div className="flex-1 min-w-0">
                 <h3 className="text-lg font-semibold text-[var(--color-text)] group-hover:text-primary-500 transition-colors">
-                  {getLocalizedText(tool.title)}
+                  {getDisplayText(tool.title)}
                 </h3>
                 <p className="text-sm text-[var(--color-text-muted)] mt-1">
-                  {getLocalizedText(tool.description)}
+                  {getDisplayText(tool.description)}
                 </p>
               </div>
               <svg className="w-5 h-5 text-[var(--color-text-muted)] group-hover:text-primary-500 transition-colors flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">

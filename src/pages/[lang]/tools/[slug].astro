@@ -102,7 +102,7 @@ const { content, robots, alternateUrls } = getLocalizedToolPageMetadata(tool, la
 const privacy = content.privacy;
 const seo = content;
 const ui = uiStrings[lang as ExistingRouteLanguage] ?? uiStrings.en;
-const fallbackNotice = !tool.content[lang] ? landingContent[lang].fallbackNotice : null;
+const fallbackNotice = content.status === 'fallback' ? landingContent[lang].fallbackNotice : null;
 
 const pageTitle = `${seo.title} | Restato`;
 const canonicalUrl = `https://restato.github.io/${lang}/tools/${tool.slug}`;

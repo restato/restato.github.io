@@ -1,4 +1,5 @@
-import { getIndexableLanguages, getTool } from './registry';
+import { getIndexableLanguages, getPublishedTools, getTool } from './registry';
+import { supportedLanguages } from './locales';
 import type { Language, ToolContent, ToolDefinition } from './types';
 import { supportedLanguagePattern } from '../../i18n/urlUtils';
 
@@ -15,6 +16,27 @@ export interface LocalizedToolPageMetadata {
   privacy: string;
   robots: 'index, follow' | 'noindex, follow';
   alternateUrls: ToolAlternateUrl[];
+}
+
+export interface ToolCatalogPublicationState {
+  robots: 'index, follow' | 'noindex, follow';
+  alternateUrls: ToolAlternateUrl[];
+}
+
+const isCatalogLanguageComplete = (lang: Language): boolean => {
+  const tools = getPublishedTools();
+  return tools.length > 0 && tools.every(tool => tool.content[lang]?.status === 'complete');
+};
+
+export function getToolCatalogPublicationState(lang: Language): ToolCatalogPublicationState {
+  const indexableLanguages = supportedLanguages.filter(isCatalogLanguageComplete);
+  return {
+    robots: indexableLanguages.includes(lang) ? 'index, follow' : 'noindex, follow',
+    alternateUrls: indexableLanguages.map(language => ({
+      lang: language,
+      url: `${siteUrl}/${language}/tools/`,
+    })),
+  };
 }
 
 export function getLocalizedToolPageMetadata(
@@ -45,7 +67,12 @@ export function getLocalizedToolPageMetadata(
 export function isIndexableLocalizedToolUrl(url: string): boolean {
   const pathname = new URL(url, siteUrl).pathname;
   const toolMatch = pathname.match(new RegExp(`^/(${supportedLanguagePattern})/tools/([^/]+)/?$`));
+  const toolHubMatch = pathname.match(new RegExp(`^/(${supportedLanguagePattern})/tools/?$`));
   const anonymousChatMatch = pathname.match(new RegExp(`^/(${supportedLanguagePattern})/anonymous-chat/?$`));
+  if (toolHubMatch) {
+    return getToolCatalogPublicationState(toolHubMatch[1] as Language).robots === 'index, follow';
+  }
+
   const match = toolMatch ?? anonymousChatMatch;
 
   if (!match) return true;
