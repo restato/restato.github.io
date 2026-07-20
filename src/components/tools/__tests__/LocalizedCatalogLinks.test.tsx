@@ -6,6 +6,8 @@ import RecentTools, { trackToolVisit } from '../RecentTools';
 import ToolSearch from '../ToolSearch';
 import ToolsPageHeader from '../ToolsPageHeader';
 import ToolsPageInfo from '../ToolsPageInfo';
+import FavoriteButton from '../FavoriteButton';
+import ShareButton from '../ShareButton';
 
 const tools = [
   { slug: 'json', title: 'JSON Formatter', description: 'Format JSON.', icon: '{ }', category: 'developer' },
@@ -46,5 +48,11 @@ describe('localized catalog links', () => {
     expect(screen.getByRole('heading', { name: 'ℹ️ Informations sur les outils' })).toBeInTheDocument();
     expect(screen.getByText(/Fonctionne sur mobile et ordinateur/)).toBeInTheDocument();
     expect(screen.queryByText('ℹ️ 정보')).not.toBeInTheDocument();
+  });
+
+  it('renders favorite and share controls in the requested language during SSR', () => {
+    render(<><FavoriteButton lang="fr" slug="json" title="JSON" icon="{}" /><ShareButton lang="fr" title="JSON" description="JSON" /></>);
+    expect(screen.getByRole('button', { name: 'Ajouter aux favoris' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Partager' })).toBeInTheDocument();
   });
 });

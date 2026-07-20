@@ -58,7 +58,9 @@ function toolUrl(tool: ToolDefinition, lang: Language): string {
 }
 
 export function getPublicationState(tool: ToolDefinition, lang: Language): PublicationState {
-  const completeLanguages = supportedLanguages.filter(language => isSubstantiveToolContent(tool, language));
+  const completeLanguages = tool.released
+    ? supportedLanguages.filter(language => isSubstantiveToolContent(tool, language))
+    : [];
   const indexable = tool.released && completeLanguages.includes(lang);
   return {
     indexable,
@@ -73,14 +75,15 @@ export function getCatalogCardContent(tool: ToolDefinition, lang: Language): Cat
     return { content: requested!, usedLanguage: lang, usesFallback: false, notice: null };
   }
 
-  const english = tool.content.en;
-  const fallback = english ?? tool.content.ko;
+  const english = hasSubstantiveContent(tool.content.en, tool.privacyMode) ? tool.content.en : undefined;
+  const korean = hasSubstantiveContent(tool.content.ko, tool.privacyMode) ? tool.content.ko : undefined;
+  const fallback = english ?? korean;
   if (!fallback) throw new Error(`Missing fallback content for ${tool.slug}`);
-  const usedLanguage: Language = english ? 'en' : 'ko';
+  const usedLanguage: Language = english ? 'en' : korean ? 'ko' : lang;
   return {
     content: fallback,
     usedLanguage,
-    usesFallback: usedLanguage !== lang,
-    notice: usedLanguage !== lang ? sharedToolUi[lang].fallbackNotice : null,
+    usesFallback: true,
+    notice: sharedToolUi[lang].fallbackNotice,
   };
 }

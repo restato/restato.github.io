@@ -6,6 +6,7 @@ import { getLocalizedToolPageMetadata } from '../../data/tools/pageMetadata';
 import { supportedLanguages } from '../../data/tools/locales';
 import type { Language } from '../../data/tools/types';
 import { getToolFallbackNotice } from '../../i18n/landing';
+import { interactiveFallbackNotice as interactiveNotices, sharedToolUi } from '../../i18n/tool-ui';
 
 export function getStaticPaths() {
   return supportedLanguages.map(lang => ({ params: { lang } }));
@@ -19,8 +20,19 @@ if (!tool) {
 const { content: seo, robots, alternateUrls } = getLocalizedToolPageMetadata(tool, lang);
 const privacy = seo.privacy;
 const fallbackNotice = getToolFallbackNotice(tool, lang);
+const helpUi = sharedToolUi[lang];
+const interactiveFallbackNotice = !['ko', 'en', 'ja'].includes(lang) ? interactiveNotices[lang] : null;
 
 const pageTitle = `${seo.title} | Restato`;
+const faqSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'FAQPage',
+  mainEntity: seo.faq.map(item => ({
+    '@type': 'Question',
+    name: item.question,
+    acceptedAnswer: { '@type': 'Answer', text: item.answer },
+  })),
+};
 ---
 
 <MainLayout
@@ -30,22 +42,40 @@ const pageTitle = `${seo.title} | Restato`;
   robots={robots}
   alternateUrls={alternateUrls}
 >
-  <div class="chat-page px-4 py-2">
+  <script type="application/ld+json" set:html={JSON.stringify(faqSchema)} />
+  <div class="chat-page px-4 py-4">
+    <header class="chat-header"><h1>{seo.name}</h1><p>{seo.description}</p></header>
     {fallbackNotice && <p class="chat-fallback">{fallbackNotice}</p>}
-    <p class="chat-privacy">{privacy}</p>
+    {interactiveFallbackNotice && <p class="chat-interactive-notice">{interactiveFallbackNotice}</p>}
     <div class="chat-container">
       <Chat client:load />
     </div>
+    <section class="chat-help">
+      <div>
+        <h2>{helpUi.usageGuide}</h2>
+        <p>{seo.overview}</p>
+        <ol>{seo.steps.map(step => <li>{step}</li>)}</ol>
+      </div>
+      <div><h2>{helpUi.output}</h2><ul>{seo.examples.map(example => <li>{example}</li>)}</ul></div>
+      <div><h2>{helpUi.limitations}</h2><ul>{seo.limitations.map(limitation => <li>{limitation}</li>)}</ul></div>
+      <div><h2>{helpUi.privacy}</h2><p class="chat-privacy">{privacy}</p></div>
+      <div><h2>{helpUi.faq}</h2>{seo.faq.map(item => <details><summary>{item.question}</summary><p>{item.answer}</p></details>)}</div>
+    </section>
   </div>
 </MainLayout>
 
 <style>
   .chat-page {
-    height: calc(100vh - 140px);
     display: flex;
     flex-direction: column;
     gap: 0.75rem;
+    max-width: 64rem;
+    margin: 0 auto;
   }
+
+  .chat-header { max-width: 48rem; margin: 0 auto 0.5rem; text-align: center; }
+  .chat-header h1 { color: var(--color-text); font-size: 1.875rem; font-weight: 700; }
+  .chat-header p { margin-top: 0.5rem; color: var(--color-text-muted); }
 
   .chat-privacy {
     max-width: 48rem;
@@ -55,7 +85,7 @@ const pageTitle = `${seo.title} | Restato`;
     line-height: 1.5;
   }
 
-  .chat-fallback {
+  .chat-fallback, .chat-interactive-notice {
     max-width: 48rem;
     margin: 0 auto;
     padding: 0.75rem 1rem;
@@ -66,13 +96,33 @@ const pageTitle = `${seo.title} | Restato`;
   }
 
   .chat-container {
-    min-height: 0;
-    flex: 1;
+    min-height: 32rem;
+    height: calc(100vh - 180px);
   }
+
+  .chat-interactive-notice { border-color: #3b82f6; }
+
+  .chat-help {
+    display: grid;
+    gap: 2rem;
+    margin: 1.5rem auto 2rem;
+    padding: 1.5rem;
+    border: 1px solid var(--color-border);
+    border-radius: 0.75rem;
+    background: var(--color-card);
+    color: var(--color-text-muted);
+  }
+  .chat-help h2 { margin-bottom: 0.75rem; color: var(--color-text); font-size: 1.125rem; font-weight: 600; }
+  .chat-help ol, .chat-help ul { margin-top: 0.75rem; padding-left: 1.25rem; }
+  .chat-help ol { list-style: decimal; }
+  .chat-help ul { list-style: disc; }
+  .chat-help li, .chat-help details { margin-top: 0.5rem; }
+  .chat-help summary { cursor: pointer; color: var(--color-text); font-weight: 500; }
+  .chat-help details p { margin-top: 0.5rem; }
 
   @media (max-width: 768px) {
     .chat-page {
-      height: calc(100vh - 120px);
+      padding-inline: 0.75rem;
     }
   }
 </style>

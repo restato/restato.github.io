@@ -176,8 +176,8 @@ const faqSchema = {
           </p>
         </div>
         <div class="flex items-center gap-2">
-          <FavoriteButton client:load slug={tool.slug} title={shortTitle} icon={tool.icon} />
-          <ShareButton client:load title={pageTitle} description={seo.description} />
+          <FavoriteButton client:load lang={lang} slug={tool.slug} title={shortTitle} icon={tool.icon} />
+          <ShareButton client:load lang={lang} title={pageTitle} description={seo.description} />
         </div>
       </div>
     </header>

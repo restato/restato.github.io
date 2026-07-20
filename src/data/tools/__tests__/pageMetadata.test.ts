@@ -36,10 +36,10 @@ describe('localized tool page metadata', () => {
     expect(metadata.alternateUrls).toHaveLength(12);
   });
 
-  it('describes localized incomplete content differently from English fallback content', () => {
+  it('labels incomplete requested content as English fallback when English is rendered', () => {
     const source = getTool('json')!;
     const tool = { ...source, content: { ...source.content, ko: { ...source.content.ko!, status: 'fallback' as const }, fr: undefined } };
-    expect(getToolFallbackNotice(tool, 'ko')).toContain('일부');
+    expect(getToolFallbackNotice(tool, 'ko')).toBe(landingContent.ko.fallbackNotice);
     expect(getToolFallbackNotice(tool, 'fr')).toBe(landingContent.fr.fallbackNotice);
   });
 
@@ -105,5 +105,16 @@ describe('localized tool page metadata', () => {
     expect(anonymousChatSource).toContain('getToolFallbackNotice(tool, lang)');
     expect(astroConfigSource).toContain('isIndexableLocalizedToolUrl');
     expect(astroConfigSource).toContain('filter: isIndexableLocalizedToolUrl');
+  });
+
+  it('renders the anonymous chat help, FAQ schema, privacy and interactive fallback boundary', () => {
+    const source = readFileSync(anonymousChatRoutePath, 'utf8');
+    expect(source).toContain('seo.overview');
+    expect(source).toContain('seo.steps.map');
+    expect(source).toContain('seo.examples.map');
+    expect(source).toContain('seo.limitations.map');
+    expect(source).toContain('seo.faq.map');
+    expect(source).toContain('FAQPage');
+    expect(source).toContain('interactiveFallbackNotice');
   });
 });

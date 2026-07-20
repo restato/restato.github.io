@@ -112,3 +112,18 @@ export const relatedToolsTitle: Record<Language, string> = {
   es: 'Herramientas relacionadas', pt: 'Ferramentas relacionadas', de: 'Ähnliche Werkzeuge',
   fr: 'Outils associés', it: 'Strumenti correlati', id: 'Alat terkait', hi: 'संबंधित टूल',
 };
+
+export const toolActionUi: Record<Language, { share: string; copyLink: string; copied: string; favorite: string; favorited: string; addFavorite: string; removeFavorite: string }> = {
+  ko: { share: '공유', copyLink: '링크 복사', copied: '복사됨', favorite: '즐겨찾기', favorited: '즐겨찾기됨', addFavorite: '즐겨찾기에 추가', removeFavorite: '즐겨찾기에서 제거' },
+  en: { share: 'Share', copyLink: 'Copy link', copied: 'Copied', favorite: 'Favorite', favorited: 'Favorited', addFavorite: 'Add to favorites', removeFavorite: 'Remove from favorites' },
+  ja: { share: '共有', copyLink: 'リンクをコピー', copied: 'コピー済み', favorite: 'お気に入り', favorited: 'お気に入り済み', addFavorite: 'お気に入りに追加', removeFavorite: 'お気に入りから削除' },
+  'zh-CN': { share: '分享', copyLink: '复制链接', copied: '已复制', favorite: '收藏', favorited: '已收藏', addFavorite: '添加到收藏', removeFavorite: '从收藏中移除' },
+  'zh-TW': { share: '分享', copyLink: '複製連結', copied: '已複製', favorite: '收藏', favorited: '已收藏', addFavorite: '加入收藏', removeFavorite: '從收藏移除' },
+  es: { share: 'Compartir', copyLink: 'Copiar enlace', copied: 'Copiado', favorite: 'Favorito', favorited: 'En favoritos', addFavorite: 'Añadir a favoritos', removeFavorite: 'Quitar de favoritos' },
+  pt: { share: 'Compartilhar', copyLink: 'Copiar link', copied: 'Copiado', favorite: 'Favorito', favorited: 'Nos favoritos', addFavorite: 'Adicionar aos favoritos', removeFavorite: 'Remover dos favoritos' },
+  de: { share: 'Teilen', copyLink: 'Link kopieren', copied: 'Kopiert', favorite: 'Favorit', favorited: 'Als Favorit markiert', addFavorite: 'Zu Favoriten hinzufügen', removeFavorite: 'Aus Favoriten entfernen' },
+  fr: { share: 'Partager', copyLink: 'Copier le lien', copied: 'Copié', favorite: 'Favori', favorited: 'Ajouté aux favoris', addFavorite: 'Ajouter aux favoris', removeFavorite: 'Retirer des favoris' },
+  it: { share: 'Condividi', copyLink: 'Copia link', copied: 'Copiato', favorite: 'Preferito', favorited: 'Nei preferiti', addFavorite: 'Aggiungi ai preferiti', removeFavorite: 'Rimuovi dai preferiti' },
+  id: { share: 'Bagikan', copyLink: 'Salin tautan', copied: 'Disalin', favorite: 'Favorit', favorited: 'Sudah difavoritkan', addFavorite: 'Tambahkan ke favorit', removeFavorite: 'Hapus dari favorit' },
+  hi: { share: 'साझा करें', copyLink: 'लिंक कॉपी करें', copied: 'कॉपी हुआ', favorite: 'पसंदीदा', favorited: 'पसंदीदा बनाया', addFavorite: 'पसंदीदा में जोड़ें', removeFavorite: 'पसंदीदा से हटाएँ' },
+};

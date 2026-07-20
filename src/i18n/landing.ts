@@ -1,4 +1,6 @@
 import type { Language, ToolDefinition } from '../data/tools/types';
+import { getCatalogCardContent, isSubstantiveToolContent } from './completeness';
+import { sharedToolUi } from './tool-ui';
 
 export interface LandingContent {
   title: string;
@@ -19,7 +21,7 @@ export const landingContent = {
     intro: '설치나 회원가입 없이 사용할 수 있는 실용적인 웹 도구를 한곳에 모았습니다.',
     clusters: '작업별 도구',
     allTools: '전체 도구 보기',
-    fallbackNotice: '이 도구의 설명은 아직 이 언어로 준비되지 않아 영어로 표시됩니다.',
+    fallbackNotice: sharedToolUi.ko.fallbackNotice,
     localPrivacy: '대부분의 입력과 파일은 브라우저 안에서 처리됩니다.',
   },
   en: {
@@ -29,7 +31,7 @@ export const landingContent = {
     intro: 'A practical collection of web tools you can use without installing software or creating an account.',
     clusters: 'Tools by task',
     allTools: 'Browse all tools',
-    fallbackNotice: 'This tool description is not yet available in your language, so it is shown in English.',
+    fallbackNotice: sharedToolUi.en.fallbackNotice,
     localPrivacy: 'Most inputs and files are processed inside your browser.',
   },
   ja: {
@@ -39,7 +41,7 @@ export const landingContent = {
     intro: 'インストールや会員登録なしで使える実用的なウェブツールをまとめました。',
     clusters: '作業別ツール',
     allTools: 'すべてのツールを見る',
-    fallbackNotice: 'このツールの説明はまだ日本語に対応していないため、英語で表示されます。',
+    fallbackNotice: sharedToolUi.ja.fallbackNotice,
     localPrivacy: 'ほとんどの入力とファイルはブラウザ内で処理されます。',
   },
   'zh-CN': {
@@ -49,7 +51,7 @@ export const landingContent = {
     intro: '无需安装软件或注册账号，即可使用这一系列实用的网页工具。',
     clusters: '按任务浏览工具',
     allTools: '查看全部工具',
-    fallbackNotice: '此工具的说明尚未提供简体中文版本，因此目前以英文显示。',
+    fallbackNotice: sharedToolUi['zh-CN'].fallbackNotice,
     localPrivacy: '大多数输入内容和文件都只在您的浏览器中处理。',
   },
   'zh-TW': {
@@ -59,7 +61,7 @@ export const landingContent = {
     intro: '無需安裝軟體或註冊帳號，即可使用這一系列實用的網頁工具。',
     clusters: '依工作瀏覽工具',
     allTools: '查看全部工具',
-    fallbackNotice: '此工具的說明尚未提供繁體中文版本，因此目前以英文顯示。',
+    fallbackNotice: sharedToolUi['zh-TW'].fallbackNotice,
     localPrivacy: '大多數輸入內容與檔案都只在您的瀏覽器中處理。',
   },
   es: {
@@ -69,7 +71,7 @@ export const landingContent = {
     intro: 'Una colección práctica de herramientas web sin instalaciones ni necesidad de crear una cuenta.',
     clusters: 'Herramientas por tarea',
     allTools: 'Ver todas las herramientas',
-    fallbackNotice: 'La descripción de esta herramienta aún no está disponible en español y se muestra en inglés.',
+    fallbackNotice: sharedToolUi.es.fallbackNotice,
     localPrivacy: 'La mayoría de los datos y archivos se procesan dentro de tu navegador.',
   },
   pt: {
@@ -79,7 +81,7 @@ export const landingContent = {
     intro: 'Uma coleção prática de ferramentas web sem instalação de programas nem criação de conta.',
     clusters: 'Ferramentas por tarefa',
     allTools: 'Ver todas as ferramentas',
-    fallbackNotice: 'A descrição desta ferramenta ainda não está disponível em português e aparece em inglês.',
+    fallbackNotice: sharedToolUi.pt.fallbackNotice,
     localPrivacy: 'A maioria dos dados e arquivos é processada dentro do seu navegador.',
   },
   de: {
@@ -89,7 +91,7 @@ export const landingContent = {
     intro: 'Eine praktische Sammlung von Web-Tools ohne Installation und ohne Benutzerkonto.',
     clusters: 'Tools nach Aufgabe',
     allTools: 'Alle Tools ansehen',
-    fallbackNotice: 'Die Beschreibung dieses Tools ist noch nicht auf Deutsch verfügbar und wird auf Englisch angezeigt.',
+    fallbackNotice: sharedToolUi.de.fallbackNotice,
     localPrivacy: 'Die meisten Eingaben und Dateien werden direkt in deinem Browser verarbeitet.',
   },
   fr: {
@@ -99,7 +101,7 @@ export const landingContent = {
     intro: 'Une collection pratique d’outils web sans installation de logiciel ni création de compte.',
     clusters: 'Outils par tâche',
     allTools: 'Voir tous les outils',
-    fallbackNotice: 'La description de cet outil n’est pas encore disponible en français et s’affiche en anglais.',
+    fallbackNotice: sharedToolUi.fr.fallbackNotice,
     localPrivacy: 'La plupart des saisies et fichiers sont traités directement dans votre navigateur.',
   },
   it: {
@@ -109,7 +111,7 @@ export const landingContent = {
     intro: 'Una raccolta pratica di strumenti web senza installazione di software e senza registrazione.',
     clusters: 'Strumenti per attività',
     allTools: 'Vedi tutti gli strumenti',
-    fallbackNotice: 'La descrizione di questo strumento non è ancora disponibile in italiano e viene mostrata in inglese.',
+    fallbackNotice: sharedToolUi.it.fallbackNotice,
     localPrivacy: 'La maggior parte dei dati e dei file viene elaborata direttamente nel browser.',
   },
   id: {
@@ -119,7 +121,7 @@ export const landingContent = {
     intro: 'Kumpulan alat web praktis yang dapat digunakan tanpa instalasi atau membuat akun.',
     clusters: 'Alat berdasarkan tugas',
     allTools: 'Lihat semua alat',
-    fallbackNotice: 'Deskripsi alat ini belum tersedia dalam bahasa Indonesia sehingga ditampilkan dalam bahasa Inggris.',
+    fallbackNotice: sharedToolUi.id.fallbackNotice,
     localPrivacy: 'Sebagian besar input dan file diproses langsung di dalam browser Anda.',
   },
   hi: {
@@ -129,7 +131,7 @@ export const landingContent = {
     intro: 'बिना सॉफ़्टवेयर इंस्टॉल किए या खाता बनाए उपयोग किए जा सकने वाले व्यावहारिक वेब टूल।',
     clusters: 'काम के अनुसार टूल',
     allTools: 'सभी टूल देखें',
-    fallbackNotice: 'इस टूल का विवरण अभी हिन्दी में उपलब्ध नहीं है, इसलिए इसे अंग्रेज़ी में दिखाया गया है।',
+    fallbackNotice: sharedToolUi.hi.fallbackNotice,
     localPrivacy: 'अधिकांश इनपुट और फ़ाइलें आपके ब्राउज़र में ही प्रोसेस होती हैं।',
   },
 } satisfies Record<Language, LandingContent>;
@@ -143,9 +145,8 @@ const incompleteContentNotices: Partial<Record<Language, string>> = {
 export function getToolFallbackNotice(tool: ToolDefinition, lang: Language): string | null {
   const localizedContent = tool.content[lang];
   if (!localizedContent) return landingContent[lang].fallbackNotice;
-
-  const renderedContent = localizedContent ?? tool.content.en ?? tool.content.ko;
-  if (!renderedContent || renderedContent.status === 'complete') return null;
-
+  if (isSubstantiveToolContent(tool, lang)) return null;
+  const rendered = getCatalogCardContent(tool, lang);
+  if (rendered.usedLanguage !== lang) return sharedToolUi[lang].fallbackNotice;
   return incompleteContentNotices[lang] ?? incompleteContentNotices.en!;
 }

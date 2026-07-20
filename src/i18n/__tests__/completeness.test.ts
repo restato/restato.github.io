@@ -9,6 +9,7 @@ import {
 } from '../completeness';
 import { categoryTranslations, sharedToolUi } from '../tool-ui';
 import { getEnglishProfilePhrases } from '../../data/tools/localizedContent';
+import { getToolFallbackNotice } from '../landing';
 
 describe('localized tool completeness', () => {
   it('resolves exactly 41 tools across exactly 12 supported languages', () => {
@@ -97,6 +98,16 @@ describe('localized tool completeness', () => {
     }
   });
 
+  it('discloses temporary room connection metadata in every anonymous-chat locale', () => {
+    const chat = toolsRegistry.find(tool => tool.slug === 'anonymous-chat')!;
+    const metadata = /metadata|메타데이터|연결 정보|メタデータ|元数据|中繼資料|metadatos|metadados|Metadaten|métadonnées|metadati|मेटाडेटा/i;
+    const temporary = /tempor|일시|一時|临时|暫時|vorübergehend|sementara|अस्थायी/i;
+    for (const lang of supportedLanguages) {
+      expect(chat.content[lang]!.privacy, lang).toMatch(metadata);
+      expect(chat.content[lang]!.privacy, lang).toMatch(temporary);
+    }
+  });
+
   it('indexes only complete substantive records and returns reciprocal complete alternates', () => {
     for (const tool of getPublishedTools()) {
       for (const lang of supportedLanguages) {
@@ -130,6 +141,41 @@ describe('localized tool completeness', () => {
       usesFallback: true,
     });
     expect(getCatalogCardContent(incomplete, 'fr').notice).toBe(sharedToolUi.fr.fallbackNotice);
+    expect(getToolFallbackNotice(incomplete, 'fr')).toBe(sharedToolUi.fr.fallbackNotice);
+  });
+
+  it('does not emit alternates for an unreleased tool even when its records are complete', () => {
+    const unreleased = { ...toolsRegistry[0], released: false };
+    expect(getPublicationState(unreleased, 'en')).toEqual({
+      indexable: false,
+      robots: 'noindex, follow',
+      alternates: [],
+    });
+  });
+
+  it('shows a truthful notice when a complete-status record fails substantive validation', () => {
+    const source = toolsRegistry[0];
+    const invalid: ToolDefinition = {
+      ...source,
+      content: { ...source.content, fr: { ...source.content.fr!, overview: '' } },
+    };
+    const card = getCatalogCardContent(invalid, 'fr');
+    expect(card.usedLanguage).toBe('en');
+    expect(card.usesFallback).toBe(true);
+    expect(card.notice).toBe(sharedToolUi.fr.fallbackNotice);
+    expect(getToolFallbackNotice(invalid, 'fr')).toBe(sharedToolUi.fr.fallbackNotice);
+  });
+
+  it('uses locale-specific semantic examples and limitations instead of concern boilerplate', () => {
+    const bannedExampleFragments = /\b(daily|tomorrow|input tokens|photo\.png|product photo|app screen|share a room link)\b/i;
+    for (const lang of supportedLanguages.filter(language => language !== 'en')) {
+      const examples = toolsRegistry.map(tool => tool.content[lang]!.examples[0]);
+      const limitations = toolsRegistry.map(tool => tool.content[lang]!.limitations[0]);
+      expect(new Set(examples).size, `${lang} examples`).toBe(41);
+      expect(new Set(limitations).size, `${lang} limitations`).toBe(41);
+      for (const example of examples) expect(example, `${lang}: ${example}`).not.toMatch(bannedExampleFragments);
+      expect(toolsRegistry.find(tool => tool.slug === 'utm')!.content[lang]!.limitations[0]).toMatch(/parameter|매개변수|パラメータ|参数|參數|parámetro|parâmetro|Parameter|paramètre|parametr|पैरामीटर/i);
+    }
   });
 
   it('does not show a fallback notice once the requested catalog record is complete', () => {
