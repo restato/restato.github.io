@@ -143,3 +143,5 @@ npx vitest run src/components/tools/__tests__/HashGenerator.test.tsx src/compone
 npm run build
 npm run test:browser-mobile
 ```
+
+The final normal-parallel gate used `npm run test:coverage -- --run` with Vitest's default exclusions preserved plus `e2e/**` (the Playwright-owned suite) and completed **46/46 files and 387/387 tests** with no failures.
