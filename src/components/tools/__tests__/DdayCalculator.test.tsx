@@ -101,8 +101,11 @@ describe('DdayCalculator', () => {
   it('clears empty and malformed targets without retaining a previous result', () => {
     render(<DdayCalculator />);
     const dateInput = document.querySelector('input[type="date"]') as HTMLInputElement;
+    const tomorrow = new Date();
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    const tomorrowValue = `${tomorrow.getFullYear()}-${String(tomorrow.getMonth() + 1).padStart(2, '0')}-${String(tomorrow.getDate()).padStart(2, '0')}`;
 
-    fireEvent.change(dateInput, { target: { value: '2024-06-16' } });
+    fireEvent.change(dateInput, { target: { value: tomorrowValue } });
     expect(screen.getByText('D-1')).toBeInTheDocument();
     fireEvent.change(dateInput, { target: { value: '' } });
     expect(screen.queryByText('D-1')).not.toBeInTheDocument();
@@ -114,8 +117,11 @@ describe('DdayCalculator', () => {
     render(<DdayCalculator />);
     const dateInput = document.querySelector('input[type="date"]') as HTMLInputElement;
     const nameInput = screen.getByRole('textbox');
+    const tomorrow = new Date();
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    const tomorrowValue = `${tomorrow.getFullYear()}-${String(tomorrow.getMonth() + 1).padStart(2, '0')}-${String(tomorrow.getDate()).padStart(2, '0')}`;
 
-    fireEvent.change(dateInput, { target: { value: '2024-06-16' } });
+    fireEvent.change(dateInput, { target: { value: tomorrowValue } });
     fireEvent.change(nameInput, { target: { value: '여름 휴가' } });
     expect(screen.getByText('D-1')).toBeInTheDocument();
     fireEvent.click(screen.getByRole('button', { name: 'D-Day 저장하기' }));

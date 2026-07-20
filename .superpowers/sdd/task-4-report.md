@@ -107,3 +107,21 @@ Final commits added during reconciliation:
 - The Firebase fake now models nested paths, subscriptions, and transactional room reservations. The focused suite verifies an occupied room and concurrent joins admit exactly one guest (`a4cfc5a`).
 - Mobile coverage is an executable 375px/coarse-pointer contract for all 41 tools: a named primary control is rendered and accepts focus. The six image tools additionally select a non-Latin filename and prove neither `fetch` nor `XMLHttpRequest.send` was called (`0fb6f76`, `ae612f1`, `2bfd48a`).
 - The conservative behavior matrix now includes deterministic coin/dice, percent empty handling, lorem generation, keyboard conversion, age calculation, and UTM generation/clear tests (`58da05f`, `a915b32`). It still has documented uncovered behavior cells; this report does not treat the earlier coverage count as final completion evidence.
+
+## Matrix closure
+
+The final matrix has **zero** em-dash behavior cells. Each cell is either backed by an executable focused test or marked `N/A` only where the component source makes that behavior absent (for example, unrestricted text fields have no maximum boundary, native numeric controls cannot accept non-Latin values, or a local-only component has no transfer boundary). The baseline remains **76 failed tests of 254** before Task 4 work.
+
+Fresh normal-parallel coverage verification used:
+
+```sh
+npm run test:coverage -- --run --reporter=json --outputFile=.superpowers/sdd/task-4-final-coverage.json
+```
+
+The generated JSON records **105 test files, 381 tests, 0 failed files, and 0 failed tests**. The JSON is a local ignored artifact; this report preserves its counts as review evidence.
+
+The D-Day focused suite also passed **9/9** under both `TZ=America/Los_Angeles` and `TZ=Asia/Seoul`, including its local-calendar and one-day boundary cases.
+
+## Normal-parallel reliability remediation
+
+The first post-expansion normal-parallel V8 run failed 9 tests, then the next failed 4 different tests. Raw output identified the same root cause: jsdom/V8 worker contention exceeded Vitest's 5-second default, not product assertions. The normal parallel worker configuration remains unchanged; `vitest.config.ts` now sets a documented 15-second `testTimeout`. A deliberately comprehensive LLM Wiki audience journey retains its narrower 60-second test-level budget. The final exact normal-parallel run completed **105/105 files and 381/381 tests**.

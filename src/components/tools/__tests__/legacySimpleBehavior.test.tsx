@@ -194,6 +194,20 @@ describe('legacy simple tool behavior', () => {
     expect(screen.getByText('URL과 필수 파라미터를 입력하세요')).toBeInTheDocument();
   });
 
+  it('suppresses malformed UTM URLs and encodes non-Latin campaign values', () => {
+    const { container } = render(<UtmBuilder />);
+    const inputs = container.querySelectorAll('input[type="text"]');
+    fireEvent.change(inputs[0], { target: { value: 'http://[invalid' } });
+    fireEvent.change(inputs[1], { target: { value: 'source' } });
+    fireEvent.change(inputs[2], { target: { value: 'medium' } });
+    fireEvent.change(inputs[3], { target: { value: 'campaign' } });
+    expect(screen.getByText('URL과 필수 파라미터를 입력하세요')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: '복사' })).toBeDisabled();
+    fireEvent.change(inputs[0], { target: { value: 'example.com' } });
+    fireEvent.change(inputs[3], { target: { value: '여름 세일' } });
+    expect(container.querySelector('code')).toHaveTextContent('utm_campaign=%EC%97%AC%EB%A6%84+%EC%84%B8%EC%9D%BC');
+  });
+
   it('redraws a QR canvas for empty and repeated text changes', () => {
     const fillRect = vi.fn();
     const context = { fillStyle: '', fillRect } as unknown as CanvasRenderingContext2D;
@@ -476,5 +490,12 @@ describe('legacy simple tool behavior', () => {
     expect(screen.getByText(/평일에/)).toBeInTheDocument();
     fireEvent.click(screen.getByRole('button', { name: '*/15' }));
     expect(screen.getByText('*/15 9 * * 1-5')).toBeInTheDocument();
+  }, 30_000);
+
+  it('reflects an empty cron field in the editable expression', () => {
+    const { container } = render(<CronGenerator />);
+    const fields = container.querySelectorAll('input[type="text"]');
+    fireEvent.change(fields[0], { target: { value: '' } });
+    expect(container.querySelector('code')?.textContent).toBe(' * * * *');
   });
 });

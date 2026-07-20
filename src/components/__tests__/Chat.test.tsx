@@ -315,6 +315,23 @@ describe('Chat', () => {
       expect(mockSendMessage).toHaveBeenCalledWith('Hello');
     });
 
+    it('sends non-Latin messages without changing their text', async () => {
+      mockSendMessage.mockReturnValue({
+        id: 'msg-korean',
+        sender: 'me',
+        text: '안녕하세요 👋',
+        timestamp: Date.now(),
+      });
+      render(<Chat />);
+      await act(async () => mockOnStatusChange?.('connected'));
+      const input = await screen.findByPlaceholderText('메시지를 입력하세요...');
+      await userEvent.setup().type(input, '안녕하세요 👋');
+      await act(async () => {
+        screen.getByRole('form').dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }));
+      });
+      expect(mockSendMessage).toHaveBeenCalledWith('안녕하세요 👋');
+    });
+
     it('does not send empty message', async () => {
       render(<Chat />);
 
