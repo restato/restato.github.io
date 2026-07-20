@@ -8,9 +8,9 @@ export default defineConfig({
     globals: true,
     environment: 'jsdom',
     setupFiles: ['./src/test/setup.ts'],
-    // Playwright owns the browser contracts under e2e/. Keep Vitest's default
-    // exclusions (including node_modules) and add that runner boundary.
-    exclude: [...configDefaults.exclude, 'e2e/**'],
+    // Playwright owns browser contracts under both paths. Keep Vitest's default
+    // exclusions (including node_modules) and add both runner boundaries.
+    exclude: [...configDefaults.exclude, 'e2e/**', 'tests/e2e/**'],
     // V8 coverage keeps normal file parallelism; this gives overloaded jsdom workers
     // a realistic per-test budget instead of the 5s default.
     testTimeout: 15_000,

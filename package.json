@@ -13,7 +13,8 @@
     "test": "vitest",
     "test:ui": "vitest --ui",
     "test:coverage": "vitest --coverage",
-    "test:browser-mobile": "npm run build && playwright test --project=mobile",
+    "test:browser-mobile": "npm run build && playwright test e2e/mobile-tools.spec.ts --project=mobile",
+    "test:e2e": "npm run build && playwright test",
     "validate:site": "node scripts/validate-site.mjs dist",
     "verify": "npm test -- --run && npm run check && npm run build && npm run validate:site"
   },
