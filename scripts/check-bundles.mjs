@@ -18,13 +18,44 @@ export const INITIAL_BUNDLE_ROUTES = Object.freeze([
   { route: '/ko/tools/image-resizer', kind: 'image', budgetKb: BUNDLE_BUDGETS.image },
 ]);
 
+function resolveWithin(directory, relativePath, label) {
+  if (typeof relativePath !== 'string' || relativePath.length === 0) {
+    throw new Error(`${label} path is invalid`);
+  }
+  if (/%(?:2f|5c)/i.test(relativePath)) {
+    throw new Error(`${label} contains an encoded separator: ${relativePath}`);
+  }
+  if (
+    path.isAbsolute(relativePath) ||
+    /^[a-z]:[\\/]/i.test(relativePath) ||
+    relativePath.includes('\\') ||
+    relativePath.includes('\0')
+  ) {
+    throw new Error(`${label} is outside the build root: ${relativePath}`);
+  }
+
+  const root = path.resolve(directory);
+  const target = path.resolve(root, relativePath);
+  const relative = path.relative(root, target);
+  if (relative === '..' || relative.startsWith(`..${path.sep}`) || path.isAbsolute(relative)) {
+    throw new Error(`${label} is outside the build root: ${relativePath}`);
+  }
+  return target;
+}
+
 function routeHtmlPath(directory, route) {
   const relative = route.replace(/^\/+|\/+$/g, '');
-  return path.join(directory, relative, 'index.html');
+  return resolveWithin(directory, path.join(relative, 'index.html'), `Route ${route}`);
 }
 
 function normalizeAssetUrl(value) {
   if (/^(?:[a-z][a-z\d+.-]*:)?\/\//i.test(value)) return null;
+  if (/%(?:2f|5c)/i.test(value)) {
+    throw new Error(`Route asset contains an encoded separator: ${value}`);
+  }
+  if (value.includes('\\')) {
+    throw new Error(`Route asset contains a path separator: ${value}`);
+  }
   try {
     const pathname = new URL(value, 'https://restato.invalid').pathname;
     return decodeURIComponent(pathname).replace(/^\//, '');
@@ -58,6 +89,13 @@ function validateManifest(value) {
     ) {
       throw new Error(`Invalid Vite manifest imports: ${key}`);
     }
+    if (
+      entry.dynamicImports !== undefined &&
+      (!Array.isArray(entry.dynamicImports) ||
+        entry.dynamicImports.some((item) => typeof item !== 'string'))
+    ) {
+      throw new Error(`Invalid Vite manifest dynamic imports: ${key}`);
+    }
   }
 
   return value;
@@ -67,7 +105,7 @@ function isPdfEntry(key, entry) {
   return /(^|[\/_-])pdf([\/_-]|\.|$)/i.test(`${key}/${entry.file}/${entry.name ?? ''}`);
 }
 
-function collectStaticEntries(rootKeys, manifest) {
+function collectEntries(rootKeys, manifest, includeDynamicImports = false) {
   const visited = new Set();
   const active = new Set();
 
@@ -78,7 +116,10 @@ function collectStaticEntries(rootKeys, manifest) {
     if (!entry) throw new Error(`Unknown Vite manifest import: ${key}`);
 
     active.add(key);
-    for (const importedKey of entry.imports ?? []) visit(importedKey);
+    const importedKeys = includeDynamicImports
+      ? [...(entry.imports ?? []), ...(entry.dynamicImports ?? [])]
+      : entry.imports ?? [];
+    for (const importedKey of importedKeys) visit(importedKey);
     active.delete(key);
     visited.add(key);
   }
@@ -90,7 +131,8 @@ function collectStaticEntries(rootKeys, manifest) {
 export async function auditBundles(directory, routes) {
   let manifest;
   try {
-    const raw = await readFile(path.join(directory, '.vite', 'manifest.json'), 'utf8');
+    const manifestPath = resolveWithin(directory, '.vite/manifest.json', 'Vite manifest');
+    const raw = await readFile(manifestPath, 'utf8');
     manifest = validateManifest(JSON.parse(raw));
   } catch (error) {
     if (error instanceof SyntaxError) throw new Error(`Invalid Vite manifest JSON: ${error.message}`);
@@ -99,15 +141,17 @@ export async function auditBundles(directory, routes) {
 
   const keyByFile = new Map();
   for (const [key, entry] of Object.entries(manifest)) {
+    resolveWithin(directory, entry.file, `Manifest asset ${entry.file}`);
     if (keyByFile.has(entry.file)) throw new Error(`Duplicate Vite manifest file: ${entry.file}`);
     keyByFile.set(entry.file, key);
   }
 
   const results = [];
   for (const route of routes) {
+    const htmlPath = routeHtmlPath(directory, route.route);
     let html;
     try {
-      html = await readFile(routeHtmlPath(directory, route.route), 'utf8');
+      html = await readFile(htmlPath, 'utf8');
     } catch {
       throw new Error(`Configured route is missing: ${route.route}`);
     }
@@ -121,10 +165,11 @@ export async function auditBundles(directory, routes) {
       if (!key) throw new Error(`Unknown route asset for ${route.route}: ${asset}`);
       return key;
     });
-    const keys = collectStaticEntries(rootKeys, manifest);
+    const staticKeys = collectEntries(rootKeys, manifest);
+    const allReachableKeys = collectEntries(rootKeys, manifest, true);
 
     if (route.kind !== 'pdf') {
-      const pdfKey = keys.find((key) => isPdfEntry(key, manifest[key]));
+      const pdfKey = allReachableKeys.find((key) => isPdfEntry(key, manifest[key]));
       if (pdfKey) {
         throw new Error(
           `PDF chunk reached ${route.kind} route ${route.route}; PDF assets must remain lazy-route-only (${pdfKey})`,
@@ -133,12 +178,14 @@ export async function auditBundles(directory, routes) {
     }
 
     let gzipBytes = 0;
-    for (const key of keys) {
+    for (const key of staticKeys) {
       const entry = manifest[key];
       if (!entry.file.endsWith('.js')) continue;
       let contents;
       try {
-        contents = await readFile(path.join(directory, entry.file));
+        contents = await readFile(
+          resolveWithin(directory, entry.file, `Manifest asset ${entry.file}`),
+        );
       } catch {
         throw new Error(`Manifest asset is missing: ${entry.file}`);
       }
@@ -151,7 +198,11 @@ export async function auditBundles(directory, routes) {
         `${route.route} is ${(gzipBytes / 1024).toFixed(1)} KB gzip; budget is ${route.budgetKb} KB`,
       );
     }
-    results.push({ ...route, gzipBytes, assets: keys.map((key) => manifest[key].file) });
+    results.push({
+      ...route,
+      gzipBytes,
+      assets: staticKeys.map((key) => manifest[key].file),
+    });
   }
 
   return results;

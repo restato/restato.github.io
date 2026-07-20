@@ -20,8 +20,10 @@ async function createFixture({
   html?: string;
   assets?: Record<string, Uint8Array | string>;
 }) {
-  const directory = await mkdtemp(path.join(tmpdir(), 'restato-bundles-'));
-  temporaryDirectories.push(directory);
+  const baseDirectory = await mkdtemp(path.join(tmpdir(), 'restato-bundles-'));
+  temporaryDirectories.push(baseDirectory);
+  const directory = path.join(baseDirectory, 'dist');
+  await mkdir(directory, { recursive: true });
 
   if (manifest !== undefined) {
     await mkdir(path.join(directory, '.vite'), { recursive: true });
@@ -96,6 +98,29 @@ describe('auditBundles', () => {
       html: '<astro-island component-url="/_astro/hub.js"></astro-island>',
       assets: {
         '_astro/hub.js': 'export const hub = true;',
+        '_astro/pdf-worker.js': deterministicBytes(200 * 1024),
+      },
+    });
+
+    await expect(
+      auditBundles(directory, [
+        { route: '/ko/tools', kind: 'hub', budgetKb: 180 },
+      ]),
+    ).rejects.toThrow(/PDF.*hub.*lazy/i);
+  });
+
+  it('rejects a PDF chunk dynamically reachable from the hub without charging it to initial gzip', async () => {
+    const directory = await createFixture({
+      manifest: {
+        'src/hub.ts': {
+          file: '_astro/hub.js',
+          dynamicImports: ['src/pdf-worker.ts'],
+        },
+        'src/pdf-worker.ts': { file: '_astro/pdf-worker.js' },
+      },
+      html: '<astro-island component-url="/_astro/hub.js"></astro-island>',
+      assets: {
+        '_astro/hub.js': 'hub',
         '_astro/pdf-worker.js': deterministicBytes(200 * 1024),
       },
     });
@@ -197,6 +222,33 @@ describe('auditBundles', () => {
       },
       /cycle/i,
     ],
+    [
+      'invalid dynamic imports',
+      {
+        manifest: { entry: { file: '_astro/entry.js', dynamicImports: [42] } },
+        html: '<script src="/_astro/entry.js"></script>',
+      },
+      /invalid vite manifest dynamic imports/i,
+    ],
+    [
+      'unknown dynamic import',
+      {
+        manifest: { entry: { file: '_astro/entry.js', dynamicImports: ['missing'] } },
+        html: '<script src="/_astro/entry.js"></script>',
+      },
+      /unknown vite manifest import/i,
+    ],
+    [
+      'cyclic dynamic imports',
+      {
+        manifest: {
+          entry: { file: '_astro/entry.js', dynamicImports: ['lazy'] },
+          lazy: { file: '_astro/lazy.js', dynamicImports: ['entry'] },
+        },
+        html: '<script src="/_astro/entry.js"></script>',
+      },
+      /cycle/i,
+    ],
   ])('fails closed for %s', async (_name, fixture, expected) => {
     const directory = await createFixture(fixture);
     await expect(
@@ -218,5 +270,53 @@ describe('auditBundles', () => {
         { route: '/ko/tools', kind: 'hub', budgetKb: 180 },
       ]),
     ).rejects.toThrow(/no manifest-backed javascript/i);
+  });
+
+  it('rejects a configured route that escapes the build root', async () => {
+    const directory = await createFixture({
+      manifest: { entry: { file: '_astro/entry.js' } },
+      html: '<script src="/_astro/entry.js"></script>',
+      assets: { '_astro/entry.js': 'entry' },
+    });
+
+    await expect(
+      auditBundles(directory, [
+        { route: '/../../outside', kind: 'hub', budgetKb: 180 },
+      ]),
+    ).rejects.toThrow(/route.*outside.*build root/i);
+  });
+
+  it('rejects encoded separators in route asset URLs', async () => {
+    const directory = await createFixture({
+      manifest: { entry: { file: '_astro/../secret.js' } },
+      html: '<script src="/_astro/%2e%2e%2fsecret.js"></script>',
+      assets: { 'secret.js': 'secret' },
+    });
+
+    await expect(
+      auditBundles(directory, [
+        { route: '/ko/tools', kind: 'hub', budgetKb: 180 },
+      ]),
+    ).rejects.toThrow(/encoded separator/i);
+  });
+
+  it('rejects a manifest asset mapping that escapes the build root', async () => {
+    const directory = await createFixture({
+      manifest: {
+        entry: { file: '_astro/entry.js', imports: ['escape'] },
+        escape: { file: '../outside.js' },
+      },
+      html: '<script src="/_astro/entry.js"></script>',
+      assets: {
+        '_astro/entry.js': 'entry',
+        '../outside.js': 'outside',
+      },
+    });
+
+    await expect(
+      auditBundles(directory, [
+        { route: '/ko/tools', kind: 'hub', budgetKb: 180 },
+      ]),
+    ).rejects.toThrow(/manifest asset.*outside.*build root/i);
   });
 });
