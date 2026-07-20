@@ -155,6 +155,20 @@ describe('validateSite', () => {
     expect(result.errors).toEqual([]);
   });
 
+  it('does not treat a literal percent filename as the URL-decoded space variant', async () => {
+    const directory = await createFixture({
+      'index.html': page({
+        canonical: 'https://restato.github.io/',
+        body: '<a href="/blog/tag/AI%20Agent">Wrong legacy alias</a>',
+      }),
+      'blog/tag/AI%20Agent/index.html': page({ canonical: 'https://restato.github.io/blog/tag/AI%2520Agent' }),
+    });
+
+    const result = await validateSite(directory);
+
+    expect(result.errors).toContain('index.html: broken internal link /blog/tag/AI%20Agent');
+  });
+
   it('reports route casing that does not exactly match generated output paths', async () => {
     const directory = await createFixture({
       'index.html': page({

@@ -11,21 +11,24 @@ export async function getStaticPaths() {
   const canonicalRoutes = tagRoutes.filter(route => route.kind === 'canonical');
 
   return canonicalRoutes.map(route => ({
-    params: { tag: route.param },
+    params: { tag: route.filesystemSegment },
     props: {
       tag: route.label,
       posts: posts
         .filter(post => post.data.tags.some(postTag => toBlogTagSlug(postTag) === route.canonicalSlug))
         .sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf()),
-      legacyTagParams: tagRoutes
+      legacyTagPaths: tagRoutes
         .filter(candidate => candidate.kind === 'redirect' && candidate.canonicalSlug === route.canonicalSlug)
-        .map(candidate => candidate.param),
+        .map(candidate => ({
+          filesystemSegment: candidate.filesystemSegment,
+          urlSegment: candidate.urlSegment,
+        })),
     },
   }));
 }
 
-const { tag, posts, legacyTagParams = [] } = Astro.props;
-const legacyTagParamsJson = JSON.stringify(legacyTagParams).replace(/</g, '\\u003c');
+const { tag, posts, legacyTagPaths = [] } = Astro.props;
+const legacyTagPathsJson = JSON.stringify(legacyTagPaths).replace(/</g, '\\u003c');
 
 // Get all unique tags for the filter section
 const allPosts = await getCollection('blog', ({ data }) => !data.draft);
@@ -42,7 +45,7 @@ const allTagEntries = getBlogTagEntries(allPosts.flatMap(post => post.data.tags)
     id="blog-tag-legacy-aliases"
     type="application/json"
     data-canonical-slug={toBlogTagSlug(tag)}
-    set:html={legacyTagParamsJson}
+    set:html={legacyTagPathsJson}
   />
   <section class="py-20 px-6">
     <div class="max-w-4xl mx-auto">

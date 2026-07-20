@@ -107,17 +107,24 @@ export async function generateTagRedirects(distDir, options = {}) {
     }
 
     for (const alias of aliases) {
-      if (typeof alias !== 'string' || alias.includes('/')) {
-        throw new Error(`Invalid blog tag alias ${String(alias)} in ${canonicalPagePath}`);
+      if (
+        !alias
+        || typeof alias.filesystemSegment !== 'string'
+        || typeof alias.urlSegment !== 'string'
+        || alias.filesystemSegment.includes('/')
+        || alias.urlSegment.includes('/')
+      ) {
+        throw new Error(`Invalid blog tag alias ${JSON.stringify(alias)} in ${canonicalPagePath}`);
       }
 
       const canonicalPath = `/blog/tag/${canonicalSlug}`;
-      if (classifyTagAlias(alias, canonicalSlug, caseSensitive) === 'fallback') {
-        fallbackMap[`/blog/tag/${alias}`] = canonicalPath;
+      const canonicalFilesystemSegment = decodeURIComponent(canonicalSlug);
+      if (classifyTagAlias(alias.filesystemSegment, canonicalFilesystemSegment, caseSensitive) === 'fallback') {
+        fallbackMap[`/blog/tag/${alias.urlSegment}`] = canonicalPath;
         continue;
       }
 
-      const redirectFile = path.join(tagDirectory, alias, 'index.html');
+      const redirectFile = path.join(tagDirectory, alias.filesystemSegment, 'index.html');
       if (path.resolve(redirectFile) === path.resolve(canonicalPagePath)) {
         throw new Error(`Refusing to overwrite canonical tag page ${canonicalPagePath}`);
       }

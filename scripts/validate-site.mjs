@@ -6,23 +6,26 @@ import * as cheerio from 'cheerio';
 const SITE_ORIGIN = 'https://restato.github.io';
 
 function normalizePathname(pathname) {
-  let decodedPathname = pathname;
-  try {
-    decodedPathname = decodeURIComponent(pathname);
-  } catch {
-    // Leave malformed URL escapes for the browser to handle; they cannot map to a file path.
-  }
+  if (pathname === '/') return pathname;
+  return pathname.replace(/\/+$/, '') || '/';
+}
 
-  if (decodedPathname === '/') return decodedPathname;
-  return decodedPathname.replace(/\/+$/, '') || '/';
+function encodeFilesystemPathname(pathname) {
+  return pathname.split('/').map(segment => encodeURIComponent(segment)).join('/');
 }
 
 function pathnameForHtmlFile(relativePath) {
   const normalized = relativePath.split(path.sep).join('/');
 
   if (normalized === 'index.html') return '/';
-  if (normalized.endsWith('/index.html')) return `/${normalized.slice(0, -'index.html'.length)}`;
-  return `/${normalized.slice(0, -'.html'.length)}`;
+  if (normalized.endsWith('/index.html')) {
+    return encodeFilesystemPathname(`/${normalized.slice(0, -'index.html'.length)}`);
+  }
+  return encodeFilesystemPathname(`/${normalized.slice(0, -'.html'.length)}`);
+}
+
+function pathnameForGeneratedFile(relativePath) {
+  return encodeFilesystemPathname(`/${relativePath.split(path.sep).join('/')}`);
 }
 
 async function walkFiles(directory) {
@@ -112,8 +115,8 @@ export async function validateSite(distDir) {
     };
   }
 
-  const generatedFiles = new Set(files.map(file => normalizePathname(
-    `/${path.relative(absoluteDistDir, file).split(path.sep).join('/')}`,
+  const generatedFiles = new Set(files.map(file => pathnameForGeneratedFile(
+    path.relative(absoluteDistDir, file),
   )));
   const pagesByPathname = new Map();
   const pages = [];
