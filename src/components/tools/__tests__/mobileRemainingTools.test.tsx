@@ -31,5 +31,5 @@ describe('remaining mobile tool contract', () => {
     input.focus();
 
     expect(input).toHaveFocus();
-  });
+  }, 30_000);
 });

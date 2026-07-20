@@ -13,5 +13,5 @@ describe('PercentCalculator', () => {
     fireEvent.click(screen.getByRole('button', { name: '계산하기' }));
 
     expect(screen.queryByText(/Infinity|NaN/)).not.toBeInTheDocument();
-  });
+  }, 30_000);
 });

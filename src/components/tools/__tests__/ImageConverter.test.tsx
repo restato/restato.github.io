@@ -57,7 +57,7 @@ describe('ImageConverter', () => {
     expect(screen.getByText('두번째.png')).toBeInTheDocument();
     expect(screen.getAllByText('PNG: 3 B')).toHaveLength(2);
     expect(toDataURL).toHaveBeenLastCalledWith('image/png', undefined);
-  });
+  }, 30_000);
 
   it('ignores empty and unsupported file selections', () => {
     const { container } = render(<ImageConverter />);

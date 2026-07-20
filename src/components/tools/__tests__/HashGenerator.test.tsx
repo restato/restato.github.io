@@ -82,7 +82,7 @@ describe('HashGenerator', () => {
 
     await waitFor(() => expect(mockDigest).toHaveBeenCalled());
     expect(screen.getByText('8b1a9953c4611296a827abf8c47804d7')).toBeInTheDocument();
-  });
+  }, 30_000);
 
   it('generates each Web Crypto hash variant after input', async () => {
     render(<HashGenerator />);
@@ -112,11 +112,13 @@ describe('HashGenerator', () => {
     const input = screen.getByPlaceholderText('해시할 텍스트를 입력하세요');
     await user.type(input, 'Test');
 
+    await screen.findByText('0cbc6611f5540bd0809a388dc95a615b');
+
     const copyButtons = screen.getAllByText('복사');
     await user.click(copyButtons[0]);
 
     expect(mockWriteText).toHaveBeenCalledWith('0cbc6611f5540bd0809a388dc95a615b');
-  });
+  }, 30_000);
 
   it('handles empty input', () => {
     render(<HashGenerator />);

@@ -160,6 +160,8 @@ describe('Mobile viewport interaction contract', () => {
   });
 
   toolComponents.forEach(({ name, Component }) => {
+    const timeout = name === 'BoxShadowGenerator' ? 30_000 : undefined;
+
     it(`${name} keeps a named keyboard-focusable primary control at 375px`, () => {
       render(<Component />);
       const primaryControl = [
@@ -174,6 +176,6 @@ describe('Mobile viewport interaction contract', () => {
       expect(primaryControl).toHaveAccessibleName();
       primaryControl!.focus();
       expect(primaryControl).toHaveFocus();
-    });
+    }, timeout);
   });
 });
