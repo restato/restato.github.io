@@ -199,6 +199,23 @@ describe('localized tool completeness', () => {
     }
   });
 
+  it('avoids broken grammar when localized semantic phrases are composed', () => {
+    const brokenGrammar = /은\(는\)|을\(를\)|합니다이며|있습니다\s*점|합니다\s*같은 사례|ます点も確認してください|\bten en cuenta que\s+[A-ZÁÉÍÓÚÑ]|\bconsidere que\s+[A-ZÁÉÍÓÚÂÊÔÃÕÇ]|\bgardez à l’esprit que\s+[A-ZÀÂÇÉÈÊËÎÏÔÛÙÜŸ]/u;
+
+    for (const tool of toolsRegistry) {
+      for (const lang of supportedLanguages) {
+        const content = tool.content[lang]!;
+        const prose = [
+          content.description,
+          content.overview,
+          ...content.steps,
+          ...content.faq.flatMap(item => [item.question, item.answer]),
+        ].join('\n');
+        expect(prose, `${tool.slug}/${lang}`).not.toMatch(brokenGrammar);
+      }
+    }
+  });
+
   it('does not show a fallback notice once the requested catalog record is complete', () => {
     const card = getCatalogCardContent(toolsRegistry[0], 'hi');
     expect(card.usedLanguage).toBe('hi');
