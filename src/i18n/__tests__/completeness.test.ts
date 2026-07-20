@@ -9,6 +9,7 @@ import {
 } from '../completeness';
 import { categoryTranslations, sharedToolUi } from '../tool-ui';
 import { getEnglishProfilePhrases } from '../../data/tools/localizedContent';
+import * as localizedContentModule from '../../data/tools/localizedContent';
 import { getToolFallbackNotice } from '../landing';
 
 describe('localized tool completeness', () => {
@@ -200,7 +201,7 @@ describe('localized tool completeness', () => {
   });
 
   it('avoids broken grammar when localized semantic phrases are composed', () => {
-    const brokenGrammar = /은\(는\)|을\(를\)|합니다이며|있습니다\s*점|합니다\s*같은 사례|ます点も確認してください|\bten en cuenta que\s+[A-ZÁÉÍÓÚÑ]|\bconsidere que\s+[A-ZÁÉÍÓÚÂÊÔÃÕÇ]|\bgardez à l’esprit que\s+[A-ZÀÂÇÉÈÊËÎÏÔÛÙÜŸ]/u;
+    const brokenGrammar = /은\(는\)|을\(를\)|결과 결과|합니다이며|있습니다\s*점|합니다\s*같은 사례|ます点も確認してください|cópialo|descárgalo|\bten en cuenta que\s+[A-ZÁÉÍÓÚÑ]|\bconsidere que\s+[A-ZÁÉÍÓÚÂÊÔÃÕÇ]|\bgardez à l’esprit que\s+[A-ZÀÂÇÉÈÊËÎÏÔÛÙÜŸ]/u;
 
     for (const tool of toolsRegistry) {
       for (const lang of supportedLanguages) {
@@ -213,6 +214,50 @@ describe('localized tool completeness', () => {
         ].join('\n');
         expect(prose, `${tool.slug}/${lang}`).not.toMatch(brokenGrammar);
       }
+    }
+  });
+
+  it('defines an explicit three-step workflow for all 41 tools and rejects unknown slugs', () => {
+    const resolveWorkflow = Reflect.get(localizedContentModule, 'getToolWorkflow');
+    expect(resolveWorkflow).toBeTypeOf('function');
+    if (typeof resolveWorkflow !== 'function') return;
+
+    for (const tool of toolsRegistry) {
+      const workflow = resolveWorkflow(tool.slug);
+      expect(workflow, tool.slug).toHaveLength(3);
+      expect(new Set(workflow).size, tool.slug).toBe(3);
+    }
+    expect(() => resolveWorkflow('__unknown-tool__')).toThrow(/Missing workflow/);
+  });
+
+  it('does not claim copy or download actions for tools whose UI has neither action', () => {
+    const noExportTools = [
+      'unit', 'text-counter', 'diff', 'regex', 'llm-cost', 'exif', 'image-metadata',
+      'timer', 'pomodoro', 'world-clock', 'percent', 'discount', 'bmi', 'age',
+      'dday', 'dutch-pay', 'coin-flip', 'dice',
+    ];
+    const copyOrDownload = /copy|download|복사|다운로드|コピー|ダウンロード|复制|下载|複製|下載|copi|descarg|baix|kopier|herunterlad|télécharg|scaric|salin|unduh|कॉपी|डाउनलोड/i;
+
+    for (const slug of noExportTools) {
+      const tool = toolsRegistry.find(item => item.slug === slug)!;
+      for (const lang of supportedLanguages) {
+        expect(tool.content[lang]!.steps.join('\n'), `${slug}/${lang}`).not.toMatch(copyOrDownload);
+      }
+    }
+  });
+
+  it('mentions only room-link copying in anonymous chat and never conversation downloading', () => {
+    const chat = toolsRegistry.find(tool => tool.slug === 'anonymous-chat')!;
+    const copy = /copy|복사|コピー|复制|複製|copi|kopier|salin|कॉपी/i;
+    const roomLink = /room link|방 링크|ルームリンク|房间链接|房間連結|enlace de la sala|link da sala|Raumlink|lien du salon|link della stanza|tautan ruang|रूम लिंक/i;
+    const download = /download|다운로드|ダウンロード|下载|下載|descarg|baix|herunterlad|télécharg|scaric|unduh|डाउनलोड/i;
+
+    for (const lang of supportedLanguages) {
+      const steps = chat.content[lang]!.steps;
+      expect(steps.join('\n'), lang).not.toMatch(download);
+      const copySteps = steps.filter(step => copy.test(step));
+      expect(copySteps, lang).toHaveLength(1);
+      expect(copySteps[0], lang).toMatch(roomLink);
     }
   });
 
