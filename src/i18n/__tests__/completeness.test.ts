@@ -178,6 +178,27 @@ describe('localized tool completeness', () => {
     }
   });
 
+  it('emits exactly one terminal punctuation mark throughout every localized record', () => {
+    const repeatedTerminalPunctuation = /[.!?。！？।]\s*[.!?。！？।]/u;
+    for (const tool of toolsRegistry) {
+      for (const lang of supportedLanguages) {
+        const content = tool.content[lang]!;
+        const fields = [
+          content.description,
+          content.overview,
+          ...content.steps,
+          ...content.examples,
+          ...content.limitations,
+          content.privacy,
+          ...content.faq.flatMap(item => [item.question, item.answer]),
+        ];
+        for (const field of fields) {
+          expect(field, `${tool.slug}/${lang}: ${field}`).not.toMatch(repeatedTerminalPunctuation);
+        }
+      }
+    }
+  });
+
   it('does not show a fallback notice once the requested catalog record is complete', () => {
     const card = getCatalogCardContent(toolsRegistry[0], 'hi');
     expect(card.usedLanguage).toBe('hi');

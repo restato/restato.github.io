@@ -1,6 +1,6 @@
 ---
 import MainLayout from '../../layouts/MainLayout.astro';
-import Chat from '../../components/Chat.tsx';
+import LocalizedChatIsland from '../../components/LocalizedChatIsland';
 import { getTool } from '../../data/tools';
 import { getLocalizedToolPageMetadata } from '../../data/tools/pageMetadata';
 import { supportedLanguages } from '../../data/tools/locales';
@@ -48,7 +48,7 @@ const faqSchema = {
     {fallbackNotice && <p class="chat-fallback">{fallbackNotice}</p>}
     {interactiveFallbackNotice && <p class="chat-interactive-notice">{interactiveFallbackNotice}</p>}
     <div class="chat-container">
-      <Chat client:load />
+      <LocalizedChatIsland client:load lang={lang} />
     </div>
     <section class="chat-help">
       <div>

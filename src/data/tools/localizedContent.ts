@@ -76,6 +76,17 @@ interface LanguagePack {
   faq: (name: string, output: string, caveat: string) => Array<{ question: string; answer: string }>;
 }
 
+interface SemanticPack {
+  overview: (example: string, caveat: string) => string;
+  step: (example: string) => string;
+}
+
+const stripTerminalPunctuation = (value: string): string =>
+  value.trim().replace(/[.!?。！？।]+$/u, '');
+
+export const normalizeLocalizedPunctuation = (value: string): string =>
+  value.replace(/([.!?。！？।])(?:\s*[.!?。！？।])+/gu, '$1');
+
 const packs: Record<Language, LanguagePack> = {
   ko: { title: n => `${n} - 무료 브라우저 도구`, description: (n, i, o) => `${n}에서 ${i}을(를) 입력해 ${o}을(를) 바로 확인하세요. 설치와 회원가입이 필요 없습니다.`, intent: n => `${n} 무료 온라인 사용 및 결과 확인`, overview: (n, i, o) => `${n}은(는) ${i}을(를) 받아 ${o}을(를) 만드는 실용 도구입니다. 작업은 페이지를 떠나지 않고 단계별로 확인할 수 있습니다.`, steps: (n, i, o) => [`${n}에 ${i}을(를) 입력하거나 선택합니다.`, `필요한 옵션을 검토한 뒤 ${n}의 실행 버튼을 누릅니다.`, `${o}을(를) 확인하고 필요하면 복사하거나 다운로드합니다.`], example: (n, e) => `${n} 예시: ${e}`, limitation: (n, c) => `${n} 사용 시 주의: ${c}. 중요한 결과는 원본과 다시 확인하세요.`, faq: (n, o, c) => [{ question: `${n}은(는) 어떤 결과를 제공하나요?`, answer: `입력과 선택한 옵션을 바탕으로 ${o}을(를) 제공합니다.` }, { question: `${n} 결과를 그대로 사용해도 되나요?`, answer: `${c}. 중요한 작업에서는 결과를 검토하세요.` }] },
   en: { title: n => `${n} - Free browser tool`, description: (n, i, o) => `Use ${n} to enter ${i} and get ${o} immediately, with no installation or account required.`, intent: n => `free online ${n} with practical results`, overview: (n, i, o) => `${n} is a focused browser utility that accepts ${i} and produces ${o}. You can review each option and result without leaving the page.`, steps: (n, i, o) => [`Enter or select ${i} in ${n}.`, `Review the available options, then run ${n}.`, `Check ${o}, then copy or download it when available.`], example: (n, e) => `${n} example: ${e}`, limitation: (n, c) => `${n} limitation: ${c}. Verify important output against the original source.`, faq: (n, o, c) => [{ question: `What does ${n} produce?`, answer: `It uses your input and selected options to produce ${o}.` }, { question: `Can I rely on every ${n} result?`, answer: `${c}. Review the result before using it for important work.` }] },
@@ -89,6 +100,57 @@ const packs: Record<Language, LanguagePack> = {
   it: { title: n => `${n} - Strumento gratuito`, description: (n, i, o) => `Usa ${n} per inserire ${i} e ottenere ${o} subito, senza installazione né account.`, intent: n => `${n} gratis online con risultati pratici`, overview: (n, i, o) => `${n} è uno strumento nel browser che riceve ${i} e produce ${o}. Puoi controllare opzioni e risultato senza lasciare la pagina.`, steps: (n, i, o) => [`Inserisci o seleziona ${i} in ${n}.`, `Controlla le opzioni disponibili e avvia ${n}.`, `Verifica ${o}, quindi copia o scarica il risultato quando serve.`], example: (n, e) => `Esempio di ${n}: ${e}`, limitation: (n, c) => `Limite di ${n}: ${c}. Confronta i risultati importanti con la fonte originale.`, faq: (n, o, c) => [{ question: `Che cosa produce ${n}?`, answer: `Usa i dati inseriti e le opzioni scelte per produrre ${o}.` }, { question: `Posso usare sempre il risultato di ${n}?`, answer: `${c}. Controlla il risultato prima di un uso importante.` }] },
   id: { title: n => `${n} - Alat browser gratis`, description: (n, i, o) => `Gunakan ${n} untuk memasukkan ${i} dan memperoleh ${o} seketika, tanpa instalasi atau akun.`, intent: n => `${n} gratis online dengan hasil praktis`, overview: (n, i, o) => `${n} adalah alat browser yang menerima ${i} dan menghasilkan ${o}. Opsi dan hasil dapat diperiksa langsung di halaman ini.`, steps: (n, i, o) => [`Masukkan atau pilih ${i} di ${n}.`, `Periksa opsi yang tersedia lalu jalankan ${n}.`, `Tinjau ${o}, kemudian salin atau unduh jika diperlukan.`], example: (n, e) => `Contoh ${n}: ${e}`, limitation: (n, c) => `Batasan ${n}: ${c}. Cocokkan hasil penting dengan sumber asli.`, faq: (n, o, c) => [{ question: `Apa yang dihasilkan ${n}?`, answer: `Alat ini memakai masukan dan opsi pilihan untuk menghasilkan ${o}.` }, { question: `Apakah semua hasil ${n} dapat diandalkan?`, answer: `${c}. Periksa hasil sebelum dipakai untuk pekerjaan penting.` }] },
   hi: { title: n => `${n} - मुफ़्त ब्राउज़र टूल`, description: (n, i, o) => `${n} में ${i} दर्ज करके ${o} तुरंत पाएँ; किसी इंस्टॉलेशन या खाते की आवश्यकता नहीं है।`, intent: n => `${n} का मुफ़्त ऑनलाइन उपयोग और व्यावहारिक परिणाम`, overview: (n, i, o) => `${n} एक ब्राउज़र टूल है जो ${i} लेता है और ${o} देता है। विकल्प और परिणाम इसी पेज पर क्रम से जाँचे जा सकते हैं।`, steps: (n, i, o) => [`${n} में ${i} दर्ज करें या चुनें।`, `उपलब्ध विकल्प जाँचें और ${n} चलाएँ।`, `${o} जाँचें, फिर आवश्यकता होने पर कॉपी या डाउनलोड करें।`], example: (n, e) => `${n} उदाहरण: ${e}`, limitation: (n, c) => `${n} की सीमा: ${c}। महत्वपूर्ण परिणाम को मूल स्रोत से मिलाएँ।`, faq: (n, o, c) => [{ question: `${n} क्या परिणाम देता है?`, answer: `यह इनपुट और चुने गए विकल्पों से ${o} देता है।` }, { question: `क्या ${n} के हर परिणाम पर भरोसा किया जा सकता है?`, answer: `${c}। महत्वपूर्ण उपयोग से पहले परिणाम जाँचें।` }] },
+};
+
+const semanticPacks: Record<Language, SemanticPack> = {
+  ko: {
+    overview: (example, caveat) => `대표 활용 예시는 ${stripTerminalPunctuation(example)}이며, ${stripTerminalPunctuation(caveat)} 점을 함께 고려해야 합니다.`,
+    step: example => `${stripTerminalPunctuation(example)} 같은 사례로 결과를 확인합니다.`,
+  },
+  en: {
+    overview: (example, caveat) => `A representative use case is ${stripTerminalPunctuation(example)}; keep in mind that ${stripTerminalPunctuation(caveat)}.`,
+    step: example => `Check the result with a case such as ${stripTerminalPunctuation(example)}.`,
+  },
+  ja: {
+    overview: (example, caveat) => `代表的な活用例は ${stripTerminalPunctuation(example)} です。${stripTerminalPunctuation(caveat)}点も確認してください。`,
+    step: example => `${stripTerminalPunctuation(example)} のような例で結果を確認します。`,
+  },
+  'zh-CN': {
+    overview: (example, caveat) => `典型用法是 ${stripTerminalPunctuation(example)}；同时请注意${stripTerminalPunctuation(caveat)}。`,
+    step: example => `用 ${stripTerminalPunctuation(example)} 这样的实例检查结果。`,
+  },
+  'zh-TW': {
+    overview: (example, caveat) => `典型用法是 ${stripTerminalPunctuation(example)}；同時請注意${stripTerminalPunctuation(caveat)}。`,
+    step: example => `用 ${stripTerminalPunctuation(example)} 這類實例檢查結果。`,
+  },
+  es: {
+    overview: (example, caveat) => `Un caso práctico es ${stripTerminalPunctuation(example)}; ten en cuenta que ${stripTerminalPunctuation(caveat)}.`,
+    step: example => `Comprueba el resultado con un caso como ${stripTerminalPunctuation(example)}.`,
+  },
+  pt: {
+    overview: (example, caveat) => `Um caso prático é ${stripTerminalPunctuation(example)}; considere que ${stripTerminalPunctuation(caveat)}.`,
+    step: example => `Confira o resultado com um caso como ${stripTerminalPunctuation(example)}.`,
+  },
+  de: {
+    overview: (example, caveat) => `Ein typischer Anwendungsfall ist ${stripTerminalPunctuation(example)}; beachten Sie dabei: ${stripTerminalPunctuation(caveat)}.`,
+    step: example => `Prüfen Sie das Ergebnis mit einem Fall wie ${stripTerminalPunctuation(example)}.`,
+  },
+  fr: {
+    overview: (example, caveat) => `Un cas concret est ${stripTerminalPunctuation(example)} ; gardez à l’esprit que ${stripTerminalPunctuation(caveat)}.`,
+    step: example => `Vérifiez le résultat avec un cas comme ${stripTerminalPunctuation(example)}.`,
+  },
+  it: {
+    overview: (example, caveat) => `Un caso pratico è ${stripTerminalPunctuation(example)}; considera che ${stripTerminalPunctuation(caveat)}.`,
+    step: example => `Verifica il risultato con un caso come ${stripTerminalPunctuation(example)}.`,
+  },
+  id: {
+    overview: (example, caveat) => `Contoh penggunaan nyata adalah ${stripTerminalPunctuation(example)}; perhatikan bahwa ${stripTerminalPunctuation(caveat)}.`,
+    step: example => `Periksa hasil dengan contoh seperti ${stripTerminalPunctuation(example)}.`,
+  },
+  hi: {
+    overview: (example, caveat) => `एक सामान्य उपयोग ${stripTerminalPunctuation(example)} है; साथ ही ध्यान रखें कि ${stripTerminalPunctuation(caveat)}।`,
+    step: example => `${stripTerminalPunctuation(example)} जैसे उदाहरण से परिणाम जाँचें।`,
+  },
 };
 
 const privacy: Record<Language, Record<ToolPrivacyMode, (name: string) => string>> = {
@@ -112,6 +174,7 @@ export function createCompleteLocalizedContent(slug: string, privacyMode: ToolPr
 
   return Object.fromEntries(supportedLanguages.map(lang => {
     const pack = packs[lang];
+    const semanticPack = semanticPacks[lang];
     const localizedProfile = lang === 'en' ? null : localizedProfiles[lang][slug];
     if (lang !== 'en' && !localizedProfile) throw new Error(`Missing ${lang} profile for ${slug}`);
     const label = localizedProfile?.name ?? profile.label;
@@ -119,18 +182,22 @@ export function createCompleteLocalizedContent(slug: string, privacyMode: ToolPr
     const output = localizedProfile?.output ?? profile.output;
     const caveat = localizedProfile?.limitation ?? profile.caveat;
     const example = localizedProfile?.example ?? profile.example;
+    const faq = pack.faq(label, output, caveat).map(item => ({
+      question: normalizeLocalizedPunctuation(item.question),
+      answer: normalizeLocalizedPunctuation(item.answer),
+    }));
     return [lang, {
       status: 'complete',
       name: label,
       title: pack.title(label),
-      description: pack.description(label, input, output),
+      description: normalizeLocalizedPunctuation(pack.description(label, input, output)),
       searchIntent: pack.intent(label),
-      overview: pack.overview(label, input, output),
-      steps: pack.steps(label, input, output),
-      examples: [pack.example(label, example)],
-      limitations: [pack.limitation(label, caveat)],
-      privacy: privacy[lang][privacyMode](label),
-      faq: pack.faq(label, output, caveat),
+      overview: normalizeLocalizedPunctuation(`${pack.overview(label, input, output)} ${semanticPack.overview(example, caveat)}`),
+      steps: [...pack.steps(label, input, output), semanticPack.step(example)].map(normalizeLocalizedPunctuation),
+      examples: [normalizeLocalizedPunctuation(pack.example(label, example))],
+      limitations: [normalizeLocalizedPunctuation(pack.limitation(label, caveat))],
+      privacy: normalizeLocalizedPunctuation(privacy[lang][privacyMode](label)),
+      faq,
     } satisfies ToolContent];
   })) as Localized<ToolContent>;
 }

@@ -103,6 +103,8 @@ describe('localized tool page metadata', () => {
     expect(anonymousChatSource).toContain('robots={robots}');
     expect(detailSource).toContain('getToolFallbackNotice(tool, lang)');
     expect(anonymousChatSource).toContain('getToolFallbackNotice(tool, lang)');
+    expect(detailSource).toContain('<LocalizedToolIsland client:load slug={tool.slug} lang={lang} />');
+    expect(anonymousChatSource).toContain('<LocalizedChatIsland client:load lang={lang} />');
     expect(astroConfigSource).toContain('isIndexableLocalizedToolUrl');
     expect(astroConfigSource).toContain('filter: isIndexableLocalizedToolUrl');
   });

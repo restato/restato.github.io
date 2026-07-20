@@ -1,10 +1,16 @@
 import { describe, expect, it } from 'vitest';
 import { getAllToolSlugs, getToolBySlug, toolsConfig } from '../../tools';
 import { getIndexableLanguages, getPublishedTools, getTool, toolsRegistry } from '../registry';
+import { hasLocalizedToolComponent } from '../../../components/tools/LocalizedToolIsland';
 
 describe('toolsRegistry', () => {
   it('preserves all 41 public tool definitions', () => {
     expect(toolsRegistry).toHaveLength(41);
+  });
+
+  it('provides a localized React island for every standard tool route', () => {
+    const standardTools = getPublishedTools().filter(tool => tool.slug !== 'anonymous-chat');
+    expect(standardTools.every(tool => hasLocalizedToolComponent(tool.slug))).toBe(true);
   });
 
   it('keeps the legacy catalog exports backed by the registry data', () => {

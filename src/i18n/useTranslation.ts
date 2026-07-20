@@ -1,5 +1,5 @@
 // React hook for translations
-import { useState, useEffect, useCallback } from 'react';
+import { createContext, createElement, useState, useEffect, useCallback, useContext, type ReactNode } from 'react';
 import { getLanguage, setLanguage, type Language } from './index';
 import { toolTranslations } from './translations/tools';
 import { gameTranslations } from './translations/games';
@@ -20,8 +20,25 @@ type ExistingUiLanguage = 'ko' | 'en' | 'ja';
 const getExistingUiLanguage = (language: Language): ExistingUiLanguage =>
   language === 'ko' || language === 'ja' ? language : 'en';
 
+const InitialLanguageContext = createContext<ExistingUiLanguage | null>(null);
+
+export function TranslationProvider({
+  initialLanguage,
+  children,
+}: {
+  initialLanguage: Language;
+  children: ReactNode;
+}) {
+  return createElement(
+    InitialLanguageContext.Provider,
+    { value: getExistingUiLanguage(initialLanguage) },
+    children,
+  );
+}
+
 export function useTranslation() {
-  const [lang, setLang] = useState<ExistingUiLanguage>('ko');
+  const initialLanguage = useContext(InitialLanguageContext);
+  const [lang, setLang] = useState<ExistingUiLanguage>(() => initialLanguage ?? 'ko');
 
   useEffect(() => {
     // Set initial language
