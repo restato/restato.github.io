@@ -3,7 +3,7 @@ import MainLayout from '../../layouts/MainLayout.astro';
 import { getPublishedTools } from '../../data/tools';
 import { supportedLanguages } from '../../data/tools/locales';
 import type { Language, ToolDefinition } from '../../data/tools/types';
-import { landingContent } from '../../i18n/landing';
+import { getToolFallbackNotice, landingContent } from '../../i18n/landing';
 import { getAlternateUrls } from '../../i18n/urlUtils';
 
 export function getStaticPaths() {
@@ -69,6 +69,7 @@ const getDisplayContent = (tool: ToolDefinition) =>
               {clusterTools.map(tool => {
                 const content = getDisplayContent(tool);
                 const usesFallback = content?.status === 'fallback' || !tool.content[lang];
+                const fallbackNotice = getToolFallbackNotice(tool, lang);
                 return (
                   <li>
                     <a
@@ -77,7 +78,7 @@ const getDisplayContent = (tool: ToolDefinition) =>
                     >
                       <h4 class="font-semibold text-[var(--color-text)]">{tool.icon} {content?.name ?? tool.slug}</h4>
                       <p class="mt-2 text-sm text-[var(--color-text-muted)]">{content?.description}</p>
-                      {usesFallback && <p class="mt-3 text-xs text-amber-700 dark:text-amber-300">{copy.fallbackNotice}</p>}
+                      {usesFallback && fallbackNotice && <p class="mt-3 text-xs text-amber-700 dark:text-amber-300">{fallbackNotice}</p>}
                     </a>
                   </li>
                 );

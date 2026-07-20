@@ -38,7 +38,7 @@ export default function ToolsGrid({ lang, tools, categories }: ToolsGridProps) {
     en: { prefix: 'Total', suffix: ' tools available.', unit: '' },
     ja: { prefix: '合計', suffix: 'のツールがあります。', unit: '個' },
   };
-  const count = countCopy[lang as keyof typeof countCopy] || countCopy.ko;
+  const count = countCopy[lang as keyof typeof countCopy] || countCopy.en;
 
   return (
     <div>

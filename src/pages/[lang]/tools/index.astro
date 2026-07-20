@@ -8,7 +8,7 @@ import ToolsPageInfo from '../../../components/tools/ToolsPageInfo';
 import { categories, getPublishedTools } from '../../../data/tools';
 import { supportedLanguages } from '../../../data/tools/locales';
 import type { Language } from '../../../data/tools/types';
-import { landingContent } from '../../../i18n/landing';
+import { getToolFallbackNotice, landingContent } from '../../../i18n/landing';
 import { getToolCatalogPublicationState } from '../../../data/tools/pageMetadata';
 
 export function getStaticPaths() {
@@ -44,11 +44,13 @@ const tools = getPublishedTools().map(tool => {
     icon: tool.icon,
     category: tool.category,
     fallback: content.status === 'fallback',
+    fallbackNotice: getToolFallbackNotice(tool, lang),
   };
 });
 
 const seo = seoContent[lang as keyof typeof seoContent] ?? landingContent[lang];
 const usesFallback = tools.some(tool => tool.fallback);
+const fallbackNotice = tools.find(tool => tool.fallback)?.fallbackNotice;
 const { robots, alternateUrls } = getToolCatalogPublicationState(lang);
 ---
 
@@ -60,9 +62,9 @@ const { robots, alternateUrls } = getToolCatalogPublicationState(lang);
   alternateUrls={alternateUrls}
 >
   <div class="max-w-6xl mx-auto px-4 py-8">
-    {usesFallback && <p class="mb-6 rounded-lg border border-amber-300 bg-amber-50 p-4 text-sm text-amber-900 dark:border-amber-700 dark:bg-amber-950/30 dark:text-amber-200">{landingContent[lang].fallbackNotice}</p>}
+    {usesFallback && fallbackNotice && <p class="mb-6 rounded-lg border border-amber-300 bg-amber-50 p-4 text-sm text-amber-900 dark:border-amber-700 dark:bg-amber-950/30 dark:text-amber-200">{fallbackNotice}</p>}
     <!-- Header with i18n support -->
-    <ToolsPageHeader client:load />
+    <ToolsPageHeader client:load lang={lang} />
 
     <!-- Search -->
     <div class="mb-6">

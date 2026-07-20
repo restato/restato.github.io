@@ -1,18 +1,15 @@
 ---
 import MainLayout from '../../../layouts/MainLayout.astro';
 import ShareButton from '../../../components/tools/ShareButton';
-import { gamesConfig, getFeaturedGames, getGamesByCategory } from '../../../data/games';
+import { gameLanguages, gamesConfig, getFeaturedGames, getGameSeo, getGamesByCategory, isGameLanguage } from '../../../data/games';
 import type { Language } from '../../../i18n/index';
 
 export function getStaticPaths() {
-  return [
-    { params: { lang: 'ko' } },
-    { params: { lang: 'en' } },
-    { params: { lang: 'ja' } },
-  ];
+  return gameLanguages.map(lang => ({ params: { lang } }));
 }
 
 const { lang } = Astro.params as { lang: Language };
+const routeLang = isGameLanguage(lang) ? lang : 'en';
 
 const featuredGames = getFeaturedGames();
 const arcadeGames = getGamesByCategory('arcade');
@@ -59,7 +56,8 @@ const translations = {
   },
 };
 
-const t = translations[lang];
+const t = translations[routeLang] ?? translations.en;
+const gameSeo = (game: (typeof gamesConfig)[number]) => getGameSeo(game, routeLang);
 
 // JSON-LD Schema
 const gamesSchema = {
@@ -73,9 +71,9 @@ const gamesSchema = {
     "position": index + 1,
     "item": {
       "@type": "Game",
-      "name": game.seo[lang].title,
-      "description": game.seo[lang].description,
-      "url": `https://restato.github.io/${lang}/games/${game.slug}`,
+      "name": gameSeo(game).title,
+      "description": gameSeo(game).description,
+      "url": `https://restato.github.io/${routeLang}/games/${game.slug}`,
       "gamePlatform": "Web Browser",
       "applicationCategory": "Game",
       "offers": {
@@ -88,7 +86,7 @@ const gamesSchema = {
 };
 ---
 
-<MainLayout title={t.title} description={t.description} lang={lang}>
+<MainLayout title={t.title} description={t.description} lang={routeLang}>
   <script type="application/ld+json" set:html={JSON.stringify(gamesSchema)} />
 
   <section class="py-12 px-4">
@@ -119,15 +117,15 @@ const gamesSchema = {
           <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
             {featuredGames.map(game => (
               <a
-                href={`/${lang}/games/${game.slug}`}
+                href={`/${routeLang}/games/${game.slug}`}
                 class="group p-4 bg-gradient-to-br from-primary-500/10 to-purple-500/10 rounded-xl border border-primary-500/30 hover:border-primary-500 transition-all hover:shadow-lg hover:-translate-y-1"
               >
                 <div class="text-4xl mb-3">{game.icon}</div>
                 <h3 class="font-bold mb-1 group-hover:text-primary-500 transition-colors">
-                  {game.seo[lang].title.split(' - ')[0]}
+                  {gameSeo(game).title.split(' - ')[0]}
                 </h3>
                 <p class="text-sm text-[var(--color-text-muted)] line-clamp-2">
-                  {game.seo[lang].description.slice(0, 60)}...
+                  {gameSeo(game).description.slice(0, 60)}...
                 </p>
               </a>
             ))}
@@ -144,12 +142,12 @@ const gamesSchema = {
           <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
             {arcadeGames.map(game => (
               <a
-                href={`/${lang}/games/${game.slug}`}
+                href={`/${routeLang}/games/${game.slug}`}
                 class="group p-4 bg-[var(--color-card)] rounded-xl border border-[var(--color-border)] hover:border-primary-500 transition-all hover:shadow-lg hover:-translate-y-1"
               >
                 <div class="text-3xl mb-2">{game.icon}</div>
                 <h3 class="font-bold text-sm group-hover:text-primary-500 transition-colors">
-                  {game.seo[lang].title.split(' - ')[0]}
+                  {gameSeo(game).title.split(' - ')[0]}
                 </h3>
               </a>
             ))}
@@ -166,12 +164,12 @@ const gamesSchema = {
           <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
             {puzzleGames.map(game => (
               <a
-                href={`/${lang}/games/${game.slug}`}
+                href={`/${routeLang}/games/${game.slug}`}
                 class="group p-4 bg-[var(--color-card)] rounded-xl border border-[var(--color-border)] hover:border-primary-500 transition-all hover:shadow-lg hover:-translate-y-1"
               >
                 <div class="text-3xl mb-2">{game.icon}</div>
                 <h3 class="font-bold text-sm group-hover:text-primary-500 transition-colors">
-                  {game.seo[lang].title.split(' - ')[0]}
+                  {gameSeo(game).title.split(' - ')[0]}
                 </h3>
               </a>
             ))}
@@ -188,12 +186,12 @@ const gamesSchema = {
           <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
             {eventGames.map(game => (
               <a
-                href={`/${lang}/games/${game.slug}`}
+                href={`/${routeLang}/games/${game.slug}`}
                 class="group p-4 bg-[var(--color-card)] rounded-xl border border-[var(--color-border)] hover:border-primary-500 transition-all hover:shadow-lg hover:-translate-y-1"
               >
                 <div class="text-3xl mb-2">{game.icon}</div>
                 <h3 class="font-bold text-sm group-hover:text-primary-500 transition-colors">
-                  {game.seo[lang].title.split(' - ')[0]}
+                  {gameSeo(game).title.split(' - ')[0]}
                 </h3>
               </a>
             ))}
@@ -210,12 +208,12 @@ const gamesSchema = {
           <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
             {classicGames.map(game => (
               <a
-                href={`/${lang}/games/${game.slug}`}
+                href={`/${routeLang}/games/${game.slug}`}
                 class="group p-4 bg-[var(--color-card)] rounded-xl border border-[var(--color-border)] hover:border-primary-500 transition-all hover:shadow-lg hover:-translate-y-1"
               >
                 <div class="text-3xl mb-2">{game.icon}</div>
                 <h3 class="font-bold text-sm group-hover:text-primary-500 transition-colors">
-                  {game.seo[lang].title.split(' - ')[0]}
+                  {gameSeo(game).title.split(' - ')[0]}
                 </h3>
               </a>
             ))}

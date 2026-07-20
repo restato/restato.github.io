@@ -46,7 +46,9 @@ const MONTHS = [
   { value: '12', label: { ko: '12월', en: 'Dec', ja: '12月' } },
 ];
 
-function describeCron(parts: CronParts, t: (obj: Record<string, string>) => string): string {
+type CronTranslation = { ko: string; en: string; ja: string };
+
+function describeCron(parts: CronParts, t: (obj: CronTranslation) => string): string {
   const { minute, hour, dayOfMonth, month, dayOfWeek } = parts;
 
   const descriptions: string[] = [];
@@ -104,7 +106,7 @@ function describeCron(parts: CronParts, t: (obj: Record<string, string>) => stri
 }
 
 export default function CronGenerator() {
-  const { t, lang } = useTranslation();
+  const { t } = useTranslation();
 
   const [parts, setParts] = useState<CronParts>({
     minute: '0',
@@ -120,7 +122,7 @@ export default function CronGenerator() {
   }, [parts]);
 
   const description = useMemo(() => {
-    return describeCron(parts, t);
+    return describeCron(parts, (value) => t(value));
   }, [parts, t]);
 
   const parseCron = (cron: string) => {

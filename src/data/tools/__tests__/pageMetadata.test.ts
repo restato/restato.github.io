@@ -3,6 +3,7 @@ import { join } from 'node:path';
 
 import { describe, expect, it } from 'vitest';
 import { getTool } from '../registry';
+import { getToolFallbackNotice, landingContent } from '../../../i18n/landing';
 import {
   getToolCatalogPublicationState,
   getLocalizedToolPageMetadata,
@@ -33,6 +34,12 @@ describe('localized tool page metadata', () => {
 
     expect(metadata.robots).toBe('noindex, follow');
     expect(metadata.alternateUrls).toEqual([]);
+  });
+
+  it('describes localized incomplete content differently from English fallback content', () => {
+    const tool = getTool('json')!;
+    expect(getToolFallbackNotice(tool, 'ko')).toContain('일부');
+    expect(getToolFallbackNotice(tool, 'fr')).toBe(landingContent.fr.fallbackNotice);
   });
 
   it('keeps fallback catalogs non-indexable and out of reciprocal alternates', () => {

@@ -83,6 +83,12 @@ describe('localized URLs', () => {
       .toBe('/blog/post/?lang=en#intro');
   });
 
+  it('routes unsupported game locales to the existing English game route', () => {
+    expect(buildLanguageUrl('/ko/games/snake?mode=fast#play', 'fr'))
+      .toBe('/en/games/snake?mode=fast#play');
+    expect(buildLanguageUrl('/en/games/snake', 'ja')).toBe('/ja/games/snake');
+  });
+
   it('creates normalized, unique, trailing-slash alternates', () => {
     const alternates = getAlternateUrls('/en/tools/json?draft=1#result', 'https://restato.github.io/');
 

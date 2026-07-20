@@ -186,6 +186,7 @@ const getTranslation = (translations: Partial<Record<Language, string>>, languag
 <script define:vars={{ navTranslations, darkModeTranslations, languages, lang, lockLanguage, supportedLanguagePattern }} is:inline>
   (() => {
     const langSupportedPaths = ['/', '/tools', '/anonymous-chat', '/games'];
+    const gameLanguages = new Set(['ko', 'en', 'ja']);
     const languagePrefixPattern = new RegExp('^/(' + supportedLanguagePattern + ')(?=/|$|[?#])');
 
     function getBasePath(pathname) {
@@ -204,7 +205,11 @@ const getTranslation = (translations: Partial<Record<Language, string>>, languag
     function buildLangUrl(pathname, lang) {
       const basePath = getBasePath(pathname);
       if (!supportsLangRouting(basePath)) return basePath;
-      return '/' + lang + basePath;
+      const pathOnly = basePath.split(/[?#]/, 1)[0];
+      const routeLang = (pathOnly === '/games' || pathOnly.startsWith('/games/')) && !gameLanguages.has(lang)
+        ? 'en'
+        : lang;
+      return '/' + routeLang + basePath;
     }
 
     function getCurrentLanguage() {

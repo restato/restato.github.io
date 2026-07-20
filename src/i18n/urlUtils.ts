@@ -8,6 +8,7 @@ export const languagePrefixPattern = new RegExp(
 );
 
 const LANG_SUPPORTED_PATHS = ['/', '/tools', '/anonymous-chat', '/games'];
+const GAME_LANGUAGES = new Set<Language>(['ko', 'en', 'ja']);
 
 function splitPathSuffix(value: string): { path: string; suffix: string } {
   const suffixIndex = value.search(/[?#]/);
@@ -39,7 +40,11 @@ export function supportsLanguageRouting(pathname: string): boolean {
 export function buildLanguageUrl(pathname: string, lang: Language): string {
   const basePath = getBasePathFromUrl(pathname);
   if (!supportsLanguageRouting(basePath)) return basePath;
-  return `/${lang}${basePath}`;
+  const { path } = splitPathSuffix(basePath);
+  const routeLanguage = (path === '/games' || path.startsWith('/games/')) && !GAME_LANGUAGES.has(lang)
+    ? 'en'
+    : lang;
+  return `/${routeLanguage}${basePath}`;
 }
 
 function normalizeTrailingSlash(pathname: string): string {

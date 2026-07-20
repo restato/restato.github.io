@@ -54,6 +54,11 @@ interface ToolSearchProps {
 }
 
 export default function ToolSearch({ lang = 'en', tools = defaultTools }: ToolSearchProps) {
+  const ui = lang === 'ko'
+    ? { placeholder: '도구 검색... (⌘K)', noResults: '검색 결과가 없습니다', tryAnother: '다른 키워드로 검색해보세요' }
+    : lang === 'ja'
+      ? { placeholder: 'ツールを検索... (⌘K)', noResults: '検索結果がありません', tryAnother: '別のキーワードをお試しください' }
+      : { placeholder: 'Search tools... (⌘K)', noResults: 'No tools found', tryAnother: 'Try another keyword' };
   const [query, setQuery] = useState('');
   const [isOpen, setIsOpen] = useState(false);
   const [selectedIndex, setSelectedIndex] = useState(0);
@@ -135,7 +140,7 @@ export default function ToolSearch({ lang = 'en', tools = defaultTools }: ToolSe
           onFocus={() => setIsOpen(true)}
           onBlur={() => setTimeout(() => setIsOpen(false), 200)}
           onKeyDown={handleKeyDown}
-          placeholder="도구 검색... (⌘K)"
+          placeholder={ui.placeholder}
           className="w-full pl-10 pr-4 py-3 rounded-xl
             bg-[var(--color-card)] border border-[var(--color-border)]
             focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20
@@ -189,8 +194,8 @@ export default function ToolSearch({ lang = 'en', tools = defaultTools }: ToolSe
           bg-[var(--color-card)] border border-[var(--color-border)]
           shadow-xl text-center text-[var(--color-text-muted)]"
         >
-          <p>검색 결과가 없습니다</p>
-          <p className="text-sm mt-1">다른 키워드로 검색해보세요</p>
+          <p>{ui.noResults}</p>
+          <p className="text-sm mt-1">{ui.tryAnother}</p>
         </div>
       )}
     </div>

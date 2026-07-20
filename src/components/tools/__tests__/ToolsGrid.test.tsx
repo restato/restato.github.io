@@ -44,10 +44,11 @@ describe('ToolsGrid', () => {
   });
 
   it('renders pre-resolved English fallback text for a new locale', () => {
-    render(<ToolsGrid lang="fr" tools={[tool]} categories={[allCategory]} />);
+    const { container } = render(<ToolsGrid lang="fr" tools={[tool]} categories={[allCategory]} />);
 
     expect(screen.getByRole('heading', { name: 'JSON Formatter' })).toBeInTheDocument();
     expect(screen.getByText('Format JSON.')).toBeInTheDocument();
     expect(screen.getByRole('link', { name: /JSON Formatter/ })).toHaveAttribute('href', '/fr/tools/json');
+    expect(container).toHaveTextContent('Total 1 tools available.');
   });
 });

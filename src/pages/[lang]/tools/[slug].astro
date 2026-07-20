@@ -8,7 +8,7 @@ import { getPublishedTools, type ToolDefinition } from '../../../data/tools';
 import { getLocalizedToolPageMetadata } from '../../../data/tools/pageMetadata';
 import { supportedLanguages } from '../../../data/tools/locales';
 import type { Language } from '../../../data/tools/types';
-import { landingContent } from '../../../i18n/landing';
+import { getToolFallbackNotice } from '../../../i18n/landing';
 
 // Import all tool components explicitly (required for Astro hydration)
 import QRCodeGenerator from '../../../components/tools/QRCodeGenerator';
@@ -102,7 +102,7 @@ const { content, robots, alternateUrls } = getLocalizedToolPageMetadata(tool, la
 const privacy = content.privacy;
 const seo = content;
 const ui = uiStrings[lang as ExistingRouteLanguage] ?? uiStrings.en;
-const fallbackNotice = content.status === 'fallback' ? landingContent[lang].fallbackNotice : null;
+const fallbackNotice = content.status === 'fallback' ? getToolFallbackNotice(tool, lang) : null;
 
 const pageTitle = `${seo.title} | Restato`;
 const canonicalUrl = `https://restato.github.io/${lang}/tools/${tool.slug}`;

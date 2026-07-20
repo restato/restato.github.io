@@ -1,4 +1,4 @@
-import type { Language } from '../data/tools/types';
+import type { Language, ToolDefinition } from '../data/tools/types';
 
 export interface LandingContent {
   title: string;
@@ -133,3 +133,19 @@ export const landingContent = {
     localPrivacy: 'अधिकांश इनपुट और फ़ाइलें आपके ब्राउज़र में ही प्रोसेस होती हैं।',
   },
 } satisfies Record<Language, LandingContent>;
+
+const incompleteContentNotices: Partial<Record<Language, string>> = {
+  ko: '이 도구는 현재 일부 안내만 한국어로 제공되며 전체 콘텐츠 번역이 진행 중입니다.',
+  en: 'This tool currently provides partial guidance while the complete content is being prepared.',
+  ja: 'このツールは現在、一部の案内のみ日本語で提供しており、完全な翻訳を準備中です。',
+};
+
+export function getToolFallbackNotice(tool: ToolDefinition, lang: Language): string | null {
+  const localizedContent = tool.content[lang];
+  const renderedContent = localizedContent ?? tool.content.en ?? tool.content.ko;
+  if (!renderedContent || renderedContent.status === 'complete') return null;
+
+  return localizedContent
+    ? incompleteContentNotices[lang] ?? incompleteContentNotices.en!
+    : landingContent[lang].fallbackNotice;
+}

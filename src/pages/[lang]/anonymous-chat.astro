@@ -5,7 +5,7 @@ import { getTool } from '../../data/tools';
 import { getLocalizedToolPageMetadata } from '../../data/tools/pageMetadata';
 import { supportedLanguages } from '../../data/tools/locales';
 import type { Language } from '../../data/tools/types';
-import { landingContent } from '../../i18n/landing';
+import { getToolFallbackNotice } from '../../i18n/landing';
 
 export function getStaticPaths() {
   return supportedLanguages.map(lang => ({ params: { lang } }));
@@ -18,7 +18,7 @@ if (!tool) {
 }
 const { content: seo, robots, alternateUrls } = getLocalizedToolPageMetadata(tool, lang);
 const privacy = seo.privacy;
-const fallbackNotice = seo.status === 'fallback' ? landingContent[lang].fallbackNotice : null;
+const fallbackNotice = seo.status === 'fallback' ? getToolFallbackNotice(tool, lang) : null;
 
 const pageTitle = `${seo.title} | Restato`;
 ---

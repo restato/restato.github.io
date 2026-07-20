@@ -1,7 +1,7 @@
 ---
 import MainLayout from '../../../layouts/MainLayout.astro';
 import ShareButton from '../../../components/tools/ShareButton';
-import { gamesConfig, getGameConfig } from '../../../data/games';
+import { gameLanguages, gamesConfig, getGameConfig, getGameSeo, isGameLanguage } from '../../../data/games';
 import type { Language } from '../../../i18n/index';
 
 // Dynamic imports for game components
@@ -31,9 +31,7 @@ import SlotMachine from '../../../components/SlotMachine';
 
 export function getStaticPaths() {
   const paths = [];
-  const languages: Language[] = ['ko', 'en', 'ja'];
-
-  for (const lang of languages) {
+  for (const lang of gameLanguages) {
     for (const game of gamesConfig) {
       paths.push({
         params: { lang, slug: game.slug },
@@ -45,6 +43,7 @@ export function getStaticPaths() {
 }
 
 const { lang, slug } = Astro.params as { lang: Language; slug: string };
+const routeLang = isGameLanguage(lang) ? lang : 'en';
 
 const game = getGameConfig(slug);
 
@@ -52,7 +51,7 @@ if (!game) {
   return Astro.redirect('/404');
 }
 
-const seo = game.seo[lang];
+const seo = getGameSeo(game, routeLang);
 
 const translations = {
   ko: {
@@ -78,7 +77,7 @@ const translations = {
   },
 };
 
-const t = translations[lang];
+const t = translations[routeLang] ?? translations.en;
 
 // JSON-LD Schema
 const gameSchema = {
@@ -86,7 +85,7 @@ const gameSchema = {
   "@type": "VideoGame",
   "name": seo.title,
   "description": seo.description,
-  "url": `https://restato.github.io/${lang}/games/${slug}`,
+  "url": `https://restato.github.io/${routeLang}/games/${slug}`,
   "gamePlatform": "Web Browser",
   "applicationCategory": "Game",
   "operatingSystem": "All",
@@ -106,7 +105,7 @@ const gameSchema = {
 <MainLayout
   title={seo.title}
   description={seo.description}
-  lang={lang}
+  lang={routeLang}
 >
   <script type="application/ld+json" set:html={JSON.stringify(gameSchema)} />
 
@@ -114,7 +113,7 @@ const gameSchema = {
     <div class="max-w-6xl mx-auto">
       <!-- Breadcrumb -->
       <div class="flex items-center gap-2 text-sm text-[var(--color-text-muted)] mb-6">
-        <a href={`/${lang}/games`} class="hover:text-primary-500 transition-colors">
+        <a href={`/${routeLang}/games`} class="hover:text-primary-500 transition-colors">
           {t.backToGames}
         </a>
         <span>/</span>
