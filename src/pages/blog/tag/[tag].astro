@@ -2,25 +2,30 @@
 import MainLayout from '../../../layouts/MainLayout.astro';
 import BlogCard from '../../../components/BlogCard.astro';
 import { getCollection } from 'astro:content';
-import { getBlogTagEntries, toBlogTagSlug } from '../../../lib/blogTags';
+import { getBlogTagEntries, getBlogTagRouteEntries, toBlogTagSlug } from '../../../lib/blogTags';
 
 export async function getStaticPaths() {
   const posts = await getCollection('blog', ({ data }) => !data.draft);
 
-  const tagEntries = getBlogTagEntries(posts.flatMap(post => post.data.tags));
+  const tagRoutes = getBlogTagRouteEntries(posts.flatMap(post => post.data.tags));
+  const canonicalRoutes = tagRoutes.filter(route => route.kind === 'canonical');
 
-  return tagEntries.map(({ label, slug }) => ({
-    params: { tag: slug },
+  return canonicalRoutes.map(route => ({
+    params: { tag: route.param },
     props: {
-      tag: label,
+      tag: route.label,
       posts: posts
-        .filter(post => post.data.tags.some(postTag => toBlogTagSlug(postTag) === slug))
-        .sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf())
-    }
+        .filter(post => post.data.tags.some(postTag => toBlogTagSlug(postTag) === route.canonicalSlug))
+        .sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf()),
+      legacyTagParams: tagRoutes
+        .filter(candidate => candidate.kind === 'redirect' && candidate.canonicalSlug === route.canonicalSlug)
+        .map(candidate => candidate.param),
+    },
   }));
 }
 
-const { tag, posts } = Astro.props;
+const { tag, posts, legacyTagParams = [] } = Astro.props;
+const legacyTagParamsJson = JSON.stringify(legacyTagParams).replace(/</g, '\\u003c');
 
 // Get all unique tags for the filter section
 const allPosts = await getCollection('blog', ({ data }) => !data.draft);
@@ -32,6 +37,13 @@ const allTagEntries = getBlogTagEntries(allPosts.flatMap(post => post.data.tags)
   description={`Posts tagged with "${tag}"`}
   lang="en"
 >
+  <script
+    slot="head"
+    id="blog-tag-legacy-aliases"
+    type="application/json"
+    data-canonical-slug={toBlogTagSlug(tag)}
+    set:html={legacyTagParamsJson}
+  />
   <section class="py-20 px-6">
     <div class="max-w-4xl mx-auto">
       <!-- Header -->

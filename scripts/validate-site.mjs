@@ -160,6 +160,29 @@ export async function validateSite(distDir) {
         );
       }
     });
+
+    page.$('meta[http-equiv]').each((_, element) => {
+      if (page.$(element).attr('http-equiv')?.toLocaleLowerCase('en-US') !== 'refresh') return;
+
+      const content = page.$(element).attr('content') ?? '';
+      const refreshTarget = content.match(/(?:^|;)\s*url\s*=\s*(.+)\s*$/i)?.[1];
+      const url = getInternalUrl(refreshTarget, page.pathname);
+      const target = url && resolveGeneratedPath(url.pathname, pathIndex);
+
+      if (target?.status === 'missing') {
+        errors.push(`${page.relativePath}: broken redirect target ${refreshTarget}`);
+      }
+      if (target?.status === 'ambiguous') {
+        errors.push(
+          `${page.relativePath}: ambiguous redirect target ${refreshTarget} (case-insensitive matches ${target.matches.join(', ')})`,
+        );
+      }
+      if (target?.status === 'case-mismatch') {
+        errors.push(
+          `${page.relativePath}: redirect target ${refreshTarget} differs by case from generated path ${target.matches[0]}`,
+        );
+      }
+    });
   }
 
   for (const page of pages) {

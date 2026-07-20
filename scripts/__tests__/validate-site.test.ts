@@ -129,6 +129,18 @@ describe('validateSite', () => {
     expect(result).toEqual({ pages: 3, errors: [] });
   });
 
+  it('reports a generated redirect whose meta-refresh target is missing', async () => {
+    const directory = await createFixture({
+      'legacy/index.html': '<!doctype html><head><link rel="canonical" href="https://restato.github.io/guide/"><meta http-equiv="refresh" content="0;url=/missing-guide"></head>',
+    });
+
+    const result = await validateSite(directory);
+
+    expect(result.errors).toContain(
+      'legacy/index.html: broken redirect target /missing-guide',
+    );
+  });
+
   it('resolves generated paths with spaces after URL encoding', async () => {
     const directory = await createFixture({
       'index.html': page({
