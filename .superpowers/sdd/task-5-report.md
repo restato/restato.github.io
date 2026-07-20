@@ -28,4 +28,4 @@ After the controller reproduced 27 Astro type errors, the type boundary between 
 - `src/components/NumberGuess.tsx:159:15`: deprecated `onKeyPress`.
 - `src/components/NumberGuess.tsx:104:9`: unused `getHintColor`.
 
-`npm run verify` was invoked once. Its full Vitest step discovered 48 files but did not complete before the controller session window ended, so it never reached check, build, or static validation. The controller will run the long verification flow through a unified session. No successful full-verification claim is made here. No unrelated production source changes were made to work around that execution limitation.
+`npm run verify` was invoked again after the type remediation, but its full Vitest child exceeded this worker's response window and was intentionally terminated so the controller can run the complete chain in a unified session. No successful full-verification claim is made here. No unrelated production source changes were made to work around that execution limitation.
