@@ -15,6 +15,24 @@
 
 기존 `src/content/blog/`가 현재 발행 상태의 원본이며, 이 파일은 에이전트의 빠른 중복 판단용 인덱스입니다.
 
+## 2026-07-21 — Astro 5에서 7.1로 올리기 전 점검할 것: Content Layer, Node 22, Tailwind
+- type: new
+- slug: /blog/astro-5-to-7-1-migration-audit/
+- file: src/content/blog/astro-5-to-7-1-migration-audit.mdx
+- topics: [Astro 7.1, GitHub Pages, Content Layer, Node 22, Tailwind CSS]
+- sources: [https://astro.build/blog/astro-710/, https://astro.build/blog/astro-7/, https://docs.astro.build/en/guides/upgrade-to/v6/, https://docs.astro.build/en/guides/upgrade-to/v7/, https://docs.astro.build/en/guides/styling/]
+- commit: 2ef62dc83b147656d9cb6189abe1ba3e5b839578
+- notes: 일반 릴리스 요약이 아니라 실제 Restato의 Astro 5, Node 20, src/content/config.ts, post.slug, post.render(), Tailwind 3 구성을 기준으로 빌드를 막는 항목과 단계별 전환 순서를 제시함
+
+## 2026-07-21 — GitHub Copilot 코드 리뷰를 저장소 규칙에 맞추는 방법: 지침, Setup, Firewall
+- type: new
+- slug: /blog/github-copilot-code-review-customization-guide/
+- file: src/content/blog/github-copilot-code-review-customization-guide.mdx
+- topics: [GitHub Copilot, Code Review, GitHub Actions, Agent Skills, Firewall]
+- sources: [https://github.blog/changelog/2026-07-17-copilot-code-review-customization-and-configurability-improvements/, https://docs.github.com/en/copilot/how-tos/use-copilot-agents/request-a-code-review/use-code-review, https://docs.github.com/en/copilot/how-tos/copilot-on-github/customize-copilot/customize-the-firewall, https://docs.github.com/en/enterprise-cloud@latest/copilot/how-tos/copilot-on-github/customize-copilot/customize-cloud-agent/customize-the-agent-environment]
+- commit: 290fef4566cb26d99db850ef102070203403c567
+- notes: 새 기능 목록보다 REVIEW.md, head 브랜치 지침 검증, 전용 copilot-code-review.yml, setup 실패 처리, 독립 firewall·runner와 리뷰용 skill 설계를 제공함
+
 ## 2026-07-20 — AI SDK 7 프로덕션 에이전트 가이드: 승인, WorkflowAgent, HarnessAgent
 - type: new
 - slug: /blog/ai-sdk-7-production-agent-guide/
