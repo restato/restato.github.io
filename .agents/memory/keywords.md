@@ -11,6 +11,20 @@
 
 실제 검색량을 확인하지 않았다면 수치를 추정하지 말고 정성적으로만 기록합니다.
 
+## Astro 7 migration
+- intent: tutorial | informational
+- related: Astro 7.1, Astro 5 to 7, Content Layer, Node 22, post.id, render(), Tailwind 4, GitHub Pages
+- existing-post: /blog/astro-5-to-7-1-migration-audit/
+- opportunity: 릴리스 기능 요약보다 실제 Astro 5 저장소에서 빌드를 막는 Node·content config·slug·render API와 Tailwind 전환 순서를 연결하는 실전 검색 의도
+- notes: Restato의 package.json, src/content/config.ts, blog route, RSS, deploy workflow와 Astro 공식 v6·v7 migration guide를 기준으로 작성했으며 검색량 수치는 확인하지 않음
+
+## GitHub Copilot code review customization
+- intent: tutorial | informational
+- related: copilot-code-review.yml, REVIEW.md, AGENTS.md, CLAUDE.md, custom instructions, firewall, runner, agent skills
+- existing-post: /blog/github-copilot-code-review-customization-guide/
+- opportunity: 단순 리뷰 요청법보다 head 브랜치 지침 검증, 전용 setup 환경, setup 실패 처리, 네트워크·runner 권한 분리와 review skill 설계에 대한 지속 검색 가능성
+- notes: GitHub 2026-07-17 changelog와 공식 Copilot code review·firewall·environment 문서를 기준으로 작성. 문서 일부의 base branch 설명과 최신 changelog의 head branch 설명 차이를 명시함
+
 ## AI SDK 7
 - intent: tutorial | comparison | informational
 - related: WorkflowAgent, HarnessAgent, ToolLoopAgent, tool approval, Vercel AI SDK migration, durable AI agent, AI SDK telemetry
