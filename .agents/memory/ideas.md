@@ -13,6 +13,33 @@
 
 트렌드 조사에서 가치가 있지만 당장 발행하지 않는 주제를 저장합니다.
 
+## Astro 5에서 7.1로 올리기 전 점검할 것
+- status: published
+- source: Astro 7.1·7.0 공식 발표, Astro 6·7 업그레이드 가이드, Restato package.json·content config·blog route·RSS·deploy workflow
+- why-now: Astro 7.1이 2026-07-16 공개됐고 Restato는 Astro 5, Node 20, 레거시 Content Collections와 제거 예정 API를 실제 사용 중임
+- target-reader: Astro 5 기반 MDX 블로그와 GitHub Pages 사이트를 운영하는 개발자
+- search-intent: Astro 7 migration, Astro 5 to 7, Content Layer migration, Node 22, post.slug render
+- update-existing: false
+- notes: 96점. 2026-07-21 `/blog/astro-5-to-7-1-migration-audit/`로 발행. 단순 릴리스 소개가 아니라 현재 저장소에서 실제 빌드를 막는 위치와 전환 순서를 제시함
+
+## GitHub Copilot 코드 리뷰 커스터마이징
+- status: published
+- source: GitHub 2026-07-17 changelog, Copilot code review·firewall·development environment 공식 문서
+- why-now: head 브랜치 지침 검증, REVIEW.md·CLAUDE.md 지원, 전용 setup workflow, 독립 firewall과 runner 설정이 추가됨
+- target-reader: GitHub Copilot 코드 리뷰를 팀 규칙과 CI 환경에 맞추려는 개발자·저장소 관리자
+- search-intent: Copilot code review instructions, copilot-code-review.yml, REVIEW.md, Copilot firewall, agent skills review
+- update-existing: false
+- notes: 89점. 2026-07-21 `/blog/github-copilot-code-review-customization-guide/`로 발행. setup 실패 시 리뷰가 계속될 수 있는 운영상 주의점까지 포함함
+
+## GitHub Copilot 저장소별 사용량 지표 API
+- status: hold
+- source: GitHub 2026-07-17 repository-level Copilot usage metrics GA 발표와 REST API 문서
+- why-now: coding agent가 만든·병합한 PR과 code review 활동을 저장소별 일 단위로 조회할 수 있게 됨
+- target-reader: Copilot Business·Enterprise 도입 성과를 저장소 단위로 측정하는 조직 관리자
+- search-intent: GitHub Copilot repository metrics API, coding agent PR metrics, code review metrics
+- update-existing: false
+- notes: 72점. 공식 근거는 강하지만 조직 권한과 실제 데이터가 필요한 주제라 현재 Restato 독자가 바로 재현하기 어려움. 향후 여러 AI 개발 도구의 성과 측정을 묶는 digest 후보
+
 ## AI SDK 7 프로덕션 에이전트 가이드
 - status: published
 - source: Vercel 2026-06-25 AI SDK 7 공식 발표, AI SDK 공식 문서와 Vercel Knowledge Base
