@@ -1,7 +1,71 @@
 {
-  "updatedAt": "2026-07-20T08:56:00+09:00",
+  "updatedAt": "2026-07-21T09:09:00+09:00",
   "threshold": 85,
   "candidates": [
+    {
+      "id": "astro-5-to-7-1-migration-audit",
+      "title": "Astro 5에서 7.1로 올리기 전 점검할 것",
+      "topic": "Astro 7.1과 GitHub Pages 마이그레이션",
+      "score": 96,
+      "status": "published",
+      "action": "new-post",
+      "sourceType": "trend-watch",
+      "reason": "2026년 7월 16일 Astro 7.1이 공개됐고, 현재 Restato 저장소의 Astro 5·Node 20·레거시 Content Collections·post.slug·post.render() 사용을 공식 마이그레이션 가이드와 연결해 재현 가능한 업그레이드 감사표를 제공할 수 있음",
+      "breakdown": {
+        "timeliness": 14,
+        "readerValue": 20,
+        "fit": 15,
+        "originality": 14,
+        "evergreen": 9,
+        "evidence": 15,
+        "contentGap": 9
+      },
+      "path": "/blog/astro-5-to-7-1-migration-audit/",
+      "commit": "2ef62dc83b147656d9cb6189abe1ba3e5b839578",
+      "updatedAt": "2026-07-21"
+    },
+    {
+      "id": "github-copilot-code-review-customization-guide",
+      "title": "GitHub Copilot 코드 리뷰를 저장소 규칙에 맞추는 방법",
+      "topic": "GitHub Copilot code review 운영",
+      "score": 89,
+      "status": "published",
+      "action": "new-post",
+      "sourceType": "trend-watch",
+      "reason": "2026년 7월 17일 Copilot code review가 head 브랜치 지침, REVIEW.md·CLAUDE.md, 전용 setup workflow, 독립 firewall과 runner를 지원하면서 팀 리뷰 정책을 코드로 검증하는 실전 구성이 가능해짐",
+      "breakdown": {
+        "timeliness": 14,
+        "readerValue": 18,
+        "fit": 15,
+        "originality": 12,
+        "evergreen": 8,
+        "evidence": 15,
+        "contentGap": 7
+      },
+      "path": "/blog/github-copilot-code-review-customization-guide/",
+      "commit": "290fef4566cb26d99db850ef102070203403c567",
+      "updatedAt": "2026-07-21"
+    },
+    {
+      "id": "github-copilot-repository-usage-metrics",
+      "title": "GitHub Copilot 저장소별 사용량 지표 API",
+      "topic": "Copilot usage metrics",
+      "score": 72,
+      "status": "hold",
+      "action": "digest",
+      "sourceType": "trend-watch",
+      "reason": "2026년 7월 17일 저장소별 coding agent·code review PR 활동 API가 GA됐지만 조직·엔터프라이즈 관리자 중심이며 현재 개인 블로그 독자가 바로 재현할 수 있는 사례와 데이터가 부족함",
+      "breakdown": {
+        "timeliness": 14,
+        "readerValue": 10,
+        "fit": 12,
+        "originality": 8,
+        "evergreen": 7,
+        "evidence": 15,
+        "contentGap": 6
+      },
+      "updatedAt": "2026-07-21"
+    },
     {
       "id": "ai-sdk-7-production-agent-guide",
       "title": "AI SDK 7 프로덕션 에이전트 가이드",
