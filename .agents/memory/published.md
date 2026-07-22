@@ -15,6 +15,24 @@
 
 기존 `src/content/blog/`가 현재 발행 상태의 원본이며, 이 파일은 에이전트의 빠른 중복 판단용 인덱스입니다.
 
+## 2026-07-22 — Gemini 3.6 Flash 마이그레이션 가이드: 가격, API 변경, Copilot·AI Gateway
+- type: new
+- slug: /blog/gemini-3-6-flash-migration-guide/
+- file: src/content/blog/gemini-3-6-flash-migration-guide.mdx
+- topics: [Gemini 3.6 Flash, Gemini 3.5 Flash-Lite, Google AI, GitHub Copilot, AI Gateway]
+- sources: [https://ai.google.dev/gemini-api/docs/latest-model, https://ai.google.dev/gemini-api/docs/models/gemini-3.6-flash, https://github.blog/changelog/2026-07-21-gemini-3-6-flash-is-now-available-in-github-copilot/, https://vercel.com/changelog/gemini-3-6-flash-3-5-flash-lite-on-ai-gateway]
+- commit: 8fa1f8eaa1f8ba11663faaef310a04f420e08699
+- notes: 신모델 발표 요약이 아니라 sampling parameter 제거, prefilled model turn 400 오류, thinking 설정, Copilot 교체 일정과 AI Gateway 비교 코드를 하나의 마이그레이션 절차로 제공함
+
+## 2026-07-22 — Vercel AI Gateway Service Tiers 운영 가이드: priority·flex 비용과 fallback 검증
+- type: new
+- slug: /blog/vercel-ai-gateway-service-tiers-guide/
+- file: src/content/blog/vercel-ai-gateway-service-tiers-guide.mdx
+- topics: [Vercel AI Gateway, AI SDK, Service Tier, OpenAI, Gemini]
+- sources: [https://vercel.com/changelog/service-tiers-now-available-on-ai-gateway, https://vercel.com/docs/ai-gateway/models-and-providers/service-tiers]
+- commit: 4dd0d54660fcd45e5844947c28c9f01e16178fe7
+- notes: 티어 목록보다 requested tier와 실제 applied tier를 분리 기록하고, priority downgrade를 실패로 처리하지 않으며, 모델 선택과 지연·비용 최적화를 별도 축으로 운영하는 코드를 제공함
+
 ## 2026-07-21 — Astro 5에서 7.1로 올리기 전 점검할 것: Content Layer, Node 22, Tailwind
 - type: new
 - slug: /blog/astro-5-to-7-1-migration-audit/
