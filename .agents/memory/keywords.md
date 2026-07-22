@@ -11,6 +11,20 @@
 
 실제 검색량을 확인하지 않았다면 수치를 추정하지 말고 정성적으로만 기록합니다.
 
+## Gemini 3.6 Flash migration
+- intent: tutorial | comparison | informational
+- related: Gemini 3.5 Flash-Lite, sampling parameters, prefilled model turn, thinking_level, Interactions API, GitHub Copilot, Vercel AI Gateway
+- existing-post: /blog/gemini-3-6-flash-migration-guide/
+- opportunity: 출시 기능 요약보다 temperature·top_p·top_k 제거, model role 400 오류, 모델 역할 분리와 Copilot·AI Gateway 전환을 한 번에 해결하는 실전 검색 의도
+- notes: Google 2026-07-21 최신 모델·사양 문서, GitHub와 Vercel 공식 발표를 기준으로 작성했으며 검색량 수치는 확인하지 않음
+
+## AI Gateway service tiers
+- intent: tutorial | comparison | informational
+- related: priority, flex, default, providerMetadata, serviceTier, AI SDK, OpenAI, Gemini, latency, cost
+- existing-post: /blog/vercel-ai-gateway-service-tiers-guide/
+- opportunity: 티어 설정법보다 requested tier와 실제 applied tier 차이, best-effort downgrade, 실제 과금과 workload routing을 운영 코드로 연결하는 검색 의도
+- notes: Vercel 2026-07-21 changelog와 AI Gateway 공식 service tiers 문서를 기준으로 작성했으며 모델·제공자별 가격은 변동 가능
+
 ## Astro 7 migration
 - intent: tutorial | informational
 - related: Astro 7.1, Astro 5 to 7, Content Layer, Node 22, post.id, render(), Tailwind 4, GitHub Pages
