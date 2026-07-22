@@ -1,7 +1,71 @@
 {
-  "updatedAt": "2026-07-21T09:09:00+09:00",
+  "updatedAt": "2026-07-22T09:11:00+09:00",
   "threshold": 85,
   "candidates": [
+    {
+      "id": "gemini-3-6-flash-migration-guide",
+      "title": "Gemini 3.6 Flash 마이그레이션 가이드",
+      "topic": "Gemini 3.6 Flash API 마이그레이션",
+      "score": 97,
+      "status": "published",
+      "action": "new-post",
+      "sourceType": "trend-watch",
+      "reason": "2026년 7월 21일 Gemini 3.6 Flash·3.5 Flash-Lite가 GA됐고, sampling parameter 폐기와 prefilled model turn 400 오류, Copilot·AI Gateway 전환을 하나의 실전 마이그레이션 절차로 설명할 수 있음",
+      "breakdown": {
+        "timeliness": 15,
+        "readerValue": 20,
+        "fit": 15,
+        "originality": 14,
+        "evergreen": 9,
+        "evidence": 15,
+        "contentGap": 9
+      },
+      "path": "/blog/gemini-3-6-flash-migration-guide/",
+      "commit": "8fa1f8eaa1f8ba11663faaef310a04f420e08699",
+      "updatedAt": "2026-07-22"
+    },
+    {
+      "id": "vercel-ai-gateway-service-tiers-guide",
+      "title": "Vercel AI Gateway Service Tiers 운영 가이드",
+      "topic": "AI Gateway priority·flex 라우팅",
+      "score": 92,
+      "status": "published",
+      "action": "new-post",
+      "sourceType": "trend-watch",
+      "reason": "2026년 7월 21일 AI Gateway가 service tier를 지원하기 시작했고, 공식 기능 설명을 넘어 requested tier와 실제 applied tier를 분리 기록하고 downgrade·비용을 운영하는 패턴을 제공할 수 있음",
+      "breakdown": {
+        "timeliness": 15,
+        "readerValue": 18,
+        "fit": 15,
+        "originality": 13,
+        "evergreen": 8,
+        "evidence": 15,
+        "contentGap": 8
+      },
+      "path": "/blog/vercel-ai-gateway-service-tiers-guide/",
+      "commit": "4dd0d54660fcd45e5844947c28c9f01e16178fe7",
+      "updatedAt": "2026-07-22"
+    },
+    {
+      "id": "vercel-workflows-regional-run-state",
+      "title": "Vercel Workflows 지역별 run state",
+      "topic": "Vercel Workflows 지역 실행 상태",
+      "score": 79,
+      "status": "hold",
+      "action": "digest",
+      "sourceType": "trend-watch",
+      "reason": "2026년 7월 20일 workflow run state·queue·output의 home region 저장 기능이 발표됐지만 SDK beta 기능이며 현재 Restato에서 직접 구현·검증한 사례가 없어 단독 운영 가이드로는 근거가 부족함",
+      "breakdown": {
+        "timeliness": 13,
+        "readerValue": 14,
+        "fit": 13,
+        "originality": 12,
+        "evergreen": 7,
+        "evidence": 12,
+        "contentGap": 8
+      },
+      "updatedAt": "2026-07-22"
+    },
     {
       "id": "astro-5-to-7-1-migration-audit",
       "title": "Astro 5에서 7.1로 올리기 전 점검할 것",
