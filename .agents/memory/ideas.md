@@ -13,6 +13,33 @@
 
 트렌드 조사에서 가치가 있지만 당장 발행하지 않는 주제를 저장합니다.
 
+## Gemini 3.6 Flash API 마이그레이션
+- status: published
+- source: Google Gemini 최신 모델·모델 사양 공식 문서, GitHub Copilot 2026-07-21 changelog, Vercel AI Gateway 2026-07-21 changelog
+- why-now: Gemini 3.6 Flash와 3.5 Flash-Lite가 2026-07-21 GA됐고 sampling parameter 폐기, prefilled model turn 금지와 Copilot 모델 교체 일정이 함께 발생함
+- target-reader: Gemini API, GitHub Copilot, AI SDK로 코딩·에이전트 기능을 운영하는 개발자
+- search-intent: Gemini 3.6 Flash migration, temperature top_p 제거, prefilled model turn 400, Gemini Copilot, Gemini AI Gateway
+- update-existing: false
+- notes: 97점. 2026-07-22 `/blog/gemini-3-6-flash-migration-guide/`로 발행. 기능 소개보다 요청 형식 변경과 모델별 역할 분리, 검증 순서를 제공함
+
+## Vercel AI Gateway Service Tiers
+- status: published
+- source: Vercel 2026-07-21 service tiers changelog와 AI Gateway 공식 문서
+- why-now: OpenAI·Google AI Studio·Vertex 모델에 default·priority·flex 처리 티어를 요청하고 실제 적용 티어 기준으로 과금하는 기능이 추가됨
+- target-reader: AI SDK와 AI Gateway에서 사용자 대면 요청과 배치 작업의 지연 시간·비용을 분리하려는 개발자
+- search-intent: Vercel AI Gateway service tier, priority flex, providerMetadata serviceTier, AI SDK cost latency
+- update-existing: false
+- notes: 92점. 2026-07-22 `/blog/vercel-ai-gateway-service-tiers-guide/`로 발행. best-effort downgrade와 requested/applied tier 관측을 중심으로 설명함
+
+## Vercel Workflows 지역별 run state
+- status: hold
+- source: Vercel 2026-07-20 regional workflow run state 발표와 Workflow SDK beta 문서
+- why-now: workflow run state, queue, output을 프로젝트 home region에 유지할 수 있게 됨
+- target-reader: 데이터 위치와 장기 실행 상태를 관리하는 Vercel Workflows 사용자
+- search-intent: Vercel Workflows region, workflow run state home region, Workflow SDK beta
+- update-existing: false
+- notes: 79점. 기능이 beta이고 현재 Restato에서 직접 구현·검증한 운영 사례가 없어 향후 Workflows 기능을 묶은 digest 또는 실제 적용기까지 보류
+
 ## Astro 5에서 7.1로 올리기 전 점검할 것
 - status: published
 - source: Astro 7.1·7.0 공식 발표, Astro 6·7 업그레이드 가이드, Restato package.json·content config·blog route·RSS·deploy workflow
