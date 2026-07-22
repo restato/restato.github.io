@@ -21,7 +21,7 @@
 - file: src/content/blog/gemini-3-6-flash-migration-guide.mdx
 - topics: [Gemini 3.6 Flash, Gemini 3.5 Flash-Lite, Google AI, GitHub Copilot, AI Gateway]
 - sources: [https://ai.google.dev/gemini-api/docs/latest-model, https://ai.google.dev/gemini-api/docs/models/gemini-3.6-flash, https://github.blog/changelog/2026-07-21-gemini-3-6-flash-is-now-available-in-github-copilot/, https://vercel.com/changelog/gemini-3-6-flash-3-5-flash-lite-on-ai-gateway]
-- commit: 8fa1f8eaa1f8ba11663faaef310a04f420e08699
+- commit: 3eac961c8dcd2e6df9c99a356f079cd788529195
 - notes: 신모델 발표 요약이 아니라 sampling parameter 제거, prefilled model turn 400 오류, thinking 설정, Copilot 교체 일정과 AI Gateway 비교 코드를 하나의 마이그레이션 절차로 제공함
 
 ## 2026-07-22 — Vercel AI Gateway Service Tiers 운영 가이드: priority·flex 비용과 fallback 검증
