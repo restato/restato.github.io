@@ -11,6 +11,20 @@
 
 실제 검색량을 확인하지 않았다면 수치를 추정하지 말고 정성적으로만 기록합니다.
 
+## AI SDK streaming transcription
+- intent: tutorial | informational
+- related: streamTranscribe, experimental_streamTranscribe, AI Gateway, raw PCM, realtime whisper, Grok STT, voice agent, live caption
+- existing-post: /blog/ai-gateway-streaming-transcription-guide/
+- opportunity: API 호출 예제보다 24kHz PCM 입력, 서버 발급 임시 토큰, 부분·최종 전사 상태, 텍스트 에이전트 연결과 승인 경계를 함께 설명하는 실전 검색 의도
+- notes: Vercel 2026-07-22 공식 발표와 AI Gateway Grok STT 공식 모델 페이지를 기준으로 작성했으며 기능은 beta이고 API 이름은 experimental 상태
+
+## eve agent extensions
+- intent: tutorial | informational | comparison
+- related: defineExtension, eve extension build, agent/extensions, agent skills package, tools, connections, hooks, namespace, approval
+- existing-post: /blog/eve-installable-agent-extensions-guide/
+- opportunity: scaffold·install 설명보다 tools·skills·connections·hooks를 권한과 버전이 있는 능력 패키지로 운영하고, namespace·secret·approval·통합 테스트를 설계하는 검색 의도
+- notes: Vercel 2026-07-22 공식 발표, eve 공식 사이트와 agent-browser 공식 extension 문서를 기준으로 작성했으며 검색량 수치는 확인하지 않음
+
 ## Gemini 3.6 Flash migration
 - intent: tutorial | comparison | informational
 - related: Gemini 3.5 Flash-Lite, sampling parameters, prefilled model turn, thinking_level, Interactions API, GitHub Copilot, Vercel AI Gateway
