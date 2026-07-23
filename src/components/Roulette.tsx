@@ -76,10 +76,10 @@ export default function Roulette() {
   };
 
   return (
-    <div className="fc-game flex flex-col items-start gap-8 lg:flex-row">
+    <div className="fc-game flex w-full min-w-0 flex-col items-start gap-8 lg:flex-row">
       {/* Wheel */}
       <div className="flex-1 flex flex-col items-center">
-        <div className="relative">
+        <div className="relative aspect-square w-full max-w-96">
           {/* Pointer */}
           <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-2 z-10">
             <div className="w-0 h-0 border-l-[15px] border-r-[15px] border-t-[30px] border-l-transparent border-r-transparent border-t-red-500 drop-shadow-lg" />
@@ -88,7 +88,7 @@ export default function Roulette() {
           {/* Wheel */}
           <div
             ref={wheelRef}
-            className="relative h-72 w-72 overflow-hidden rounded-full border border-[var(--border-subtle)] md:h-96 md:w-96"
+            className="relative aspect-square w-full overflow-hidden rounded-full border border-[var(--border-subtle)]"
             style={{
               transform: `rotate(${rotation}deg)`,
               transition: isSpinning ? 'transform 4s cubic-bezier(0.17, 0.67, 0.12, 0.99)' : 'none',
@@ -155,7 +155,10 @@ export default function Roulette() {
               type="text"
               value={newItem}
               onChange={(e) => setNewItem(e.target.value)}
-              onKeyDown={(e) => e.key === 'Enter' && addItem()}
+              onKeyDown={(e) => {
+                if (e.nativeEvent.isComposing) return;
+                if (e.key === 'Enter') addItem();
+              }}
               placeholder="새 항목 입력"
               aria-label="새 항목"
               className="fc-input flex-1"

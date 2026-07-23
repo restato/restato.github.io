@@ -74,17 +74,17 @@ export default function SlotMachine() {
       {/* 슬롯머신 본체 */}
       <div className="w-full max-w-lg rounded-3xl border-4 border-amber-400 bg-red-800 p-4 sm:p-8">
         {/* 상단 장식 */}
-        <div className="text-center mb-4">
-          <span className="text-4xl font-bold text-yellow-300 drop-shadow-lg">🎰 SLOTS 🎰</span>
+        <div className="mb-4 text-center">
+          <span className="text-2xl font-bold text-yellow-300 drop-shadow-lg sm:text-4xl">🎰 SLOTS 🎰</span>
         </div>
 
         {/* 릴 디스플레이 */}
         <div className="bg-black rounded-xl p-4 mb-6">
-          <div className="flex gap-2 justify-center">
+          <div className="grid grid-cols-3 gap-2">
             {reels.map((symbol, index) => (
               <div
                 key={index}
-                className="w-20 h-24 md:w-28 md:h-32 bg-white rounded-lg flex items-center justify-center text-5xl md:text-6xl shadow-inner border-2 border-gray-300"
+                className="flex aspect-[5/6] min-w-0 items-center justify-center rounded-lg border-2 border-gray-300 bg-white text-3xl shadow-inner sm:text-5xl md:text-6xl"
               >
                 <span
                   className={`transform transition-transform ${
@@ -101,11 +101,13 @@ export default function SlotMachine() {
         {/* 결과 표시 */}
         {result && (
           <div
-            className={`text-center p-3 rounded-lg mb-4 ${
+            className={`fc-surface fc-surface-soft mb-4 p-3 text-center ${
               result.win > 0
-                ? 'bg-yellow-400 text-black animate-pulse'
-                : 'bg-gray-700 text-white'
+                ? 'border-yellow-400 text-[var(--text-primary)] animate-pulse'
+                : 'text-[var(--text-primary)]'
             }`}
+            role="status"
+            aria-live="polite"
           >
             <div className="text-xl font-bold">{result.message}</div>
             {result.win > 0 && <div className="text-lg">+{result.win} 코인!</div>}

@@ -181,6 +181,7 @@ export default function TypingGame() {
           <button
             type="button"
             onClick={() => setLanguage('en')}
+            aria-pressed={language === 'en'}
             className={`fc-button ${
               language === 'en'
                 ? 'fc-button-primary'
@@ -192,6 +193,7 @@ export default function TypingGame() {
           <button
             type="button"
             onClick={() => setLanguage('ko')}
+            aria-pressed={language === 'ko'}
             className={`fc-button ${
               language === 'ko'
                 ? 'fc-button-primary'
@@ -255,6 +257,7 @@ export default function TypingGame() {
         type="text"
         value={input}
         onChange={handleInputChange}
+        aria-label={t({ ko: '타이핑 입력', en: 'Typing input', ja: 'タイピング入力' })}
         disabled={!isPlaying}
         placeholder={
           isPlaying

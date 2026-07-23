@@ -144,6 +144,7 @@ export default function ColorMatch() {
           <button
             type="button"
             onClick={() => setMode('text-color')}
+            aria-pressed={mode === 'text-color'}
             className={`fc-button text-sm ${
               mode === 'text-color'
                 ? 'fc-button-primary'
@@ -155,6 +156,7 @@ export default function ColorMatch() {
           <button
             type="button"
             onClick={() => setMode('color-text')}
+            aria-pressed={mode === 'color-text'}
             className={`fc-button text-sm ${
               mode === 'color-text'
                 ? 'fc-button-primary'
@@ -206,7 +208,7 @@ export default function ColorMatch() {
               type="button"
               key={color.value}
               onClick={() => handleAnswer(color.value)}
-              className="min-h-11 rounded-xl p-4 font-bold text-white"
+              className="fc-game-cell min-h-11 rounded-xl p-4 font-bold text-white"
               style={{ backgroundColor: color.value }}
             >
               {color.name[lang as keyof typeof color.name] || color.name.en}

@@ -98,8 +98,10 @@ export default function WhackAMole() {
             key={index}
             type="button"
             onClick={() => hitMole(index)}
-            className="h-20 rounded-xl border border-[var(--color-border)] bg-[var(--color-card)] hover:border-primary-500 transition-colors"
-            aria-label={t({ ko: `${index + 1}번 구멍`, en: `Hole ${index + 1}`, ja: `${index + 1}番ホール` })}
+            className="fc-game-cell h-20 rounded-xl"
+            aria-label={moleIndex === index
+              ? t({ ko: `${index + 1}번 구멍 두더지`, en: `Hole ${index + 1}, mole`, ja: `${index + 1}番ホール モグラ` })
+              : t({ ko: `${index + 1}번 빈 구멍`, en: `Hole ${index + 1}, empty`, ja: `${index + 1}番の空のホール` })}
           >
             <span className="text-3xl">{moleIndex === index ? '🐹' : '🕳️'}</span>
           </button>
@@ -118,7 +120,7 @@ export default function WhackAMole() {
         )}
 
         {!isPlaying && timeLeft === 0 && (
-          <p className="text-lg font-bold mb-4">
+          <p className="fc-surface fc-surface-soft mb-4 p-3 text-lg font-bold" role="status" aria-live="polite">
             {t({ ko: '게임 종료!', en: 'Time Up!', ja: 'ゲーム終了！' })} {t({ ko: '최종 점수', en: 'Final Score', ja: '最終スコア' })}: {score}
           </p>
         )}

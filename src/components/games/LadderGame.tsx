@@ -257,7 +257,7 @@ export default function LadderGame() {
               key={p.id}
               onClick={() => !isAnimating && ladderData.length > 0 && animatePath(idx)}
               disabled={isAnimating || ladderData.length === 0}
-              className={`flex-1 py-2 text-center text-sm font-medium rounded-t-lg transition-colors ${
+              className={`fc-game-cell flex-1 rounded-t-lg py-2 text-center text-sm font-medium ${
                 selectedIndex === idx
                   ? 'bg-red-500 text-white'
                   : 'bg-[var(--color-card)] border border-[var(--color-border)] hover:bg-[var(--color-card-hover)]'
@@ -331,6 +331,7 @@ export default function LadderGame() {
               <textarea
                 value={bulkInput}
                 onChange={(e) => setBulkInput(e.target.value)}
+                aria-label={t({ ko: '참가자 일괄 입력', en: 'Bulk participant input', ja: '参加者一括入力' })}
                 placeholder={t({
                   ko: '이름을 줄바꿈 또는 쉼표로 구분하여 입력\n예: 홍길동, 김철수, 이영희',
                   en: 'Enter names separated by newlines or commas\ne.g.: John, Jane, Bob',
@@ -353,8 +354,12 @@ export default function LadderGame() {
                   type="text"
                   value={newParticipant}
                   onChange={(e) => setNewParticipant(e.target.value)}
-                  onKeyDown={(e) => e.key === 'Enter' && addParticipant()}
+                  onKeyDown={(e) => {
+                    if (e.nativeEvent.isComposing) return;
+                    if (e.key === 'Enter') addParticipant();
+                  }}
                   placeholder={t({ ko: '이름 입력', en: 'Enter name', ja: '名前入力' })}
+                  aria-label={t({ ko: '이름 입력', en: 'Enter name', ja: '名前入力' })}
                   className="fc-input flex-1 text-sm"
                   maxLength={20}
                 />
@@ -398,8 +403,12 @@ export default function LadderGame() {
               type="text"
               value={newResult}
               onChange={(e) => setNewResult(e.target.value)}
-              onKeyDown={(e) => e.key === 'Enter' && addResult()}
+              onKeyDown={(e) => {
+                if (e.nativeEvent.isComposing) return;
+                if (e.key === 'Enter') addResult();
+              }}
               placeholder={t({ ko: '결과 입력', en: 'Enter result', ja: '結果入力' })}
+              aria-label={t({ ko: '결과 입력', en: 'Enter result', ja: '結果入力' })}
               className="fc-input flex-1 text-sm"
               maxLength={20}
             />

@@ -7,6 +7,6 @@ interface Props {
 const { size = 'content', class: className } = Astro.props;
 ---
 
-<main class:list={['fc-page', `fc-${size}`, className]}>
+<div class:list={['fc-page', `fc-${size}`, className]}>
   <slot />
-</main>
+</div>

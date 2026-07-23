@@ -122,8 +122,10 @@ export default function ReactionTest() {
         {state === 'result' && rank && (
           <div className="text-6xl mb-4 animate-bounce">{rank.emoji}</div>
         )}
-        <div className="text-4xl md:text-5xl font-bold mb-2">{stateText.main}</div>
-        <div className="text-lg opacity-90">{stateText.sub}</div>
+        <div role="status" aria-live="assertive">
+          <div className="text-4xl md:text-5xl font-bold mb-2">{stateText.main}</div>
+          <div className="text-lg opacity-90">{stateText.sub}</div>
+        </div>
         {state === 'result' && rank && (
           <div className={`mt-4 text-2xl font-bold ${rank.color}`}>
             랭크: {rank.rank}

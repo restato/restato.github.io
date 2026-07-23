@@ -127,6 +127,7 @@ export default function NumberGuess() {
             key={diff}
             type="button"
             onClick={() => newGame(diff)}
+            aria-pressed={difficulty === diff}
             className={`fc-button text-sm ${
               difficulty === diff
                 ? 'fc-button-primary'

@@ -121,6 +121,7 @@ export default function TeamRandomizer() {
               <textarea
                 value={bulkInput}
                 onChange={(e) => setBulkInput(e.target.value)}
+                aria-label={t({ ko: '참가자 일괄 입력', en: 'Bulk participant input', ja: '参加者一括入力' })}
                 placeholder={t({
                   ko: '이름을 줄바꿈 또는 쉼표로 구분하여 입력\n(최대 100명)',
                   en: 'Enter names separated by newlines or commas\n(max 100)',
@@ -152,8 +153,12 @@ export default function TeamRandomizer() {
                   type="text"
                   value={newMember}
                   onChange={(e) => setNewMember(e.target.value)}
-                  onKeyDown={(e) => e.key === 'Enter' && addMember()}
+                  onKeyDown={(e) => {
+                    if (e.nativeEvent.isComposing) return;
+                    if (e.key === 'Enter') addMember();
+                  }}
                   placeholder={t({ ko: '이름 입력', en: 'Enter name', ja: '名前入力' })}
+                  aria-label={t({ ko: '이름 입력', en: 'Enter name', ja: '名前入力' })}
                   className="fc-input flex-1 text-sm"
                   maxLength={30}
                 />
@@ -254,7 +259,7 @@ export default function TeamRandomizer() {
       {/* Results Section */}
       <div className="flex-1">
         {teams.length > 0 ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4" role="status" aria-live="polite">
             {teams.map((team, idx) => (
               <div
                 key={idx}

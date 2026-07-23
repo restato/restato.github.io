@@ -112,7 +112,7 @@ export default function HangmanGame() {
               key={letter}
               onClick={() => handleGuess(letter)}
               disabled={isUsed || isGameOver}
-              className={`w-10 py-2 rounded-lg border text-sm font-semibold transition-colors ${
+              className={`fc-game-cell w-10 py-2 rounded-lg text-sm font-semibold ${
                 isUsed
                   ? 'bg-[var(--color-card)] border-[var(--color-border)] text-[var(--color-text-muted)] cursor-not-allowed'
                   : 'bg-[var(--color-card)] border-[var(--color-border)] hover:border-primary-500 hover:text-primary-500'

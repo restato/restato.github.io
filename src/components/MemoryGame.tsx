@@ -168,6 +168,7 @@ export default function MemoryGame() {
             key={diff}
             type="button"
             onClick={() => setDifficulty(diff)}
+            aria-pressed={difficulty === diff}
             className={`fc-button text-sm ${
               difficulty === diff
                 ? 'fc-button-primary'
@@ -207,7 +208,7 @@ export default function MemoryGame() {
             onClick={() => handleCardClick(card.id)}
             disabled={card.isFlipped || card.isMatched || isChecking}
             aria-label={card.isFlipped || card.isMatched ? card.emoji : '숨겨진 카드'}
-            className={`aspect-square rounded-xl text-3xl md:text-4xl flex items-center justify-center transition-colors duration-300 ${
+            className={`fc-game-cell aspect-square rounded-xl text-3xl md:text-4xl flex items-center justify-center duration-300 ${
               card.isFlipped || card.isMatched
                 ? 'bg-[var(--surface-raised)] border border-[var(--border-subtle)]'
                 : 'bg-[var(--brand)] hover:bg-[var(--brand-hover)]'

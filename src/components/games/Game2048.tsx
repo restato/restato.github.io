@@ -229,9 +229,9 @@ export default function Game2048() {
   return (
     <div className="fc-game mx-auto flex w-full max-w-md flex-col items-center px-0 lg:max-w-lg">
       {/* Header */}
-      <div className="fc-surface mb-4 flex w-full items-center justify-between p-3">
-        <h1 className="text-4xl font-bold text-[#776e65]">2048</h1>
-        <div className="flex gap-2">
+      <div className="fc-surface mb-4 flex w-full flex-wrap items-center justify-between gap-2 p-3">
+        <div className="text-3xl font-bold text-[#776e65]" aria-label="2048">2048</div>
+        <div className="flex min-w-0 gap-2">
           <div className="bg-[#bbada0] rounded-lg px-4 py-2 text-center">
             <div className="text-xs text-[#eee4da]">
               {t({ ko: '점수', en: 'SCORE', ja: 'スコア' })}
@@ -258,27 +258,27 @@ export default function Game2048() {
 
       {/* Game Grid */}
       <div
-        className="relative bg-[#bbada0] rounded-xl p-3"
+        className="relative aspect-square w-full max-w-80 rounded-xl bg-[#bbada0] p-2 sm:max-w-96 sm:p-3"
         onTouchStart={handleTouchStart}
         onTouchEnd={handleTouchEnd}
       >
         {/* Background Grid */}
-        <div className="grid grid-cols-4 gap-3">
+        <div className="grid h-full grid-cols-4 gap-2 sm:gap-3">
           {Array(16).fill(null).map((_, i) => (
             <div
               key={i}
-              className="w-16 h-16 md:w-20 md:h-20 bg-[#cdc1b4] rounded-lg"
+              className="aspect-square w-full rounded-lg bg-[#cdc1b4]"
             />
           ))}
         </div>
 
         {/* Tiles */}
-        <div className="absolute inset-3 grid grid-cols-4 gap-3">
+        <div className="absolute inset-2 grid grid-cols-4 gap-2 sm:inset-3 sm:gap-3">
           {grid.map((row, i) =>
             row.map((cell, j) => (
               <div
                 key={`${i}-${j}`}
-                className="w-16 h-16 md:w-20 md:h-20 flex items-center justify-center rounded-lg font-bold transition-all duration-100"
+                className="flex aspect-square w-full items-center justify-center rounded-lg font-bold transition-colors duration-100"
                 style={{
                   backgroundColor: cell ? TILE_COLORS[cell]?.bg || '#3c3a32' : 'transparent',
                   color: cell ? TILE_COLORS[cell]?.text || '#f9f6f2' : 'transparent',

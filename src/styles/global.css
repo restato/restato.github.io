@@ -204,6 +204,18 @@
     color: var(--brand);
   }
 
+  .fc-game-cell {
+    border: 1px solid var(--border-subtle);
+    background: var(--surface-raised);
+    color: var(--text-primary);
+    touch-action: manipulation;
+    transition: background-color 150ms ease, border-color 150ms ease, color 150ms ease;
+  }
+
+  .fc-game-cell:hover:not(:disabled) {
+    border-color: var(--brand);
+  }
+
   .fc-input,
   .fc-select,
   .fc-textarea,
@@ -278,7 +290,8 @@
   .fc-range:disabled,
   .fc-color-input:disabled,
   .fc-file-input:disabled,
-  .fc-button:disabled {
+  .fc-button:disabled,
+  .fc-game-cell:disabled {
     cursor: not-allowed;
     opacity: 0.6;
   }

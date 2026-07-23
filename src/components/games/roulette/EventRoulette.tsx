@@ -90,8 +90,10 @@ export default function EventRoulette() {
   return (
     <div
       className={`fc-game ${isFullscreen ? 'fixed inset-0 z-50 overflow-auto bg-[var(--surface-page)] p-4' : ''}`}
-      role={isFullscreen ? 'dialog' : undefined}
-      aria-modal={isFullscreen || undefined}
+      role={isFullscreen ? 'region' : undefined}
+      aria-label={isFullscreen
+        ? t({ ko: '이벤트 룰렛 전체화면', en: 'Event roulette fullscreen', ja: 'イベントルーレット全画面' })
+        : undefined}
     >
       <div className={`flex flex-col lg:flex-row gap-6 w-full ${isFullscreen ? '' : 'max-w-6xl mx-auto px-4'}`}>
         {/* Wheel Section */}
@@ -168,6 +170,7 @@ export default function EventRoulette() {
             <textarea
               value={bulkInput}
               onChange={(e) => setBulkInput(e.target.value)}
+              aria-label={t({ ko: '참가자 입력', en: 'Participant input', ja: '参加者入力' })}
               placeholder={t({
                 ko: '이름을 입력하세요\n(줄바꿈 또는 쉼표로 구분)\n\n예시:\n홍길동\n김철수, 이영희\n박민수',
                 en: 'Enter names\n(separated by newlines or commas)\n\nExample:\nJohn\nJane, Bob\nAlice',

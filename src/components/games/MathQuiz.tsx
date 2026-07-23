@@ -187,6 +187,7 @@ export default function MathQuiz() {
               type="button"
               key={diff}
               onClick={() => setDifficulty(diff)}
+              aria-pressed={difficulty === diff}
               className={`fc-button text-sm ${
                 difficulty === diff
                   ? 'fc-button-primary'
@@ -232,6 +233,7 @@ export default function MathQuiz() {
               type="number"
               value={userAnswer}
               onChange={(e) => setUserAnswer(e.target.value)}
+              aria-label={t({ ko: '정답', en: 'Answer', ja: '答え' })}
               className="fc-input flex-1 py-4 text-center text-2xl font-bold"
               placeholder="?"
               autoComplete="off"
