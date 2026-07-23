@@ -1,4 +1,6 @@
 import { describe, expect, it } from 'vitest';
+import { readFileSync } from 'node:fs';
+import { resolve } from 'node:path';
 import { supportedLanguages } from '../../data/tools/locales';
 import { getPublishedTools, toolsRegistry } from '../../data/tools/registry';
 import type { ToolDefinition } from '../../data/tools/types';
@@ -10,6 +12,7 @@ import {
 import { categoryTranslations, sharedToolUi } from '../tool-ui';
 import { getEnglishProfilePhrases } from '../../data/tools/localizedContent';
 import * as localizedContentModule from '../../data/tools/localizedContent';
+import { buildLocalizedWorkflow } from '../../data/tools/localizedWorkflows';
 import { getToolFallbackNotice } from '../landing';
 
 describe('localized tool completeness', () => {
@@ -228,6 +231,63 @@ describe('localized tool completeness', () => {
       expect(new Set(workflow).size, tool.slug).toBe(3);
     }
     expect(() => resolveWorkflow('__unknown-tool__')).toThrow(/Missing workflow/);
+  });
+
+  it('matches high-risk workflow actions to controls that exist in the tool components', () => {
+    const resolveWorkflow = Reflect.get(localizedContentModule, 'getToolWorkflow');
+    expect(resolveWorkflow('qr-code')).toEqual(['enter', 'qrLiveUpdate', 'qrExport']);
+    expect(resolveWorkflow('coin-flip')).toEqual(['flip', 'inspectHistory', 'repeatOrReset']);
+    expect(resolveWorkflow('image-resizer')).toEqual(['upload', 'resizerConfigure', 'downloadOrReset']);
+    expect(resolveWorkflow('image-converter')).toEqual(['upload', 'convertImages', 'download']);
+    expect(resolveWorkflow('background-remover')).toEqual(['upload', 'removeBackground', 'download']);
+    expect(resolveWorkflow('appstore-screenshot')).toEqual(['upload', 'generateScreenshots', 'download']);
+
+    const componentContracts = {
+      QRCodeGenerator: ['useEffect', 'handleDownload', 'handleCopyImage'],
+      CoinFlip: ['onClick={flip}', 'history.map', 'onClick={reset}'],
+      ImageResizer: ['setCrop', 'settings.width', 'onClick={download}', 'setOriginal(null)'],
+      ImageConverter: ['convertImage', 'reconvertAll', 'downloadAll'],
+      BackgroundRemover: ['onClick={removeBackground}', 'downloadOriginalResult'],
+      AppStoreScreenshotResizer: ['processAll', 'downloadAll', 'onClick={reset}'],
+    } as const;
+    for (const [component, controls] of Object.entries(componentContracts)) {
+      const source = readFileSync(resolve(process.cwd(), `src/components/tools/${component}.tsx`), 'utf8');
+      for (const control of controls) expect(source, `${component}: ${control}`).toContain(control);
+    }
+  });
+
+  it('does not interpolate profile fragments into generic upload, copy, download, or preview instructions', () => {
+    const poison = {
+      name: 'NAME_SENTINEL',
+      input: 'INPUT_SENTINEL file settings',
+      output: 'OUTPUT_SENTINEL file preview settings',
+    };
+    const cases = [
+      ['image-converter', 0],
+      ['image-converter', 2],
+      ['password', 2],
+      ['gradient', 1],
+    ] as const;
+
+    for (const lang of supportedLanguages) {
+      for (const [slug, index] of cases) {
+        expect(buildLocalizedWorkflow(slug, lang, poison)[index], `${slug}/${lang}`).not.toMatch(/INPUT_SENTINEL|OUTPUT_SENTINEL/);
+      }
+    }
+  });
+
+  it('does not advertise nonexistent QR, coin-flip, or image-resizer controls in any locale', () => {
+    const claims = {
+      'qr-code': /select generate|generate button|생성 버튼|生成ボタン|生成按钮|產生按鈕|pulsa generar|selecione gerar|wählen sie erzeugen|choisissez générer|seleziona genera|pilih buat|जनरेट चुनें/i,
+      'coin-flip': /configure|settings|설정|設定|设置|configur|einstellung|réglage|impostaz|pengaturan|सेटिंग/i,
+      'image-resizer': /run image resizer|이미지 크기 조절기 실행|画像リサイズツールを実行|运行图像尺寸调整工具|執行圖片尺寸調整工具|ejecuta redimensionador|execute redimensionador|starten sie bildgrößen|lancez redimensionneur|avvia ridimensionatore|jalankan pengubah|चलाएँ/i,
+    } as const;
+    for (const [slug, pattern] of Object.entries(claims)) {
+      const tool = toolsRegistry.find(item => item.slug === slug)!;
+      for (const lang of supportedLanguages) {
+        expect(tool.content[lang]!.steps.join('\n'), `${slug}/${lang}`).not.toMatch(pattern);
+      }
+    }
   });
 
   it('does not claim copy or download actions for tools whose UI has neither action', () => {
