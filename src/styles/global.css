@@ -80,6 +80,10 @@
 }
 
 @layer components {
+  .ReactCrop {
+    --rc-drag-handle-size: 24px;
+  }
+
   .fc-page {
     inline-size: calc(100% - 2rem);
     margin-inline: auto;

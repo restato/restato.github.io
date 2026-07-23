@@ -2,7 +2,7 @@
 
 ## Outcome
 
-The Forest Café redesign passes the complete public-site verification ladder across the representative route matrix, both themes, and the desktop and 390 px browser projects. The build remains at the authorized 1,269-page baseline. No route, registry, analytics, ad, or tool-algorithm behavior was changed.
+The Forest Café redesign passes the complete public-site verification ladder across the representative route matrix, both themes, and the desktop and 390 px browser projects. The build remains at the authorized 1,269-page baseline. The root-approved Task 9 scope amendment changes blog-tag language selection to derive from matching article metadata; no route slug, registry, analytics, ad, or tool-algorithm behavior was changed.
 
 The production locale registry currently contains 12 left-to-right languages and no right-to-left locale. The direction audit therefore uses the real Hindi privacy route with a test-only `dir="rtl"` override. It checks logical alignment and overflow without inventing a public locale, route, or translated page.
 
@@ -19,8 +19,8 @@ The production locale registry currently contains 12 left-to-right languages and
 | Game detail | `/ko/games/snake/` | Korean | LTR; canvas masked |
 | Blog article | `/blog/safer-git-workflow-with-pr/` | English | LTR |
 | Policy | `/ko/privacy/` | Korean | LTR |
-| Dashboard | `/dashboard/` | Korean | LTR; live panel masked |
-| Chat | `/en/anonymous-chat/` | English | LTR; live chat masked |
+| Dashboard | `/dashboard/` | Korean | LTR; deterministic live panel visible |
+| Chat | `/en/anonymous-chat/` | English | LTR; dynamic message children masked |
 | Direction audit | `/hi/privacy/` | Hindi | test-only RTL |
 
 This matrix covers every required public page family, plus Korean, English, and a real localized page under the test-only direction override. The catalog suite separately verifies the complete 54-tool catalog and every supported locale's tool links.
@@ -29,14 +29,14 @@ This matrix covers every required public page family, plus Korean, English, and 
 
 | Command | Result |
 | --- | --- |
-| `npm test -- --run` | PASS — 92 files, 930/930 tests |
+| `npm test -- --run` | PASS — 92 files, 947/947 tests |
 | `npm run check` | PASS — 388 files, 0 errors, 0 warnings; 81 existing hints |
 | `npm run build` | PASS — 1,269 pages |
 | `node scripts/validate-site.mjs dist` | PASS — 1,276 HTML files validated |
 | `node scripts/audit-content.mjs dist` | PASS — 1,121 indexable pages audited |
 | `node scripts/check-bundles.mjs dist` | PASS — all four route budgets below limits |
-| `npm run test:a11y` | PASS — 28/28 Playwright tests |
-| `npx playwright test tests/e2e/catalog.spec.ts tests/e2e/forest-cafe-visual.spec.ts --project=desktop --project=mobile-390` | PASS — 54/54 Playwright tests |
+| `npm run test:a11y` | PASS — 30/30 Playwright tests |
+| `npx playwright test tests/e2e/catalog.spec.ts tests/e2e/forest-cafe-visual.spec.ts --project=desktop --project=mobile-390` | PASS — 56/56 Playwright tests |
 
 Bundle results:
 
@@ -49,11 +49,11 @@ Bundle results:
 
 Focused regression checks also passed:
 
-- localized blog-tag content: 5/5;
+- localized blog-tag content: 21/21;
 - dynamic game accessibility: 12/12;
 - JSON formatter semantics and contrast classes: 11/11;
 - Forest Café visual contract alone: 26/26;
-- catalog coverage alone: 28/28.
+- catalog coverage alone: 30/30.
 
 ## RED-to-GREEN regressions
 
@@ -64,6 +64,8 @@ The first visual run failed 19 of 26 tests. The failures exposed stale test assu
 - The full content audit found only three previously thin Korean tag pages (`명언`, `생각`, and `영감`, each 113 characters). With explicit Task 9 scope approval, the shared tag template now supplies substantive localized discovery context for all 12 registered languages. The audit then passed all 1,121 indexable pages.
 - The Minesweeper accessibility fixture could exhaust an insufficient set of pseudo-random cells and then time out under load. Its test data now enumerates all 64 cells deterministically, and the interaction-only test uses synchronous `fireEvent`; the production game algorithm was not changed.
 - Browser tests now wait for client-load hydration, use the current localized accessible names, assert the invalid JSON alert role, and deterministically mock Frankfurter responses. These changes make the checks observe the hydrated application rather than race SSR or external network state.
+- Blog-tag language selection now prefers an explicit article `lang`, otherwise infers from title and description metadata, resolves plurality ties by the newest matching article and then the supported-language registry order, and uses tag-script inference only for the no-post fallback. `/blog/tag/jekyll/` is locked to Korean, while explicit Japanese and Traditional Chinese metadata and all Latin-script locales remain reachable.
+- Enabling the WCAG 2.2 Axe tags exposed 12 px keyboard crop handles. They now meet the 24 px target-size requirement, and the interaction audit uses a deterministic 240 × 240 valid PNG so the eight handles exercise usable, non-overlapping crop geometry.
 
 ## Browser and manual review
 
@@ -72,11 +74,13 @@ The browser suites verify:
 - D2Coding is the first computed family and `/fonts/D2Coding.woff2` is loaded;
 - the named warm-light and espresso-dark semantic page/text/focus tokens;
 - no horizontal overflow at 390 px;
-- exactly one `h1`, valid banner/main/navigation/contentinfo landmarks, and no serious or critical Axe violations;
-- visible keyboard focus, functional skip-to-main behavior, and theme persistence through navigation and reload;
+- exactly one `h1`, valid banner/main/navigation/contentinfo landmarks, and no serious or critical Axe violations under WCAG 2.0, 2.1, and 2.2 A/AA tags;
+- visible keyboard focus and functional skip-to-main behavior in both light and dark themes, plus theme persistence through navigation and reload;
 - logical RTL alignment on the direction-audit route;
 - hover geometry changes by less than one pixel so controls do not shift;
 - dynamic file selection, JSON status announcement, focused downloads, and responsive disclosure interaction.
+- a clock-controlled, visibly hydrated `client:idle` bookmark prompt that passes Axe, exposes a visible focused close button, dismisses by keyboard, and remains dismissed after reload;
+- fail-closed console and page-error collection across every accessibility interaction and every visual/theme test.
 
 Manual review covered 42 combinations: seven representative routes × three widths (390, 768, and 1,440 px) × light and dark themes.
 
@@ -94,16 +98,15 @@ All 42 combinations retained obvious primary actions, direction-safe alignment, 
 
 ## Screenshot evidence and masking
 
-The automated run saved 36 references in [`assets/forest-cafe/`](./assets/forest-cafe/): desktop light, desktop dark, and mobile-390 dark for each of the 12 matrix routes.
+The automated run saves 36 documentation references in [`assets/forest-cafe/`](./assets/forest-cafe/): desktop light, desktop dark, and mobile-390 dark for each of the 12 matrix routes. The exact same screenshot buffers are also compared against 36 committed Darwin Playwright baselines with `maxDiffPixelRatio: 0.001` (0.1%). A missing-baseline RED run failed as required, and an arbitrary visual change failed by 20,739 pixels (7%); neither can silently bless a new image.
 
 Stable masking is intentionally limited to:
 
 - all routes: `[data-ad-placement]`, `ins.adsbygoogle`, and `[data-consent-banner]`;
 - Snake: `canvas`, because the requirement explicitly excludes pixel-identity checks for canvas games;
-- dashboard: the time/live-data island, with its API response also fixed in the browser harness;
-- anonymous chat: `.chat-container`, whose live content is nondeterministic.
+- anonymous chat: only `.chat-container [role="status"] > *` and `.chat-container [role="log"] > *`, whose child content is nondeterministic.
 
-The surrounding page shell, headings, navigation, controls, theme, spacing, and responsive layout remain unmasked and asserted.
+The dashboard has no route-specific mask: its API response and seven-day history are seeded deterministically, leaving the complete rate cards, refresh controls, and sparklines visible. The chat container, status/log geometry, surrounding page shell, headings, navigation, controls, theme, spacing, and responsive layout remain unmasked and asserted. The visual matrix suppresses the delayed bookmark prompt through its documented session state; the separate clock-controlled accessibility test covers the prompt's visible hydrated state.
 
 ## Scope
 

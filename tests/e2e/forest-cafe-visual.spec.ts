@@ -1,7 +1,10 @@
 import { mkdir } from 'node:fs/promises';
 import path from 'node:path';
 import { expect, test, type Page } from '@playwright/test';
-import { assertNoHorizontalOverflow } from './fixtures';
+import {
+  assertNoHorizontalOverflow,
+  assertNoUnexpectedConsoleErrors,
+} from './fixtures';
 import {
   forestCafeAlwaysMaskedSelectors,
   forestCafeRoutes,
@@ -12,6 +15,7 @@ const screenshotDirectory = path.resolve(
   process.cwd(),
   'docs/superpowers/reports/assets/forest-cafe',
 );
+const visualDiffTolerance = 0.001;
 
 const semanticThemes = {
   light: {
@@ -43,9 +47,21 @@ async function installStableRouteState(page: Page, route: ForestCafeRoute) {
     });
   });
 
-  await page.addInitScript(({ direction }) => {
+  await page.addInitScript(({ direction, seedDashboard }) => {
     try {
       if (!localStorage.getItem('theme')) localStorage.setItem('theme', 'light');
+      sessionStorage.setItem('restato_bookmark_dismissed', 'true');
+      if (seedDashboard) {
+        localStorage.setItem('restato_dashboard_fx_history_v1', JSON.stringify([
+          { timestamp: '2026-07-14T00:00:00.000Z', usdKrw: 1368, usdJpy: 148, eurKrw: 1580 },
+          { timestamp: '2026-07-15T00:00:00.000Z', usdKrw: 1370, usdJpy: 148.5, eurKrw: 1582 },
+          { timestamp: '2026-07-16T00:00:00.000Z', usdKrw: 1372, usdJpy: 149, eurKrw: 1584 },
+          { timestamp: '2026-07-17T00:00:00.000Z', usdKrw: 1375, usdJpy: 149.2, eurKrw: 1587 },
+          { timestamp: '2026-07-18T00:00:00.000Z', usdKrw: 1377, usdJpy: 149.5, eurKrw: 1590 },
+          { timestamp: '2026-07-19T00:00:00.000Z', usdKrw: 1379, usdJpy: 149.8, eurKrw: 1593 },
+          { timestamp: '2026-07-20T00:00:00.000Z', usdKrw: 1380, usdJpy: 150, eurKrw: 1604.65 },
+        ]));
+      }
     } catch {
       // The target origin owns the persistent state once navigation begins.
     }
@@ -54,7 +70,10 @@ async function installStableRouteState(page: Page, route: ForestCafeRoute) {
     const applyDirection = () => document.documentElement?.setAttribute('dir', direction);
     applyDirection();
     document.addEventListener('DOMContentLoaded', applyDirection, { once: true });
-  }, { direction: route.forceDirection });
+  }, {
+    direction: route.forceDirection,
+    seedDashboard: route.family === 'dashboard',
+  });
 }
 
 async function waitForStablePage(page: Page, route: ForestCafeRoute) {
@@ -81,10 +100,15 @@ async function openRoute(page: Page, route: ForestCafeRoute) {
 
   expect(response?.ok(), `${route.path} must resolve`).toBeTruthy();
   await waitForStablePage(page, route);
+  expect(await page.evaluate(() => sessionStorage.getItem('restato_bookmark_dismissed')))
+    .toBe('true');
 }
 
 async function setTheme(page: Page, route: ForestCafeRoute, theme: 'light' | 'dark') {
-  await page.evaluate((nextTheme) => localStorage.setItem('theme', nextTheme), theme);
+  await page.evaluate((nextTheme) => {
+    localStorage.setItem('theme', nextTheme);
+    history.replaceState(null, '', `${location.pathname}${location.search}`);
+  }, theme);
   await page.reload({ waitUntil: 'domcontentloaded' });
   await waitForStablePage(page, route);
 }
@@ -149,14 +173,21 @@ async function assertHoverDoesNotShiftLayout(page: Page) {
     ? mainAction
     : page.locator('#theme-toggle-btn');
   await expect(primaryAction).toBeVisible();
-  const before = await primaryAction.boundingBox();
+  await primaryAction.scrollIntoViewIfNeeded();
+  const readDocumentGeometry = () => primaryAction.evaluate((element) => {
+    const rect = element.getBoundingClientRect();
+    return {
+      x: rect.x + window.scrollX,
+      y: rect.y + window.scrollY,
+      width: rect.width,
+      height: rect.height,
+    };
+  });
+  const before = await readDocumentGeometry();
   await primaryAction.hover();
-  const after = await primaryAction.boundingBox();
-
-  expect(before).not.toBeNull();
-  expect(after).not.toBeNull();
+  const after = await readDocumentGeometry();
   for (const dimension of ['x', 'y', 'width', 'height'] as const) {
-    expect(Math.abs((after?.[dimension] ?? 0) - (before?.[dimension] ?? 0))).toBeLessThan(1);
+    expect(Math.abs(after[dimension] - before[dimension])).toBeLessThan(1);
   }
 }
 
@@ -178,10 +209,15 @@ async function saveEvidenceScreenshot(
     mask: maskSelectors.map((selector) => page.locator(selector)),
   });
   expect(screenshot.byteLength).toBeGreaterThan(1_000);
+  expect(screenshot).toMatchSnapshot(
+    `${route.id}-${projectName}-${theme}.png`,
+    { maxDiffPixelRatio: visualDiffTolerance },
+  );
 }
 
 for (const route of forestCafeRoutes) {
   test(`${route.name} satisfies the Forest Cafe visual and interaction contract`, async ({ page }, testInfo) => {
+    assertNoUnexpectedConsoleErrors(page);
     await openRoute(page, route);
     await assertSemanticTheme(page, 'light');
     await assertNoHorizontalOverflow(page);
@@ -196,17 +232,21 @@ for (const route of forestCafeRoutes) {
     if (testInfo.project.name === 'desktop') {
       await saveEvidenceScreenshot(page, route, testInfo.project.name, 'light');
     }
+    await assertKeyboardFocusAndSkipLink(page, semanticThemes.light.focus);
+    assertNoUnexpectedConsoleErrors(page);
 
     await setTheme(page, route, 'dark');
     await assertSemanticTheme(page, 'dark');
     await assertNoHorizontalOverflow(page);
-    await assertHoverDoesNotShiftLayout(page);
     await saveEvidenceScreenshot(page, route, testInfo.project.name, 'dark');
     await assertKeyboardFocusAndSkipLink(page, semanticThemes.dark.focus);
+    await assertHoverDoesNotShiftLayout(page);
+    assertNoUnexpectedConsoleErrors(page);
   });
 }
 
 test('explicit theme choice persists across navigation and reload', async ({ page }) => {
+  assertNoUnexpectedConsoleErrors(page);
   await page.emulateMedia({ colorScheme: 'light', reducedMotion: 'reduce' });
   await page.goto('/ko/', { waitUntil: 'domcontentloaded' });
   await page.evaluate(() => localStorage.setItem('theme', 'light'));
@@ -231,4 +271,5 @@ test('explicit theme choice persists across navigation and reload', async ({ pag
   await expect(page.locator('html')).not.toHaveClass(/\bdark\b/);
   await page.reload({ waitUntil: 'domcontentloaded' });
   await expect(page.locator('html')).not.toHaveClass(/\bdark\b/);
+  assertNoUnexpectedConsoleErrors(page);
 });

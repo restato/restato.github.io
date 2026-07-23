@@ -101,7 +101,6 @@ export const forestCafeRoutes: readonly ForestCafeRoute[] = [
     family: 'dashboard',
     path: '/dashboard/',
     locale: 'ko',
-    visualMasks: ['main .fc-surface > astro-island > section'],
   },
   {
     id: 'chat-en',
@@ -109,7 +108,10 @@ export const forestCafeRoutes: readonly ForestCafeRoute[] = [
     family: 'chat',
     path: '/en/anonymous-chat/',
     locale: 'en',
-    visualMasks: ['.chat-container'],
+    visualMasks: [
+      '.chat-container [role="status"] > *',
+      '.chat-container [role="log"] > *',
+    ],
   },
   {
     id: 'direction-audit-hi',

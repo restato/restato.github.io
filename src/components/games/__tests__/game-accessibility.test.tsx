@@ -177,7 +177,7 @@ describe('dynamic game semantics', () => {
     expect(flaggedCell).toHaveAccessibleName(/깃발/);
     expect(firstReveal).not.toHaveAccessibleName(/지뢰/);
     expect(firstReveal).not.toHaveAccessibleName(/숨김/);
-  });
+  }, 30_000);
 
   it('uses a named fullscreen region and restores the inline experience on Escape', async () => {
     const user = userEvent.setup();

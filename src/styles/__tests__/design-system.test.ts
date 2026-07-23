@@ -56,6 +56,10 @@ describe('Forest Café design system', () => {
     expect(css).toContain('color-scheme: dark');
   });
 
+  it('keeps image crop keyboard handles at the WCAG 2.2 target size', () => {
+    expect(css).toMatch(/\.ReactCrop\s*\{[^}]*--rc-drag-handle-size:\s*24px;/s);
+  });
+
   it('uses a readable body rhythm and caps long-form content despite max-w-none utilities', () => {
     expect(css).toMatch(/body\s*\{[^}]*font-size:\s*1rem;[^}]*line-height:\s*1\.7;/s);
     expect(blogArticle).toContain('fc-prose prose prose-lg dark:prose-invert');
