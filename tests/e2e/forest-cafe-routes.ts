@@ -9,6 +9,8 @@ export const forestCafeRequiredFamilies = [
   'policy',
   'dashboard',
   'chat',
+  'project',
+  'not-found',
 ] as const;
 
 export type ForestCafeFamily = (typeof forestCafeRequiredFamilies)[number];
@@ -120,6 +122,48 @@ export const forestCafeRoutes: readonly ForestCafeRoute[] = [
     path: '/hi/privacy/',
     locale: 'hi',
     forceDirection: 'rtl',
+  },
+  {
+    id: 'project-gallery',
+    name: 'Project gallery',
+    family: 'project',
+    path: '/projects/gallery/',
+    locale: 'ko',
+  },
+  {
+    id: 'project-jobworld-kids',
+    name: 'Jobworld Kids project',
+    family: 'project',
+    path: '/projects/jobworld-kids/',
+    locale: 'ko',
+  },
+  {
+    id: 'project-local-price-extractor',
+    name: 'Local price extractor project',
+    family: 'project',
+    path: '/projects/local-price-extractor/',
+    locale: 'ko',
+  },
+  {
+    id: 'project-quick-issue',
+    name: 'Quick Issue project',
+    family: 'project',
+    path: '/projects/quick-issue/',
+    locale: 'ko',
+  },
+  {
+    id: 'project-roomfit-3d',
+    name: 'RoomFit 3D project',
+    family: 'project',
+    path: '/projects/roomfit-3d/',
+    locale: 'ko',
+  },
+  {
+    id: 'not-found',
+    name: 'Not found page',
+    family: 'not-found',
+    path: '/404/',
+    locale: 'ko',
   },
 ];
 
