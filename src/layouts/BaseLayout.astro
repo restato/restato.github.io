@@ -3,6 +3,7 @@ import '../styles/global.css';
 import { localeMetadata } from '../i18n';
 import type { Language } from '../data/tools/types';
 import { normalizeHeadAlternates, parseLanguage } from '../i18n/urlUtils';
+import ConsentBanner from '../components/ConsentBanner.astro';
 
 interface AlternateUrl {
   lang: string;
@@ -52,6 +53,7 @@ const canonicalURL = canonical
   : new URL(Astro.url.pathname, Astro.site);
 const siteName = 'Restato';
 const twitterHandle = '@restato_dev';
+const gaId = import.meta.env.PUBLIC_GA_ID?.trim() ?? '';
 
 // JSON-LD Schema
 const websiteSchema = {
@@ -158,15 +160,6 @@ const articleSchema = type === 'article' ? {
       <script type="application/ld+json" set:html={JSON.stringify(articleSchema)} />
     )}
 
-    <!-- Google Analytics -->
-    <script async src="https://www.googletagmanager.com/gtag/js?id=G-CJKYE91FQM"></script>
-    <script is:inline>
-      window.dataLayer = window.dataLayer || [];
-      function gtag(){dataLayer.push(arguments);}
-      gtag('js', new Date());
-      gtag('config', 'G-CJKYE91FQM');
-    </script>
-
     <!-- Theme Script -->
     <script is:inline>
       const theme = (() => {
@@ -219,5 +212,6 @@ const articleSchema = type === 'article' ? {
   </head>
   <body class="min-h-screen flex flex-col">
     <slot />
+    <ConsentBanner lang={lang} gaId={gaId} />
   </body>
 </html>
