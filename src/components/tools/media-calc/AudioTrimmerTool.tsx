@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { audioBufferToChannels, encodeWavSegment } from '../../../lib/media-calc/audio';
 import { downloadBlob } from '../../../lib/media-calc/image';
 import { ToolActions } from '../ui/ToolActions';
@@ -8,10 +8,16 @@ import { ToolShell, ToolStatus, buttonClass, fieldClass } from './ToolShell';
 export default function AudioTrimmerTool() {
   const [file, setFile] = useState<File | null>(null); const [buffer, setBuffer] = useState<AudioBuffer | null>(null);
   const [start, setStart] = useState(0); const [end, setEnd] = useState(0); const [feedback, setFeedback] = useState<{ message: string; status: 'success' | 'error' } | null>(null); const [preview, setPreview] = useState('');
-  useEffect(() => () => { if (preview) URL.revokeObjectURL(preview); }, [preview]);
+  const previewRef = useRef('');
+  const clearPreview = () => {
+    if (previewRef.current) URL.revokeObjectURL(previewRef.current);
+    previewRef.current = '';
+    setPreview('');
+  };
+  useEffect(() => () => { if (previewRef.current) URL.revokeObjectURL(previewRef.current); }, []);
   const load = async (next: File | null) => {
-    setFile(next); setBuffer(null); setFeedback(null); if (!next) return;
-    try { const Context = window.AudioContext || (window as typeof window & { webkitAudioContext?: typeof AudioContext }).webkitAudioContext; if (!Context) throw new Error('Web Audio is unavailable in this browser.'); const context = new Context(); const decoded = await context.decodeAudioData(await next.arrayBuffer()); await context.close(); setBuffer(decoded); setStart(0); setEnd(decoded.duration); const url = URL.createObjectURL(next); setPreview((old) => { if (old) URL.revokeObjectURL(old); return url; }); }
+    setFile(next); setBuffer(null); setFeedback(null); setStart(0); setEnd(0); clearPreview(); if (!next) return;
+    try { const Context = window.AudioContext || (window as typeof window & { webkitAudioContext?: typeof AudioContext }).webkitAudioContext; if (!Context) throw new Error('Web Audio is unavailable in this browser.'); const context = new Context(); const decoded = await context.decodeAudioData(await next.arrayBuffer()); await context.close(); setBuffer(decoded); setStart(0); setEnd(decoded.duration); const url = URL.createObjectURL(next); previewRef.current = url; setPreview(url); }
     catch { setFeedback({ message: 'This browser cannot decode that audio format. Try WAV, MP3, AAC/M4A, or Ogg supported by your browser.', status: 'error' }); }
   };
   const exportWav = () => {
