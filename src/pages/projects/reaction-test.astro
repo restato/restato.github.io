@@ -1,29 +1,33 @@
 ---
 import MainLayout from '../../layouts/MainLayout.astro';
 import ReactionTest from '../../components/ReactionTest';
+import PageHeader from '../../components/ui/PageHeader.astro';
+import PageShell from '../../components/ui/PageShell.astro';
 ---
 
 <MainLayout title="반응속도 테스트 | Restato" description="당신의 반응속도를 측정하세요">
-  <section class="py-8 px-4">
-    <div class="max-w-4xl mx-auto">
-      <!-- Header -->
-      <div class="mb-8">
-        <div class="flex items-center gap-2 text-sm text-[var(--color-text-muted)] mb-2">
-          <a href="/projects/games" class="hover:text-primary-500">게임센터</a>
-          <span>/</span>
-          <span>반응속도</span>
-        </div>
-        <h1 class="text-3xl font-bold mb-2">⚡ 반응속도 테스트</h1>
-        <p class="text-[var(--color-text-muted)]">
-          초록색이 되면 최대한 빨리 클릭! 당신의 반응속도는?
-        </p>
-      </div>
+  <PageShell size="content">
+      <nav class="fc-tool-breadcrumb" aria-label="게임센터">
+        <ol>
+          <li><a href="/projects/games">게임센터</a></li>
+          <li aria-hidden="true">/</li>
+          <li aria-current="page">반응속도</li>
+        </ol>
+      </nav>
+      <PageHeader
+        eyebrow="⚡ Mini game"
+        title="반응속도 테스트"
+        description="초록색이 되면 최대한 빨리 클릭! 당신의 반응속도는?"
+      />
 
       <!-- Game Component -->
-      <ReactionTest client:load />
+      <section class="fc-surface fc-surface-padding-md" aria-label="반응속도 테스트">
+        <ReactionTest client:load />
+      </section>
 
       <!-- Info -->
-      <div class="mt-12 p-6 bg-[var(--color-card)] rounded-xl border border-[var(--color-border)]">
+      <section class="fc-tool-instructions fc-prose">
+        <div>
         <h2 class="text-lg font-bold mb-4">💡 게임 방법</h2>
         <ul class="space-y-2 text-[var(--color-text-muted)]">
           <li>• 화면을 클릭하여 게임을 시작하세요</li>
@@ -32,7 +36,7 @@ import ReactionTest from '../../components/ReactionTest';
           <li>• 너무 빨리 클릭하면 실패에요</li>
           <li>• 평균 인간 반응속도는 200-250ms입니다</li>
         </ul>
-      </div>
-    </div>
-  </section>
+        </div>
+      </section>
+  </PageShell>
 </MainLayout>

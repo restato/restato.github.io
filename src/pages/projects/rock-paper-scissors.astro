@@ -1,29 +1,33 @@
 ---
 import MainLayout from '../../layouts/MainLayout.astro';
 import RockPaperScissors from '../../components/RockPaperScissors';
+import PageHeader from '../../components/ui/PageHeader.astro';
+import PageShell from '../../components/ui/PageShell.astro';
 ---
 
 <MainLayout title="가위바위보 | Restato" description="AI와 대결하는 가위바위보 게임">
-  <section class="py-8 px-4">
-    <div class="max-w-4xl mx-auto">
-      <!-- Header -->
-      <div class="mb-8">
-        <div class="flex items-center gap-2 text-sm text-[var(--color-text-muted)] mb-2">
-          <a href="/projects/games" class="hover:text-primary-500">게임센터</a>
-          <span>/</span>
-          <span>가위바위보</span>
-        </div>
-        <h1 class="text-3xl font-bold mb-2">✊ 가위바위보</h1>
-        <p class="text-[var(--color-text-muted)]">
-          AI와 대결하는 클래식 가위바위보! 연승 기록에 도전하세요!
-        </p>
-      </div>
+  <PageShell size="content">
+      <nav class="fc-tool-breadcrumb" aria-label="게임센터">
+        <ol>
+          <li><a href="/projects/games">게임센터</a></li>
+          <li aria-hidden="true">/</li>
+          <li aria-current="page">가위바위보</li>
+        </ol>
+      </nav>
+      <PageHeader
+        eyebrow="✊ Mini game"
+        title="가위바위보"
+        description="AI와 대결하는 클래식 가위바위보! 연승 기록에 도전하세요!"
+      />
 
       <!-- Game Component -->
-      <RockPaperScissors client:load />
+      <section class="fc-surface fc-surface-padding-md" aria-label="가위바위보">
+        <RockPaperScissors client:load />
+      </section>
 
       <!-- Info -->
-      <div class="mt-12 p-6 bg-[var(--color-card)] rounded-xl border border-[var(--color-border)]">
+      <section class="fc-tool-instructions fc-prose">
+        <div>
         <h2 class="text-lg font-bold mb-4">💡 게임 방법</h2>
         <ul class="space-y-2 text-[var(--color-text-muted)]">
           <li>• 가위, 바위, 보 중 하나를 선택하세요</li>
@@ -31,7 +35,7 @@ import RockPaperScissors from '../../components/RockPaperScissors';
           <li>• 연승을 쌓아 최고 기록에 도전해보세요!</li>
           <li>• 승/패/무 통계를 확인할 수 있어요</li>
         </ul>
-      </div>
-    </div>
-  </section>
+        </div>
+      </section>
+  </PageShell>
 </MainLayout>

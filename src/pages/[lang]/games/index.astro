@@ -1,7 +1,10 @@
 ---
 import MainLayout from '../../../layouts/MainLayout.astro';
+import PageHeader from '../../../components/ui/PageHeader.astro';
+import PageShell from '../../../components/ui/PageShell.astro';
+import GameCatalog from '../../../components/games/GameCatalog';
 import ShareButton from '../../../components/tools/ShareButton';
-import { gameLanguages, gamesConfig, getFeaturedGames, getGameSeo, getGamesByCategory, isGameLanguage } from '../../../data/games';
+import { gameLanguages, gamesConfig, getGameSeo, isGameLanguage } from '../../../data/games';
 import type { Language } from '../../../i18n/index';
 
 export function getStaticPaths() {
@@ -11,12 +14,6 @@ export function getStaticPaths() {
 const { lang } = Astro.params as { lang: Language };
 const routeLang = isGameLanguage(lang) ? lang : 'en';
 
-const featuredGames = getFeaturedGames();
-const arcadeGames = getGamesByCategory('arcade');
-const puzzleGames = getGamesByCategory('puzzle');
-const eventGames = getGamesByCategory('event');
-const classicGames = getGamesByCategory('classic');
-
 const translations = {
   ko: {
     title: '무료 온라인 게임 | Restato',
@@ -24,11 +21,15 @@ const translations = {
     heading: '무료 온라인 게임',
     subheading: '브라우저에서 바로 플레이하는 미니게임',
     featured: '추천 게임',
+    all: '전체',
     arcade: '아케이드 게임',
     puzzle: '퍼즐 / 두뇌 게임',
     event: '이벤트 / 추첨',
     classic: '클래식 게임',
     playNow: '플레이',
+    search: '게임 검색',
+    noResults: '검색 조건에 맞는 게임이 없습니다.',
+    count: '개 게임',
   },
   en: {
     title: 'Free Online Games | Restato',
@@ -36,11 +37,15 @@ const translations = {
     heading: 'Free Online Games',
     subheading: 'Mini games you can play directly in your browser',
     featured: 'Featured Games',
+    all: 'All',
     arcade: 'Arcade Games',
     puzzle: 'Puzzle / Brain Games',
     event: 'Event / Raffle',
     classic: 'Classic Games',
     playNow: 'Play',
+    search: 'Search games',
+    noResults: 'No games match your search.',
+    count: 'games',
   },
   ja: {
     title: '無料オンラインゲーム | Restato',
@@ -48,16 +53,32 @@ const translations = {
     heading: '無料オンラインゲーム',
     subheading: 'ブラウザで直接プレイできるミニゲーム',
     featured: 'おすすめゲーム',
+    all: 'すべて',
     arcade: 'アーケードゲーム',
     puzzle: 'パズル / 脳トレ',
     event: 'イベント / 抽選',
     classic: 'クラシックゲーム',
     playNow: 'プレイ',
+    search: 'ゲームを検索',
+    noResults: '条件に一致するゲームがありません。',
+    count: '件のゲーム',
   },
 };
 
 const t = translations[routeLang] ?? translations.en;
 const gameSeo = (game: (typeof gamesConfig)[number]) => getGameSeo(game, routeLang);
+const catalogGames = gamesConfig.map(game => {
+  const seo = gameSeo(game);
+  return {
+    slug: game.slug,
+    title: seo.title.split(' - ')[0],
+    description: seo.description,
+    icon: game.icon,
+    category: game.category,
+    featured: Boolean(game.featured),
+    href: `/${routeLang}/games/${game.slug}`,
+  };
+});
 
 // JSON-LD Schema
 const gamesSchema = {
@@ -89,137 +110,34 @@ const gamesSchema = {
 <MainLayout title={t.title} description={t.description} lang={routeLang}>
   <script type="application/ld+json" set:html={JSON.stringify(gamesSchema)} />
 
-  <section class="py-12 px-4">
-    <div class="max-w-6xl mx-auto">
-      <!-- Header -->
-      <div class="text-center mb-12">
-        <div class="flex items-center justify-center gap-3 mb-4">
-          <h1 class="text-4xl md:text-5xl font-bold bg-gradient-to-r from-primary-500 to-purple-500 bg-clip-text text-transparent">
-            {t.heading}
-          </h1>
-          <ShareButton
-            client:load
-            title={t.title}
-            description={t.description}
-          />
-        </div>
-        <p class="text-lg text-[var(--color-text-muted)]">
-          {t.subheading}
-        </p>
-      </div>
+  <PageShell size="content">
+    <PageHeader
+      eyebrow={t.featured}
+      title={t.heading}
+      description={t.subheading}
+    >
+      <ShareButton
+        slot="actions"
+        client:load
+        title={t.title}
+        description={t.description}
+      />
+    </PageHeader>
 
-      <!-- Featured Games -->
-      {featuredGames.length > 0 && (
-        <div class="mb-12">
-          <h2 class="text-2xl font-bold mb-6 flex items-center gap-2">
-            <span>⭐</span> {t.featured}
-          </h2>
-          <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
-            {featuredGames.map(game => (
-              <a
-                href={`/${routeLang}/games/${game.slug}`}
-                class="group p-4 bg-gradient-to-br from-primary-500/10 to-purple-500/10 rounded-xl border border-primary-500/30 hover:border-primary-500 transition-all hover:shadow-lg hover:-translate-y-1"
-              >
-                <div class="text-4xl mb-3">{game.icon}</div>
-                <h3 class="font-bold mb-1 group-hover:text-primary-500 transition-colors">
-                  {gameSeo(game).title.split(' - ')[0]}
-                </h3>
-                <p class="text-sm text-[var(--color-text-muted)] line-clamp-2">
-                  {gameSeo(game).description.slice(0, 60)}...
-                </p>
-              </a>
-            ))}
-          </div>
-        </div>
-      )}
-
-      <!-- Arcade Games -->
-      {arcadeGames.length > 0 && (
-        <div class="mb-12">
-          <h2 class="text-2xl font-bold mb-6 flex items-center gap-2">
-            <span>🕹️</span> {t.arcade}
-          </h2>
-          <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
-            {arcadeGames.map(game => (
-              <a
-                href={`/${routeLang}/games/${game.slug}`}
-                class="group p-4 bg-[var(--color-card)] rounded-xl border border-[var(--color-border)] hover:border-primary-500 transition-all hover:shadow-lg hover:-translate-y-1"
-              >
-                <div class="text-3xl mb-2">{game.icon}</div>
-                <h3 class="font-bold text-sm group-hover:text-primary-500 transition-colors">
-                  {gameSeo(game).title.split(' - ')[0]}
-                </h3>
-              </a>
-            ))}
-          </div>
-        </div>
-      )}
-
-      <!-- Puzzle Games -->
-      {puzzleGames.length > 0 && (
-        <div class="mb-12">
-          <h2 class="text-2xl font-bold mb-6 flex items-center gap-2">
-            <span>🧩</span> {t.puzzle}
-          </h2>
-          <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
-            {puzzleGames.map(game => (
-              <a
-                href={`/${routeLang}/games/${game.slug}`}
-                class="group p-4 bg-[var(--color-card)] rounded-xl border border-[var(--color-border)] hover:border-primary-500 transition-all hover:shadow-lg hover:-translate-y-1"
-              >
-                <div class="text-3xl mb-2">{game.icon}</div>
-                <h3 class="font-bold text-sm group-hover:text-primary-500 transition-colors">
-                  {gameSeo(game).title.split(' - ')[0]}
-                </h3>
-              </a>
-            ))}
-          </div>
-        </div>
-      )}
-
-      <!-- Event Games -->
-      {eventGames.length > 0 && (
-        <div class="mb-12">
-          <h2 class="text-2xl font-bold mb-6 flex items-center gap-2">
-            <span>🎉</span> {t.event}
-          </h2>
-          <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
-            {eventGames.map(game => (
-              <a
-                href={`/${routeLang}/games/${game.slug}`}
-                class="group p-4 bg-[var(--color-card)] rounded-xl border border-[var(--color-border)] hover:border-primary-500 transition-all hover:shadow-lg hover:-translate-y-1"
-              >
-                <div class="text-3xl mb-2">{game.icon}</div>
-                <h3 class="font-bold text-sm group-hover:text-primary-500 transition-colors">
-                  {gameSeo(game).title.split(' - ')[0]}
-                </h3>
-              </a>
-            ))}
-          </div>
-        </div>
-      )}
-
-      <!-- Classic Games -->
-      {classicGames.length > 0 && (
-        <div class="mb-12">
-          <h2 class="text-2xl font-bold mb-6 flex items-center gap-2">
-            <span>🎮</span> {t.classic}
-          </h2>
-          <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
-            {classicGames.map(game => (
-              <a
-                href={`/${routeLang}/games/${game.slug}`}
-                class="group p-4 bg-[var(--color-card)] rounded-xl border border-[var(--color-border)] hover:border-primary-500 transition-all hover:shadow-lg hover:-translate-y-1"
-              >
-                <div class="text-3xl mb-2">{game.icon}</div>
-                <h3 class="font-bold text-sm group-hover:text-primary-500 transition-colors">
-                  {gameSeo(game).title.split(' - ')[0]}
-                </h3>
-              </a>
-            ))}
-          </div>
-        </div>
-      )}
-    </div>
-  </section>
+    <GameCatalog
+      client:load
+      games={catalogGames}
+      labels={{
+        search: t.search,
+        all: t.all,
+        featured: t.featured,
+        arcade: t.arcade,
+        puzzle: t.puzzle,
+        event: t.event,
+        classic: t.classic,
+        noResults: t.noResults,
+        count: t.count,
+      }}
+    />
+  </PageShell>
 </MainLayout>

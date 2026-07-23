@@ -1,5 +1,7 @@
 ---
 import MainLayout from '../../../layouts/MainLayout.astro';
+import PageHeader from '../../../components/ui/PageHeader.astro';
+import PageShell from '../../../components/ui/PageShell.astro';
 import ShareButton from '../../../components/tools/ShareButton';
 import { gameLanguages, gamesConfig, getGameConfig, getGameSeo, isGameLanguage } from '../../../data/games';
 import type { Language } from '../../../i18n/index';
@@ -109,50 +111,44 @@ const gameSchema = {
 >
   <script type="application/ld+json" set:html={JSON.stringify(gameSchema)} />
 
-  <section class="py-8 px-4">
-    <div class="max-w-6xl mx-auto">
-      <!-- Breadcrumb -->
-      <div class="flex items-center gap-2 text-sm text-[var(--color-text-muted)] mb-6">
+  <PageShell size="wide">
+      <nav class="fc-tool-breadcrumb" aria-label={t.backToGames}>
+        <ol>
+          <li>
         <a href={`/${routeLang}/games`} class="hover:text-primary-500 transition-colors">
           {t.backToGames}
         </a>
-        <span>/</span>
-        <span class="text-[var(--color-text)]">{seo.title.split(' - ')[0]}</span>
-      </div>
+          </li>
+          <li aria-hidden="true">/</li>
+          <li aria-current="page">{seo.title.split(' - ')[0]}</li>
+        </ol>
+      </nav>
 
-      <!-- Header -->
-      <div class="text-center mb-8">
-        <div class="text-5xl mb-4">{game.icon}</div>
-        <div class="flex items-center justify-center gap-3 mb-2">
-          <h1 class="text-3xl md:text-4xl font-bold">
-            {seo.title.split(' - ')[0]}
-          </h1>
+      <PageHeader
+        eyebrow={`${game.icon} ${t.browserGame}`}
+        title={seo.title.split(' - ')[0]}
+        description={seo.description}
+      >
+        <div slot="actions" class="flex flex-wrap items-center gap-2">
+          <span class="fc-chip text-[var(--brand)]">
+            {t.free}
+          </span>
+          <span class="fc-chip text-[var(--brand)]">
+            {t.noInstall}
+          </span>
+          <span class="fc-chip text-[var(--accent)]">
+            {t.browserGame}
+          </span>
           <ShareButton
             client:load
             title={seo.title}
             description={seo.description}
           />
         </div>
-        <p class="text-[var(--color-text-muted)] mb-4">
-          {seo.description}
-        </p>
-
-        <!-- Tags -->
-        <div class="flex justify-center gap-2 flex-wrap">
-          <span class="px-3 py-1 text-sm bg-green-500/10 text-green-500 rounded-full">
-            {t.free}
-          </span>
-          <span class="px-3 py-1 text-sm bg-blue-500/10 text-blue-500 rounded-full">
-            {t.noInstall}
-          </span>
-          <span class="px-3 py-1 text-sm bg-purple-500/10 text-purple-500 rounded-full">
-            {t.browserGame}
-          </span>
-        </div>
-      </div>
+      </PageHeader>
 
       <!-- Game Component -->
-      <div class="bg-[var(--color-card)] rounded-2xl border border-[var(--color-border)] p-4 md:p-8">
+      <section class="fc-surface fc-surface-padding-md overflow-hidden" aria-label={seo.title.split(' - ')[0]}>
         {slug === 'snake' && <SnakeGame client:load />}
         {slug === '2048' && <Game2048 client:load />}
         {slug === 'typing' && <TypingGame client:load />}
@@ -175,16 +171,15 @@ const gameSchema = {
         {slug === 'rock-paper-scissors' && <RockPaperScissors client:load />}
         {slug === 'number-guess' && <NumberGuess client:load />}
         {slug === 'slot-machine' && <SlotMachine client:load />}
-      </div>
+      </section>
 
       <!-- SEO Keywords -->
       <div class="mt-8 flex flex-wrap gap-2 justify-center">
         {seo.keywords.slice(0, 8).map(keyword => (
-          <span class="px-3 py-1 text-xs bg-[var(--color-card)] border border-[var(--color-border)] rounded-full text-[var(--color-text-muted)]">
+          <span class="fc-chip text-xs font-normal text-[var(--text-muted)]">
             #{keyword}
           </span>
         ))}
       </div>
-    </div>
-  </section>
+  </PageShell>
 </MainLayout>
