@@ -1,5 +1,6 @@
 import { useState, useMemo } from 'react';
 import { useTranslation } from '../../i18n/useTranslation';
+import type { Language } from '../../i18n';
 
 type HarmonyType = 'complementary' | 'triadic' | 'analogous' | 'splitComplementary' | 'tetradic' | 'monochromatic';
 
@@ -141,8 +142,8 @@ function generatePalette(baseHex: string, harmony: HarmonyType): Color[] {
   return colors;
 }
 
-export default function ColorPalette() {
-  const { t, translations } = useTranslation();
+export default function ColorPalette({ lang: initialLang }: { lang?: Language } = {}) {
+  const { t, translations } = useTranslation(initialLang);
   const tt = translations.tools.colorPalette;
   const tc = translations.tools.common;
 

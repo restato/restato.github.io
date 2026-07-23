@@ -1,5 +1,6 @@
 import { useState, useMemo } from 'react';
 import { useTranslation } from '../../i18n/useTranslation';
+import type { Language } from '../../i18n';
 
 // Simple markdown parser
 function parseMarkdown(md: string): string {
@@ -108,8 +109,8 @@ function hello() {
 3. Third item
 `;
 
-export default function MarkdownPreview() {
-  const { t, translations } = useTranslation();
+export default function MarkdownPreview({ lang: initialLang }: { lang?: Language } = {}) {
+  const { t, translations } = useTranslation(initialLang);
   const tt = translations.tools.markdown;
   const tc = translations.tools.common;
 

@@ -1,8 +1,9 @@
 import { useState, useCallback } from 'react';
 import { useTranslation } from '../../i18n/useTranslation';
+import type { Language } from '../../i18n';
 
-export default function JsonFormatter() {
-  const { t, translations } = useTranslation();
+export default function JsonFormatter({ lang: initialLang }: { lang?: Language } = {}) {
+  const { t, translations } = useTranslation(initialLang);
   const tt = translations.tools.json;
   const tc = translations.tools.common;
 

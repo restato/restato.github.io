@@ -1,8 +1,9 @@
 import { useTranslation } from '../../i18n/useTranslation';
 import { useState, useEffect } from 'react';
+import type { Language } from '../../i18n';
 
-export default function ToolsPageHeader() {
-  const { t } = useTranslation();
+export default function ToolsPageHeader({ lang }: { lang?: Language } = {}) {
+  const { t } = useTranslation(lang);
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {

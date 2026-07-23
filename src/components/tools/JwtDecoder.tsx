@@ -1,5 +1,6 @@
 import { useState, useMemo } from 'react';
 import { useTranslation } from '../../i18n/useTranslation';
+import type { Language } from '../../i18n';
 
 interface JwtParts {
   header: Record<string, unknown> | null;
@@ -53,8 +54,8 @@ function isExpired(exp: number): boolean {
   return Date.now() > exp * 1000;
 }
 
-export default function JwtDecoder() {
-  const { t } = useTranslation();
+export default function JwtDecoder({ lang: initialLang }: { lang?: Language } = {}) {
+  const { t } = useTranslation(initialLang);
 
   const [token, setToken] = useState('');
   const [copiedPart, setCopiedPart] = useState<string | null>(null);

@@ -189,6 +189,7 @@ const appSchema = {
   description={seo.description}
   lang={lang}
   alternateUrls={alternateUrls}
+  robots={lang === 'ko' ? 'index, follow' : 'noindex, follow'}
 >
   <script type="application/ld+json" set:html={JSON.stringify(faqSchema)} />
   <script type="application/ld+json" set:html={JSON.stringify(appSchema)} />
@@ -217,54 +218,54 @@ const appSchema = {
           </p>
         </div>
         <div class="flex items-center gap-2">
-          <FavoriteButton client:load slug={tool.slug} title={shortTitle} icon={tool.icon} />
-          <ShareButton client:load title={pageTitle} description={seo.description} />
+          <FavoriteButton client:load slug={tool.slug} title={shortTitle} icon={tool.icon} lang={lang} />
+          <ShareButton client:load title={pageTitle} description={seo.description} lang={lang} />
         </div>
       </div>
     </header>
 
     <!-- Tool Content -->
     <div class="p-6 rounded-xl bg-[var(--color-card)] border border-[var(--color-border)]">
-      {tool.slug === 'qr-code' && <QRCodeGenerator client:load />}
-      {tool.slug === 'password' && <PasswordGenerator client:load />}
-      {tool.slug === 'uuid' && <UuidGenerator client:load />}
-      {tool.slug === 'lorem-ipsum' && <LoremIpsumGenerator client:load />}
-      {tool.slug === 'color-palette' && <ColorPalette client:load />}
-      {tool.slug === 'hash' && <HashGenerator client:load />}
-      {tool.slug === 'color' && <ColorConverter client:load />}
-      {tool.slug === 'unit' && <UnitConverter client:load />}
+      {tool.slug === 'qr-code' && <QRCodeGenerator client:load lang={lang} />}
+      {tool.slug === 'password' && <PasswordGenerator client:load lang={lang} />}
+      {tool.slug === 'uuid' && <UuidGenerator client:load lang={lang} />}
+      {tool.slug === 'lorem-ipsum' && <LoremIpsumGenerator client:load lang={lang} />}
+      {tool.slug === 'color-palette' && <ColorPalette client:load lang={lang} />}
+      {tool.slug === 'hash' && <HashGenerator client:load lang={lang} />}
+      {tool.slug === 'color' && <ColorConverter client:load lang={lang} />}
+      {tool.slug === 'unit' && <UnitConverter client:load lang={lang} />}
       {tool.slug === 'base64' && <Base64Tool client:load />}
-      {tool.slug === 'image-converter' && <ImageConverter client:load />}
-      {tool.slug === 'text-counter' && <TextCounter client:load />}
-      {tool.slug === 'markdown' && <MarkdownPreview client:load />}
-      {tool.slug === 'diff' && <DiffTool client:load />}
-      {tool.slug === 'json' && <JsonFormatter client:load />}
-      {tool.slug === 'regex' && <RegexTester client:load />}
-      {tool.slug === 'url-encoder' && <UrlEncoder client:load />}
-      {tool.slug === 'jwt-decoder' && <JwtDecoder client:load />}
-      {tool.slug === 'cron' && <CronGenerator client:load />}
-      {tool.slug === 'timestamp' && <TimestampConverter client:load />}
-      {tool.slug === 'llm-cost' && <LlmCostCalculator client:load />}
-      {tool.slug === 'gradient' && <GradientGenerator client:load />}
-      {tool.slug === 'box-shadow' && <BoxShadowGenerator client:load />}
-      {tool.slug === 'image-resizer' && <ImageResizer client:load />}
-      {tool.slug === 'exif' && <ExifViewer client:load />}
-      {tool.slug === 'background-remover' && <BackgroundRemover client:load />}
-      {tool.slug === 'image-metadata' && <ImageMetadataViewer client:load />}
-      {tool.slug === 'utm' && <UtmBuilder client:load />}
-      {tool.slug === 'timer' && <TimerStopwatch client:load />}
-      {tool.slug === 'pomodoro' && <PomodoroTimer client:load />}
-      {tool.slug === 'world-clock' && <WorldClock client:load />}
-      {tool.slug === 'percent' && <PercentCalculator client:load />}
-      {tool.slug === 'discount' && <DiscountCalculator client:load />}
-      {tool.slug === 'bmi' && <BmiCalculator client:load />}
-      {tool.slug === 'age' && <AgeCalculator client:load />}
-      {tool.slug === 'dday' && <DdayCalculator client:load />}
-      {tool.slug === 'dutch-pay' && <DutchPayCalculator client:load />}
-      {tool.slug === 'coin-flip' && <CoinFlip client:load />}
-      {tool.slug === 'dice' && <DiceRoller client:load />}
-      {tool.slug === 'kor-eng' && <KorEngConverter client:load />}
-      {tool.slug === 'appstore-screenshot' && <AppStoreScreenshotResizer client:load />}
+      {tool.slug === 'image-converter' && <ImageConverter client:load lang={lang} />}
+      {tool.slug === 'text-counter' && <TextCounter client:load lang={lang} />}
+      {tool.slug === 'markdown' && <MarkdownPreview client:load lang={lang} />}
+      {tool.slug === 'diff' && <DiffTool client:load lang={lang} />}
+      {tool.slug === 'json' && <JsonFormatter client:load lang={lang} />}
+      {tool.slug === 'regex' && <RegexTester client:load lang={lang} />}
+      {tool.slug === 'url-encoder' && <UrlEncoder client:load lang={lang} />}
+      {tool.slug === 'jwt-decoder' && <JwtDecoder client:load lang={lang} />}
+      {tool.slug === 'cron' && <CronGenerator client:load lang={lang} />}
+      {tool.slug === 'timestamp' && <TimestampConverter client:load lang={lang} />}
+      {tool.slug === 'llm-cost' && <LlmCostCalculator client:load lang={lang} />}
+      {tool.slug === 'gradient' && <GradientGenerator client:load lang={lang} />}
+      {tool.slug === 'box-shadow' && <BoxShadowGenerator client:load lang={lang} />}
+      {tool.slug === 'image-resizer' && <ImageResizer client:load lang={lang} />}
+      {tool.slug === 'exif' && <ExifViewer client:load lang={lang} />}
+      {tool.slug === 'background-remover' && <BackgroundRemover client:load lang={lang} />}
+      {tool.slug === 'image-metadata' && <ImageMetadataViewer client:load lang={lang} />}
+      {tool.slug === 'utm' && <UtmBuilder client:load lang={lang} />}
+      {tool.slug === 'timer' && <TimerStopwatch client:load lang={lang} />}
+      {tool.slug === 'pomodoro' && <PomodoroTimer client:load lang={lang} />}
+      {tool.slug === 'world-clock' && <WorldClock client:load lang={lang} />}
+      {tool.slug === 'percent' && <PercentCalculator client:load lang={lang} />}
+      {tool.slug === 'discount' && <DiscountCalculator client:load lang={lang} />}
+      {tool.slug === 'bmi' && <BmiCalculator client:load lang={lang} />}
+      {tool.slug === 'age' && <AgeCalculator client:load lang={lang} />}
+      {tool.slug === 'dday' && <DdayCalculator client:load lang={lang} />}
+      {tool.slug === 'dutch-pay' && <DutchPayCalculator client:load lang={lang} />}
+      {tool.slug === 'coin-flip' && <CoinFlip client:load lang={lang} />}
+      {tool.slug === 'dice' && <DiceRoller client:load lang={lang} />}
+      {tool.slug === 'kor-eng' && <KorEngConverter client:load lang={lang} />}
+      {tool.slug === 'appstore-screenshot' && <AppStoreScreenshotResizer client:load lang={lang} />}
     </div>
 
     <!-- Related Tools -->
@@ -295,7 +296,7 @@ const appSchema = {
   </div>
 
   <!-- Bookmark Prompt -->
-  <BookmarkPrompt client:idle />
+  <BookmarkPrompt client:idle lang={lang} />
 
   <!-- Track tool visit -->
   <script define:vars={{ slug: tool.slug, title: shortTitle, icon: tool.icon }}>

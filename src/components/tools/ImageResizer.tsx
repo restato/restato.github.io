@@ -2,6 +2,7 @@ import { useState, useRef, useCallback, useEffect } from 'react';
 import ReactCrop, { type Crop, centerCrop, makeAspectCrop } from 'react-image-crop';
 import 'react-image-crop/dist/ReactCrop.css';
 import { useTranslation } from '../../i18n/useTranslation';
+import type { Language } from '../../i18n';
 import { IMAGE_CROP_PRESETS } from '../../lib/imageCropPresets';
 
 interface ImageInfo {
@@ -35,8 +36,8 @@ const SCALE_PRESETS = [
   { label: '200%', factor: 2 },
 ];
 
-export default function ImageResizer() {
-  const { t, translations } = useTranslation();
+export default function ImageResizer({ lang: initialLang }: { lang?: Language } = {}) {
+  const { t, translations } = useTranslation(initialLang);
   const tt = translations.tools.imageResizer;
   const tc = translations.tools.common;
 

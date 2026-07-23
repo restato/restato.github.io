@@ -1,5 +1,6 @@
 import { useState, useMemo } from 'react';
 import { useTranslation } from '../../i18n/useTranslation';
+import type { Language } from '../../i18n';
 
 interface CronParts {
   minute: string;
@@ -103,8 +104,8 @@ function describeCron(parts: CronParts, t: (obj: Record<string, string>) => stri
   return descriptions.join(' ');
 }
 
-export default function CronGenerator() {
-  const { t, lang } = useTranslation();
+export default function CronGenerator({ lang: initialLang }: { lang?: Language } = {}) {
+  const { t, lang } = useTranslation(initialLang);
 
   const [parts, setParts] = useState<CronParts>({
     minute: '0',

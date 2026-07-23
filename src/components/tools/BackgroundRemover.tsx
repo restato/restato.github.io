@@ -1,5 +1,6 @@
 import { useState, useRef, useCallback, useEffect } from 'react';
 import { useTranslation } from '../../i18n/useTranslation';
+import type { Language } from '../../i18n';
 
 interface ImageInfo {
   file: File;
@@ -8,8 +9,8 @@ interface ImageInfo {
   height: number;
 }
 
-export default function BackgroundRemover() {
-  const { t, translations } = useTranslation();
+export default function BackgroundRemover({ lang: initialLang }: { lang?: Language } = {}) {
+  const { t, translations } = useTranslation(initialLang);
   const tt = translations.tools.backgroundRemover;
   const tc = translations.tools.common;
 

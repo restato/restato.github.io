@@ -1,5 +1,6 @@
 import { useState, useMemo } from 'react';
 import { useTranslation } from '../../i18n/useTranslation';
+import type { Language } from '../../i18n';
 
 interface Match {
   text: string;
@@ -7,8 +8,8 @@ interface Match {
   groups: string[];
 }
 
-export default function RegexTester() {
-  const { t, translations } = useTranslation();
+export default function RegexTester({ lang: initialLang }: { lang?: Language } = {}) {
+  const { t, translations } = useTranslation(initialLang);
   const tt = translations.tools.regex;
   const tc = translations.tools.common;
 

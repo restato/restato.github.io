@@ -107,6 +107,7 @@ const gameSchema = {
   title={seo.title}
   description={seo.description}
   lang={lang}
+  robots={lang === 'ko' ? 'index, follow' : 'noindex, follow'}
 >
   <script type="application/ld+json" set:html={JSON.stringify(gameSchema)} />
 

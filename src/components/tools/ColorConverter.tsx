@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useTranslation } from '../../i18n/useTranslation';
+import type { Language } from '../../i18n';
 
 // Color conversion utilities
 function hexToRgb(hex: string): { r: number; g: number; b: number } | null {
@@ -85,8 +86,8 @@ function hslToRgb(h: number, s: number, l: number): { r: number; g: number; b: n
   };
 }
 
-export default function ColorConverter() {
-  const { t, translations } = useTranslation();
+export default function ColorConverter({ lang: initialLang }: { lang?: Language } = {}) {
+  const { t, translations } = useTranslation(initialLang);
   const tt = translations.tools.color;
   const tc = translations.tools.common;
 

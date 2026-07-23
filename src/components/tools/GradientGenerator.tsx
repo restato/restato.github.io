@@ -1,5 +1,6 @@
 import { useState, useMemo } from 'react';
 import { useTranslation } from '../../i18n/useTranslation';
+import type { Language } from '../../i18n';
 
 interface ColorStop {
   color: string;
@@ -19,8 +20,8 @@ const PRESETS = [
   { name: 'Mint', colors: ['#00b09b', '#96c93d'] },
 ];
 
-export default function GradientGenerator() {
-  const { t } = useTranslation();
+export default function GradientGenerator({ lang: initialLang }: { lang?: Language } = {}) {
+  const { t } = useTranslation(initialLang);
 
   const [gradientType, setGradientType] = useState<GradientType>('linear');
   const [angle, setAngle] = useState(90);

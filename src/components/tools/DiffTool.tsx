@@ -1,5 +1,6 @@
 import { useState, useMemo } from 'react';
 import { useTranslation } from '../../i18n/useTranslation';
+import type { Language } from '../../i18n';
 
 interface DiffLine {
   type: 'same' | 'add' | 'remove' | 'modify';
@@ -81,8 +82,8 @@ function getDiffStats(diff: DiffLine[]): { additions: number; deletions: number;
   return { additions, deletions, unchanged };
 }
 
-export default function DiffTool() {
-  const { t } = useTranslation();
+export default function DiffTool({ lang: initialLang }: { lang?: Language } = {}) {
+  const { t } = useTranslation(initialLang);
 
   const [text1, setText1] = useState('');
   const [text2, setText2] = useState('');

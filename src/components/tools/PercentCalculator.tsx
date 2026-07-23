@@ -1,10 +1,11 @@
 import { useState } from 'react';
 import { useTranslation } from '../../i18n/useTranslation';
+import type { Language } from '../../i18n';
 
 type CalculationType = 'whatPercent' | 'percentOf' | 'percentChange' | 'addPercent' | 'subtractPercent';
 
-export default function PercentCalculator() {
-  const { t } = useTranslation();
+export default function PercentCalculator({ lang: initialLang }: { lang?: Language } = {}) {
+  const { t } = useTranslation(initialLang);
   const [calcType, setCalcType] = useState<CalculationType>('whatPercent');
   const [value1, setValue1] = useState('');
   const [value2, setValue2] = useState('');

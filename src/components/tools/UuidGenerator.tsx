@@ -1,5 +1,6 @@
 import { useState, useCallback } from 'react';
 import { useTranslation } from '../../i18n/useTranslation';
+import type { Language } from '../../i18n';
 
 function generateUUID(): string {
   if (crypto.randomUUID) {
@@ -14,8 +15,8 @@ function generateUUID(): string {
   });
 }
 
-export default function UuidGenerator() {
-  const { t, translations } = useTranslation();
+export default function UuidGenerator({ lang: initialLang }: { lang?: Language } = {}) {
+  const { t, translations } = useTranslation(initialLang);
   const tt = translations.tools.uuid;
   const tc = translations.tools.common;
 

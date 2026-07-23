@@ -1,5 +1,6 @@
 import { useState, useEffect, useMemo } from 'react';
 import { useTranslation } from '../../i18n/useTranslation';
+import type { Language } from '../../i18n';
 
 interface Timezone {
   id: string;
@@ -60,8 +61,8 @@ function getOffsetString(offset: number): string {
   return `UTC${sign}${hours}:${minutes.toString().padStart(2, '0')}`;
 }
 
-export default function WorldClock() {
-  const { t, lang } = useTranslation();
+export default function WorldClock({ lang: initialLang }: { lang?: Language } = {}) {
+  const { t, lang } = useTranslation(initialLang);
 
   const [now, setNow] = useState(new Date());
   const [selectedZones, setSelectedZones] = useState<string[]>(['utc', 'kst', 'est', 'pst']);

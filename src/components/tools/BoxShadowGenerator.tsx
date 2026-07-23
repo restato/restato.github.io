@@ -1,5 +1,6 @@
 import { useState, useMemo } from 'react';
 import { useTranslation } from '../../i18n/useTranslation';
+import type { Language } from '../../i18n';
 
 interface Shadow {
   offsetX: number;
@@ -28,8 +29,8 @@ function hexToRgba(hex: string, alpha: number): string {
   return `rgba(${r},${g},${b},${alpha})`;
 }
 
-export default function BoxShadowGenerator() {
-  const { t } = useTranslation();
+export default function BoxShadowGenerator({ lang: initialLang }: { lang?: Language } = {}) {
+  const { t } = useTranslation(initialLang);
 
   const [shadows, setShadows] = useState<Shadow[]>([
     { offsetX: 0, offsetY: 4, blur: 6, spread: -1, color: '#000000', inset: false },

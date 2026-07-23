@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { useTranslation } from '../../i18n/useTranslation';
+import type { Language } from '../../i18n';
 
 type Mode = 'timer' | 'stopwatch';
 
@@ -22,8 +23,8 @@ function formatTime(ms: number, showMs: boolean = false): string {
   return result;
 }
 
-export default function TimerStopwatch() {
-  const { t, translations } = useTranslation();
+export default function TimerStopwatch({ lang: initialLang }: { lang?: Language } = {}) {
+  const { t, translations } = useTranslation(initialLang);
   const tt = translations.tools.timer;
   const tc = translations.tools.common;
 

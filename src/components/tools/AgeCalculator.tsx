@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useTranslation } from '../../i18n/useTranslation';
+import type { Language } from '../../i18n';
 
 interface AgeResult {
   koreanAge: number;
@@ -14,8 +15,8 @@ interface AgeResult {
   chineseZodiacEmoji: string;
 }
 
-export default function AgeCalculator() {
-  const { t, translations } = useTranslation();
+export default function AgeCalculator({ lang: initialLang }: { lang?: Language } = {}) {
+  const { t, translations } = useTranslation(initialLang);
   const tc = translations.tools.age;
 
   const [birthDate, setBirthDate] = useState('');

@@ -1,10 +1,11 @@
 import { useState } from 'react';
 import { useTranslation } from '../../i18n/useTranslation';
+import type { Language } from '../../i18n';
 
 type Mode = 'encode' | 'decode';
 
-export default function UrlEncoder() {
-  const { t } = useTranslation();
+export default function UrlEncoder({ lang: initialLang }: { lang?: Language } = {}) {
+  const { t } = useTranslation(initialLang);
 
   const [mode, setMode] = useState<Mode>('encode');
   const [input, setInput] = useState('');

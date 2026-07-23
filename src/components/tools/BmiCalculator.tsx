@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useTranslation } from '../../i18n/useTranslation';
+import type { Language } from '../../i18n';
 
 interface BmiResult {
   bmi: number;
@@ -10,8 +11,8 @@ interface BmiResult {
   idealWeightMax: number;
 }
 
-export default function BmiCalculator() {
-  const { t, translations } = useTranslation();
+export default function BmiCalculator({ lang: initialLang }: { lang?: Language } = {}) {
+  const { t, translations } = useTranslation(initialLang);
   const tc = translations.tools.bmi;
 
   const [height, setHeight] = useState('');
