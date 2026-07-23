@@ -60,7 +60,10 @@ const localizedCategories = categories.map(category => ({
   label: categoryTranslations[lang][categoryKeyById[category.id] ?? 'all'],
 }));
 
-const seo = seoContent[lang as keyof typeof seoContent] ?? landingContent[lang];
+const seo = seoContent[lang as keyof typeof seoContent] ?? {
+  title: `${landingContent[lang].allTools} | Restato`,
+  description: `${landingContent[lang].description} ${landingContent[lang].intro}`,
+};
 const usesFallback = tools.some(tool => tool.fallback);
 const fallbackNotice = tools.find(tool => tool.fallback)?.fallbackNotice;
 const { robots, alternateUrls } = getToolCatalogPublicationState(lang);

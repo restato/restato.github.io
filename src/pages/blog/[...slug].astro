@@ -33,6 +33,7 @@ const readingTime = Math.max(1, Math.ceil(wordCount / 200));
   type="article"
   publishedTime={post.data.date}
   lang="en"
+  robots={post.data.draft ? 'noindex, nofollow' : 'index, follow'}
 >
   <article class="py-16 md:py-20 px-6">
     <div class="max-w-3xl mx-auto">
@@ -74,13 +75,15 @@ const readingTime = Math.max(1, Math.ceil(wordCount / 200));
         {post.data.tags.length > 0 && (
           <div class="flex flex-wrap gap-2">
             {post.data.tags.map((tag: string) => (
-              <a
-                href={`/blog/tag/${toBlogTagSlug(tag)}`}
-                class="text-sm px-3 py-1 rounded-lg bg-primary-500/10 text-primary-600 dark:text-primary-400
-                       hover:bg-primary-500/20 transition-colors font-medium"
-              >
-                {tag}
-              </a>
+              post.data.draft
+                ? <span class="text-sm px-3 py-1 rounded-lg bg-primary-500/10 text-primary-600 dark:text-primary-400 font-medium">{tag}</span>
+                : <a
+                    href={`/blog/tag/${toBlogTagSlug(tag)}`}
+                    class="text-sm px-3 py-1 rounded-lg bg-primary-500/10 text-primary-600 dark:text-primary-400
+                           hover:bg-primary-500/20 transition-colors font-medium"
+                  >
+                    {tag}
+                  </a>
             ))}
           </div>
         )}

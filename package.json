@@ -19,7 +19,8 @@
     "check:bundles": "npm run build && node scripts/check-bundles.mjs dist",
     "lighthouse": "npm run build && lhci autorun",
     "validate:site": "node scripts/validate-site.mjs dist",
-    "verify": "npm test -- --run && npm run check && npm run build && npm run validate:site"
+    "audit:content": "node scripts/audit-content.mjs dist",
+    "verify": "npm test -- --run && npm run check && npm run build && npm run validate:site && npm run audit:content"
   },
   "dependencies": {
     "@astrojs/mdx": "^4.0.0",

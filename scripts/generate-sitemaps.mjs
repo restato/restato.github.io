@@ -40,6 +40,17 @@ function isRedirectUrl(pathname) {
   return REDIRECT_PATTERNS.some((pattern) => pattern.test(pathname));
 }
 
+export function isNoindexHtml(html) {
+  return /<meta\s+[^>]*name=["']robots["'][^>]*content=["'][^"']*noindex/i.test(html)
+    || /<meta\s+[^>]*content=["'][^"']*noindex[^"']*["'][^>]*name=["']robots["']/i.test(html);
+}
+
+function isNoindexUrl(pathname) {
+  const relative = pathname === '/' ? 'index.html' : `${pathname.replace(/^\//, '').replace(/\/$/, '')}/index.html`;
+  const htmlPath = path.join(DIST_DIR, relative);
+  return fs.existsSync(htmlPath) && isNoindexHtml(fs.readFileSync(htmlPath, 'utf8'));
+}
+
 /**
  * Categorize a URL based on its path
  */
@@ -248,7 +259,7 @@ async function main() {
     const pathname = new URL(url).pathname;
 
     // Skip redirect URLs
-    if (isRedirectUrl(pathname)) {
+    if (isRedirectUrl(pathname) || isNoindexUrl(pathname)) {
       excludedCount++;
       continue;
     }
@@ -305,7 +316,7 @@ async function main() {
   console.log(`Tools URLs:    ${categorized.tools.length}`);
   console.log(`Projects URLs: ${categorized.projects.length}`);
   console.log(`Other Pages:   ${categorized.pages.length}`);
-  console.log(`Excluded:      ${excludedCount} (redirect pages)`);
+  console.log(`Excluded:      ${excludedCount} (redirect or noindex pages)`);
   console.log('-'.repeat(50));
   console.log(
     `Total:         ${allUrls.length - excludedCount} (of ${allUrls.length} original)`
@@ -313,4 +324,9 @@ async function main() {
   console.log('\nSitemap generation complete!');
 }
 
-main().catch(console.error);
+const isDirectInvocation = process.argv[1]
+  && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url);
+if (isDirectInvocation) main().catch(error => {
+  console.error(error);
+  process.exitCode = 1;
+});
