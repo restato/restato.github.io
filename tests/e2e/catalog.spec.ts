@@ -7,8 +7,20 @@ import {
   assertNoHorizontalOverflow,
   assertNoUnexpectedConsoleErrors,
 } from './fixtures';
+import {
+  forestCafeRequiredFamilies,
+  forestCafeRoutes,
+} from './forest-cafe-routes';
 
 const languages = supportedLanguages;
+
+test('forest cafe route matrix covers every required family, Korean, English, and one RTL direction audit', () => {
+  expect(new Set(forestCafeRoutes.map(({ family }) => family)))
+    .toEqual(new Set(forestCafeRequiredFamilies));
+  expect(new Set(forestCafeRoutes.map(({ locale }) => locale))).toEqual(new Set(['ko', 'en', 'hi']));
+  expect(forestCafeRoutes.filter(({ forceDirection }) => forceDirection === 'rtl')).toHaveLength(1);
+  expect(forestCafeRoutes.every(({ path }) => path.startsWith('/') && path.endsWith('/'))).toBe(true);
+});
 
 test('fails closed when a site console error mimics an extension URL', async ({ page }) => {
   assertNoUnexpectedConsoleErrors(page);
