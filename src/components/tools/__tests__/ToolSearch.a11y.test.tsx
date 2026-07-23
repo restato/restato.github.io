@@ -13,20 +13,26 @@ describe('ToolSearch accessibility', () => {
   it('has a visible label, shared input styling, and keyboard focus shortcut', async () => {
     const user = userEvent.setup();
     const { container } = render(<ToolSearch lang="en" tools={tools} />);
-    const input = screen.getByRole('combobox', { name: 'Search tools… (⌘K)' }) as HTMLInputElement;
+    const input = screen.getByRole('combobox', { name: 'Search tools…' }) as HTMLInputElement;
 
     expect(input).toHaveClass('fc-input');
     expect(input.labels?.[0]).toHaveTextContent('Search tools…');
+    expect(input).toHaveAttribute('placeholder', 'Search tools…');
+    expect(input).not.toHaveAccessibleName(/⌘K/);
     expect(container.querySelector('kbd')).toHaveTextContent('⌘/Ctrl K');
 
     await user.keyboard('{Control>}k{/Control}');
+    expect(input).toHaveFocus();
+
+    fireEvent.blur(input);
+    await user.keyboard('{Meta>}k{/Meta}');
     expect(input).toHaveFocus();
   });
 
   it('provides a localized accessible clear control', async () => {
     const user = userEvent.setup();
     render(<ToolSearch lang="fr" tools={tools} />);
-    const input = screen.getByRole('combobox', { name: 'Rechercher un outil… (⌘K)' });
+    const input = screen.getByRole('combobox', { name: 'Rechercher un outil…' });
 
     await user.type(input, 'json');
     await user.click(screen.getByRole('button', { name: 'Effacer' }));

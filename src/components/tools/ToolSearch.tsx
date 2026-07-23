@@ -57,7 +57,7 @@ interface ToolSearchProps {
 export default function ToolSearch({ lang = 'en', tools = defaultTools }: ToolSearchProps) {
   const copy = catalogUi[lang];
   const ui = { placeholder: copy.search, noResults: copy.noResults, tryAnother: copy.tryAnother };
-  const visibleLabel = ui.placeholder.replace(/\s*\(⌘K\)\s*$/, '');
+  const searchLabel = ui.placeholder.replace(/\s*\(⌘K\)\s*$/, '');
   const clearLabel = sharedToolUi[lang].clear;
   const inputId = useId();
   const resultsId = `${inputId}-results`;
@@ -155,7 +155,7 @@ export default function ToolSearch({ lang = 'en', tools = defaultTools }: ToolSe
         className="fc-label mb-2 flex items-center justify-between gap-4"
         htmlFor={inputId}
       >
-        <span>{visibleLabel}</span>
+        <span>{searchLabel}</span>
         <kbd className="fc-chip hidden font-mono text-xs md:inline-flex" aria-hidden="true">
           ⌘/Ctrl K
         </kbd>
@@ -194,8 +194,8 @@ export default function ToolSearch({ lang = 'en', tools = defaultTools }: ToolSe
             }, 200);
           }}
           onKeyDown={handleKeyDown}
-          placeholder={ui.placeholder}
-          aria-label={ui.placeholder}
+          placeholder={searchLabel}
+          aria-label={searchLabel}
           role="combobox"
           aria-autocomplete="list"
           aria-expanded={isExpanded}

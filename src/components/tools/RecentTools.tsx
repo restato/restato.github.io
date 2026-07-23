@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { getTool } from '../../data/tools';
+import { getPublishedTools } from '../../data/tools';
 import type { Language } from '../../data/tools/types';
 import { getLocalizedToolHref } from './toolLinks';
 import { catalogUi } from '../../i18n/tool-ui';
@@ -13,6 +13,7 @@ interface Tool {
 
 const STORAGE_KEY = 'restato_recent_tools';
 const MAX_RECENT = 5;
+const publishedToolsBySlug = new Map(getPublishedTools().map(tool => [tool.slug, tool]));
 
 export function trackToolVisit(slug: string, title: string, icon: string) {
   if (typeof window === 'undefined') return;
@@ -59,13 +60,15 @@ export default function RecentTools({ className = '', lang = 'en' }: RecentTools
     setTools(getRecentTools());
   }, []);
 
-  if (tools.length === 0) return null;
-  const heading = catalogUi[lang].recent;
-  const toolsWithDescriptions = tools.map(tool => {
-    const definition = getTool(tool.slug);
+  const toolsWithDescriptions = tools.flatMap(tool => {
+    const definition = publishedToolsBySlug.get(tool.slug);
+    if (!definition) return [];
     const content = definition?.content[lang] ?? definition?.content.en ?? definition?.content.ko;
     return { ...tool, description: content?.description };
   });
+
+  if (toolsWithDescriptions.length === 0) return null;
+  const heading = catalogUi[lang].recent;
 
   return (
     <section className={className} aria-labelledby="recent-tools-heading">

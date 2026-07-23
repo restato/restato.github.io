@@ -24,7 +24,8 @@ describe('localized catalog links', () => {
     await userEvent.type(screen.getByRole('combobox'), 'anonymous');
     expect(screen.getByRole('option', { name: /Anonymous Chat/ }))
       .toHaveAttribute('href', '/fr/anonymous-chat/');
-    expect(screen.getByPlaceholderText('Rechercher un outil… (⌘K)')).toBeInTheDocument();
+    expect(screen.getByPlaceholderText('Rechercher un outil…')).toBeInTheDocument();
+    expect(screen.getByRole('combobox')).not.toHaveAccessibleName(/⌘K/);
   });
 
   it('recent tools use the current locale and anonymous-chat special route', () => {
@@ -38,13 +39,16 @@ describe('localized catalog links', () => {
       .toHaveClass('truncate', 'text-[var(--text-primary)]');
   });
 
-  it('keeps an unknown stale recent-tool entry usable', () => {
+  it('filters an unknown stale entry while retaining a known localized row', () => {
+    trackToolVisit('anonymous-chat', 'Anonymous Chat', '💬');
     trackToolVisit('removed-tool', 'Removed Tool', '⌛');
-    render(<RecentTools lang="en" />);
+    render(<RecentTools lang="zh-TW" />);
 
-    expect(screen.getByRole('link', { name: /Removed Tool/ }))
-      .toHaveAttribute('href', '/en/tools/removed-tool/');
-    expect(screen.queryByText(/undefined/)).not.toBeInTheDocument();
+    expect(screen.queryByRole('link', { name: /Removed Tool/ })).not.toBeInTheDocument();
+    expect(screen.getByRole('link', { name: /Anonymous Chat/ }))
+      .toHaveAttribute('href', '/zh-TW/anonymous-chat/');
+    expect(screen.getByText(getTool('anonymous-chat')!.content['zh-TW']!.description))
+      .toHaveClass('truncate', 'text-[var(--text-primary)]');
   });
 
   it('renders the hub header in the requested language during SSR', () => {
