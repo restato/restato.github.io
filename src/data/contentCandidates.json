@@ -1,7 +1,51 @@
 {
-  "updatedAt": "2026-07-22T09:11:00+09:00",
+  "updatedAt": "2026-07-23T09:07:00+09:00",
   "threshold": 85,
   "candidates": [
+    {
+      "id": "ai-gateway-streaming-transcription-guide",
+      "title": "AI Gateway 실시간 전사 가이드",
+      "topic": "AI SDK streamTranscribe와 음성 에이전트 입력",
+      "score": 94,
+      "status": "published",
+      "action": "new-post",
+      "sourceType": "trend-watch",
+      "reason": "2026년 7월 22일 AI Gateway에 스트리밍 전사가 추가됐고, 공식 예제를 넘어 PCM 형식·짧은 수명의 클라이언트 토큰·부분/최종 전사 분리·에이전트 승인 경계를 하나의 구현 절차로 제공할 수 있음",
+      "breakdown": {
+        "timeliness": 15,
+        "readerValue": 19,
+        "fit": 15,
+        "originality": 13,
+        "evergreen": 8,
+        "evidence": 15,
+        "contentGap": 9
+      },
+      "path": "/blog/ai-gateway-streaming-transcription-guide/",
+      "commit": "47ab504724d4f43a9d1806a95605d9c5add7b210",
+      "updatedAt": "2026-07-23"
+    },
+    {
+      "id": "eve-installable-agent-extensions-guide",
+      "title": "eve 에이전트 확장 패키지 만들기",
+      "topic": "tools·skills·hooks를 installable extension으로 배포",
+      "score": 92,
+      "status": "published",
+      "action": "new-post",
+      "sourceType": "trend-watch",
+      "reason": "2026년 7월 22일 eve가 도구·연결·skills·instructions·hooks를 npm 패키지처럼 배포하는 extension을 공개했으며, 공식 scaffold 설명에 더해 namespace·승인·secret·버전·통합 테스트의 운영 계약을 설명할 수 있음",
+      "breakdown": {
+        "timeliness": 15,
+        "readerValue": 18,
+        "fit": 15,
+        "originality": 13,
+        "evergreen": 8,
+        "evidence": 15,
+        "contentGap": 8
+      },
+      "path": "/blog/eve-installable-agent-extensions-guide/",
+      "commit": "ec869740a2d449e453f37ea586f68e0222a0c879",
+      "updatedAt": "2026-07-23"
+    },
     {
       "id": "gemini-3-6-flash-migration-guide",
       "title": "Gemini 3.6 Flash 마이그레이션 가이드",
@@ -112,23 +156,23 @@
     },
     {
       "id": "github-copilot-repository-usage-metrics",
-      "title": "GitHub Copilot 저장소별 사용량 지표 API",
-      "topic": "Copilot usage metrics",
-      "score": 72,
+      "title": "GitHub Copilot 영향 대시보드와 저장소별 사용량 지표",
+      "topic": "Copilot usage metrics와 AI adoption phase",
+      "score": 80,
       "status": "hold",
       "action": "digest",
       "sourceType": "trend-watch",
-      "reason": "2026년 7월 17일 저장소별 coding agent·code review PR 활동 API가 GA됐지만 조직·엔터프라이즈 관리자 중심이며 현재 개인 블로그 독자가 바로 재현할 수 있는 사례와 데이터가 부족함",
+      "reason": "2026년 7월 22일 adoption phase별 merge throughput·merge velocity·LOC와 권장 행동을 보여주는 impact dashboard가 추가돼 기존 저장소별 지표보다 활용성이 높아졌지만 Enterprise 관리자·organization owner 전용이며 실제 조직 데이터 없이 독립 실습을 재현하기 어려움",
       "breakdown": {
-        "timeliness": 14,
-        "readerValue": 10,
+        "timeliness": 15,
+        "readerValue": 14,
         "fit": 12,
-        "originality": 8,
-        "evergreen": 7,
+        "originality": 9,
+        "evergreen": 8,
         "evidence": 15,
-        "contentGap": 6
+        "contentGap": 7
       },
-      "updatedAt": "2026-07-21"
+      "updatedAt": "2026-07-23"
     },
     {
       "id": "ai-sdk-7-production-agent-guide",
