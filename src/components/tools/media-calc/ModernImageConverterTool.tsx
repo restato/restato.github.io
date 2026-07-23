@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { decodeAndEncodeImage, downloadBlob, type ImageOutputMime } from '../../../lib/media-calc/image';
 import { ToolShell, ToolStatus } from './ToolShell';
 import { ToolActions } from '../ui/ToolActions';
@@ -7,11 +7,21 @@ import { ToolField } from '../ui/ToolField';
 export default function ModernImageConverterTool() {
   const [file, setFile] = useState<File | null>(null); const [format, setFormat] = useState<ImageOutputMime>('image/jpeg');
   const [quality, setQuality] = useState(90); const [feedback, setFeedback] = useState<{ message: string; status: 'success' | 'error' } | null>(null); const [busy, setBusy] = useState(false);
-  const selectFile = (next: File | null) => { setFile(next); setFeedback(null); setBusy(false); };
+  const operationRef = useRef(0);
+  const selectFile = (next: File | null) => { operationRef.current += 1; setFile(next); setFeedback(null); setBusy(false); };
   const convert = async () => {
-    if (!file) return; setBusy(true); setFeedback(null);
-    try { const blob = await decodeAndEncodeImage(file, format, quality / 100); downloadBlob(blob, `${file.name.replace(/\.[^.]+$/, '')}.${format === 'image/jpeg' ? 'jpg' : 'webp'}`); setFeedback({ message: 'Converted locally and ready for download.', status: 'success' }); }
-    catch (error) { setFeedback({ message: error instanceof Error ? error.message : 'Conversion failed.', status: 'error' }); } finally { setBusy(false); }
+    if (!file) return; const operation = ++operationRef.current; setBusy(true); setFeedback(null);
+    try {
+      const blob = await decodeAndEncodeImage(file, format, quality / 100);
+      if (operation !== operationRef.current) return;
+      downloadBlob(blob, `${file.name.replace(/\.[^.]+$/, '')}.${format === 'image/jpeg' ? 'jpg' : 'webp'}`);
+      setFeedback({ message: 'Converted locally and ready for download.', status: 'success' });
+    }
+    catch (error) {
+      if (operation === operationRef.current) setFeedback({ message: error instanceof Error ? error.message : 'Conversion failed.', status: 'error' });
+    } finally {
+      if (operation === operationRef.current) setBusy(false);
+    }
   };
   return <ToolShell>
     <p className="text-sm text-[var(--color-text-muted)]">HEIC and AVIF decoding depends on your browser. Unsupported files are reported honestly; no server fallback is used.</p>

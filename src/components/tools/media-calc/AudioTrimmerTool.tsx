@@ -9,16 +9,36 @@ export default function AudioTrimmerTool() {
   const [file, setFile] = useState<File | null>(null); const [buffer, setBuffer] = useState<AudioBuffer | null>(null);
   const [start, setStart] = useState(0); const [end, setEnd] = useState(0); const [feedback, setFeedback] = useState<{ message: string; status: 'success' | 'error' } | null>(null); const [preview, setPreview] = useState('');
   const previewRef = useRef('');
+  const loadVersionRef = useRef(0);
   const clearPreview = () => {
     if (previewRef.current) URL.revokeObjectURL(previewRef.current);
     previewRef.current = '';
     setPreview('');
   };
-  useEffect(() => () => { if (previewRef.current) URL.revokeObjectURL(previewRef.current); }, []);
+  useEffect(() => () => {
+    loadVersionRef.current += 1;
+    if (previewRef.current) URL.revokeObjectURL(previewRef.current);
+  }, []);
   const load = async (next: File | null) => {
+    const loadVersion = ++loadVersionRef.current;
     setFile(next); setBuffer(null); setFeedback(null); setStart(0); setEnd(0); clearPreview(); if (!next) return;
-    try { const Context = window.AudioContext || (window as typeof window & { webkitAudioContext?: typeof AudioContext }).webkitAudioContext; if (!Context) throw new Error('Web Audio is unavailable in this browser.'); const context = new Context(); const decoded = await context.decodeAudioData(await next.arrayBuffer()); await context.close(); setBuffer(decoded); setStart(0); setEnd(decoded.duration); const url = URL.createObjectURL(next); previewRef.current = url; setPreview(url); }
-    catch { setFeedback({ message: 'This browser cannot decode that audio format. Try WAV, MP3, AAC/M4A, or Ogg supported by your browser.', status: 'error' }); }
+    try {
+      const Context = window.AudioContext || (window as typeof window & { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;
+      if (!Context) throw new Error('Web Audio is unavailable in this browser.');
+      const context = new Context();
+      const decoded = await context.decodeAudioData(await next.arrayBuffer());
+      await context.close();
+      if (loadVersion !== loadVersionRef.current) return;
+      const url = URL.createObjectURL(next);
+      if (loadVersion !== loadVersionRef.current) {
+        URL.revokeObjectURL(url);
+        return;
+      }
+      setBuffer(decoded); setStart(0); setEnd(decoded.duration); previewRef.current = url; setPreview(url);
+    }
+    catch {
+      if (loadVersion === loadVersionRef.current) setFeedback({ message: 'This browser cannot decode that audio format. Try WAV, MP3, AAC/M4A, or Ogg supported by your browser.', status: 'error' });
+    }
   };
   const exportWav = () => {
     if (!buffer || !file) return;
