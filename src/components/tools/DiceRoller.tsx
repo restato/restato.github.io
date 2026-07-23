@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useTranslation } from '../../i18n/useTranslation';
 
 interface DiceConfig {
   sides: number;
@@ -6,6 +7,7 @@ interface DiceConfig {
 }
 
 export default function DiceRoller() {
+  const { t } = useTranslation();
   const [config, setConfig] = useState<DiceConfig>({ sides: 6, count: 1 });
   const [results, setResults] = useState<number[]>([]);
   const [isRolling, setIsRolling] = useState(false);
@@ -54,7 +56,7 @@ export default function DiceRoller() {
       {/* Dice Type Selection */}
       <div className="space-y-2">
         <label className="block text-sm font-medium text-[var(--color-text)]">
-          주사위 종류
+          {t({ ko: '주사위 종류', en: 'Die type', ja: 'サイコロの種類' })}
         </label>
         <div className="flex flex-wrap gap-2">
           {diceTypes.map((sides) => (
@@ -76,7 +78,7 @@ export default function DiceRoller() {
       {/* Dice Count */}
       <div className="space-y-2">
         <label className="block text-sm font-medium text-[var(--color-text)]">
-          주사위 개수: {config.count}개
+          {t({ ko: `주사위 개수: ${config.count}개`, en: `Number of dice: ${config.count}`, ja: `サイコロの数：${config.count}` })}
         </label>
         <input
           type="range"
@@ -87,8 +89,8 @@ export default function DiceRoller() {
           className="w-full accent-primary-500"
         />
         <div className="flex justify-between text-xs text-[var(--color-text-muted)]">
-          <span>1개</span>
-          <span>10개</span>
+          <span>1</span>
+          <span>10</span>
         </div>
       </div>
 
@@ -107,17 +109,17 @@ export default function DiceRoller() {
             </div>
           ))
         ) : (
-          <p className="text-[var(--color-text-muted)]">주사위를 굴려보세요!</p>
+          <p className="text-[var(--color-text-muted)]">{t({ ko: '주사위를 굴려보세요!', en: 'Roll the dice!', ja: 'サイコロを振ってみましょう！' })}</p>
         )}
       </div>
 
       {/* Total */}
       {results.length > 0 && !isRolling && (
         <div className="text-center p-4 rounded-lg bg-[var(--color-card)] border border-[var(--color-border)]">
-          <p className="text-sm text-[var(--color-text-muted)]">합계</p>
+          <p className="text-sm text-[var(--color-text-muted)]">{t({ ko: '합계', en: 'Total', ja: '合計' })}</p>
           <p className="text-4xl font-bold text-primary-500">{total}</p>
           <p className="text-xs text-[var(--color-text-muted)] mt-1">
-            (범위: {minPossible} ~ {maxPossible})
+            ({t({ ko: '범위', en: 'range', ja: '範囲' })}: {minPossible} ~ {maxPossible})
           </p>
         </div>
       )}
@@ -129,7 +131,7 @@ export default function DiceRoller() {
         className="w-full py-4 bg-primary-500 hover:bg-primary-600 text-white rounded-xl
           font-bold text-xl transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
       >
-        {isRolling ? '굴리는 중...' : `🎲 ${config.count}D${config.sides} 굴리기`}
+        {isRolling ? t({ ko: '굴리는 중...', en: 'Rolling...', ja: '振っています…' }) : t({ ko: `🎲 ${config.count}D${config.sides} 굴리기`, en: `🎲 Roll ${config.count}D${config.sides}`, ja: `🎲 ${config.count}D${config.sides}を振る` })}
       </button>
 
       {/* Preset Rolls */}
@@ -159,7 +161,7 @@ export default function DiceRoller() {
       {/* History */}
       {history.length > 0 && (
         <div className="p-4 rounded-lg bg-[var(--color-card)] border border-[var(--color-border)]">
-          <h3 className="font-medium text-[var(--color-text)] mb-3">📜 기록</h3>
+          <h3 className="font-medium text-[var(--color-text)] mb-3">📜 {t({ ko: '기록', en: 'History', ja: '履歴' })}</h3>
           <div className="space-y-2">
             {history.map((h, i) => (
               <div

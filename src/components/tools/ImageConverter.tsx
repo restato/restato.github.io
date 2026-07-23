@@ -203,7 +203,7 @@ export default function ImageConverter() {
       <input
         ref={fileInputRef}
         type="file"
-        aria-label="이미지 파일 선택"
+        aria-label={t({ ko: '이미지 파일 선택', en: 'Choose image files', ja: '画像ファイルを選択' })}
         accept="image/*,.heic,.heif,.raw,.cr2,.nef,.arw,.dng,.orf,.rw2"
         multiple
         onChange={handleFileChange}

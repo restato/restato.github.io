@@ -1,6 +1,10 @@
 import { useState, useEffect } from 'react';
+import { useTranslation } from '../../i18n/useTranslation';
 
 export default function DiscountCalculator() {
+  const { t, lang } = useTranslation();
+  const locale = lang === 'ko' ? 'ko-KR' : lang === 'ja' ? 'ja-JP' : 'en-US';
+  const currency = t({ ko: '원', en: 'currency units', ja: '通貨単位' });
   const [originalPrice, setOriginalPrice] = useState('');
   const [discountPercent, setDiscountPercent] = useState('');
   const [finalPrice, setFinalPrice] = useState('');
@@ -13,13 +17,13 @@ export default function DiscountCalculator() {
     if (!isNaN(price) && !isNaN(discount)) {
       const saved = price * (discount / 100);
       const final = price - saved;
-      setSavedAmount(saved.toLocaleString('ko-KR', { maximumFractionDigits: 0 }));
-      setFinalPrice(final.toLocaleString('ko-KR', { maximumFractionDigits: 0 }));
+      setSavedAmount(saved.toLocaleString(locale, { maximumFractionDigits: 0 }));
+      setFinalPrice(final.toLocaleString(locale, { maximumFractionDigits: 0 }));
     } else {
       setSavedAmount('');
       setFinalPrice('');
     }
-  }, [originalPrice, discountPercent]);
+  }, [originalPrice, discountPercent, locale]);
 
   const quickDiscounts = [5, 10, 15, 20, 25, 30, 40, 50, 60, 70, 80, 90];
 
@@ -28,7 +32,7 @@ export default function DiscountCalculator() {
       {/* Original Price */}
       <div className="space-y-2">
         <label className="block text-sm font-medium text-[var(--color-text)]">
-          원래 가격
+          {t({ ko: '원래 가격', en: 'Original price', ja: '元の価格' })}
         </label>
         <div className="relative">
           <input
@@ -41,7 +45,7 @@ export default function DiscountCalculator() {
               focus:outline-none focus:ring-2 focus:ring-primary-500"
           />
           <span className="absolute right-4 top-1/2 -translate-y-1/2 text-[var(--color-text-muted)]">
-            원
+            {currency}
           </span>
         </div>
       </div>
@@ -49,7 +53,7 @@ export default function DiscountCalculator() {
       {/* Discount Percent */}
       <div className="space-y-2">
         <label className="block text-sm font-medium text-[var(--color-text)]">
-          할인율
+          {t({ ko: '할인율', en: 'Discount rate', ja: '割引率' })}
         </label>
         <div className="relative">
           <input
@@ -92,17 +96,17 @@ export default function DiscountCalculator() {
           <div className="grid grid-cols-2 gap-4">
             {/* Saved Amount */}
             <div className="p-4 rounded-lg bg-red-500/10 border border-red-500/20">
-              <p className="text-sm text-[var(--color-text-muted)] mb-1">할인 금액</p>
+              <p className="text-sm text-[var(--color-text-muted)] mb-1">{t({ ko: '할인 금액', en: 'Amount saved', ja: '割引額' })}</p>
               <p className="text-2xl font-bold text-red-500">
-                -{savedAmount}원
+                -{savedAmount} {currency}
               </p>
             </div>
 
             {/* Final Price */}
             <div className="p-4 rounded-lg bg-green-500/10 border border-green-500/20">
-              <p className="text-sm text-[var(--color-text-muted)] mb-1">최종 가격</p>
+              <p className="text-sm text-[var(--color-text-muted)] mb-1">{t({ ko: '최종 가격', en: 'Final price', ja: '最終価格' })}</p>
               <p className="text-2xl font-bold text-green-500">
-                {finalPrice}원
+                {finalPrice} {currency}
               </p>
             </div>
           </div>
@@ -110,9 +114,9 @@ export default function DiscountCalculator() {
           {/* Visual Comparison */}
           <div className="p-4 rounded-lg bg-[var(--color-card)] border border-[var(--color-border)]">
             <div className="flex items-center justify-between mb-2">
-              <span className="text-sm text-[var(--color-text-muted)]">원래 가격</span>
+              <span className="text-sm text-[var(--color-text-muted)]">{t({ ko: '원래 가격', en: 'Original price', ja: '元の価格' })}</span>
               <span className="text-[var(--color-text)] line-through">
-                {parseFloat(originalPrice).toLocaleString('ko-KR')}원
+                {parseFloat(originalPrice).toLocaleString(locale)} {currency}
               </span>
             </div>
             <div className="h-2 bg-[var(--color-border)] rounded-full overflow-hidden">
@@ -123,9 +127,9 @@ export default function DiscountCalculator() {
             </div>
             <div className="flex items-center justify-between mt-2">
               <span className="text-sm text-[var(--color-text-muted)]">
-                {discountPercent}% 할인 적용
+                {t({ ko: `${discountPercent}% 할인 적용`, en: `${discountPercent}% discount applied`, ja: `${discountPercent}% 割引を適用` })}
               </span>
-              <span className="text-green-500 font-bold">{finalPrice}원</span>
+              <span className="text-green-500 font-bold">{finalPrice} {currency}</span>
             </div>
           </div>
         </div>
@@ -133,13 +137,13 @@ export default function DiscountCalculator() {
 
       {/* Common Discount Scenarios */}
       <div className="p-4 rounded-lg bg-[var(--color-card)] border border-[var(--color-border)]">
-        <h3 className="font-medium text-[var(--color-text)] mb-3">💡 자주 쓰는 할인</h3>
+        <h3 className="font-medium text-[var(--color-text)] mb-3">💡 {t({ ko: '자주 쓰는 할인', en: 'Common discounts', ja: 'よく使う割引' })}</h3>
         <div className="grid grid-cols-2 gap-2 text-sm">
           {[
-            { label: '1+1 행사', discount: 50 },
-            { label: '반값 할인', discount: 50 },
-            { label: '블프 세일', discount: 70 },
-            { label: '신규가입 혜택', discount: 10 },
+            { label: t({ ko: '1+1 행사', en: 'Buy one, get one', ja: '1つ買うと1つ無料' }), discount: 50 },
+            { label: t({ ko: '반값 할인', en: 'Half price', ja: '半額' }), discount: 50 },
+            { label: t({ ko: '블프 세일', en: 'Black Friday sale', ja: 'ブラックフライデー' }), discount: 70 },
+            { label: t({ ko: '신규가입 혜택', en: 'New customer offer', ja: '新規登録特典' }), discount: 10 },
           ].map((item) => (
             <button
               key={item.label}

@@ -256,7 +256,7 @@ export default function ExifViewer() {
       <input
         ref={fileInputRef}
         type="file"
-        aria-label="이미지 파일 선택"
+        aria-label={t({ ko: '이미지 파일 선택', en: 'Choose a JPEG image', ja: 'JPEG画像を選択' })}
         accept="image/jpeg,image/jpg"
         onChange={handleFileChange}
         className="hidden"

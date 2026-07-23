@@ -1,6 +1,8 @@
 import { useState } from 'react';
+import { useTranslation } from '../../i18n/useTranslation';
 
 export default function CoinFlip() {
+  const { t } = useTranslation();
   const [result, setResult] = useState<'heads' | 'tails' | null>(null);
   const [isFlipping, setIsFlipping] = useState(false);
   const [history, setHistory] = useState<Array<'heads' | 'tails'>>([]);
@@ -55,7 +57,7 @@ export default function CoinFlip() {
 
         {result && !isFlipping && (
           <p className="text-3xl font-bold text-[var(--color-text)]">
-            {result === 'heads' ? '앞면!' : '뒷면!'}
+            {result === 'heads' ? t({ ko: '앞면!', en: 'Heads!', ja: '表！' }) : t({ ko: '뒷면!', en: 'Tails!', ja: '裏！' })}
           </p>
         )}
       </div>
@@ -67,7 +69,7 @@ export default function CoinFlip() {
         className="w-full py-4 bg-primary-500 hover:bg-primary-600 text-white rounded-xl
           font-bold text-xl transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
       >
-        {isFlipping ? '던지는 중...' : '🪙 동전 던지기'}
+        {isFlipping ? t({ ko: '던지는 중...', en: 'Flipping...', ja: '投げています…' }) : t({ ko: '🪙 동전 던지기', en: '🪙 Flip Coin', ja: '🪙 コインを投げる' })}
       </button>
 
       {/* Statistics */}
@@ -76,8 +78,8 @@ export default function CoinFlip() {
           {/* Progress Bar */}
           <div className="space-y-2">
             <div className="flex justify-between text-sm text-[var(--color-text-muted)]">
-              <span>👑 앞면: {stats.heads}회 ({headsPercent.toFixed(1)}%)</span>
-              <span>🦅 뒷면: {stats.tails}회 ({(100 - headsPercent).toFixed(1)}%)</span>
+              <span>👑 {t({ ko: `앞면: ${stats.heads}회`, en: `Heads: ${stats.heads}`, ja: `表：${stats.heads}回` })} ({headsPercent.toFixed(1)}%)</span>
+              <span>🦅 {t({ ko: `뒷면: ${stats.tails}회`, en: `Tails: ${stats.tails}`, ja: `裏：${stats.tails}回` })} ({(100 - headsPercent).toFixed(1)}%)</span>
             </div>
             <div className="h-4 rounded-full overflow-hidden bg-gray-500/20">
               <div
@@ -90,12 +92,12 @@ export default function CoinFlip() {
           {/* History */}
           <div className="p-4 rounded-lg bg-[var(--color-card)] border border-[var(--color-border)]">
             <div className="flex items-center justify-between mb-2">
-              <h3 className="font-medium text-[var(--color-text)]">기록 (최근 20개)</h3>
+              <h3 className="font-medium text-[var(--color-text)]">{t({ ko: '기록 (최근 20개)', en: 'History (latest 20)', ja: '履歴（最新20件）' })}</h3>
               <button
                 onClick={reset}
                 className="text-sm text-red-500 hover:underline"
               >
-                초기화
+                {t({ ko: '초기화', en: 'Reset', ja: 'リセット' })}
               </button>
             </div>
             <div className="flex flex-wrap gap-2">
@@ -115,11 +117,11 @@ export default function CoinFlip() {
 
       {/* Info */}
       <div className="p-4 rounded-lg bg-[var(--color-card)] border border-[var(--color-border)]">
-        <h3 className="font-medium text-[var(--color-text)] mb-2">💡 사용 팁</h3>
+        <h3 className="font-medium text-[var(--color-text)] mb-2">💡 {t({ ko: '사용 팁', en: 'Tips', ja: '使い方のヒント' })}</h3>
         <ul className="text-sm text-[var(--color-text-muted)] space-y-1">
-          <li>• 결정을 내리기 어려울 때 사용하세요</li>
-          <li>• 암호학적으로 안전한 난수 생성기를 사용합니다</li>
-          <li>• 앞면(👑)과 뒷면(🦅) 확률은 각각 50%입니다</li>
+          <li>• {t({ ko: '결정을 내리기 어려울 때 사용하세요', en: 'Use it when a choice is hard to make', ja: '選択に迷ったときに使えます' })}</li>
+          <li>• {t({ ko: '암호학적으로 안전한 난수 생성기를 사용합니다', en: 'Uses a cryptographically secure random generator', ja: '暗号学的に安全な乱数生成器を使用します' })}</li>
+          <li>• {t({ ko: '앞면과 뒷면의 확률은 각각 50%입니다', en: 'Heads and tails each have a 50% probability', ja: '表と裏の確率はそれぞれ50％です' })}</li>
         </ul>
       </div>
     </div>

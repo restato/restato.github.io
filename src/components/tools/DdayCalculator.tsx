@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useTranslation } from '../../i18n/useTranslation';
 
 interface DdayResult {
   days: number;
@@ -21,6 +22,7 @@ export function differenceInCalendarDays(target: Date, today: Date): number {
 }
 
 export default function DdayCalculator() {
+  const { t } = useTranslation();
   const [targetDate, setTargetDate] = useState('');
   const [eventName, setEventName] = useState('');
   const [result, setResult] = useState<DdayResult | null>(null);
@@ -77,10 +79,10 @@ export default function DdayCalculator() {
   };
 
   const quickDates = [
-    { label: '설날', getDate: () => `${new Date().getFullYear() + 1}-01-29` },
-    { label: '크리스마스', getDate: () => `${new Date().getFullYear()}-12-25` },
-    { label: '새해', getDate: () => `${new Date().getFullYear() + 1}-01-01` },
-    { label: '어린이날', getDate: () => `${new Date().getFullYear()}-05-05` },
+    { label: t({ ko: '설날', en: 'Lunar New Year', ja: '旧正月' }), getDate: () => `${new Date().getFullYear() + 1}-01-29` },
+    { label: t({ ko: '크리스마스', en: 'Christmas', ja: 'クリスマス' }), getDate: () => `${new Date().getFullYear()}-12-25` },
+    { label: t({ ko: '새해', en: 'New Year', ja: '新年' }), getDate: () => `${new Date().getFullYear() + 1}-01-01` },
+    { label: t({ ko: '어린이날', en: "Children's Day", ja: 'こどもの日' }), getDate: () => `${new Date().getFullYear()}-05-05` },
   ];
 
   return (
@@ -88,13 +90,13 @@ export default function DdayCalculator() {
       {/* Event Name */}
       <div className="space-y-2">
         <label className="block text-sm font-medium text-[var(--color-text)]">
-          이벤트 이름 (선택)
+          {t({ ko: '이벤트 이름 (선택)', en: 'Event name (optional)', ja: 'イベント名（任意）' })}
         </label>
         <input
           type="text"
           value={eventName}
           onChange={(e) => setEventName(e.target.value)}
-          placeholder="예: 휴가, 시험, 생일..."
+          placeholder={t({ ko: '예: 휴가, 시험, 생일...', en: 'e.g. vacation, exam, birthday...', ja: '例：休暇、試験、誕生日…' })}
           className="w-full px-4 py-3 rounded-lg border border-[var(--color-border)]
             bg-[var(--color-card)] text-[var(--color-text)]
             focus:outline-none focus:ring-2 focus:ring-primary-500"
@@ -104,7 +106,7 @@ export default function DdayCalculator() {
       {/* Target Date */}
       <div className="space-y-2">
         <label className="block text-sm font-medium text-[var(--color-text)]">
-          목표 날짜
+          {t({ ko: '목표 날짜', en: 'Target date', ja: '目標日' })}
         </label>
         <input
           type="date"
@@ -150,7 +152,7 @@ export default function DdayCalculator() {
               {result.days === 0 ? 'D-Day' : `D${result.isUpcoming ? '-' : '+'}${result.days}`}
             </p>
             <p className="text-[var(--color-text-muted)] mt-2">
-              {result.days === 0 ? '오늘입니다' : result.isUpcoming ? `${result.days}일 남았습니다` : `${result.days}일 지났습니다`}
+              {result.days === 0 ? t({ ko: '오늘입니다', en: 'Today', ja: '今日です' }) : result.isUpcoming ? t({ ko: `${result.days}일 남았습니다`, en: `${result.days} days remaining`, ja: `あと${result.days}日` }) : t({ ko: `${result.days}일 지났습니다`, en: `${result.days} days ago`, ja: `${result.days}日前` })}
             </p>
           </div>
 
@@ -158,15 +160,15 @@ export default function DdayCalculator() {
           <div className="grid grid-cols-3 gap-3">
             <div className="p-3 rounded-lg bg-[var(--color-card)] border border-[var(--color-border)] text-center">
               <p className="text-2xl font-bold text-[var(--color-text)]">{result.months}</p>
-              <p className="text-xs text-[var(--color-text-muted)]">개월</p>
+              <p className="text-xs text-[var(--color-text-muted)]">{t({ ko: '개월', en: 'months', ja: 'か月' })}</p>
             </div>
             <div className="p-3 rounded-lg bg-[var(--color-card)] border border-[var(--color-border)] text-center">
               <p className="text-2xl font-bold text-[var(--color-text)]">{result.weeks}</p>
-              <p className="text-xs text-[var(--color-text-muted)]">주</p>
+              <p className="text-xs text-[var(--color-text-muted)]">{t({ ko: '주', en: 'weeks', ja: '週間' })}</p>
             </div>
             <div className="p-3 rounded-lg bg-[var(--color-card)] border border-[var(--color-border)] text-center">
               <p className="text-2xl font-bold text-[var(--color-text)]">{result.hours.toLocaleString()}</p>
-              <p className="text-xs text-[var(--color-text-muted)]">시간</p>
+              <p className="text-xs text-[var(--color-text-muted)]">{t({ ko: '시간', en: 'hours', ja: '時間' })}</p>
             </div>
           </div>
 
@@ -177,7 +179,7 @@ export default function DdayCalculator() {
               className="w-full py-3 bg-primary-500 hover:bg-primary-600 text-white rounded-lg
                 font-medium transition-colors"
             >
-              D-Day 저장하기
+              {t({ ko: 'D-Day 저장하기', en: 'Save D-Day', ja: 'D-Dayを保存' })}
             </button>
           )}
         </div>
@@ -186,7 +188,7 @@ export default function DdayCalculator() {
       {/* Saved D-Days */}
       {savedDdays.length > 0 && (
         <div className="p-4 rounded-lg bg-[var(--color-card)] border border-[var(--color-border)]">
-          <h3 className="font-medium text-[var(--color-text)] mb-3">📌 저장된 D-Day</h3>
+          <h3 className="font-medium text-[var(--color-text)] mb-3">📌 {t({ ko: '저장된 D-Day', en: 'Saved D-Days', ja: '保存したD-Day' })}</h3>
           <div className="space-y-2">
             {savedDdays.map((dday, index) => {
               const target = parseLocalDate(dday.date);

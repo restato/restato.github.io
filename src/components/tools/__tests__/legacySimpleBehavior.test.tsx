@@ -79,7 +79,7 @@ describe('legacy simple tool behavior', () => {
     fireEvent.change(inputs[0], { target: { value: '25' } });
     fireEvent.change(inputs[1], { target: { value: '100' } });
     fireEvent.click(screen.getByRole('button', { name: '계산하기' }));
-    expect(screen.getByText('25은(는) 100의 25.00%입니다')).toBeInTheDocument();
+    expect(screen.getByText('100 대비 25의 비율은 25.00%입니다')).toBeInTheDocument();
 
     fireEvent.change(inputs[0], { target: { value: '' } });
     fireEvent.click(screen.getByRole('button', { name: '계산하기' }));
@@ -92,10 +92,10 @@ describe('legacy simple tool behavior', () => {
     fireEvent.change(inputs[0], { target: { value: '0' } });
     fireEvent.change(inputs[1], { target: { value: '100' } });
     fireEvent.click(screen.getByRole('button', { name: '계산하기' }));
-    expect(screen.getByText('0은(는) 100의 0.00%입니다')).toBeInTheDocument();
+    expect(screen.getByText('100 대비 0의 비율은 0.00%입니다')).toBeInTheDocument();
     fireEvent.change(inputs[0], { target: { value: '100' } });
     fireEvent.click(screen.getByRole('button', { name: '계산하기' }));
-    expect(screen.getByText('100은(는) 100의 100.00%입니다')).toBeInTheDocument();
+    expect(screen.getByText('100 대비 100의 비율은 100.00%입니다')).toBeInTheDocument();
   });
 
   it('generates the requested number of lorem words', () => {

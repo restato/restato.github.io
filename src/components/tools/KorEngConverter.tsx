@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useTranslation } from '../../i18n/useTranslation';
 
 // Korean keyboard mapping
 const engToKor: Record<string, string> = {
@@ -180,6 +181,7 @@ function korToEnglish(text: string): string {
 }
 
 export default function KorEngConverter() {
+  const { t } = useTranslation();
   const [input, setInput] = useState('');
   const [mode, setMode] = useState<'engToKor' | 'korToEng'>('engToKor');
   const [copied, setCopied] = useState(false);
@@ -213,7 +215,7 @@ export default function KorEngConverter() {
               : 'bg-[var(--color-card)] hover:bg-[var(--color-card-hover)] text-[var(--color-text)] border border-[var(--color-border)]'
             }`}
         >
-          🔤 영타 → 한글
+          {t({ ko: '🔤 영타 → 한글', en: '🔤 English keys → Korean', ja: '🔤 英字キー → 韓国語' })}
         </button>
         <button
           onClick={() => setMode('korToEng')}
@@ -223,14 +225,14 @@ export default function KorEngConverter() {
               : 'bg-[var(--color-card)] hover:bg-[var(--color-card-hover)] text-[var(--color-text)] border border-[var(--color-border)]'
             }`}
         >
-          🇰🇷 한타 → 영어
+          {t({ ko: '🇰🇷 한타 → 영어', en: '🇰🇷 Korean keys → English', ja: '🇰🇷 韓国語キー → 英語' })}
         </button>
       </div>
 
       {/* Input */}
       <div className="space-y-2">
         <label className="block text-sm font-medium text-[var(--color-text)]">
-          {mode === 'engToKor' ? '영어로 입력된 텍스트' : '한글로 입력된 텍스트'}
+          {mode === 'engToKor' ? t({ ko: '영어로 입력된 텍스트', en: 'Text typed with English keys', ja: '英字キーで入力したテキスト' }) : t({ ko: '한글로 입력된 텍스트', en: 'Text typed with Korean keys', ja: '韓国語キーで入力したテキスト' })}
         </label>
         <textarea
           value={input}
@@ -255,7 +257,7 @@ export default function KorEngConverter() {
       {/* Output */}
       <div className="space-y-2">
         <label className="block text-sm font-medium text-[var(--color-text)]">
-          변환 결과
+          {t({ ko: '변환 결과', en: 'Conversion result', ja: '変換結果' })}
         </label>
         <div className="relative">
           <textarea
@@ -271,14 +273,14 @@ export default function KorEngConverter() {
               bg-[var(--color-card)] hover:bg-[var(--color-card-hover)]
               border border-[var(--color-border)] transition-colors"
           >
-            {copied ? '✓ 복사됨' : '복사'}
+            {copied ? t({ ko: '✓ 복사됨', en: '✓ Copied', ja: '✓ コピー済み' }) : t({ ko: '복사', en: 'Copy', ja: 'コピー' })}
           </button>
         </div>
       </div>
 
       {/* Examples */}
       <div className="p-4 rounded-lg bg-[var(--color-card)] border border-[var(--color-border)]">
-        <h3 className="font-medium text-[var(--color-text)] mb-3">💡 예시</h3>
+        <h3 className="font-medium text-[var(--color-text)] mb-3">💡 {t({ ko: '예시', en: 'Examples', ja: '例' })}</h3>
         <div className="space-y-2 text-sm">
           {mode === 'engToKor' ? (
             <>

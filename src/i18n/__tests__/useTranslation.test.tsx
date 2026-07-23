@@ -3,6 +3,7 @@ import { hydrateRoot } from 'react-dom/client';
 import { renderToString } from 'react-dom/server';
 import { describe, expect, it, vi } from 'vitest';
 import * as translationModule from '../useTranslation';
+import LocalizedToolIsland from '../../components/tools/LocalizedToolIsland';
 
 function TranslationProbe() {
   const { lang, t } = translationModule.useTranslation();
@@ -59,5 +60,33 @@ describe('TranslationProvider SSR locale boundary', () => {
     expect(consoleError.mock.calls.flat().join(' ')).not.toMatch(/hydration|did not match/i);
     await act(async () => root!.unmount());
     consoleError.mockRestore();
+  });
+
+  it.each([
+    ['image-converter', '이미지 파일 선택'],
+    ['image-resizer', '이미지 파일 선택'],
+    ['exif', '이미지 파일 선택'],
+    ['background-remover', '이미지 파일 선택'],
+    ['image-metadata', '이미지 파일 선택'],
+    ['appstore-screenshot', '이미지 파일 선택'],
+    ['percent', '계산 유형'],
+    ['discount', '원래 가격'],
+    ['dday', '이벤트 이름'],
+    ['dutch-pay', '총 금액'],
+    ['coin-flip', '동전 던지기'],
+    ['dice', '주사위 종류'],
+    ['kor-eng', '변환 결과'],
+  ] as const)('does not leak Korean UI from %s into English or Japanese SSR', (slug, koreanUi) => {
+    for (const lang of ['en', 'ja'] as const) {
+      const html = renderToString(<LocalizedToolIsland slug={slug} lang={lang} />);
+      expect(html, `${slug}/${lang}`).not.toContain(koreanUi);
+    }
+  });
+
+  it.each([
+    'image-converter', 'image-resizer', 'exif', 'background-remover', 'image-metadata',
+    'appstore-screenshot', 'percent', 'discount', 'dday', 'dutch-pay', 'coin-flip', 'dice',
+  ] as const)('renders the complete initial %s island without Hangul in English fallback', (slug) => {
+    expect(renderToString(<LocalizedToolIsland slug={slug} lang="fr" />), slug).not.toMatch(/[가-힣]/);
   });
 });
