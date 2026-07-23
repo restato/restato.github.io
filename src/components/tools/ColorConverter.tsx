@@ -1,5 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useTranslation } from '../../i18n/useTranslation';
+import { ToolActions } from './ui/ToolActions';
+import { ToolField } from './ui/ToolField';
 import { ToolPanel } from './ui/ToolPanel';
 
 // Color conversion utilities
@@ -165,28 +167,19 @@ export default function ColorConverter() {
       </div>
 
       {/* HEX Input */}
-      <div className="space-y-2">
-        <label className="block text-sm font-medium text-[var(--color-text)]">
-          {t(tt.hex)}
-        </label>
-        <div className="flex gap-2">
+      <div className="grid gap-2 sm:grid-cols-[1fr_auto] sm:items-end">
+        <ToolField id="color-hex" label={t(tt.hex)}>
           <input
             type="text"
             value={hex}
             onChange={(e) => handleHexChange(e.target.value)}
             placeholder="#000000"
-            className="flex-1 px-4 py-2 rounded-lg border border-[var(--color-border)]
-              bg-[var(--color-card)] text-[var(--color-text)] font-mono
-              focus:outline-none focus:ring-2 focus:ring-primary-500"
+            className="font-mono"
           />
-          <button
-            onClick={() => copyToClipboard(hex, 'hex')}
-            className="px-4 py-2 bg-[var(--color-card)] hover:bg-[var(--color-card-hover)]
-              border border-[var(--color-border)] rounded-lg transition-colors text-sm"
-          >
+        </ToolField>
+          <ToolActions primary={<button onClick={() => copyToClipboard(hex, 'hex')}>
             {copied === 'hex' ? t(tc.copied) : t(tc.copy)}
-          </button>
-        </div>
+          </button>} />
       </div>
 
       {/* RGB Input */}

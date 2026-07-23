@@ -1,5 +1,7 @@
 import { useState, useMemo } from 'react';
 import { useTranslation } from '../../i18n/useTranslation';
+import { ToolActions } from './ui/ToolActions';
+import { ToolField } from './ui/ToolField';
 import { ToolPanel } from './ui/ToolPanel';
 
 type HarmonyType = 'complementary' | 'triadic' | 'analogous' | 'splitComplementary' | 'tetradic' | 'monochromatic';
@@ -193,14 +195,14 @@ export default function ColorPalette() {
       {/* Controls */}
       <div className="flex flex-wrap gap-4 items-center">
         {/* Base Color Picker */}
-        <div className="flex items-center gap-2">
-          <label className="text-sm text-[var(--color-text)]">{t(tt.baseColor)}:</label>
+        <div className="flex items-end gap-2">
           <input
             type="color"
             value={baseColor}
             onChange={(e) => setBaseColor(e.target.value)}
             className="w-12 h-10 cursor-pointer rounded border-0"
           />
+          <ToolField id="palette-base-color" label={`${t(tt.baseColor)}:`}>
           <input
             type="text"
             value={baseColor}
@@ -209,20 +211,15 @@ export default function ColorPalette() {
                 setBaseColor(e.target.value);
               }
             }}
-            className="w-24 px-2 py-1 rounded border border-[var(--color-border)]
-              bg-[var(--color-card)] text-[var(--color-text)] font-mono text-sm"
+            className="w-24 font-mono text-sm"
           />
-          <button
-            onClick={randomColor}
-            className="p-2 rounded-lg bg-[var(--color-card)] hover:bg-[var(--color-card-hover)]
-              border border-[var(--color-border)] transition-colors"
-            title="Random"
-          >
+          </ToolField>
+          <ToolActions primary={<button onClick={randomColor} title="Random">
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
                 d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
             </svg>
-          </button>
+          </button>} />
         </div>
       </div>
 
@@ -257,7 +254,7 @@ export default function ColorPalette() {
             >
               <button
                 onClick={() => copyColor(color.hex)}
-                className="w-24 h-24 md:w-32 md:h-32 rounded-xl shadow-lg transition-transform hover:scale-105
+                className="w-24 h-24 md:w-32 md:h-32 rounded-xl shadow-lg
                   focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2"
                 style={{ backgroundColor: color.hex }}
                 title={`Click to copy ${color.hex}`}

@@ -133,7 +133,7 @@ export default function JwtDecoder() {
               </span>
               <button
                 onClick={() => copyToClipboard(JSON.stringify(decoded.header, null, 2), 'header')}
-                className="px-2 py-1 text-xs bg-white/50 dark:bg-black/20 rounded"
+                className="fc-button fc-button-secondary text-xs"
               >
                 {copiedPart === 'header' ? t({ ko: '복사됨!', en: 'Copied!', ja: 'コピーしました!' }) : t({ ko: '복사', en: 'Copy', ja: 'コピー' })}
               </button>
@@ -160,7 +160,7 @@ export default function JwtDecoder() {
               </span>
               <button
                 onClick={() => copyToClipboard(JSON.stringify(decoded.payload, null, 2), 'payload')}
-                className="px-2 py-1 text-xs bg-white/50 dark:bg-black/20 rounded"
+                className="fc-button fc-button-secondary text-xs"
               >
                 {copiedPart === 'payload' ? t({ ko: '복사됨!', en: 'Copied!', ja: 'コピーしました!' }) : t({ ko: '복사', en: 'Copy', ja: 'コピー' })}
               </button>
@@ -187,7 +187,7 @@ export default function JwtDecoder() {
               </span>
               <button
                 onClick={() => copyToClipboard(decoded.signature, 'signature')}
-                className="px-2 py-1 text-xs bg-white/50 dark:bg-black/20 rounded"
+                className="fc-button fc-button-secondary text-xs"
               >
                 {copiedPart === 'signature' ? t({ ko: '복사됨!', en: 'Copied!', ja: 'コピーしました!' }) : t({ ko: '복사', en: 'Copy', ja: 'コピー' })}
               </button>

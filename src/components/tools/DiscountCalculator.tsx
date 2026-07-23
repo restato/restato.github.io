@@ -120,7 +120,7 @@ export default function DiscountCalculator() {
             </div>
             <div className="h-2 bg-[var(--color-border)] rounded-full overflow-hidden">
               <div
-                className="h-full bg-gradient-to-r from-green-500 to-primary-500 transition-all duration-300"
+                className="h-full bg-primary-500 transition-all duration-300"
                 style={{ width: `${100 - parseFloat(discountPercent)}%` }}
               />
             </div>

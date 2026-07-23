@@ -1,5 +1,7 @@
 import { useState, useMemo } from 'react';
 import { useTranslation } from '../../i18n/useTranslation';
+import { ToolActions } from './ui/ToolActions';
+import { ToolField } from './ui/ToolField';
 import { ToolPanel } from './ui/ToolPanel';
 
 interface Shadow {
@@ -119,19 +121,17 @@ export default function BoxShadowGenerator() {
             className="w-8 h-8 rounded cursor-pointer border-0"
           />
         </div>
-        <div className="flex items-center gap-2">
-          <label className="text-sm text-[var(--color-text)]">
-            {t({ ko: '모서리', en: 'Radius', ja: '角丸' })}:
-          </label>
+        <div className="flex items-end gap-2">
+          <ToolField id="shadow-radius" label={`${t({ ko: '모서리', en: 'Radius', ja: '角丸' })}:`}>
           <input
             type="number"
             min="0"
             max="100"
             value={borderRadius}
             onChange={(e) => setBorderRadius(Number(e.target.value))}
-            className="w-16 px-2 py-1 rounded border border-[var(--color-border)]
-              bg-[var(--color-bg)] text-[var(--color-text)] text-sm"
+            className="w-16 text-sm"
           />
+          </ToolField>
           <span className="text-sm text-[var(--color-text-muted)]">px</span>
         </div>
         <div className="flex items-center gap-2">
@@ -155,8 +155,8 @@ export default function BoxShadowGenerator() {
         <label className="text-sm font-medium text-[var(--color-text)]">
           {t({ ko: '프리셋', en: 'Presets', ja: 'プリセット' })}
         </label>
-        <div className="flex flex-wrap gap-2">
-          {PRESETS.map((preset) => (
+        <ToolActions
+          primary={PRESETS.slice(0, 1).map((preset) => (
             <button
               key={preset.name}
               onClick={() => applyPreset(preset.shadow)}
@@ -166,7 +166,10 @@ export default function BoxShadowGenerator() {
               {preset.name}
             </button>
           ))}
-        </div>
+          secondary={PRESETS.slice(1).map((preset) => (
+            <button key={preset.name} onClick={() => applyPreset(preset.shadow)}>{preset.name}</button>
+          ))}
+        />
       </div>
 
       {/* Shadow Controls */}

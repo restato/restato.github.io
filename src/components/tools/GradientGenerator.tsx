@@ -1,5 +1,7 @@
 import { useState, useMemo } from 'react';
 import { useTranslation } from '../../i18n/useTranslation';
+import { ToolActions } from './ui/ToolActions';
+import { ToolField } from './ui/ToolField';
 import { ToolPanel } from './ui/ToolPanel';
 
 interface ColorStop {
@@ -106,8 +108,9 @@ export default function GradientGenerator() {
       />
 
       {/* Type Selection */}
-      <div className="flex rounded-lg overflow-hidden border border-[var(--color-border)]">
-        {(['linear', 'radial', 'conic'] as GradientType[]).map((type) => (
+      <ToolActions
+        className="grid grid-cols-3"
+        primary={(['linear'] as GradientType[]).map((type) => (
           <button
             key={type}
             onClick={() => setGradientType(type)}
@@ -120,7 +123,10 @@ export default function GradientGenerator() {
             {type}
           </button>
         ))}
-      </div>
+        secondary={(['radial', 'conic'] as GradientType[]).map((type) => (
+          <button key={type} onClick={() => setGradientType(type)} className="capitalize">{type}</button>
+        ))}
+      />
 
       {/* Angle (for linear and conic) */}
       {(gradientType === 'linear' || gradientType === 'conic') && (
@@ -166,6 +172,7 @@ export default function GradientGenerator() {
               onChange={(e) => updateColorStop(index, { color: e.target.value })}
               className="h-10 w-10 shrink-0 rounded cursor-pointer border-0"
             />
+            <ToolField id={`gradient-stop-${index}`} label={`${t({ ko: '색상 정지점', en: 'Color stop', ja: 'カラーストップ' })} ${index + 1}`}>
             <input
               type="text"
               value={stop.color}
@@ -174,9 +181,9 @@ export default function GradientGenerator() {
                   updateColorStop(index, { color: e.target.value });
                 }
               }}
-              className="w-20 shrink-0 px-2 py-1 rounded border border-[var(--color-border)]
-                bg-[var(--color-bg)] text-[var(--color-text)] font-mono text-sm"
+              className="w-20 shrink-0 font-mono text-sm"
             />
+            </ToolField>
             <input
               type="range"
               min="0"
@@ -210,7 +217,7 @@ export default function GradientGenerator() {
             <button
               key={preset.name}
               onClick={() => applyPreset(preset.colors)}
-              className="w-12 h-8 rounded-lg shadow-sm hover:scale-110 transition-transform"
+              className="w-12 h-8 rounded-lg shadow-sm"
               style={{
                 background: `linear-gradient(90deg, ${preset.colors.join(', ')})`,
               }}

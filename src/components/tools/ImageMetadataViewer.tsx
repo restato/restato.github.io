@@ -458,7 +458,7 @@ export default function ImageMetadataViewer() {
         <div className="space-y-6">
           {/* Device Summary Card */}
           {device && (
-            <div className="p-4 rounded-xl bg-gradient-to-r from-primary-500/10 to-primary-500/5 border border-primary-500/20">
+            <div className="p-4 rounded-xl bg-[var(--surface-soft)] border border-primary-500/20">
               <div className="flex items-center gap-4">
                 <span className="text-4xl">{device.icon}</span>
                 <div className="flex-1">

@@ -1,5 +1,5 @@
 import { fireEvent, render, screen } from '@testing-library/react';
-import { readFileSync } from 'node:fs';
+import { readFileSync, readdirSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { describe, expect, it, vi } from 'vitest';
 import { ToolActions } from '../ToolActions';
@@ -192,5 +192,23 @@ describe('tool detail route shell', () => {
     expect(globalCss).toMatch(
       /\.fc-tool-instructions\s+ul\s*\{[^}]*list-style:\s*disc/s,
     );
+  });
+});
+
+describe('scoped tool visual treatment contract', () => {
+  const productionSources = readdirSync(resolve('src/components/tools'), {
+    recursive: true,
+    withFileTypes: true,
+  })
+    .filter(entry => entry.isFile() && entry.name.endsWith('.tsx') && !entry.parentPath.includes('__tests__'))
+    .map(entry => ({
+      file: resolve(entry.parentPath, entry.name),
+      source: readFileSync(resolve(entry.parentPath, entry.name), 'utf8'),
+    }));
+
+  it.each(productionSources)('$file avoids prohibited gradient, glass, and hover-transform treatments', ({ source }) => {
+    expect(source).not.toMatch(/\bbg-gradient-/);
+    expect(source).not.toMatch(/\bbackdrop-(?:blur|filter)|\bbg-(?:white|black)\/\d+/);
+    expect(source).not.toMatch(/\bhover:(?:-?translate-[xy]-|scale-)/);
   });
 });
