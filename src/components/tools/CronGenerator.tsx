@@ -174,10 +174,10 @@ export default function CronGenerator() {
         <label className="text-sm font-medium text-[var(--color-text)]">
           {t({ ko: '프리셋', en: 'Presets', ja: 'プリセット' })}
         </label>
-        <div className="flex flex-wrap gap-2">
-          {PRESETS.map((preset) => (
+        <ToolActions selection className="flex flex-wrap gap-2" primary={PRESETS.map((preset) => (
             <button
               key={preset.cron}
+              aria-pressed={cronExpression === preset.cron}
               onClick={() => parseCron(preset.cron)}
               className={`px-3 py-1.5 text-sm rounded-lg transition-colors
                 ${cronExpression === preset.cron
@@ -187,8 +187,7 @@ export default function CronGenerator() {
             >
               {t(preset.label)}
             </button>
-          ))}
-        </div>
+          ))} />
       </div>
 
       {/* Editor */}
@@ -218,20 +217,23 @@ export default function CronGenerator() {
           <label className="text-sm font-medium text-[var(--color-text)]">
             {t({ ko: '요일 선택', en: 'Day of Week', ja: '曜日選択' })}
           </label>
-          <div className="flex flex-wrap gap-1">
+          <ToolActions selection className="flex flex-wrap gap-1" primary={<>
             <button
+              aria-pressed={parts.dayOfWeek === '*'}
               onClick={() => setParts({ ...parts, dayOfWeek: '*' })}
               className={`px-2 py-1 text-xs rounded ${parts.dayOfWeek === '*' ? 'bg-primary-500 text-white' : 'bg-[var(--color-card)] border border-[var(--color-border)]'}`}
             >
               {t({ ko: '매일', en: 'Every', ja: '毎日' })}
             </button>
             <button
+              aria-pressed={parts.dayOfWeek === '1-5'}
               onClick={() => setParts({ ...parts, dayOfWeek: '1-5' })}
               className={`px-2 py-1 text-xs rounded ${parts.dayOfWeek === '1-5' ? 'bg-primary-500 text-white' : 'bg-[var(--color-card)] border border-[var(--color-border)]'}`}
             >
               {t({ ko: '평일', en: 'Weekdays', ja: '平日' })}
             </button>
             <button
+              aria-pressed={parts.dayOfWeek === '0,6'}
               onClick={() => setParts({ ...parts, dayOfWeek: '0,6' })}
               className={`px-2 py-1 text-xs rounded ${parts.dayOfWeek === '0,6' ? 'bg-primary-500 text-white' : 'bg-[var(--color-card)] border border-[var(--color-border)]'}`}
             >
@@ -240,13 +242,14 @@ export default function CronGenerator() {
             {DAYS_OF_WEEK.map((day) => (
               <button
                 key={day.value}
+                aria-pressed={parts.dayOfWeek === day.value}
                 onClick={() => setParts({ ...parts, dayOfWeek: day.value })}
                 className={`px-2 py-1 text-xs rounded ${parts.dayOfWeek === day.value ? 'bg-primary-500 text-white' : 'bg-[var(--color-card)] border border-[var(--color-border)]'}`}
               >
                 {t(day.label)}
               </button>
             ))}
-          </div>
+          </>} />
         </div>
 
         {/* Common Intervals */}
@@ -254,17 +257,16 @@ export default function CronGenerator() {
           <label className="text-sm font-medium text-[var(--color-text)]">
             {t({ ko: '분 간격', en: 'Minute Interval', ja: '分間隔' })}
           </label>
-          <div className="flex flex-wrap gap-1">
-            {['*', '0', '*/5', '*/10', '*/15', '*/30'].map((val) => (
+          <ToolActions selection className="flex flex-wrap gap-1" primary={['*', '0', '*/5', '*/10', '*/15', '*/30'].map((val) => (
               <button
                 key={val}
+                aria-pressed={parts.minute === val}
                 onClick={() => setParts({ ...parts, minute: val })}
                 className={`px-2 py-1 text-xs rounded ${parts.minute === val ? 'bg-primary-500 text-white' : 'bg-[var(--color-card)] border border-[var(--color-border)]'}`}
               >
                 {val === '*' ? t({ ko: '매분', en: 'Every', ja: '毎分' }) : val}
               </button>
-            ))}
-          </div>
+            ))} />
         </div>
       </div>
 

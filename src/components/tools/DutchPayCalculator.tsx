@@ -122,9 +122,11 @@ export default function DutchPayCalculator() {
           {t({ ko: '인원수', en: 'Number of people', ja: '人数' })}
         </label>
         <ToolActions
+          selection
           primary={[2].map((num) => (
             <button
               key={num}
+              aria-pressed={people.length === num}
               onClick={() => {
                 const newPeople = Array.from({ length: num }, (_, i) => ({
                   id: String(i + 1),
@@ -144,18 +146,18 @@ export default function DutchPayCalculator() {
             </button>
           ))}
           secondary={[3, 4, 5, 6, 7, 8, 10].map((num) => (
-            <button key={num} onClick={() => setPeople(Array.from({ length: num }, (_, i) => ({ id: String(i + 1), name: personName(i + 1), paid: 0, shouldPay: 0 })))}>{t({ ko: `${num}명`, en: `${num} people`, ja: `${num}人` })}</button>
+            <button key={num} aria-pressed={people.length === num} onClick={() => setPeople(Array.from({ length: num }, (_, i) => ({ id: String(i + 1), name: personName(i + 1), paid: 0, shouldPay: 0 })))}>{t({ ko: `${num}명`, en: `${num} people`, ja: `${num}人` })}</button>
           ))}
         />
       </div>
 
       {/* Advanced Mode Toggle */}
-      <button
+      <ToolActions primary={<button
         onClick={() => setShowAdvanced(!showAdvanced)}
         className="text-sm text-primary-500 hover:underline text-left"
       >
         {showAdvanced ? t({ ko: '▼ 간단하게 보기', en: '▼ Show simple split', ja: '▼ 簡易表示' }) : t({ ko: '▶ 각자 낸 금액 입력하기 (정산)', en: '▶ Enter individual payments', ja: '▶ 個別の支払額を入力' })}
-      </button>
+      </button>} />
 
       {/* Advanced Mode - Individual Payments */}
       {showAdvanced && (
@@ -188,25 +190,25 @@ export default function DutchPayCalculator() {
                     {currency}
                   </span>
                 </div>
-                <button
+                <ToolActions primary={<button
                   onClick={() => removePerson(person.id)}
                   disabled={people.length <= 2}
                   className="p-2 hover:bg-red-500/10 rounded text-red-500 disabled:opacity-30"
                 >
                   ✕
-                </button>
+                </button>} />
               </div>
             ))}
           </div>
 
-          <button
+          <ToolActions primary={<button
             onClick={addPerson}
             className="w-full py-2 border-2 border-dashed border-[var(--color-border)]
               rounded-lg text-[var(--color-text-muted)] hover:border-primary-500
               hover:text-primary-500 transition-colors"
           >
             + {t({ ko: '참가자 추가', en: 'Add person', ja: '参加者を追加' })}
-          </button>
+          </button>} />
 
           {/* Settlement Results */}
           {settlements.length > 0 && (
@@ -253,8 +255,7 @@ export default function DutchPayCalculator() {
       {/* Common Scenarios */}
       <div className="p-4 rounded-lg bg-[var(--color-card)] border border-[var(--color-border)]">
         <h3 className="font-medium text-[var(--color-text)] mb-3">💡 {t({ ko: '빠른 계산', en: 'Quick examples', ja: 'クイック計算' })}</h3>
-        <div className="grid grid-cols-2 gap-2 text-sm">
-          {[
+        <ToolActions className="grid grid-cols-2 gap-2 text-sm" primary={[
             { label: t({ ko: '치킨 2마리', en: 'Dinner for 4', ja: '4人の夕食' }), amount: 40000, people: 4 },
             { label: t({ ko: '삼겹살 4인분', en: 'Meal for 4', ja: '4人分の食事' }), amount: 60000, people: 4 },
             { label: t({ ko: '회식 (6인)', en: 'Team meal (6)', ja: '会食（6人）' }), amount: 300000, people: 6 },
@@ -278,8 +279,7 @@ export default function DutchPayCalculator() {
             >
               {item.label}
             </button>
-          ))}
-        </div>
+          ))} />
       </div>
     </ToolPanel>
   );

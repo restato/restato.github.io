@@ -84,8 +84,10 @@ export default function Base64Tool() {
     <ToolPanel className="gap-6">
       {/* Mode Toggle */}
       <ToolActions
+        selection
         className="grid grid-cols-2"
         primary={<button
+          aria-pressed={mode === 'encode'}
           onClick={() => handleModeChange('encode')}
           className={`flex-1 py-3 font-medium transition-colors
             ${mode === 'encode'
@@ -96,6 +98,7 @@ export default function Base64Tool() {
           {t(tt.encode)}
         </button>}
         secondary={<button
+          aria-pressed={mode === 'decode'}
           onClick={() => handleModeChange('decode')}
           className={`flex-1 py-3 font-medium transition-colors
             ${mode === 'decode'
@@ -119,8 +122,7 @@ export default function Base64Tool() {
       </ToolField>
 
       {/* Swap Button */}
-      <div className="flex justify-center">
-        <button
+      <ToolActions className="justify-center" primary={<button
           onClick={swapInputOutput}
           disabled={!output}
           aria-label={t({
@@ -135,33 +137,21 @@ export default function Base64Tool() {
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
               d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4" />
           </svg>
-        </button>
-      </div>
+        </button>} />
 
       {/* Output */}
       <div className="space-y-2">
-        <div className="flex justify-between items-center">
-          <label className="block text-sm font-medium text-[var(--color-text)]">
-            {t(tc.output)} ({mode === 'encode' ? 'Base64' : 'Text'})
-          </label>
-          <button
-            onClick={copyOutput}
-            disabled={!output}
-            className="px-3 py-1 text-sm bg-[var(--color-card)] hover:bg-[var(--color-card-hover)]
-              border border-[var(--color-border)] rounded-lg transition-colors
-              disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            {copied ? t(tc.copied) : t(tc.copy)}
-          </button>
-        </div>
+        <ToolActions primary={<button onClick={copyOutput} disabled={!output}>
+          {copied ? t(tc.copied) : t(tc.copy)}
+        </button>} />
+        <ToolField id="base64-output" label={`${t(tc.output)} (${mode === 'encode' ? 'Base64' : 'Text'})`}>
         <textarea
           value={output}
           readOnly
           rows={5}
-          className="w-full px-4 py-3 rounded-lg border border-[var(--color-border)]
-            bg-[var(--color-bg)] text-[var(--color-text)] font-mono resize-y
-            focus:outline-none"
+          className="font-mono"
         />
+        </ToolField>
       </div>
 
       {/* Error */}

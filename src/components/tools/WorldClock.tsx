@@ -140,15 +140,14 @@ export default function WorldClock() {
               className="p-4 rounded-lg bg-[var(--color-card)] border border-[var(--color-border)]
                 text-center relative group"
             >
-              <button
+              <ToolActions className="absolute top-2 right-2" primary={<button
                 onClick={() => toggleZone(zone.id)}
-                className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity
-                  p-1 hover:bg-[var(--color-bg)] rounded"
+                aria-label={`${t({ ko: '시간대 제거', en: 'Remove timezone', ja: 'タイムゾーンを削除' })}: ${zone.city}`}
               >
                 <svg className="w-4 h-4 text-[var(--color-text-muted)]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                 </svg>
-              </button>
+              </button>} />
               <p className="text-sm text-[var(--color-text-muted)]">{zone.city}</p>
               <p className="text-3xl font-mono font-bold text-[var(--color-text)] my-2">
                 {formatTime(now, zone.offset)}
@@ -201,10 +200,7 @@ export default function WorldClock() {
             />
           </ToolField>
 
-          <div className="space-y-1">
-            <label className="text-xs text-[var(--color-text-muted)]">
-              {t({ ko: '시간', en: 'Time', ja: '時間' })}
-            </label>
+          <ToolField id="world-clock-time" label={t({ ko: '시간', en: 'Time', ja: '時間' })}>
             <input
               type="time"
               value={inputTime}
@@ -213,12 +209,9 @@ export default function WorldClock() {
                 bg-[var(--color-bg)] text-[var(--color-text)]
                 focus:outline-none focus:ring-2 focus:ring-primary-500"
             />
-          </div>
+          </ToolField>
 
-          <div className="space-y-1">
-            <label className="text-xs text-[var(--color-text-muted)]">
-              {t({ ko: '시간대', en: 'Timezone', ja: 'タイムゾーン' })}
-            </label>
+          <ToolField id="world-clock-zone" label={t({ ko: '시간대', en: 'Timezone', ja: 'タイムゾーン' })}>
             <select
               value={inputZone}
               onChange={(e) => setInputZone(e.target.value)}
@@ -232,15 +225,15 @@ export default function WorldClock() {
                 </option>
               ))}
             </select>
-          </div>
+          </ToolField>
 
-          <button
+          <ToolActions primary={<button
             onClick={setToNow}
             className="px-3 py-2 text-sm bg-primary-500 hover:bg-primary-600 text-white rounded-lg
               transition-colors"
           >
             {t({ ko: '현재 시간', en: 'Now', ja: '現在時刻' })}
-          </button>
+          </button>} />
         </div>
 
         {/* Conversion Results */}

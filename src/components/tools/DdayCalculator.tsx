@@ -102,22 +102,14 @@ export default function DdayCalculator() {
 
       {/* Target Date */}
       <div className="space-y-2">
-        <label className="block text-sm font-medium text-[var(--color-text)]">
-          {t({ ko: '목표 날짜', en: 'Target date', ja: '目標日' })}
-        </label>
-        <input
-          type="date"
-          value={targetDate}
-          onChange={(e) => setTargetDate(e.target.value)}
-          className="w-full px-4 py-3 rounded-lg border border-[var(--color-border)]
-            bg-[var(--color-card)] text-[var(--color-text)] text-lg
-            focus:outline-none focus:ring-2 focus:ring-primary-500"
-        />
+        <ToolField id="dday-target" label={t({ ko: '목표 날짜', en: 'Target date', ja: '目標日' })}>
+          <input type="date" value={targetDate} onChange={(e) => setTargetDate(e.target.value)} />
+        </ToolField>
 
         {/* Quick Date Buttons */}
         <ToolActions
           primary={quickDates.slice(0, 1).map((q) => (
-            <button
+            <ToolActions primary={<button
               key={q.label}
               onClick={() => {
                 setTargetDate(q.getDate());
@@ -128,7 +120,7 @@ export default function DdayCalculator() {
                 border border-[var(--color-border)] transition-colors"
             >
               {q.label}
-            </button>
+            </button>} />
           ))}
           secondary={quickDates.slice(1).map((q) => (
             <button key={q.label} onClick={() => { setTargetDate(q.getDate()); setEventName(q.label); }}>{q.label}</button>
@@ -210,7 +202,7 @@ export default function DdayCalculator() {
                     <span className={`font-bold ${diff >= 0 ? 'text-primary-500' : 'text-[var(--color-text-muted)]'}`}>
                       D{diff >= 0 ? '-' : '+'}{Math.abs(diff)}
                     </span>
-                    <button
+                    <ToolActions primary={<button
                       onClick={(e) => {
                         e.stopPropagation();
                         deleteDday(index);
@@ -218,7 +210,7 @@ export default function DdayCalculator() {
                       className="p-1 hover:bg-red-500/10 rounded text-red-500"
                     >
                       ✕
-                    </button>
+                    </button>} />
                   </div>
                 </div>
               );

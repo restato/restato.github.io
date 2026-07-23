@@ -196,12 +196,14 @@ export default function ColorPalette() {
       <div className="flex flex-wrap gap-4 items-center">
         {/* Base Color Picker */}
         <div className="flex items-end gap-2">
+          <ToolField id="palette-picker" label={t(tt.baseColor)}>
           <input
             type="color"
             value={baseColor}
             onChange={(e) => setBaseColor(e.target.value)}
             className="w-12 h-10 cursor-pointer rounded border-0"
           />
+          </ToolField>
           <ToolField id="palette-base-color" label={`${t(tt.baseColor)}:`}>
           <input
             type="text"
@@ -226,10 +228,10 @@ export default function ColorPalette() {
       {/* Harmony Selection */}
       <div className="space-y-2">
         <label className="text-sm font-medium text-[var(--color-text)]">{t(tt.harmony)}</label>
-        <div className="flex flex-wrap gap-2">
-          {harmonyOptions.map(({ value, label }) => (
+        <ToolActions selection className="flex flex-wrap gap-2" primary={harmonyOptions.map(({ value, label }) => (
             <button
               key={value}
+              aria-pressed={harmony === value}
               onClick={() => setHarmony(value)}
               className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors
                 ${harmony === value
@@ -239,8 +241,7 @@ export default function ColorPalette() {
             >
               {t(label)}
             </button>
-          ))}
-        </div>
+          ))} />
       </div>
 
       {/* Palette Display */}
@@ -252,13 +253,13 @@ export default function ColorPalette() {
               key={index}
               className="flex flex-col items-center gap-2"
             >
-              <button
+              <ToolActions primary={<button
                 onClick={() => copyColor(color.hex)}
                 className="w-24 h-24 md:w-32 md:h-32 rounded-xl shadow-lg
                   focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2"
                 style={{ backgroundColor: color.hex }}
                 title={`Click to copy ${color.hex}`}
-              />
+              />} />
               <code className="text-sm font-mono text-[var(--color-text)]">
                 {copiedColor === color.hex ? t(tc.copied) : color.hex}
               </code>
@@ -267,8 +268,7 @@ export default function ColorPalette() {
         </div>
 
         {/* Copy All Button */}
-        <div className="flex justify-center">
-          <button
+        <ToolActions className="justify-center" primary={<button
             onClick={copyAllColors}
             className="px-4 py-2 bg-[var(--color-card)] hover:bg-[var(--color-card-hover)]
               border border-[var(--color-border)] rounded-lg transition-colors"
@@ -276,8 +276,7 @@ export default function ColorPalette() {
             {copiedColor === 'all'
               ? t(tc.copied)
               : t({ ko: '모든 색상 복사', en: 'Copy All Colors', ja: 'すべての色をコピー' })}
-          </button>
-        </div>
+          </button>} />
       </div>
 
       {/* Color Details */}
@@ -298,13 +297,13 @@ export default function ColorPalette() {
                 HSL({color.hsl.h}, {color.hsl.s}%, {color.hsl.l}%)
               </div>
             </div>
-            <button
+            <ToolActions primary={<button
               onClick={() => copyColor(color.hex)}
               className="px-2 py-1 text-xs bg-[var(--color-bg)] hover:bg-[var(--color-card-hover)]
                 border border-[var(--color-border)] rounded transition-colors"
             >
               {copiedColor === color.hex ? t(tc.copied) : t(tc.copy)}
-            </button>
+            </button>} />
           </div>
         ))}
       </div>

@@ -155,20 +155,9 @@ export default function QRCodeGenerator() {
       </ToolField>
 
       {/* Size slider */}
-      <div className="space-y-2">
-        <label className="block text-sm font-medium text-[var(--color-text)]">
-          {t(tt.size)}: {size}px
-        </label>
-        <input
-          type="range"
-          min="128"
-          max="512"
-          step="32"
-          value={size}
-          onChange={(e) => setSize(Number(e.target.value))}
-          className="w-full accent-primary-500"
-        />
-      </div>
+      <ToolField id="qr-size" label={`${t(tt.size)}: ${size}px`}>
+        <input type="range" min="128" max="512" step="32" value={size} onChange={(e) => setSize(Number(e.target.value))} />
+      </ToolField>
 
       {/* QR Code Display */}
       <div className="flex flex-col items-center gap-4">

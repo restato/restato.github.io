@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useTranslation } from '../../i18n/useTranslation';
 import { ToolActions } from './ui/ToolActions';
+import { ToolField } from './ui/ToolField';
 import { ToolPanel } from './ui/ToolPanel';
 
 interface DiceConfig {
@@ -60,10 +61,10 @@ export default function DiceRoller() {
         <label className="block text-sm font-medium text-[var(--color-text)]">
           {t({ ko: '주사위 종류', en: 'Die type', ja: 'サイコロの種類' })}
         </label>
-        <div className="flex flex-wrap gap-2">
-          {diceTypes.map((sides) => (
+        <ToolActions selection className="flex flex-wrap gap-2" primary={diceTypes.map((sides) => (
             <button
               key={sides}
+              aria-pressed={config.sides === sides}
               onClick={() => setConfig((c) => ({ ...c, sides }))}
               className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors
                 ${config.sides === sides
@@ -73,15 +74,12 @@ export default function DiceRoller() {
             >
               {getDiceEmoji(sides)} D{sides}
             </button>
-          ))}
-        </div>
+          ))} />
       </div>
 
       {/* Dice Count */}
       <div className="space-y-2">
-        <label className="block text-sm font-medium text-[var(--color-text)]">
-          {t({ ko: `주사위 개수: ${config.count}개`, en: `Number of dice: ${config.count}`, ja: `サイコロの数：${config.count}` })}
-        </label>
+        <ToolField id="dice-count" label={t({ ko: `주사위 개수: ${config.count}개`, en: `Number of dice: ${config.count}`, ja: `サイコロの数：${config.count}` })}>
         <input
           type="range"
           min="1"
@@ -90,6 +88,7 @@ export default function DiceRoller() {
           onChange={(e) => setConfig((c) => ({ ...c, count: parseInt(e.target.value) }))}
           className="w-full accent-primary-500"
         />
+        </ToolField>
         <div className="flex justify-between text-xs text-[var(--color-text-muted)]">
           <span>1</span>
           <span>10</span>
@@ -132,8 +131,7 @@ export default function DiceRoller() {
       </button>} />
 
       {/* Preset Rolls */}
-      <div className="flex flex-wrap gap-2">
-        {[
+      <ToolActions selection className="flex flex-wrap gap-2" primary={[
           { label: '1D6', sides: 6, count: 1 },
           { label: '2D6', sides: 6, count: 2 },
           { label: '1D20', sides: 20, count: 1 },
@@ -143,6 +141,7 @@ export default function DiceRoller() {
         ].map((preset) => (
           <button
             key={preset.label}
+            aria-pressed={config.sides === preset.sides && config.count === preset.count}
             onClick={() => {
               setConfig({ sides: preset.sides, count: preset.count });
             }}
@@ -152,8 +151,7 @@ export default function DiceRoller() {
           >
             {preset.label}
           </button>
-        ))}
-      </div>
+        ))} />
 
       {/* History */}
       {history.length > 0 && (

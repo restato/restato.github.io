@@ -110,17 +110,14 @@ export default function BoxShadowGenerator() {
 
       {/* Box Settings */}
       <div className="flex flex-wrap gap-4 items-center p-4 rounded-lg bg-[var(--color-card)] border border-[var(--color-border)]">
-        <div className="flex items-center gap-2">
-          <label className="text-sm text-[var(--color-text)]">
-            {t({ ko: '박스 색상', en: 'Box Color', ja: 'ボックス色' })}:
-          </label>
+        <ToolField id="shadow-box-color" label={t({ ko: '박스 색상', en: 'Box Color', ja: 'ボックス色' })}>
           <input
             type="color"
             value={boxColor}
             onChange={(e) => setBoxColor(e.target.value)}
             className="w-8 h-8 rounded cursor-pointer border-0"
           />
-        </div>
+        </ToolField>
         <div className="flex items-end gap-2">
           <ToolField id="shadow-radius" label={`${t({ ko: '모서리', en: 'Radius', ja: '角丸' })}:`}>
           <input
@@ -135,9 +132,7 @@ export default function BoxShadowGenerator() {
           <span className="text-sm text-[var(--color-text-muted)]">px</span>
         </div>
         <div className="flex items-center gap-2">
-          <label className="text-sm text-[var(--color-text)]">
-            {t({ ko: '투명도', en: 'Opacity', ja: '不透明度' })}:
-          </label>
+          <ToolField id="shadow-opacity" label={t({ ko: '투명도', en: 'Opacity', ja: '不透明度' })}>
           <input
             type="range"
             min="0"
@@ -146,6 +141,7 @@ export default function BoxShadowGenerator() {
             onChange={(e) => setOpacity(Number(e.target.value))}
             className="w-24 accent-primary-500"
           />
+          </ToolField>
           <span className="text-sm text-[var(--color-text-muted)] w-10">{opacity}%</span>
         </div>
       </div>
@@ -178,14 +174,14 @@ export default function BoxShadowGenerator() {
           <label className="text-sm font-medium text-[var(--color-text)]">
             {t({ ko: '그림자 레이어', en: 'Shadow Layers', ja: 'シャドウレイヤー' })}
           </label>
-          <button
+          <ToolActions primary={<button
             onClick={addShadow}
             disabled={shadows.length >= 5}
             className="px-3 py-1 text-sm bg-primary-500 hover:bg-primary-600 text-white rounded
               transition-colors disabled:opacity-50"
           >
             + {t({ ko: '추가', en: 'Add', ja: '追加' })}
-          </button>
+          </button>} />
         </div>
 
         {shadows.map((shadow, index) => (
@@ -195,16 +191,16 @@ export default function BoxShadowGenerator() {
                 {t({ ko: '레이어', en: 'Layer', ja: 'レイヤー' })} {index + 1}
               </span>
               <div className="flex items-center gap-2">
-                <label className="flex items-center gap-1 cursor-pointer">
+                <ToolField id={`shadow-inset-${index}`} label="inset">
                   <input
                     type="checkbox"
                     checked={shadow.inset}
                     onChange={(e) => updateShadow(index, { inset: e.target.checked })}
                     className="w-4 h-4 rounded text-primary-500"
                   />
-                  <span className="text-xs text-[var(--color-text-muted)]">inset</span>
-                </label>
-                <button
+                </ToolField>
+                <ToolActions primary={<button
+                  aria-label={`${t({ ko: '그림자 레이어 제거', en: 'Remove shadow layer', ja: 'シャドウレイヤーを削除' })} ${index + 1}`}
                   onClick={() => removeShadow(index)}
                   disabled={shadows.length <= 1}
                   className="p-1 text-red-500 hover:bg-red-100 dark:hover:bg-red-900/30 rounded
@@ -213,7 +209,7 @@ export default function BoxShadowGenerator() {
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                   </svg>
-                </button>
+                </button>} />
               </div>
             </div>
 
@@ -224,9 +220,8 @@ export default function BoxShadowGenerator() {
                 { key: 'blur', label: t({ ko: '흐림', en: 'Blur', ja: 'ぼかし' }), min: 0, max: 100 },
                 { key: 'spread', label: t({ ko: '확산', en: 'Spread', ja: '広がり' }), min: -50, max: 50 },
               ].map(({ key, label, min, max }) => (
-                <div key={key} className="space-y-1">
-                  <label className="text-xs text-[var(--color-text-muted)]">{label}</label>
-                  <div className="flex gap-1">
+                <div key={key} className="grid grid-cols-2 gap-1">
+                  <ToolField id={`shadow-${index}-${key}-range`} label={`${label} slider`}>
                     <input
                       type="range"
                       min={min}
@@ -235,6 +230,8 @@ export default function BoxShadowGenerator() {
                       onChange={(e) => updateShadow(index, { [key]: Number(e.target.value) })}
                       className="flex-1 accent-primary-500"
                     />
+                  </ToolField>
+                  <ToolField id={`shadow-${index}-${key}-number`} label={`${label} value`}>
                     <input
                       type="number"
                       min={min}
@@ -244,21 +241,21 @@ export default function BoxShadowGenerator() {
                       className="w-14 px-1 py-0.5 text-xs text-center rounded border border-[var(--color-border)]
                         bg-[var(--color-bg)] text-[var(--color-text)]"
                     />
-                  </div>
+                  </ToolField>
                 </div>
               ))}
             </div>
 
             <div className="flex items-center gap-2">
-              <label className="text-xs text-[var(--color-text-muted)]">
-                {t({ ko: '색상', en: 'Color', ja: '色' })}:
-              </label>
+              <ToolField id={`shadow-${index}-color-picker`} label={t({ ko: '색상', en: 'Color', ja: '色' })}>
               <input
                 type="color"
                 value={shadow.color}
                 onChange={(e) => updateShadow(index, { color: e.target.value })}
                 className="w-8 h-8 rounded cursor-pointer border-0"
               />
+              </ToolField>
+              <ToolField id={`shadow-${index}-color-text`} label={t({ ko: '색상 값', en: 'Color value', ja: '色の値' })}>
               <input
                 type="text"
                 value={shadow.color}
@@ -270,6 +267,7 @@ export default function BoxShadowGenerator() {
                 className="w-20 px-2 py-1 text-xs rounded border border-[var(--color-border)]
                   bg-[var(--color-bg)] text-[var(--color-text)] font-mono"
               />
+              </ToolField>
             </div>
           </div>
         ))}
@@ -279,13 +277,13 @@ export default function BoxShadowGenerator() {
       <div className="space-y-2">
         <div className="flex justify-between items-center">
           <label className="text-sm font-medium text-[var(--color-text)]">CSS</label>
-          <button
+          <ToolActions primary={<button
             onClick={copyToClipboard}
             className="px-3 py-1 text-sm bg-[var(--color-card)] hover:bg-[var(--color-card-hover)]
               border border-[var(--color-border)] rounded transition-colors"
           >
             {copied ? t({ ko: '복사됨!', en: 'Copied!', ja: 'コピーしました!' }) : t({ ko: '복사', en: 'Copy', ja: 'コピー' })}
-          </button>
+          </button>} />
         </div>
         <div className="p-4 rounded-lg bg-[var(--color-bg)] border border-[var(--color-border)]">
           <code className="text-sm font-mono text-[var(--color-text)] break-all">

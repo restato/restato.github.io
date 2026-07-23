@@ -133,7 +133,8 @@ export default function TimestampConverter() {
       </div>
 
       {/* Unit Toggle */}
-      <ToolActions className="grid grid-cols-2" primary={<button
+      <ToolActions selection className="grid grid-cols-2" primary={<button
+          aria-pressed={unit === 'seconds'}
           onClick={() => setUnit('seconds')}
           className={`flex-1 px-4 py-2 rounded-lg text-sm font-medium transition-colors
             ${unit === 'seconds'
@@ -143,6 +144,7 @@ export default function TimestampConverter() {
         >
           {t(tc.seconds)}
         </button>} secondary={<button
+          aria-pressed={unit === 'milliseconds'}
           onClick={() => setUnit('milliseconds')}
           className={`flex-1 px-4 py-2 rounded-lg text-sm font-medium transition-colors
             ${unit === 'milliseconds'
@@ -190,6 +192,7 @@ export default function TimestampConverter() {
       <div className="p-4 rounded-lg bg-[var(--color-card)] border border-[var(--color-border)]">
         <h3 className="font-medium text-[var(--color-text)] mb-4">📅 {t(tc.dateToTimestamp)}</h3>
         <div className="space-y-4">
+          <ToolField id="timestamp-date" label={t(tc.dateToTimestamp)}>
           <input
             type="datetime-local"
             value={dateString}
@@ -198,6 +201,7 @@ export default function TimestampConverter() {
               bg-[var(--color-bg)] text-[var(--color-text)]
               focus:outline-none focus:ring-2 focus:ring-primary-500"
           />
+          </ToolField>
 
           {dateTimestamp !== null && (
             <div className="p-3 rounded-lg bg-[var(--color-bg)] flex items-center justify-between">
@@ -205,12 +209,12 @@ export default function TimestampConverter() {
                 <p className="text-sm text-[var(--color-text-muted)]">Unix Timestamp</p>
                 <p className="font-mono font-bold text-[var(--color-text)]">{dateTimestamp}</p>
               </div>
-              <button
+              <ToolActions primary={<button
                 onClick={() => copyText(String(dateTimestamp))}
                 className="px-3 py-1 bg-primary-500 hover:bg-primary-600 text-white rounded-lg text-sm transition-colors"
               >
                 {t(tcc.copy)}
-              </button>
+              </button>} />
             </div>
           )}
         </div>
@@ -219,8 +223,7 @@ export default function TimestampConverter() {
       {/* Common Timestamps */}
       <div className="p-4 rounded-lg bg-[var(--color-card)] border border-[var(--color-border)]">
         <h3 className="font-medium text-[var(--color-text)] mb-3">📌 {t(tc.commonTimestamps)}</h3>
-        <div className="space-y-2">
-          {commonTimes.map((item, idx) => (
+        <ToolActions className="space-y-2" primary={commonTimes.map((item, idx) => (
             <button
               key={idx}
               onClick={() => setTimestamp(String(unit === 'milliseconds' ? item.getTs() * 1000 : item.getTs()))}
@@ -230,8 +233,7 @@ export default function TimestampConverter() {
               <span>{'labelKey' in item && item.labelKey ? t(tc[item.labelKey]) : item.label}</span>
               <span className="font-mono text-sm">{item.getTs()}</span>
             </button>
-          ))}
-        </div>
+          ))} />
       </div>
 
       {/* Info */}

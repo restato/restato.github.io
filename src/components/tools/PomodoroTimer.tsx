@@ -143,10 +143,10 @@ export default function PomodoroTimer() {
   return (
     <ToolPanel className="gap-6">
       {/* Mode Tabs */}
-      <div className="flex rounded-lg overflow-hidden border border-[var(--color-border)]">
-        {(['work', 'shortBreak', 'longBreak'] as TimerMode[]).map((timerMode) => (
+      <ToolActions selection className="flex rounded-lg overflow-hidden border border-[var(--color-border)]" primary={(['work', 'shortBreak', 'longBreak'] as TimerMode[]).map((timerMode) => (
           <button
             key={timerMode}
+            aria-pressed={mode === timerMode}
             onClick={() => switchMode(timerMode)}
             className={`flex-1 py-3 font-medium transition-colors
               ${mode === timerMode
@@ -156,8 +156,7 @@ export default function PomodoroTimer() {
           >
             {t(modeLabels[timerMode])}
           </button>
-        ))}
-      </div>
+        ))} />
 
       {/* Timer Display */}
       <div className="flex flex-col items-center py-8">
@@ -238,16 +237,16 @@ export default function PomodoroTimer() {
           ))}
         </div>
         <span className="font-bold text-[var(--color-text)]">{completedSessions}</span>
-        <button
+        <ToolActions primary={<button
           onClick={resetAll}
           className="ml-2 text-xs text-[var(--color-text-muted)] hover:text-[var(--color-text)]"
         >
           ({t({ ko: '초기화', en: 'Reset All', ja: 'すべてリセット' })})
-        </button>
+        </button>} />
       </div>
 
       {/* Settings Toggle */}
-      <button
+      <ToolActions primary={<button
         onClick={() => setShowSettings(!showSettings)}
         className="flex items-center justify-center gap-2 text-sm text-[var(--color-text-muted)] hover:text-[var(--color-text)]"
       >
@@ -257,7 +256,7 @@ export default function PomodoroTimer() {
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
         </svg>
         {t({ ko: '설정', en: 'Settings', ja: '設定' })}
-      </button>
+      </button>} />
 
       {/* Settings Panel */}
       {showSettings && (
@@ -296,12 +295,12 @@ export default function PomodoroTimer() {
               </div>
             ))}
           </div>
-          <button
+          <ToolActions primary={<button
             onClick={() => setSettings(DEFAULT_SETTINGS)}
             className="text-xs text-primary-500 hover:underline"
           >
             {t({ ko: '기본값으로 복원', en: 'Reset to defaults', ja: 'デフォルトに戻す' })}
-          </button>
+          </button>} />
         </div>
       )}
 

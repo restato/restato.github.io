@@ -109,10 +109,12 @@ export default function GradientGenerator() {
 
       {/* Type Selection */}
       <ToolActions
+        selection
         className="grid grid-cols-3"
         primary={(['linear'] as GradientType[]).map((type) => (
           <button
             key={type}
+            aria-pressed={gradientType === type}
             onClick={() => setGradientType(type)}
             className={`flex-1 py-2 font-medium transition-colors capitalize
               ${gradientType === type
@@ -124,7 +126,7 @@ export default function GradientGenerator() {
           </button>
         ))}
         secondary={(['radial', 'conic'] as GradientType[]).map((type) => (
-          <button key={type} onClick={() => setGradientType(type)} className="capitalize">{type}</button>
+          <button key={type} aria-pressed={gradientType === type} onClick={() => setGradientType(type)} className="capitalize">{type}</button>
         ))}
       />
 
@@ -137,6 +139,7 @@ export default function GradientGenerator() {
             </label>
             <span className="text-sm text-[var(--color-text-muted)]">{angle}°</span>
           </div>
+          <ToolField id="gradient-angle" label={t({ ko: '각도', en: 'Angle', ja: '角度' })}>
           <input
             type="range"
             min="0"
@@ -145,6 +148,7 @@ export default function GradientGenerator() {
             onChange={(e) => setAngle(Number(e.target.value))}
             className="w-full accent-primary-500"
           />
+          </ToolField>
         </div>
       )}
 
@@ -154,24 +158,26 @@ export default function GradientGenerator() {
           <label className="text-sm font-medium text-[var(--color-text)]">
             {t({ ko: '색상 정지점', en: 'Color Stops', ja: 'カラーストップ' })}
           </label>
-          <button
+          <ToolActions primary={<button
             onClick={addColorStop}
             disabled={colorStops.length >= 10}
             className="px-3 py-1 text-sm bg-primary-500 hover:bg-primary-600 text-white rounded
               transition-colors disabled:opacity-50"
           >
             + {t({ ko: '추가', en: 'Add', ja: '追加' })}
-          </button>
+          </button>} />
         </div>
 
         {colorStops.map((stop, index) => (
           <div key={index} className="flex min-w-0 items-center gap-2 p-3 rounded-lg bg-[var(--color-card)] border border-[var(--color-border)]">
+            <ToolField id={`gradient-color-${index}`} label={`${t({ ko: '색상', en: 'Color', ja: '色' })} ${index + 1}`}>
             <input
               type="color"
               value={stop.color}
               onChange={(e) => updateColorStop(index, { color: e.target.value })}
               className="h-10 w-10 shrink-0 rounded cursor-pointer border-0"
             />
+            </ToolField>
             <ToolField id={`gradient-stop-${index}`} label={`${t({ ko: '색상 정지점', en: 'Color stop', ja: 'カラーストップ' })} ${index + 1}`}>
             <input
               type="text"
@@ -184,6 +190,7 @@ export default function GradientGenerator() {
               className="w-20 shrink-0 font-mono text-sm"
             />
             </ToolField>
+            <ToolField id={`gradient-position-${index}`} label={`${t({ ko: '위치', en: 'Position', ja: '位置' })} ${index + 1}`}>
             <input
               type="range"
               min="0"
@@ -192,8 +199,10 @@ export default function GradientGenerator() {
               onChange={(e) => updateColorStop(index, { position: Number(e.target.value) })}
               className="min-w-0 flex-1 accent-primary-500"
             />
+            </ToolField>
             <span className="w-10 shrink-0 text-sm text-[var(--color-text-muted)]">{stop.position}%</span>
-            <button
+            <ToolActions primary={<button
+              aria-label={`${t({ ko: '색상 정지점 제거', en: 'Remove color stop', ja: 'カラーストップを削除' })} ${index + 1}`}
               onClick={() => removeColorStop(index)}
               disabled={colorStops.length <= 2}
               className="shrink-0 p-1 text-red-500 hover:bg-red-100 dark:hover:bg-red-900/30 rounded
@@ -202,7 +211,7 @@ export default function GradientGenerator() {
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
               </svg>
-            </button>
+            </button>} />
           </div>
         ))}
       </div>
@@ -212,7 +221,7 @@ export default function GradientGenerator() {
         <label className="text-sm font-medium text-[var(--color-text)]">
           {t({ ko: '프리셋', en: 'Presets', ja: 'プリセット' })}
         </label>
-        <div className="flex flex-wrap gap-2">
+        <ToolActions className="flex flex-wrap gap-2" primary={<>
           {PRESETS.map((preset) => (
             <button
               key={preset.name}
@@ -231,20 +240,20 @@ export default function GradientGenerator() {
           >
             🎲 {t({ ko: '랜덤', en: 'Random', ja: 'ランダム' })}
           </button>
-        </div>
+        </>} />
       </div>
 
       {/* CSS Output */}
       <div className="space-y-2">
         <div className="flex justify-between items-center">
           <label className="text-sm font-medium text-[var(--color-text)]">CSS</label>
-          <button
+          <ToolActions primary={<button
             onClick={copyToClipboard}
             className="px-3 py-1 text-sm bg-[var(--color-card)] hover:bg-[var(--color-card-hover)]
               border border-[var(--color-border)] rounded transition-colors"
           >
             {copied ? t({ ko: '복사됨!', en: 'Copied!', ja: 'コピーしました!' }) : t({ ko: '복사', en: 'Copy', ja: 'コピー' })}
-          </button>
+          </button>} />
         </div>
         <div className="p-4 rounded-lg bg-[var(--color-bg)] border border-[var(--color-border)]">
           <code className="text-sm font-mono text-[var(--color-text)] break-all">

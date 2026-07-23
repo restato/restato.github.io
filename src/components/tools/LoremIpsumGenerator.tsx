@@ -130,10 +130,10 @@ export default function LoremIpsumGenerator() {
   return (
     <ToolPanel className="gap-6">
       {/* Type Selection */}
-      <div className="flex rounded-lg overflow-hidden border border-[var(--color-border)]">
-        {typeOptions.map(({ value, label }) => (
+      <ToolActions selection className="flex rounded-lg overflow-hidden border border-[var(--color-border)]" primary={typeOptions.map(({ value, label }) => (
           <button
             key={value}
+            aria-pressed={type === value}
             onClick={() => {
               setType(value);
               setCount(value === 'words' ? 50 : value === 'sentences' ? 5 : 3);
@@ -146,8 +146,7 @@ export default function LoremIpsumGenerator() {
           >
             {t(label)}
           </button>
-        ))}
-      </div>
+        ))} />
 
       {/* Options */}
       <div className="flex flex-wrap gap-4 items-center">
@@ -162,7 +161,7 @@ export default function LoremIpsumGenerator() {
           />
         </ToolField>
 
-        <label className="flex items-center gap-2 cursor-pointer">
+        <ToolField id="lorem-start" label={t(tt.startWithLorem)}>
           <input
             type="checkbox"
             checked={startWithLorem}
@@ -170,8 +169,7 @@ export default function LoremIpsumGenerator() {
             className="w-4 h-4 rounded border-[var(--color-border)] text-primary-500
               focus:ring-primary-500"
           />
-          <span className="text-sm text-[var(--color-text)]">{t(tt.startWithLorem)}</span>
-        </label>
+        </ToolField>
       </div>
 
       {/* Generate Button */}
@@ -190,13 +188,13 @@ export default function LoremIpsumGenerator() {
             <label className="text-sm font-medium text-[var(--color-text)]">
               {t(tc.result)}
             </label>
-            <button
+            <ToolActions primary={<button
               onClick={copyOutput}
               className="px-3 py-1 text-sm bg-[var(--color-card)] hover:bg-[var(--color-card-hover)]
                 border border-[var(--color-border)] rounded-lg transition-colors"
             >
               {copied ? t(tc.copied) : t(tc.copy)}
-            </button>
+            </button>} />
           </div>
           <div className="p-4 rounded-lg border border-[var(--color-border)] bg-[var(--color-bg)]
             max-h-96 overflow-y-auto">

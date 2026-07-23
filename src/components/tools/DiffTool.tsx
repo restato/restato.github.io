@@ -150,28 +150,22 @@ const name = "Universe";`);
 
         <div className="flex-1" />
 
-        <label className="flex items-center gap-2 cursor-pointer">
+        <ToolField id="diff-line-numbers" label={t({ ko: '줄 번호', en: 'Line numbers', ja: '行番号' })}>
           <input
             type="checkbox"
             checked={showLineNumbers}
             onChange={(e) => setShowLineNumbers(e.target.checked)}
             className="w-4 h-4 rounded text-primary-500"
           />
-          <span className="text-sm text-[var(--color-text)]">
-            {t({ ko: '줄 번호', en: 'Line numbers', ja: '行番号' })}
-          </span>
-        </label>
-        <label className="flex items-center gap-2 cursor-pointer">
+        </ToolField>
+        <ToolField id="diff-ignore-whitespace" label={t({ ko: '공백 무시', en: 'Ignore whitespace', ja: '空白を無視' })}>
           <input
             type="checkbox"
             checked={ignoreWhitespace}
             onChange={(e) => setIgnoreWhitespace(e.target.checked)}
             className="w-4 h-4 rounded text-primary-500"
           />
-          <span className="text-sm text-[var(--color-text)]">
-            {t({ ko: '공백 무시', en: 'Ignore whitespace', ja: '空白を無視' })}
-          </span>
-        </label>
+        </ToolField>
       </div>
 
       {/* Input Areas */}
@@ -186,10 +180,7 @@ const name = "Universe";`);
             spellCheck={false}
           />
         </ToolField>
-        <div className="space-y-2">
-          <label className="text-sm font-medium text-[var(--color-text)]">
-            {t({ ko: '변경된 텍스트', en: 'Changed Text', ja: '変更されたテキスト' })}
-          </label>
+        <ToolField id="diff-changed" label={t({ ko: '변경된 텍스트', en: 'Changed Text', ja: '変更されたテキスト' })}>
           <textarea
             value={text2}
             onChange={(e) => setText2(e.target.value)}
@@ -200,7 +191,7 @@ const name = "Universe";`);
               focus:outline-none focus:ring-2 focus:ring-primary-500"
             spellCheck={false}
           />
-        </div>
+        </ToolField>
       </div>
 
       {/* Stats */}

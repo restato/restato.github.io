@@ -93,7 +93,7 @@ export default function UuidGenerator() {
         </ToolField>
 
         {/* Options checkboxes */}
-        <label className="flex items-center gap-2 cursor-pointer">
+        <ToolField id="uuid-uppercase" label={t(tt.uppercase)}>
           <input
             type="checkbox"
             checked={uppercase}
@@ -101,10 +101,9 @@ export default function UuidGenerator() {
             className="w-4 h-4 rounded border-[var(--color-border)] text-primary-500
               focus:ring-primary-500"
           />
-          <span className="text-sm text-[var(--color-text)]">{t(tt.uppercase)}</span>
-        </label>
+        </ToolField>
 
-        <label className="flex items-center gap-2 cursor-pointer">
+        <ToolField id="uuid-hyphens" label={t(tt.hyphens)}>
           <input
             type="checkbox"
             checked={hyphens}
@@ -112,8 +111,7 @@ export default function UuidGenerator() {
             className="w-4 h-4 rounded border-[var(--color-border)] text-primary-500
               focus:ring-primary-500"
           />
-          <span className="text-sm text-[var(--color-text)]">{t(tt.hyphens)}</span>
-        </label>
+        </ToolField>
       </div>
 
       {/* Generate Button */}
@@ -136,20 +134,20 @@ export default function UuidGenerator() {
             <code className="flex-1 font-mono text-[var(--color-text)] break-all">
               {formatUuid(uuid)}
             </code>
-            <button
+            <ToolActions primary={<button
               onClick={() => copyUuid(formatUuid(uuid), index)}
               className="px-3 py-1 text-sm bg-[var(--color-bg)] hover:bg-[var(--color-card-hover)]
                 border border-[var(--color-border)] rounded transition-colors whitespace-nowrap"
             >
               {copiedIndex === index ? t(tc.copied) : t(tc.copy)}
-            </button>
+            </button>} />
           </div>
         ))}
       </div>
 
       {/* Copy All (if multiple) */}
       {uuids.length > 1 && (
-        <button
+        <ToolActions primary={<button
           onClick={copyAll}
           className="w-full py-2 bg-[var(--color-card)] hover:bg-[var(--color-card-hover)]
             border border-[var(--color-border)] rounded-lg transition-colors"
@@ -157,7 +155,7 @@ export default function UuidGenerator() {
           {copiedAll
             ? t(tc.copied)
             : t({ ko: '모두 복사', en: 'Copy All', ja: 'すべてコピー' })}
-        </button>
+        </button>} />
       )}
 
       {/* Info */}

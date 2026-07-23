@@ -134,19 +134,19 @@ export default function PasswordGenerator() {
       {/* Length slider */}
       <div className="space-y-2">
         <div className="flex justify-between">
-          <label className="text-sm font-medium text-[var(--color-text)]">
-            {t(tt.length)}
-          </label>
+          <span className="text-sm font-medium text-[var(--color-text)]">{t(tt.length)}</span>
           <span className="text-sm text-[var(--color-text-muted)]">{length}</span>
         </div>
-        <input
-          type="range"
-          min="8"
-          max="64"
-          value={length}
-          onChange={(e) => setLength(Number(e.target.value))}
-          className="w-full accent-primary-500"
-        />
+        <ToolField id="password-length" label={t(tt.length)}>
+          <input
+            type="range"
+            min="8"
+            max="64"
+            value={length}
+            onChange={(e) => setLength(Number(e.target.value))}
+            className="w-full accent-primary-500"
+          />
+        </ToolField>
         <div className="flex justify-between text-xs text-[var(--color-text-muted)]">
           <span>8</span>
           <span>64</span>
@@ -161,7 +161,7 @@ export default function PasswordGenerator() {
           { key: 'numbers', label: tt.numbers },
           { key: 'symbols', label: tt.symbols },
         ].map(({ key, label }) => (
-          <label key={key} className="flex items-center gap-3 cursor-pointer">
+          <ToolField key={key} id={`password-${key}`} label={t(label)}>
             <input
               type="checkbox"
               checked={options[key as keyof typeof options]}
@@ -169,8 +169,7 @@ export default function PasswordGenerator() {
               className="w-5 h-5 rounded border-[var(--color-border)] text-primary-500
                 focus:ring-primary-500 focus:ring-offset-0"
             />
-            <span className="text-[var(--color-text)]">{t(label)}</span>
-          </label>
+          </ToolField>
         ))}
       </div>
 
