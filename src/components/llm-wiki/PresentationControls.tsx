@@ -50,13 +50,13 @@ export function PresentationControls({ onReset }: Props) {
   }
 
   return (
-    <nav className="llmw-presentation-controls" aria-label="Learning journey controls" data-presenting={presenting}>
-      <a className="llmw-mini-brand" href="#llm-wiki-top" aria-label="Back to LLM Wiki introduction"><Icon name="spark" /> LW</a>
+    <nav className="llmw-presentation-controls fc-surface" aria-label="Learning journey controls" data-presenting={presenting}>
+      <a className="llmw-mini-brand fc-button fc-button-quiet" href="#llm-wiki-top" aria-label="Back to LLM Wiki introduction"><Icon name="spark" /> LW</a>
       <div>
-        {sections.map(([id, label], index) => <a key={id} href={`#${id}`} aria-current={index === activeIndex ? 'step' : undefined} onClick={() => setActiveIndex(index)}>{label}</a>)}
+        {sections.map(([id, label], index) => <a className="fc-button fc-button-quiet" key={id} href={`#${id}`} aria-current={index === activeIndex ? 'step' : undefined} onClick={() => setActiveIndex(index)}>{label}</a>)}
       </div>
-      <button type="button" onClick={onReset}>Reset lab</button>
-      <button type="button" onClick={togglePresentation} aria-pressed={presenting}><Icon name="play" /> Present</button>
+      <button className="fc-button fc-button-quiet" type="button" onClick={onReset}>Reset lab</button>
+      <button className="fc-button fc-button-primary" type="button" onClick={togglePresentation} aria-pressed={presenting}><Icon name="play" /> Present</button>
       <span className="llmw-journey-progress" role="progressbar" aria-label="Learning journey progress" aria-valuemin={0} aria-valuemax={100} aria-valuenow={Math.round(((activeIndex + 1) / sections.length) * 100)}>
         <i style={{ width: `${((activeIndex + 1) / sections.length) * 100}%` }} />
       </span>

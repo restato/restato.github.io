@@ -1,41 +1,40 @@
 .llmw-page {
-  --llmw-bg: #f2f0e9;
-  --llmw-bg-elevated: #faf9f5;
-  --llmw-panel: rgba(255, 255, 255, 0.7);
-  --llmw-panel-solid: #fcfbf7;
-  --llmw-ink: #101014;
-  --llmw-muted: #5d5b62;
-  --llmw-faint: #85828b;
-  --llmw-line: rgba(16, 16, 20, 0.14);
-  --llmw-violet: #6d4aff;
-  --llmw-violet-bright: #8f73ff;
-  --llmw-cyan: #008ca3;
-  --llmw-amber: #9b6300;
-  --llmw-success: #167554;
-  --llmw-shadow: 0 32px 90px rgba(27, 22, 45, 0.12);
+  --llmw-bg: var(--surface-page);
+  --llmw-bg-elevated: var(--surface-raised);
+  --llmw-panel: var(--surface-raised);
+  --llmw-panel-solid: var(--surface-raised);
+  --llmw-ink: var(--text-primary);
+  --llmw-muted: var(--text-muted);
+  --llmw-faint: var(--text-muted);
+  --llmw-line: var(--border-subtle);
+  --llmw-violet: var(--brand);
+  --llmw-violet-bright: var(--brand-hover);
+  --llmw-cyan: var(--focus);
+  --llmw-amber: var(--accent);
+  --llmw-success: var(--brand-hover);
+  --llmw-shadow: none;
   --scenario-accent: #8f73ff;
-  background: var(--llmw-bg);
+  background: transparent;
   color: var(--llmw-ink);
-  min-height: 100vh;
   overflow: clip;
-  font-family: Inter, Pretendard, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  font-family: inherit;
 }
 
 .dark .llmw-page {
-  --llmw-bg: #08080b;
-  --llmw-bg-elevated: #0e0e13;
-  --llmw-panel: rgba(20, 20, 27, 0.78);
-  --llmw-panel-solid: #111118;
-  --llmw-ink: #f3f0e8;
-  --llmw-muted: #aaa7b2;
-  --llmw-faint: #777480;
-  --llmw-line: rgba(255, 255, 255, 0.12);
-  --llmw-violet: #9b87ff;
-  --llmw-violet-bright: #c1b4ff;
-  --llmw-cyan: #4ed9e9;
-  --llmw-amber: #ffc45d;
-  --llmw-success: #5ce0af;
-  --llmw-shadow: 0 36px 110px rgba(0, 0, 0, 0.42);
+  --llmw-bg: var(--surface-page);
+  --llmw-bg-elevated: var(--surface-raised);
+  --llmw-panel: var(--surface-raised);
+  --llmw-panel-solid: var(--surface-raised);
+  --llmw-ink: var(--text-primary);
+  --llmw-muted: var(--text-muted);
+  --llmw-faint: var(--text-muted);
+  --llmw-line: var(--border-subtle);
+  --llmw-violet: var(--brand);
+  --llmw-violet-bright: var(--brand-hover);
+  --llmw-cyan: var(--focus);
+  --llmw-amber: var(--accent);
+  --llmw-success: var(--brand-hover);
+  --llmw-shadow: none;
 }
 
 .llmw-page *,
@@ -69,13 +68,13 @@
 }
 
 .llmw-topbar {
-  width: min(1480px, calc(100% - 48px));
+  width: 100%;
   min-height: 78px;
-  margin: 0 auto;
+  margin: 0 auto 2rem;
+  padding: 0 1rem;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  border-bottom: 1px solid var(--llmw-line);
   position: relative;
   z-index: 20;
 }
@@ -153,7 +152,7 @@
 }
 
 .llmw-hero {
-  width: min(1480px, calc(100% - 48px));
+  width: 100%;
   min-height: calc(100svh - 78px);
   margin: 0 auto;
   padding: clamp(70px, 10vh, 130px) 0 86px;
@@ -243,19 +242,19 @@
   justify-content: center;
   gap: 24px;
   padding: 0 22px;
-  background: var(--llmw-ink);
-  color: var(--llmw-bg) !important;
-  border: 1px solid var(--llmw-ink);
+  background: var(--brand);
+  color: white !important;
+  border: 1px solid var(--brand);
   font-size: 13px;
   font-weight: 700;
   letter-spacing: -0.01em;
-  transition: transform 200ms ease, box-shadow 200ms ease, background 200ms ease;
+  transition: background-color 150ms ease, border-color 150ms ease, color 150ms ease;
 }
 
 .llmw-primary-link:hover,
 .llmw-adoption-actions a:first-child:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 14px 34px color-mix(in srgb, var(--llmw-violet), transparent 72%);
+  border-color: var(--brand-hover);
+  background: var(--brand-hover);
 }
 
 .llmw-primary-link span {
@@ -316,8 +315,7 @@
   background:
     radial-gradient(circle at 50% 45%, color-mix(in srgb, var(--llmw-violet), transparent 77%), transparent 31%),
     color-mix(in srgb, var(--llmw-panel-solid), transparent 15%);
-  box-shadow: var(--llmw-shadow);
-  backdrop-filter: blur(22px);
+  box-shadow: none;
   overflow: hidden;
 }
 
@@ -462,7 +460,7 @@
 .llmw-mental-model,
 .llmw-section,
 .llmw-static-section {
-  width: min(1320px, calc(100% - 48px));
+  width: min(1320px, 100%);
   margin: 0 auto;
   padding: clamp(100px, 13vw, 190px) 0;
 }
@@ -521,7 +519,7 @@
 }
 
 .llmw-shift-card.muted { color: var(--llmw-muted); }
-.llmw-shift-card.bright { border-color: color-mix(in srgb, var(--llmw-violet), transparent 42%); box-shadow: 0 28px 80px color-mix(in srgb, var(--llmw-violet), transparent 88%); }
+.llmw-shift-card.bright { border-color: color-mix(in srgb, var(--llmw-violet), transparent 42%); }
 
 .llmw-card-label {
   color: var(--llmw-faint);
@@ -656,9 +654,7 @@
   align-items: center;
   gap: 8px;
   border: 1px solid var(--llmw-line);
-  background: color-mix(in srgb, var(--llmw-bg-elevated), transparent 9%);
-  box-shadow: 0 16px 50px rgba(0, 0, 0, 0.12);
-  backdrop-filter: blur(20px);
+  background: var(--surface-raised);
 }
 
 .llmw-presentation-controls .llmw-mini-brand {
@@ -707,8 +703,8 @@
 }
 
 .llmw-presentation-controls > button[aria-pressed] {
-  background: var(--llmw-ink);
-  color: var(--llmw-bg);
+  background: var(--brand);
+  color: white;
 }
 
 .llmw-presentation-controls svg { width: 14px; height: 14px; }
@@ -843,7 +839,7 @@
   transition: border-color 180ms ease, opacity 180ms ease, transform 180ms ease;
 }
 
-.llmw-source-card:hover { border-color: color-mix(in srgb, var(--scenario-accent), transparent 45%); transform: translateY(-1px); }
+.llmw-source-card:hover { border-color: color-mix(in srgb, var(--scenario-accent), transparent 45%); }
 .llmw-source-card[data-compiled="true"] { opacity: 0.52; }
 .llmw-file-icon { width: 32px; height: 32px; display: grid; place-items: center; border: 1px solid var(--llmw-line); color: var(--scenario-accent); }
 .llmw-file-icon svg { width: 16px; }
@@ -864,7 +860,7 @@
 .llmw-flow-line { flex: 1; min-height: 70px; width: 1px; margin: 12px 0; background: linear-gradient(var(--scenario-accent), transparent); position: relative; }
 .llmw-flow-line::after { content: ""; position: absolute; left: -3px; top: 0; width: 7px; height: 7px; border-radius: 50%; background: var(--scenario-accent); animation: llmw-flow 2.6s ease-in-out infinite; }
 .llmw-compile-button { width: 100%; min-height: 68px; padding: 10px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px; border: 1px solid var(--scenario-accent); background: var(--scenario-accent); color: #0b0b10 !important; cursor: pointer; font-size: 9px; font-weight: 750; line-height: 1.25; transition: filter 180ms ease, transform 180ms ease; }
-.llmw-compile-button:hover { filter: brightness(1.08); transform: translateY(-1px); }
+.llmw-compile-button:hover { filter: brightness(1.08); }
 .llmw-compile-button svg { width: 18px; }
 .llmw-compiler-column > p { color: var(--llmw-faint); font-family: "SFMono-Regular", Consolas, monospace; font-size: 7px; text-align: center; }
 
