@@ -1,5 +1,6 @@
 import { useState, useMemo } from 'react';
 import { useTranslation } from '../../i18n/useTranslation';
+import type { Language } from '../../i18n';
 
 type UnitCategory = 'length' | 'weight' | 'temperature' | 'area' | 'volume';
 
@@ -160,8 +161,8 @@ const categoryLabels: Record<UnitCategory, { ko: string; en: string; ja: string 
   volume: { ko: '부피', en: 'Volume', ja: '体積' },
 };
 
-export default function UnitConverter() {
-  const { t, lang, translations } = useTranslation();
+export default function UnitConverter({ lang: initialLang }: { lang?: Language } = {}) {
+  const { t, lang, translations } = useTranslation(initialLang);
   const tt = translations.tools.unit;
 
   const [category, setCategory] = useState<UnitCategory>('length');

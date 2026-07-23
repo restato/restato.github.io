@@ -110,8 +110,8 @@ const appSchema = {
           </p>
         </div>
         <div class="flex items-center gap-2">
-          <FavoriteButton client:load slug={slug} title={title} icon={icon} />
-          <ShareButton client:load title={pageTitle} description={description} />
+          <FavoriteButton client:load slug={slug} title={title} icon={icon} lang="en" />
+          <ShareButton client:load title={pageTitle} description={description} lang="en" />
         </div>
       </div>
     </header>
@@ -149,7 +149,7 @@ const appSchema = {
   </div>
 
   <!-- Bookmark Prompt -->
-  <BookmarkPrompt client:idle />
+  <BookmarkPrompt client:idle lang="en" />
 
   <!-- Track tool visit -->
   <script define:vars={{ slug, title, icon }}>

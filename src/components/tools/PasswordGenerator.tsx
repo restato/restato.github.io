@@ -1,5 +1,6 @@
 import { useState, useCallback } from 'react';
 import { useTranslation } from '../../i18n/useTranslation';
+import type { Language } from '../../i18n';
 
 const CHAR_SETS = {
   uppercase: 'ABCDEFGHIJKLMNOPQRSTUVWXYZ',
@@ -27,8 +28,8 @@ function getPasswordStrength(password: string, options: { uppercase: boolean; lo
   return { level: 4, label: 'veryStrong' };
 }
 
-export default function PasswordGenerator() {
-  const { t, translations } = useTranslation();
+export default function PasswordGenerator({ lang: initialLang }: { lang?: Language } = {}) {
+  const { t, translations } = useTranslation(initialLang);
   const tt = translations.tools.password;
   const tc = translations.tools.common;
 

@@ -1,5 +1,6 @@
 import { useState, useRef } from 'react';
 import { useTranslation } from '../../i18n/useTranslation';
+import type { Language } from '../../i18n';
 
 interface ExifData {
   [key: string]: string | number | undefined;
@@ -140,8 +141,8 @@ async function parseExif(file: File): Promise<ExifData> {
   });
 }
 
-export default function ExifViewer() {
-  const { t } = useTranslation();
+export default function ExifViewer({ lang: initialLang }: { lang?: Language } = {}) {
+  const { t } = useTranslation(initialLang);
 
   const [imageUrl, setImageUrl] = useState<string | null>(null);
   const [imageName, setImageName] = useState<string>('');

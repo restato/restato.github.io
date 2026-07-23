@@ -1,14 +1,16 @@
 import { useState } from 'react';
 import { useTranslation } from '../../i18n/useTranslation';
+import type { Language } from '../../i18n';
 
 interface ShareButtonProps {
   title: string;
   description: string;
   url?: string;
+  lang?: Language;
 }
 
-export default function ShareButton({ title, description, url }: ShareButtonProps) {
-  const { t, translations } = useTranslation();
+export default function ShareButton({ title, description, url, lang }: ShareButtonProps) {
+  const { t, translations } = useTranslation(lang);
   const tc = translations.tools.common;
 
   const [showDropdown, setShowDropdown] = useState(false);

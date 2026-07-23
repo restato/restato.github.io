@@ -1,5 +1,6 @@
 import { useState, useCallback } from 'react';
 import { useTranslation } from '../../i18n/useTranslation';
+import type { Language } from '../../i18n';
 
 const LOREM_WORDS = [
   'lorem', 'ipsum', 'dolor', 'sit', 'amet', 'consectetur', 'adipiscing', 'elit',
@@ -52,8 +53,8 @@ function generateParagraph(sentenceCount?: number): string {
   return sentences.join(' ');
 }
 
-export default function LoremIpsumGenerator() {
-  const { t, translations } = useTranslation();
+export default function LoremIpsumGenerator({ lang: initialLang }: { lang?: Language } = {}) {
+  const { t, translations } = useTranslation(initialLang);
   const tt = translations.tools.loremIpsum;
   const tc = translations.tools.common;
 

@@ -1,5 +1,6 @@
 import { useState, useMemo } from 'react';
 import { useTranslation } from '../../i18n/useTranslation';
+import type { Language } from '../../i18n';
 
 interface TextStats {
   characters: number;
@@ -36,8 +37,8 @@ function analyzeText(text: string): TextStats {
   };
 }
 
-export default function TextCounter() {
-  const { t, translations } = useTranslation();
+export default function TextCounter({ lang: initialLang }: { lang?: Language } = {}) {
+  const { t, translations } = useTranslation(initialLang);
   const tt = translations.tools.textCounter;
   const tc = translations.tools.common;
 

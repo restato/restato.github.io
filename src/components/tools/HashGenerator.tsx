@@ -1,5 +1,6 @@
 import { useState, useCallback } from 'react';
 import { useTranslation } from '../../i18n/useTranslation';
+import type { Language } from '../../i18n';
 
 type Algorithm = 'SHA-1' | 'SHA-256' | 'SHA-384' | 'SHA-512';
 
@@ -166,8 +167,8 @@ function md5(string: string): string {
 const algorithms = ['MD5', 'SHA-1', 'SHA-256', 'SHA-384', 'SHA-512'] as const;
 type AllAlgorithm = typeof algorithms[number];
 
-export default function HashGenerator() {
-  const { t, translations } = useTranslation();
+export default function HashGenerator({ lang: initialLang }: { lang?: Language } = {}) {
+  const { t, translations } = useTranslation(initialLang);
   const tt = translations.tools.hash;
   const tc = translations.tools.common;
 

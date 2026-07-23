@@ -1,5 +1,6 @@
 import { useState, useMemo } from 'react';
 import { useTranslation } from '../../i18n/useTranslation';
+import type { Language } from '../../i18n';
 
 interface UtmParams {
   url: string;
@@ -34,8 +35,8 @@ const MEDIUMS = [
   { value: 'banner', label: 'Banner' },
 ];
 
-export default function UtmBuilder() {
-  const { t } = useTranslation();
+export default function UtmBuilder({ lang: initialLang }: { lang?: Language } = {}) {
+  const { t } = useTranslation(initialLang);
 
   const [params, setParams] = useState<UtmParams>({
     url: '',

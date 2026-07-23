@@ -79,10 +79,11 @@ const seo = seoContent[lang];
   description={seo.description}
   lang={lang}
   alternateUrls={alternateUrls}
+  robots={lang === 'ko' ? 'index, follow' : 'noindex, follow'}
 >
   <div class="max-w-6xl mx-auto px-4 py-8">
     <!-- Header with i18n support -->
-    <ToolsPageHeader client:load />
+    <ToolsPageHeader client:load lang={lang} />
 
     <!-- Search -->
     <div class="mb-6">
@@ -93,9 +94,9 @@ const seo = seoContent[lang];
     <RecentTools client:load className="mb-8" basePath={`/${lang}/tools`} />
 
     <!-- Tools Grid with i18n support -->
-    <ToolsGrid client:load tools={tools} categories={categories} basePath={`/${lang}/tools`} />
+    <ToolsGrid client:load tools={tools} categories={categories} basePath={`/${lang}/tools`} lang={lang} />
 
     <!-- Info with i18n support -->
-    <ToolsPageInfo client:load />
+    <ToolsPageInfo client:load lang={lang} />
   </div>
 </MainLayout>

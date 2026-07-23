@@ -1,5 +1,6 @@
 import { useState, useRef, useCallback } from 'react';
 import { useTranslation } from '../../i18n/useTranslation';
+import type { Language } from '../../i18n';
 
 interface ConvertedImage {
   original: {
@@ -17,8 +18,8 @@ interface ConvertedImage {
 
 type OutputFormat = 'jpeg' | 'png' | 'webp';
 
-export default function ImageConverter() {
-  const { t } = useTranslation();
+export default function ImageConverter({ lang: initialLang }: { lang?: Language } = {}) {
+  const { t } = useTranslation(initialLang);
 
   const [images, setImages] = useState<ConvertedImage[]>([]);
   const [outputFormat, setOutputFormat] = useState<OutputFormat>('jpeg');

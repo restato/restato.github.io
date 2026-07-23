@@ -1,10 +1,11 @@
 import { useState } from 'react';
 import { useTranslation } from '../../i18n/useTranslation';
+import type { Language } from '../../i18n';
 
 type Mode = 'encode' | 'decode';
 
-export default function Base64Tool() {
-  const { t, translations } = useTranslation();
+export default function Base64Tool({ lang: initialLang }: { lang?: Language } = {}) {
+  const { t, translations } = useTranslation(initialLang);
   const tt = translations.tools.base64;
   const tc = translations.tools.common;
 

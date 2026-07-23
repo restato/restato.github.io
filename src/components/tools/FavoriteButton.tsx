@@ -1,10 +1,12 @@
 import { useState, useEffect } from 'react';
 import { useTranslation } from '../../i18n/useTranslation';
+import type { Language } from '../../i18n';
 
 interface FavoriteButtonProps {
   slug: string;
   title: string;
   icon: string;
+  lang?: Language;
 }
 
 const STORAGE_KEY = 'restato_favorite_tools';
@@ -40,8 +42,8 @@ export function toggleFavorite(slug: string): boolean {
   }
 }
 
-export default function FavoriteButton({ slug, title, icon }: FavoriteButtonProps) {
-  const { t, translations } = useTranslation();
+export default function FavoriteButton({ slug, title, icon, lang }: FavoriteButtonProps) {
+  const { t, translations } = useTranslation(lang);
   const tc = translations.tools.common;
 
   const [isFavorite, setIsFavorite] = useState(false);

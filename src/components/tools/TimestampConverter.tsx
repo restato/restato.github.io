@@ -1,8 +1,9 @@
 import { useState, useEffect } from 'react';
 import { useTranslation } from '../../i18n/useTranslation';
+import type { Language } from '../../i18n';
 
-export default function TimestampConverter() {
-  const { t, lang, translations } = useTranslation();
+export default function TimestampConverter({ lang: initialLang }: { lang?: Language } = {}) {
+  const { t, lang, translations } = useTranslation(initialLang);
   const tc = translations.tools.timestamp;
   const tcc = translations.tools.common;
 

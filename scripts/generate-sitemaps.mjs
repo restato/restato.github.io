@@ -25,8 +25,11 @@ const REDIRECT_PATTERNS = [
   /^\/tools\/?$/, // /tools/ (without lang prefix)
   /^\/anonymous-chat\/?$/, // /anonymous-chat (without lang prefix)
   /^\/games\/?$/, // /games (without lang prefix)
-  /^\/about\/?$/, // /about redirect page
   /^\/articles\/admin\/?$/, // admin page
+  /^\/blog\/tag\//, // thin tag archive pages
+  /^\/dashboard\/?$/, // personal dashboard
+  /^\/content-os\/?$/, // internal editorial dashboard
+  /^\/(en|ja)\/(tools|games)(\/|$)/, // incomplete localized interactive UI
 ];
 
 /**

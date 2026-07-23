@@ -1,6 +1,6 @@
 // React hook for translations
 import { useState, useEffect, useCallback } from 'react';
-import { getLanguage, setLanguage, type Language } from './index';
+import { defaultLang, getLanguage, setLanguage, type Language } from './index';
 import { toolTranslations } from './translations/tools';
 import { gameTranslations } from './translations/games';
 import { commonTranslations } from './translations/common';
@@ -16,11 +16,15 @@ const translations = {
 
 type TranslationCategory = keyof typeof translations;
 
-export function useTranslation() {
-  const [lang, setLang] = useState<Language>('ko');
+export function useTranslation(initialLang?: Language) {
+  const [lang, setLang] = useState<Language>(initialLang ?? defaultLang);
 
   useEffect(() => {
-    // Set initial language
+    if (initialLang) {
+      setLang(initialLang);
+      return;
+    }
+
     setLang(getLanguage());
 
     // Listen for language changes
@@ -32,7 +36,7 @@ export function useTranslation() {
     return () => {
       window.removeEventListener('languageChange', handleLanguageChange as EventListener);
     };
-  }, []);
+  }, [initialLang]);
 
   const t = useCallback(<T extends Record<Language, string>>(
     translationObj: T

@@ -2,6 +2,7 @@ import { useState, useRef, useCallback } from 'react';
 import ReactCrop, { type Crop, centerCrop, makeAspectCrop } from 'react-image-crop';
 import 'react-image-crop/dist/ReactCrop.css';
 import { useTranslation } from '../../i18n/useTranslation';
+import type { Language } from '../../i18n';
 
 interface ScreenSize {
   id: string;
@@ -95,8 +96,8 @@ interface ImageItem {
 type DeviceType = 'iphone' | 'ipad';
 type Orientation = 'portrait' | 'landscape';
 
-export default function AppStoreScreenshotResizer() {
-  const { t, translations } = useTranslation();
+export default function AppStoreScreenshotResizer({ lang: initialLang }: { lang?: Language } = {}) {
+  const { t, translations } = useTranslation(initialLang);
   const tt = translations.tools.appStoreScreenshot;
   const tc = translations.tools.common;
 

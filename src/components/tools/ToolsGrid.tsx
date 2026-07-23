@@ -18,10 +18,11 @@ interface Category {
 interface ToolsGridProps {
   tools: Tool[];
   categories: Category[];
+  lang?: Language;
 }
 
-export default function ToolsGrid({ tools, categories }: ToolsGridProps) {
-  const { t, lang } = useTranslation();
+export default function ToolsGrid({ tools, categories, lang: routeLang }: ToolsGridProps) {
+  const { t, lang } = useTranslation(routeLang);
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [mounted, setMounted] = useState(false);
 
@@ -34,7 +35,7 @@ export default function ToolsGrid({ tools, categories }: ToolsGridProps) {
     : tools.filter(tool => tool.category === selectedCategory);
 
   // Use Korean as fallback during SSR, then switch to user's language
-  const currentLang = mounted ? lang : 'ko';
+  const currentLang = routeLang ?? (mounted ? lang : 'ko');
 
   const getLocalizedText = (obj: { ko: string; en: string; ja: string }) => {
     return obj[currentLang as Language] || obj.ko;

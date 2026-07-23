@@ -88,7 +88,12 @@ const gamesSchema = {
 };
 ---
 
-<MainLayout title={t.title} description={t.description} lang={lang}>
+<MainLayout
+  title={t.title}
+  description={t.description}
+  lang={lang}
+  robots={lang === 'ko' ? 'index, follow' : 'noindex, follow'}
+>
   <script type="application/ld+json" set:html={JSON.stringify(gamesSchema)} />
 
   <section class="py-12 px-4">

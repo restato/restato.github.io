@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { useTranslation } from '../../i18n/useTranslation';
+import type { Language } from '../../i18n';
 
 // Simple QR Code generator using canvas
 const QR_ERROR_CORRECTION = {
@@ -99,8 +100,8 @@ function drawQRCode(canvas: HTMLCanvasElement, text: string, size: number, darkC
   }
 }
 
-export default function QRCodeGenerator() {
-  const { t, translations } = useTranslation();
+export default function QRCodeGenerator({ lang: initialLang }: { lang?: Language } = {}) {
+  const { t, translations } = useTranslation(initialLang);
   const tt = translations.tools.qrCode;
   const tc = translations.tools.common;
 

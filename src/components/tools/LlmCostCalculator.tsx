@@ -1,5 +1,6 @@
 import { useState, useMemo, useEffect } from 'react';
 import { useTranslation } from '../../i18n/useTranslation';
+import type { Language } from '../../i18n';
 
 interface ModelPrice {
   name: string;
@@ -99,8 +100,8 @@ function estimateTokens(text: string): number {
   return Math.ceil(tokens);
 }
 
-export default function LlmCostCalculator() {
-  const { t, translations } = useTranslation();
+export default function LlmCostCalculator({ lang: initialLang }: { lang?: Language } = {}) {
+  const { t, translations } = useTranslation(initialLang);
   const tc = translations.tools.llmCost;
 
   const [inputText, setInputText] = useState('');
