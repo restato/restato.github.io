@@ -40,9 +40,9 @@ function buildPlotPoints(points: DashboardSeriesPoint[]): PlotPoint[] {
 export default function ExchangeMiniChart({ title, points, strokeColor }: ExchangeMiniChartProps) {
   if (points.length === 0) {
     return (
-      <div className="rounded-xl border border-[var(--color-border)] bg-[var(--color-card)] p-4">
-        <p className="text-sm font-semibold text-[var(--color-text)] mb-1">{title}</p>
-        <p className="text-xs text-[var(--color-text-muted)]">아직 차트 데이터가 없습니다.</p>
+      <div className="fc-surface p-4">
+        <p className="mb-1 text-sm font-semibold text-[var(--text-primary)]">{title}</p>
+        <p className="text-xs text-[var(--text-muted)]">아직 차트 데이터가 없습니다.</p>
       </div>
     );
   }
@@ -55,10 +55,10 @@ export default function ExchangeMiniChart({ title, points, strokeColor }: Exchan
   const singlePoint = plotPoints.length === 1 ? plotPoints[0] : null;
 
   return (
-    <div className="rounded-xl border border-[var(--color-border)] bg-[var(--color-card)] p-4">
+    <div className="fc-surface p-4">
       <div className="flex items-center justify-between mb-2">
-        <p className="text-sm font-semibold text-[var(--color-text)]">{title}</p>
-        <p className="text-xs text-[var(--color-text-muted)]">{latest.dateLabel}</p>
+        <p className="text-sm font-semibold text-[var(--text-primary)]">{title}</p>
+        <p className="text-xs text-[var(--text-muted)]">{latest.dateLabel}</p>
       </div>
 
       <svg
@@ -87,7 +87,7 @@ export default function ExchangeMiniChart({ title, points, strokeColor }: Exchan
         )}
       </svg>
 
-      <div className="mt-2 flex items-center justify-between text-xs text-[var(--color-text-muted)]">
+      <div className="mt-2 flex items-center justify-between text-xs text-[var(--text-muted)]">
         <span>저점 {minValue.toFixed(2)}</span>
         <span>고점 {maxValue.toFixed(2)}</span>
       </div>

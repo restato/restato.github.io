@@ -1,6 +1,7 @@
 ---
 import MainLayout from '../layouts/MainLayout.astro';
 import ExchangeRatesPanel from '../components/dashboard/ExchangeRatesPanel';
+import PageShell from '../components/ui/PageShell.astro';
 ---
 
 <MainLayout
@@ -8,19 +9,17 @@ import ExchangeRatesPanel from '../components/dashboard/ExchangeRatesPanel';
   description="매일 보는 환율 지표를 한 화면에서 확인하는 개인 대시보드"
   lang="ko"
 >
-  <section class="py-16 md:py-20 px-6">
-    <div class="max-w-4xl mx-auto space-y-8">
-      <header class="space-y-3">
-        <p class="text-sm font-medium text-primary-600 dark:text-primary-400">개인 대시보드</p>
-        <h1 class="text-3xl md:text-4xl font-bold">매일 보는 지표</h1>
-        <p class="text-[var(--color-text-muted)]">
-          내가 자주 확인하는 환율을 빠르게 보기 위한 한글 전용 페이지입니다.
-        </p>
-      </header>
+  <PageShell size="wide">
+    <header class="fc-page-header">
+      <p class="fc-eyebrow">개인 대시보드</p>
+      <h1>매일 보는 지표</h1>
+      <p class="fc-page-description">
+        내가 자주 확인하는 환율을 빠르게 보기 위한 한글 전용 페이지입니다.
+      </p>
+    </header>
 
-      <div class="rounded-2xl border border-[var(--color-border)] bg-[var(--color-card)] p-6">
-        <ExchangeRatesPanel client:load />
-      </div>
+    <div class="fc-surface fc-surface-padding-md">
+      <ExchangeRatesPanel client:load />
     </div>
-  </section>
+  </PageShell>
 </MainLayout>

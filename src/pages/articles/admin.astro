@@ -1,6 +1,7 @@
 ---
 import MainLayout from '../../layouts/MainLayout.astro';
 import ArticleAdmin from '../../components/articles/ArticleAdmin';
+import PageShell from '../../components/ui/PageShell.astro';
 ---
 
 <MainLayout
@@ -8,7 +9,7 @@ import ArticleAdmin from '../../components/articles/ArticleAdmin';
   description="아티클 피드 관리자 패널 - RSS 소스 및 아티클 수집 관리"
   robots="noindex, nofollow"
 >
-  <div class="max-w-4xl mx-auto px-4 py-8">
+  <PageShell size="wide">
     <ArticleAdmin client:load />
-  </div>
+  </PageShell>
 </MainLayout>

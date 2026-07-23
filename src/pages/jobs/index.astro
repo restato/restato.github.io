@@ -1,19 +1,21 @@
 ---
 import MainLayout from '../../layouts/MainLayout.astro';
 import JobsAggregator from '../../components/jobs/JobsAggregator';
+import PageShell from '../../components/ui/PageShell.astro';
 ---
 
 <MainLayout
   title="IT 채용공고 모음 | Restato"
   description="국내외 IT 기업들의 채용공고를 한눈에 확인하세요. 우아한형제들, 네이버, 카카오, 토스, 라인, 당근 등 주요 IT 기업 채용 정보를 실시간으로 모아봅니다."
 >
-  <div class="max-w-6xl mx-auto px-4 py-8">
-    <header class="mb-8 max-w-3xl">
-      <h1 class="text-3xl font-bold text-[var(--color-text)]">IT 채용공고 모음</h1>
-      <p class="mt-3 leading-7 text-[var(--color-text-muted)]">
+  <PageShell size="wide">
+    <header class="fc-page-header">
+      <p class="fc-eyebrow">Career board</p>
+      <h1>IT 채용공고 모음</h1>
+      <p class="fc-page-description">
         국내외 주요 IT 기업의 공개 채용 정보를 모아 직무와 회사를 빠르게 비교할 수 있습니다. 지원 전에는 반드시 각 기업의 공식 공고에서 모집 기간과 자격 요건을 다시 확인하세요.
       </p>
     </header>
     <JobsAggregator client:load />
-  </div>
+  </PageShell>
 </MainLayout>

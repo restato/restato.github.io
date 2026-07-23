@@ -57,21 +57,20 @@ export default function JobsAggregator() {
 
   return (
     <div className="space-y-6">
-      {/* 헤더 */}
-      <div className="bg-gradient-to-r from-blue-500 to-purple-600 rounded-xl p-6 text-white">
-        <h1 className="text-2xl font-bold mb-2">IT 채용공고 모음</h1>
-        <p className="opacity-90">국내외 IT 기업들의 채용 페이지 바로가기</p>
+      <div className="fc-surface fc-surface-soft fc-surface-padding-sm">
+        <h2 className="text-xl font-bold text-[var(--text-primary)]">IT 채용공고 모음</h2>
+        <p className="mt-1 text-sm text-[var(--text-muted)]">국내외 IT 기업들의 채용 페이지 바로가기</p>
       </div>
 
       {/* 사이트 목록 */}
       <div>
-        <h2 className="text-lg font-semibold mb-3 text-[var(--color-text)]">채용 사이트</h2>
+        <h2 className="mb-3 text-lg font-semibold text-[var(--text-primary)]">채용 사이트</h2>
         {isLoading ? (
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
             {[...Array(10)].map((_, i) => (
               <div
                 key={i}
-                className="animate-pulse flex items-center gap-3 p-3 rounded-lg border border-[var(--color-border)] bg-[var(--color-card)]"
+                className="fc-surface flex animate-pulse items-center gap-3 p-3"
               >
                 <div className="w-10 h-10 rounded-lg bg-[var(--color-border)]"></div>
                 <div className="flex-1 space-y-2">
@@ -89,19 +88,19 @@ export default function JobsAggregator() {
                 href={site.url}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex items-center gap-3 p-3 rounded-lg border border-[var(--color-border)] hover:border-blue-400 hover:shadow-md bg-[var(--color-card)] transition-all duration-200 group"
+                className="fc-surface group flex items-center gap-3 p-3 transition-colors hover:border-[var(--brand)]"
               >
                 <div
-                  className="w-10 h-10 rounded-lg flex items-center justify-center text-white font-bold text-sm shrink-0 group-hover:scale-110 transition-transform"
+                  className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg text-sm font-bold text-white"
                   style={{ backgroundColor: site.color }}
                 >
                   {site.name.charAt(0)}
                 </div>
                 <div className="flex-1 min-w-0">
-                  <span className="font-medium text-[var(--color-text)] text-sm block truncate">
+                  <span className="block truncate text-sm font-medium text-[var(--text-primary)]">
                     {site.name}
                   </span>
-                  <span className="text-xs text-[var(--color-text-muted)] flex items-center gap-1">
+                  <span className="flex items-center gap-1 text-xs text-[var(--text-muted)]">
                     채용공고 보기
                     <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />

@@ -55,7 +55,7 @@ function formatChangeRate(value: number | null): string {
 
 function getChangeClass(value: number | null): string {
   if (value === null || value === 0) {
-    return 'text-[var(--color-text-muted)] bg-[var(--color-card-hover)]';
+    return 'text-[var(--text-muted)] bg-[var(--surface-soft)]';
   }
 
   if (value > 0) {
@@ -179,14 +179,14 @@ export default function ExchangeRatesPanel() {
     <section className="space-y-4">
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
         <div>
-          <h2 className="text-2xl font-bold text-[var(--color-text)]">오늘의 환율</h2>
-          <p className="text-sm text-[var(--color-text-muted)]">기준 통화: USD (JPY/KRW, EUR/KRW는 교차환율)</p>
+          <h2 className="text-2xl font-bold text-[var(--text-primary)]">오늘의 환율</h2>
+          <p className="text-sm text-[var(--text-muted)]">기준 통화: USD (JPY/KRW, EUR/KRW는 교차환율)</p>
         </div>
         <button
           type="button"
           onClick={() => void refreshRates()}
           disabled={isLoading || isRefreshing}
-          className="btn btn-outline text-sm disabled:opacity-60 disabled:cursor-not-allowed"
+          className="fc-button fc-button-secondary text-sm disabled:cursor-not-allowed disabled:opacity-60"
         >
           {isRefreshing ? '새로고침 중...' : '새로고침'}
         </button>
@@ -199,25 +199,25 @@ export default function ExchangeRatesPanel() {
       )}
 
       {rates && (
-        <p className="text-sm text-[var(--color-text-muted)]">
+        <p className="text-sm text-[var(--text-muted)]">
           마지막 갱신: {formatUpdatedAt(rates.updatedAt)}
         </p>
       )}
 
       {isLoading && !rates && (
-        <p className="text-sm text-[var(--color-text-muted)]">환율 데이터를 불러오는 중...</p>
+        <p className="text-sm text-[var(--text-muted)]">환율 데이터를 불러오는 중...</p>
       )}
 
-      <div className="rounded-xl border border-[var(--color-border)] bg-[var(--color-card)]">
-        <ul aria-label="환율 목록" className="divide-y divide-[var(--color-border)]">
+      <div className="fc-surface overflow-hidden">
+        <ul aria-label="환율 목록" className="divide-y divide-[var(--border-subtle)]">
           {RATE_CARDS.map((card) => {
             const value = getRateValue(card.pair);
             return (
               <li key={card.pair} className="px-3 py-2.5 flex items-center gap-2">
-                <p className="w-[74px] text-xs font-semibold tracking-wide text-primary-600 dark:text-primary-400">
+                <p className="w-[74px] text-xs font-semibold tracking-wide text-[var(--brand)]">
                   {card.pair}
                 </p>
-                <p className="flex-1 min-w-0 text-right text-base font-bold tabular-nums text-[var(--color-text)]">
+                <p className="min-w-0 flex-1 text-right text-base font-bold tabular-nums text-[var(--text-primary)]">
                   {value === null ? '-' : formatRate(value, card.digits)}
                 </p>
                 <div className="shrink-0 flex items-center gap-1.5">
@@ -238,13 +238,13 @@ export default function ExchangeRatesPanel() {
         </ul>
       </div>
 
-      <p className="text-xs text-[var(--color-text-muted)]">
+      <p className="text-xs text-[var(--text-muted)]">
         출처:{' '}
         <a
           href="https://frankfurter.dev"
           target="_blank"
           rel="noopener noreferrer"
-          className="text-primary-600 dark:text-primary-400 hover:underline"
+          className="text-[var(--brand)] hover:underline"
         >
           frankfurter.dev
         </a>
