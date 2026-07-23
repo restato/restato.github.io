@@ -127,4 +127,5 @@ export const forestCafeAlwaysMaskedSelectors = [
   '[data-ad-placement]',
   'ins.adsbygoogle',
   '[data-consent-banner]',
+  '[data-current-year]',
 ] as const;

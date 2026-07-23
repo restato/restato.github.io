@@ -29,7 +29,7 @@ This matrix covers every required public page family, plus Korean, English, and 
 
 | Command | Result |
 | --- | --- |
-| `npm test -- --run` | PASS — 93 files, 950/950 tests |
+| `npm test -- --run` | PASS — 93 files, 951/951 tests |
 | `npm run check` | PASS — 389 files, 0 errors, 0 warnings; 81 existing hints |
 | `npm run build` | PASS — 1,269 pages |
 | `node scripts/validate-site.mjs dist` | PASS — 1,276 HTML files validated |
@@ -98,11 +98,11 @@ All 42 combinations retained obvious primary actions, direction-safe alignment, 
 
 ## Screenshot evidence and masking
 
-The automated run saves 36 documentation references in [`assets/forest-cafe/`](./assets/forest-cafe/): desktop light, desktop dark, and mobile-390 dark for each of the 12 matrix routes. The exact same screenshot buffers are also compared against 36 committed Darwin Playwright baselines with `maxDiffPixelRatio: 0.001` (0.1%). Both evidence projects declare the `Asia/Seoul` timezone, and the visual suite fixes `Date` at 2026-07-20 12:00 KST with `page.clock.setFixedTime` before navigation. This keeps dashboard labels and footer years independent of the host timezone and calendar year without intercepting timers. A missing-baseline RED run failed as required, and an arbitrary visual change failed by 20,739 pixels (7%); neither can silently bless a new image.
+The automated run saves 36 documentation references in [`assets/forest-cafe/`](./assets/forest-cafe/): desktop light, desktop dark, and mobile-390 dark for each of the 12 matrix routes. The exact same screenshot buffers are also compared against 36 committed Darwin Playwright baselines with `maxDiffPixelRatio: 0.001` (0.1%). Both evidence projects declare the `Asia/Seoul` timezone, and the visual suite fixes the client-side `Date` at 2026-07-20 12:00 KST with `page.clock.setFixedTime` before navigation. This keeps client-rendered dashboard labels independent of the host timezone without intercepting timers. The production footer continues to render the real server year; only its narrow `[data-current-year]` leaf is masked in visual comparisons. A missing-baseline RED run failed as required, and an arbitrary visual change failed by 20,739 pixels (7%); neither can silently bless a new image.
 
 Stable masking is intentionally limited to:
 
-- all routes: `[data-ad-placement]`, `ins.adsbygoogle`, and `[data-consent-banner]`;
+- all routes: `[data-ad-placement]`, `ins.adsbygoogle`, `[data-consent-banner]`, and the year-only `[data-current-year]` leaf;
 - Snake: `canvas`, because the requirement explicitly excludes pixel-identity checks for canvas games;
 - anonymous chat: only `.chat-container [role="status"] > *` and `.chat-container [role="log"] > *`, whose child content is nondeterministic.
 

@@ -157,7 +157,7 @@ describe('dynamic game semantics', () => {
 
     const getCell = (row: number, col: number) => {
       const cell = container.querySelector<HTMLButtonElement>(
-        `.fc-game-cell[aria-label^="${row}행 ${col}열"]`,
+        `button.fc-game-cell[aria-label^="${row}행 ${col}열"]`,
       );
       expect(cell).not.toBeNull();
       return cell as HTMLButtonElement;
