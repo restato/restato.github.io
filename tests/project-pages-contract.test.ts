@@ -63,6 +63,13 @@ describe('Forest Café project page contract', () => {
     expect(source).toMatch(/data-gallery-close/);
   });
 
+  it('uses local gallery images so visual evidence is deterministic', () => {
+    const source = projectSources['gallery.astro'];
+
+    expect(source).not.toMatch(/https?:\/\/picsum\.photos/);
+    expect(source.match(/src: '\/images\/projects\//g)).toHaveLength(6);
+  });
+
   it('contains the jobworld process connectors in a positioned clipped grid', () => {
     const source = projectSources['jobworld-kids.astro'];
     const processGrid = source.match(/<div[^>]+data-jobworld-process-grid[^>]*>/)?.[0];
