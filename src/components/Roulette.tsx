@@ -76,7 +76,7 @@ export default function Roulette() {
   };
 
   return (
-    <div className="flex flex-col lg:flex-row gap-8 items-start">
+    <div className="fc-game flex flex-col items-start gap-8 lg:flex-row">
       {/* Wheel */}
       <div className="flex-1 flex flex-col items-center">
         <div className="relative">
@@ -88,7 +88,7 @@ export default function Roulette() {
           {/* Wheel */}
           <div
             ref={wheelRef}
-            className="w-72 h-72 md:w-96 md:h-96 rounded-full relative overflow-hidden shadow-2xl"
+            className="relative h-72 w-72 overflow-hidden rounded-full border border-[var(--border-subtle)] md:h-96 md:w-96"
             style={{
               transform: `rotate(${rotation}deg)`,
               transition: isSpinning ? 'transform 4s cubic-bezier(0.17, 0.67, 0.12, 0.99)' : 'none',
@@ -127,25 +127,26 @@ export default function Roulette() {
 
         {/* Spin Button */}
         <button
+          type="button"
           onClick={spin}
           disabled={isSpinning || items.length < 2}
-          className="mt-8 px-8 py-4 bg-gradient-to-r from-purple-500 to-pink-500 text-white text-xl font-bold rounded-full shadow-lg hover:shadow-xl transform hover:scale-105 transition-all disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
+          className="fc-button fc-button-primary mt-8 px-8 text-xl"
         >
           {isSpinning ? '돌아가는 중...' : '🎲 돌리기!'}
         </button>
 
         {/* Winner */}
         {winner && (
-          <div className="mt-6 p-6 bg-gradient-to-r from-yellow-400 to-orange-500 rounded-xl text-white text-center animate-bounce">
+          <div className="fc-surface fc-surface-soft mt-6 p-6 text-center" role="status">
             <div className="text-2xl mb-2">🎉 당첨!</div>
-            <div className="text-3xl font-bold">{winner}</div>
+            <div className="text-3xl font-bold text-[var(--accent)]">{winner}</div>
           </div>
         )}
       </div>
 
       {/* Controls */}
       <div className="w-full lg:w-80 space-y-4">
-        <div className="bg-gray-100 dark:bg-gray-800 rounded-xl p-4">
+        <div className="fc-surface p-4">
           <h3 className="font-bold mb-4">항목 관리</h3>
 
           {/* Add Item */}
@@ -154,15 +155,17 @@ export default function Roulette() {
               type="text"
               value={newItem}
               onChange={(e) => setNewItem(e.target.value)}
-              onKeyPress={(e) => e.key === 'Enter' && addItem()}
+              onKeyDown={(e) => e.key === 'Enter' && addItem()}
               placeholder="새 항목 입력"
-              className="flex-1 px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-purple-500"
+              aria-label="새 항목"
+              className="fc-input flex-1"
               disabled={items.length >= 12}
             />
             <button
+              type="button"
               onClick={addItem}
               disabled={!newItem.trim() || items.length >= 12}
-              className="px-4 py-2 bg-purple-500 text-white rounded-lg hover:bg-purple-600 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="fc-button fc-button-primary"
             >
               추가
             </button>
@@ -173,7 +176,7 @@ export default function Roulette() {
             {items.map((item) => (
               <div
                 key={item.id}
-                className="flex items-center gap-2 p-2 bg-white dark:bg-gray-700 rounded-lg"
+                className="fc-surface-soft flex items-center gap-2 rounded-lg p-2"
               >
                 <div
                   className="w-4 h-4 rounded-full flex-shrink-0"
@@ -181,9 +184,11 @@ export default function Roulette() {
                 />
                 <span className="flex-1 truncate">{item.text}</span>
                 <button
+                  type="button"
                   onClick={() => removeItem(item.id)}
                   disabled={items.length <= 2}
-                  className="text-red-500 hover:text-red-600 disabled:opacity-30 disabled:cursor-not-allowed"
+                  aria-label={`${item.text} 삭제`}
+                  className="fc-button fc-button-quiet min-h-11 px-3 text-[var(--accent)]"
                 >
                   ✕
                 </button>
@@ -198,8 +203,9 @@ export default function Roulette() {
 
         {/* Reset Button */}
         <button
+          type="button"
           onClick={reset}
-          className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+          className="fc-button fc-button-secondary w-full"
         >
           초기화
         </button>

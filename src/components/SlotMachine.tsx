@@ -70,9 +70,9 @@ export default function SlotMachine() {
   };
 
   return (
-    <div className="flex flex-col items-center">
+    <div className="fc-game flex flex-col items-center">
       {/* 슬롯머신 본체 */}
-      <div className="bg-gradient-to-b from-red-600 to-red-800 rounded-3xl p-8 shadow-2xl border-4 border-yellow-400">
+      <div className="w-full max-w-lg rounded-3xl border-4 border-amber-400 bg-red-800 p-4 sm:p-8">
         {/* 상단 장식 */}
         <div className="text-center mb-4">
           <span className="text-4xl font-bold text-yellow-300 drop-shadow-lg">🎰 SLOTS 🎰</span>
@@ -122,17 +122,21 @@ export default function SlotMachine() {
             <div className="text-sm opacity-75">베팅</div>
             <div className="flex items-center gap-2">
               <button
+                type="button"
                 onClick={() => setBet(Math.max(5, bet - 5))}
                 disabled={isSpinning || bet <= 5}
-                className="w-8 h-8 bg-yellow-500 rounded-full font-bold hover:bg-yellow-400 disabled:opacity-50"
+                aria-label="베팅 금액 줄이기"
+                className="fc-button h-11 min-h-11 w-11 rounded-full bg-amber-400 p-0 text-black hover:bg-amber-300"
               >
                 -
               </button>
               <span className="text-2xl font-bold w-12 text-center">{bet}</span>
               <button
+                type="button"
                 onClick={() => setBet(Math.min(coins, bet + 5))}
                 disabled={isSpinning || bet >= coins}
-                className="w-8 h-8 bg-yellow-500 rounded-full font-bold hover:bg-yellow-400 disabled:opacity-50"
+                aria-label="베팅 금액 늘리기"
+                className="fc-button h-11 min-h-11 w-11 rounded-full bg-amber-400 p-0 text-black hover:bg-amber-300"
               >
                 +
               </button>
@@ -142,9 +146,10 @@ export default function SlotMachine() {
 
         {/* 스핀 버튼 */}
         <button
+          type="button"
           onClick={spin}
           disabled={isSpinning || coins < bet}
-          className="w-full py-4 bg-gradient-to-b from-green-400 to-green-600 text-white text-2xl font-bold rounded-xl shadow-lg hover:from-green-300 hover:to-green-500 disabled:opacity-50 disabled:cursor-not-allowed transform hover:scale-105 active:scale-95 transition-all"
+          className="fc-button fc-button-primary w-full py-4 text-2xl"
         >
           {isSpinning ? '돌아가는 중...' : '🎲 SPIN!'}
         </button>
@@ -152,8 +157,9 @@ export default function SlotMachine() {
         {/* 코인 추가 버튼 */}
         {coins < 10 && (
           <button
+            type="button"
             onClick={addCoins}
-            className="w-full mt-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-400"
+            className="fc-button fc-button-secondary mt-4 w-full"
           >
             +50 무료 코인 받기
           </button>
@@ -161,12 +167,12 @@ export default function SlotMachine() {
       </div>
 
       {/* 배당표 */}
-      <div className="mt-8 bg-[var(--color-card)] rounded-xl p-6 border border-[var(--color-border)] w-full max-w-md">
+      <div className="fc-surface mt-8 w-full max-w-md p-6">
         <h3 className="font-bold text-lg mb-4 text-center">💎 배당표</h3>
         <div className="grid grid-cols-2 gap-2 text-sm">
           {Object.entries(WINNING_COMBOS)
             .sort((a, b) => b[1].multiplier - a[1].multiplier)
-            .map(([combo, { multiplier, name }]) => (
+            .map(([combo, { multiplier }]) => (
               <div
                 key={combo}
                 className="flex items-center justify-between p-2 bg-[var(--color-border)] rounded"
