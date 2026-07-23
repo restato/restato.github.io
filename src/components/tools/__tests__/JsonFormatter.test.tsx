@@ -63,6 +63,10 @@ describe('JsonFormatter', () => {
 
     expect(screen.getByText('유효한 JSON')).toBeInTheDocument();
     expect(screen.getByRole('status')).toHaveClass('fc-tool-result-success');
+    expect(screen.getByText('유효한 JSON')).toHaveClass(
+      'text-green-800',
+      'dark:text-green-300',
+    );
   });
 
   it('shows invalid status for invalid JSON', async () => {

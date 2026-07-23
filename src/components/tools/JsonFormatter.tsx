@@ -118,7 +118,7 @@ export default function JsonFormatter() {
       {/* Validation Status */}
       {isValid !== null && (
         <ToolResult status={isValid ? 'success' : 'error'}>
-          <div className={`flex items-center gap-2 ${isValid ? 'text-green-700 dark:text-green-400' : 'text-red-700 dark:text-red-400'}`}>
+          <div className={`flex items-center gap-2 ${isValid ? 'text-green-800 dark:text-green-300' : 'text-red-700 dark:text-red-400'}`}>
           {isValid ? (
             <>
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
