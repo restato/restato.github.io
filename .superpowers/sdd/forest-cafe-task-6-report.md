@@ -400,3 +400,27 @@ GREEN: the same focused command passed — 4 files, 47 tests. Image upload
 surfaces now use the keyboard-operable shared drop-zone contract, PDF pickers
 have one accessible activation surface, nested tool privacy rows are removed,
 and Image Resizer presents download before reset in a shared action group.
+
+### Batch 4 — media feedback semantics
+
+RED:
+
+```sh
+npm test -- --run src/components/tools/media-calc/__tests__/tools.test.tsx --reporter=dot
+```
+
+Status: failed as expected — 8 failures and 5 passes showed empty idle result
+containers, image/audio failures announced as success, and English-only
+result headings added inside the localized loan route.
+
+GREEN:
+
+```sh
+npm test -- --run src/components/tools/media-calc/__tests__/tools.test.tsx \
+  src/data/tools/__tests__/additionalToolsIntegration.test.ts --reporter=dot
+```
+
+Status: passed — 2 files, 29 tests. Media feedback now carries explicit
+success/error state, failure paths render assertive alerts, idle tools render
+no empty result, working conversion has truthful copy, and the redundant loan
+result headings are removed.
