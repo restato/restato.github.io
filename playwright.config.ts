@@ -17,6 +17,7 @@ export default defineConfig({
       use: {
         browserName: 'chromium',
         viewport: { width: 1440, height: 1000 },
+        timezoneId: 'Asia/Seoul',
       },
     },
     {
@@ -27,6 +28,7 @@ export default defineConfig({
         viewport: { width: 390, height: 844 },
         isMobile: true,
         hasTouch: true,
+        timezoneId: 'Asia/Seoul',
       },
     },
     {

@@ -148,15 +148,21 @@ describe('dynamic game semantics', () => {
       randomCall++;
       return (coordinate + 0.5) / 8;
     });
-    render(<Minesweeper />);
+    const { container } = render(<Minesweeper />);
 
     const flagMode = screen.getByRole('button', { name: '깃발 모드' });
     expect(flagMode).toHaveAttribute('aria-pressed', 'false');
     fireEvent.click(flagMode);
     expect(flagMode).toHaveAttribute('aria-pressed', 'true');
 
-    const cells = screen.getAllByRole('button', { name: /행.*열/ });
-    const flaggedCell = cells[0];
+    const getCell = (row: number, col: number) => {
+      const cell = container.querySelector<HTMLButtonElement>(
+        `.fc-game-cell[aria-label^="${row}행 ${col}열"]`,
+      );
+      expect(cell).not.toBeNull();
+      return cell as HTMLButtonElement;
+    };
+    const flaggedCell = getCell(1, 1);
     random.mockClear();
     fireEvent.click(flaggedCell);
     expect(random).not.toHaveBeenCalled();
@@ -170,14 +176,14 @@ describe('dynamic game semantics', () => {
     expect(flaggedCell).toHaveAccessibleName(/깃발/);
 
     fireEvent.click(flagMode);
-    const firstReveal = cells[10];
+    const firstReveal = getCell(2, 3);
     fireEvent.click(firstReveal);
 
     expect(random).toHaveBeenCalled();
     expect(flaggedCell).toHaveAccessibleName(/깃발/);
     expect(firstReveal).not.toHaveAccessibleName(/지뢰/);
     expect(firstReveal).not.toHaveAccessibleName(/숨김/);
-  }, 30_000);
+  });
 
   it('uses a named fullscreen region and restores the inline experience on Escape', async () => {
     const user = userEvent.setup();

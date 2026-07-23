@@ -16,6 +16,7 @@ const screenshotDirectory = path.resolve(
   'docs/superpowers/reports/assets/forest-cafe',
 );
 const visualDiffTolerance = 0.001;
+const forestCafeFixedTime = '2026-07-20T12:00:00.000+09:00';
 
 const semanticThemes = {
   light: {
@@ -35,6 +36,7 @@ const semanticThemes = {
 } as const;
 
 async function installStableRouteState(page: Page, route: ForestCafeRoute) {
+  await page.clock.setFixedTime(forestCafeFixedTime);
   await page.route('https://api.frankfurter.dev/**', async (requestRoute) => {
     await requestRoute.fulfill({
       contentType: 'application/json',
@@ -80,10 +82,12 @@ async function waitForStablePage(page: Page, route: ForestCafeRoute) {
   await expect(page.locator('main#main-content')).not.toBeEmpty();
   await expect(page.locator('h1')).toHaveCount(1);
   await expect(page.locator('h1')).toBeVisible();
-  await page.evaluate(async () => {
-    await document.fonts.load('400 16px D2Coding');
+  const loadedFontCount = await page.evaluate(async () => {
+    const loadedFonts = await document.fonts.load('400 16px D2Coding');
     await document.fonts.ready;
+    return loadedFonts.length;
   });
+  expect(loadedFontCount, 'The self-hosted D2Coding face must load').toBeGreaterThan(0);
   await expect.poll(
     () => page.locator('astro-island[client="load"][ssr]').count(),
     { message: 'All client:load islands must finish hydrating before interaction checks' },
@@ -125,9 +129,6 @@ async function assertSemanticTheme(page: Page, theme: keyof typeof semanticTheme
       bodyText: bodyStyle.color,
       fontFamily: bodyStyle.fontFamily,
       colorScheme: rootStyle.colorScheme,
-      fontResources: performance
-        .getEntriesByType('resource')
-        .map((entry) => new URL(entry.name).pathname),
     };
   });
 
@@ -137,7 +138,6 @@ async function assertSemanticTheme(page: Page, theme: keyof typeof semanticTheme
   expect(actual.bodyText).toBe(expected.bodyText);
   expect(actual.fontFamily.split(',')[0].replaceAll(/['"]/g, '').trim()).toBe('D2Coding');
   expect(actual.colorScheme).toBe(theme);
-  expect(actual.fontResources).toContain('/fonts/D2Coding.woff2');
 }
 
 async function assertKeyboardFocusAndSkipLink(page: Page, expectedFocusColor: string) {

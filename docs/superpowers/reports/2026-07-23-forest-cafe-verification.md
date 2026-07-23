@@ -29,8 +29,8 @@ This matrix covers every required public page family, plus Korean, English, and 
 
 | Command | Result |
 | --- | --- |
-| `npm test -- --run` | PASS — 92 files, 947/947 tests |
-| `npm run check` | PASS — 388 files, 0 errors, 0 warnings; 81 existing hints |
+| `npm test -- --run` | PASS — 93 files, 950/950 tests |
+| `npm run check` | PASS — 389 files, 0 errors, 0 warnings; 81 existing hints |
 | `npm run build` | PASS — 1,269 pages |
 | `node scripts/validate-site.mjs dist` | PASS — 1,276 HTML files validated |
 | `node scripts/audit-content.mjs dist` | PASS — 1,121 indexable pages audited |
@@ -98,7 +98,7 @@ All 42 combinations retained obvious primary actions, direction-safe alignment, 
 
 ## Screenshot evidence and masking
 
-The automated run saves 36 documentation references in [`assets/forest-cafe/`](./assets/forest-cafe/): desktop light, desktop dark, and mobile-390 dark for each of the 12 matrix routes. The exact same screenshot buffers are also compared against 36 committed Darwin Playwright baselines with `maxDiffPixelRatio: 0.001` (0.1%). A missing-baseline RED run failed as required, and an arbitrary visual change failed by 20,739 pixels (7%); neither can silently bless a new image.
+The automated run saves 36 documentation references in [`assets/forest-cafe/`](./assets/forest-cafe/): desktop light, desktop dark, and mobile-390 dark for each of the 12 matrix routes. The exact same screenshot buffers are also compared against 36 committed Darwin Playwright baselines with `maxDiffPixelRatio: 0.001` (0.1%). Both evidence projects declare the `Asia/Seoul` timezone, and the visual suite fixes `Date` at 2026-07-20 12:00 KST with `page.clock.setFixedTime` before navigation. This keeps dashboard labels and footer years independent of the host timezone and calendar year without intercepting timers. A missing-baseline RED run failed as required, and an arbitrary visual change failed by 20,739 pixels (7%); neither can silently bless a new image.
 
 Stable masking is intentionally limited to:
 
@@ -106,7 +106,7 @@ Stable masking is intentionally limited to:
 - Snake: `canvas`, because the requirement explicitly excludes pixel-identity checks for canvas games;
 - anonymous chat: only `.chat-container [role="status"] > *` and `.chat-container [role="log"] > *`, whose child content is nondeterministic.
 
-The dashboard has no route-specific mask: its API response and seven-day history are seeded deterministically, leaving the complete rate cards, refresh controls, and sparklines visible. The chat container, status/log geometry, surrounding page shell, headings, navigation, controls, theme, spacing, and responsive layout remain unmasked and asserted. The visual matrix suppresses the delayed bookmark prompt through its documented session state; the separate clock-controlled accessibility test covers the prompt's visible hydrated state.
+The dashboard has no route-specific mask: its API response and seven absolute UTC history days are seeded deterministically, leaving the complete rate cards, refresh controls, and sparklines visible. The chat container, status/log geometry, surrounding page shell, headings, navigation, controls, theme, spacing, and responsive layout remain unmasked and asserted. The visual matrix suppresses the delayed bookmark prompt through its documented session state; the separate clock-controlled accessibility test covers the prompt's visible hydrated state.
 
 ## Scope
 
