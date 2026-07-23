@@ -1,5 +1,6 @@
 import { useState, useMemo } from 'react';
 import { useTranslation } from '../../i18n/useTranslation';
+import { ToolPanel } from './ui/ToolPanel';
 
 interface JwtParts {
   header: Record<string, unknown> | null;
@@ -100,7 +101,7 @@ export default function JwtDecoder() {
   };
 
   return (
-    <div className="flex flex-col gap-6">
+    <ToolPanel className="gap-6">
       {/* Input */}
       <div className="space-y-2">
         <div className="flex justify-between items-center">
@@ -237,6 +238,6 @@ export default function JwtDecoder() {
           <span><code>iat</code> - Issued At</span>
         </div>
       </div>
-    </div>
+    </ToolPanel>
   );
 }

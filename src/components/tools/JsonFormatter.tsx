@@ -1,5 +1,6 @@
 import { useState, useCallback } from 'react';
 import { useTranslation } from '../../i18n/useTranslation';
+import { ToolPanel } from './ui/ToolPanel';
 
 export default function JsonFormatter() {
   const { t, translations } = useTranslation();
@@ -84,7 +85,7 @@ export default function JsonFormatter() {
   };
 
   return (
-    <div className="flex flex-col gap-6">
+    <ToolPanel className="gap-6">
       {/* Actions */}
       <div className="flex flex-wrap gap-2">
         <button
@@ -217,6 +218,6 @@ export default function JsonFormatter() {
           />
         </div>
       </div>
-    </div>
+    </ToolPanel>
   );
 }

@@ -1,5 +1,6 @@
 import { useState, useMemo } from 'react';
 import { useTranslation } from '../../i18n/useTranslation';
+import { ToolPanel } from './ui/ToolPanel';
 
 interface CronParts {
   minute: string;
@@ -149,7 +150,7 @@ export default function CronGenerator() {
   };
 
   return (
-    <div className="flex flex-col gap-6">
+    <ToolPanel className="gap-6">
       {/* Result */}
       <div className="p-6 rounded-xl bg-[var(--color-card)] border border-[var(--color-border)]">
         <div className="flex items-center justify-between mb-4">
@@ -289,6 +290,6 @@ export default function CronGenerator() {
           <p><code>/</code> - {t({ ko: '간격 (*/5 = 5마다)', en: 'step (*/5 = every 5)', ja: '間隔 (*/5 = 5ごと)' })}</p>
         </div>
       </div>
-    </div>
+    </ToolPanel>
   );
 }

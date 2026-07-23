@@ -1,5 +1,6 @@
 import { useState, useMemo } from 'react';
 import { useTranslation } from '../../i18n/useTranslation';
+import { ToolPanel } from './ui/ToolPanel';
 
 // Simple markdown parser
 function parseMarkdown(md: string): string {
@@ -129,7 +130,7 @@ export default function MarkdownPreview() {
   };
 
   return (
-    <div className="flex flex-col gap-6">
+    <ToolPanel className="gap-6">
       {/* Editor and Preview Grid */}
       <div className="grid min-w-0 md:grid-cols-2 gap-4">
         {/* Editor */}
@@ -196,6 +197,6 @@ export default function MarkdownPreview() {
           <span>&gt; quote</span>
         </div>
       </div>
-    </div>
+    </ToolPanel>
   );
 }

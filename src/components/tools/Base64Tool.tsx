@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useTranslation } from '../../i18n/useTranslation';
+import { ToolPanel } from './ui/ToolPanel';
 
 type Mode = 'encode' | 'decode';
 
@@ -78,7 +79,7 @@ export default function Base64Tool() {
   };
 
   return (
-    <div className="flex flex-col gap-6">
+    <ToolPanel className="gap-6">
       {/* Mode Toggle */}
       <div className="flex rounded-lg overflow-hidden border border-[var(--color-border)]">
         <button
@@ -180,6 +181,6 @@ export default function Base64Tool() {
           ja: 'Base64はバイナリデータをテキストにエンコードする方式です',
         })}
       </p>
-    </div>
+    </ToolPanel>
   );
 }

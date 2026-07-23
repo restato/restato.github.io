@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useTranslation } from '../../i18n/useTranslation';
+import { ToolPanel } from './ui/ToolPanel';
 
 // Korean keyboard mapping
 const engToKor: Record<string, string> = {
@@ -204,7 +205,7 @@ export default function KorEngConverter() {
   };
 
   return (
-    <div className="flex flex-col gap-6">
+    <ToolPanel className="gap-6">
       {/* Mode Toggle */}
       <div className="flex gap-2">
         <button
@@ -321,6 +322,6 @@ export default function KorEngConverter() {
           )}
         </div>
       </div>
-    </div>
+    </ToolPanel>
   );
 }

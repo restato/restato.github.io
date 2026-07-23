@@ -10,11 +10,15 @@ describe('JsonFormatter', () => {
   });
 
   it('renders format, minify and validate buttons', () => {
-    render(<JsonFormatter />);
+    const { container } = render(<JsonFormatter />);
 
     expect(screen.getByText('포매팅')).toBeInTheDocument();
     expect(screen.getByText('압축')).toBeInTheDocument();
     expect(screen.getByText('검증')).toBeInTheDocument();
+    expect(container.firstElementChild).toHaveClass('fc-tool-panel');
+    expect(screen.getByRole('button', { name: '포매팅' })).toHaveClass('fc-button', 'fc-button-primary');
+    expect(screen.getByRole('button', { name: '압축' })).toHaveClass('fc-button', 'fc-button-secondary');
+    expect(screen.getByPlaceholderText('JSON을 입력하세요')).toHaveClass('fc-textarea');
   });
 
   it('formats valid JSON correctly', async () => {

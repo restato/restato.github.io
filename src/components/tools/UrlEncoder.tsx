@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useTranslation } from '../../i18n/useTranslation';
+import { ToolPanel } from './ui/ToolPanel';
 
 type Mode = 'encode' | 'decode';
 
@@ -79,7 +80,7 @@ export default function UrlEncoder() {
   ];
 
   return (
-    <div className="flex flex-col gap-6">
+    <ToolPanel className="gap-6">
       {/* Mode Toggle */}
       <div className="flex rounded-lg overflow-hidden border border-[var(--color-border)]">
         <button
@@ -226,6 +227,6 @@ export default function UrlEncoder() {
           <p><code className="bg-[var(--color-bg)] px-1 rounded">encodeURI</code>: {t({ ko: 'URL 구조 문자 유지 (: / ? # 등)', en: 'Keeps URL structure chars (: / ? # etc)', ja: 'URL構造文字を維持（: / ? #など）' })}</p>
         </div>
       </div>
-    </div>
+    </ToolPanel>
   );
 }

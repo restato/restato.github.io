@@ -71,6 +71,15 @@ describe('shared tool interface primitives', () => {
     fireEvent.keyDown(dropZone, { key: ' ' });
     expect(onActivate).toHaveBeenCalledTimes(2);
   });
+
+  it('styles controls inside fragments without passing DOM props to the fragment', () => {
+    const consoleError = vi.spyOn(console, 'error').mockImplementation(() => {});
+    render(<ToolPanel><><button>Run</button></></ToolPanel>);
+
+    expect(screen.getByRole('button', { name: 'Run' })).toHaveClass('fc-button');
+    expect(consoleError).not.toHaveBeenCalled();
+    consoleError.mockRestore();
+  });
 });
 
 describe('tool detail route shell', () => {
@@ -110,5 +119,32 @@ describe('tool detail route shell', () => {
     expect(legacyLayout).toContain('<BookmarkPrompt client:idle');
     expect(legacyLayout).toContain("const STORAGE_KEY = 'restato_recent_tools'");
     expect(legacyLayout).toContain('window.location.replace(newPath)');
+  });
+});
+
+describe('text and developer tool family', () => {
+  const files = [
+    'JsonFormatter',
+    'Base64Tool',
+    'HashGenerator',
+    'RegexTester',
+    'UrlEncoder',
+    'UtmBuilder',
+    'JwtDecoder',
+    'UuidGenerator',
+    'CronGenerator',
+    'MarkdownPreview',
+    'TextCounter',
+    'LoremIpsumGenerator',
+    'KorEngConverter',
+    'PasswordGenerator',
+    'DiffTool',
+  ];
+
+  it.each(files)('%s delegates native control styling to the shared panel', (file) => {
+    const source = readFileSync(resolve(`src/components/tools/${file}.tsx`), 'utf8');
+    expect(source).toContain("import { ToolPanel } from './ui/ToolPanel'");
+    expect(source).toContain('<ToolPanel');
+    expect(source).toContain('</ToolPanel>');
   });
 });

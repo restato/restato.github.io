@@ -1,5 +1,6 @@
 import { useState, useMemo } from 'react';
 import { useTranslation } from '../../i18n/useTranslation';
+import { ToolPanel } from './ui/ToolPanel';
 
 interface Match {
   text: string;
@@ -105,7 +106,7 @@ export default function RegexTester() {
   ];
 
   return (
-    <div className="flex flex-col gap-6">
+    <ToolPanel className="gap-6">
       {/* Pattern Input */}
       <div className="space-y-2">
         <label className="block text-sm font-medium text-[var(--color-text)]">
@@ -251,6 +252,6 @@ export default function RegexTester() {
           <span className="text-[var(--color-text-muted)]">{t(tt.noMatch)}</span>
         </div>
       )}
-    </div>
+    </ToolPanel>
   );
 }

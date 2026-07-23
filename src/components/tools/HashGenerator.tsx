@@ -1,5 +1,6 @@
 import { useState, useCallback, useRef } from 'react';
 import { useTranslation } from '../../i18n/useTranslation';
+import { ToolPanel } from './ui/ToolPanel';
 
 type Algorithm = 'SHA-1' | 'SHA-256' | 'SHA-384' | 'SHA-512';
 
@@ -228,7 +229,7 @@ export default function HashGenerator() {
   };
 
   return (
-    <div className="flex flex-col gap-6">
+    <ToolPanel className="gap-6">
       {/* Input */}
       <div className="space-y-2">
         <label className="block text-sm font-medium text-[var(--color-text)]">
@@ -282,6 +283,6 @@ export default function HashGenerator() {
           })}
         </p>
       </div>
-    </div>
+    </ToolPanel>
   );
 }

@@ -1,5 +1,6 @@
 import { useState, useCallback } from 'react';
 import { useTranslation } from '../../i18n/useTranslation';
+import { ToolPanel } from './ui/ToolPanel';
 
 const LOREM_WORDS = [
   'lorem', 'ipsum', 'dolor', 'sit', 'amet', 'consectetur', 'adipiscing', 'elit',
@@ -125,7 +126,7 @@ export default function LoremIpsumGenerator() {
   ];
 
   return (
-    <div className="flex flex-col gap-6">
+    <ToolPanel className="gap-6">
       {/* Type Selection */}
       <div className="flex rounded-lg overflow-hidden border border-[var(--color-border)]">
         {typeOptions.map(({ value, label }) => (
@@ -217,6 +218,6 @@ export default function LoremIpsumGenerator() {
           ja: 'Lorem Ipsumは印刷および組版業界で使用されるダミーテキストです。',
         })}
       </p>
-    </div>
+    </ToolPanel>
   );
 }

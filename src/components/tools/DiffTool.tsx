@@ -1,5 +1,6 @@
 import { useState, useMemo } from 'react';
 import { useTranslation } from '../../i18n/useTranslation';
+import { ToolPanel } from './ui/ToolPanel';
 
 interface DiffLine {
   type: 'same' | 'add' | 'remove' | 'modify';
@@ -134,7 +135,7 @@ const name = "Universe";`);
   };
 
   return (
-    <div className="flex flex-col gap-6">
+    <ToolPanel className="gap-6">
       {/* Actions */}
       <div className="flex flex-wrap gap-2 items-center">
         <button
@@ -304,6 +305,6 @@ const name = "Universe";`);
           })}
         </p>
       </div>
-    </div>
+    </ToolPanel>
   );
 }

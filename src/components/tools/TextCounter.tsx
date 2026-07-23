@@ -1,5 +1,6 @@
 import { useState, useMemo } from 'react';
 import { useTranslation } from '../../i18n/useTranslation';
+import { ToolPanel } from './ui/ToolPanel';
 
 interface TextStats {
   characters: number;
@@ -55,7 +56,7 @@ export default function TextCounter() {
   ];
 
   return (
-    <div className="flex flex-col gap-6">
+    <ToolPanel className="gap-6">
       {/* Stats Grid */}
       <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
         {statItems.map(({ key, label, value, color }) => (
@@ -120,6 +121,6 @@ export default function TextCounter() {
           </p>
         </div>
       )}
-    </div>
+    </ToolPanel>
   );
 }
