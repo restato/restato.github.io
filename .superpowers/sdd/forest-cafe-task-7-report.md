@@ -87,3 +87,74 @@ Result: exit 0 with no whitespace errors.
 - `0f6eb9e` — `feat: restyle legacy game controls`
 - `2def913` — `feat: unify localized game controls`
 - `7081c32` — `fix: keep roulette canvas mobile safe`
+
+## Review remediation — 2026-07-23
+
+Commit `d425b9a` replaces the original source-token contract with a TypeScript-AST structural audit that evaluates every scoped `button`, `input`, and `textarea` element independently. It reports the component path and JSX line for each violation. Rendered Testing Library coverage now exercises accessible names, selected states, Korean/Japanese composition, live results, dynamic mole labels, keyboard flag mode, and fullscreen-region behavior.
+
+### Remediation RED
+
+```sh
+npm test -- --run src/components/games/__tests__/game-theme-contract.test.ts src/components/games/__tests__/game-accessibility.test.tsx
+```
+
+Result before remediation: 17 expected failures and 1 passing baseline assertion. The failures individually identified:
+
+- Eight raw native controls without a shared control or game-cell primitive.
+- Eight placeholder-only inputs/textareas without accessible labels.
+- Eight visual selectors without `aria-pressed`.
+- Nested `<main>` landmarks from `PageShell`.
+- Two remaining `transition-all` declarations.
+- Missing narrow-board containment for Minesweeper.
+- Missing IME guards, live announcements, dynamic mole labels, keyboard flagging, and correct fullscreen semantics.
+
+### Remediation changes
+
+- `PageShell` is now a neutral `div`; `MainLayout` remains the sole main landmark.
+- The shared `fc-game-cell` primitive gives board controls consistent border, state, focus, disabled, and touch behavior.
+- All scoped native controls pass an element-level primitive audit; all scoped inputs and textareas have associated accessible names.
+- Difficulty, language, mode, and catalog selectors expose `aria-pressed`.
+- Ladder, Team Randomizer, and legacy Roulette ignore Enter while IME composition is active.
+- Reaction Test, Slot Machine, Minesweeper, Tic-Tac-Toe, Team Randomizer, and Whack-a-Mole expose appropriate status/live semantics for their dynamic results.
+- Minesweeper retains right-click flagging and adds a keyboard/touch flag mode with `aria-pressed` and per-cell accessible state.
+- Event Roulette fullscreen is an accessible named region, not a modal dialog claim; Escape and the visible exit control remain available.
+- 2048, Tic-Tac-Toe, legacy Roulette, and Slot Machine use fluid boards. Hard Minesweeper uses intentional internal horizontal scrolling without page overflow.
+- Remaining `transition-all` declarations were removed from 2048 and Tic-Tac-Toe.
+
+The earlier statement that Event Roulette “exposes dialog semantics” is superseded by the named fullscreen-region behavior above.
+
+### Remediation GREEN
+
+Focused suite:
+
+```sh
+npm test -- --run src/components/games src/data/__tests__/games.test.ts src/data/__tests__/games-locales.test.ts
+```
+
+Result: 5 test files passed, 25 tests passed.
+
+Built-page browser contract:
+
+```sh
+npx playwright test tests/e2e/games.spec.ts --project=desktop
+```
+
+Result: 2 tests passed. All migrated routes render exactly one `main`; 2048, Tic-Tac-Toe, hard Minesweeper, legacy Roulette, and Slot Machine have no document overflow at 320px or 390px.
+
+Repository check:
+
+```sh
+npm run check
+```
+
+Result: 383 files checked, 0 errors, 0 warnings, 81 existing hints.
+
+Production build:
+
+```sh
+npm run build
+```
+
+Result: exit 0; 1,269 pages built and split sitemap generation completed.
+
+The first browser run also observed React hydration mismatch messages on routes whose initial game state is randomized. This is the inherited random-hydration risk called out in the review; the accessibility/mobile migration did not add random initialization, so it was recorded without broadening this task.
