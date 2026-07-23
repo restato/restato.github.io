@@ -2,6 +2,7 @@ import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { beforeEach, describe, expect, it } from 'vitest';
 
+import { getTool } from '../../../data/tools';
 import RecentTools, { trackToolVisit } from '../RecentTools';
 import ToolSearch from '../ToolSearch';
 import ToolsPageHeader from '../ToolsPageHeader';
@@ -20,8 +21,8 @@ describe('localized catalog links', () => {
   it('search links directly to the localized anonymous-chat special route', async () => {
     render(<ToolSearch lang="fr" tools={tools} />);
 
-    await userEvent.type(screen.getByRole('searchbox'), 'anonymous');
-    expect(screen.getByRole('link', { name: /Anonymous Chat/ }))
+    await userEvent.type(screen.getByRole('combobox'), 'anonymous');
+    expect(screen.getByRole('option', { name: /Anonymous Chat/ }))
       .toHaveAttribute('href', '/fr/anonymous-chat/');
     expect(screen.getByPlaceholderText('Rechercher un outil… (⌘K)')).toBeInTheDocument();
   });
@@ -33,6 +34,17 @@ describe('localized catalog links', () => {
     expect(screen.getByRole('link', { name: /Anonymous Chat/ }))
       .toHaveAttribute('href', '/zh-TW/anonymous-chat/');
     expect(screen.getByRole('heading', { name: '最近使用' })).toBeInTheDocument();
+    expect(screen.getByText(getTool('anonymous-chat')!.content['zh-TW']!.description))
+      .toHaveClass('truncate', 'text-[var(--text-primary)]');
+  });
+
+  it('keeps an unknown stale recent-tool entry usable', () => {
+    trackToolVisit('removed-tool', 'Removed Tool', '⌛');
+    render(<RecentTools lang="en" />);
+
+    expect(screen.getByRole('link', { name: /Removed Tool/ }))
+      .toHaveAttribute('href', '/en/tools/removed-tool/');
+    expect(screen.queryByText(/undefined/)).not.toBeInTheDocument();
   });
 
   it('renders the hub header in the requested language during SSR', () => {
@@ -46,7 +58,8 @@ describe('localized catalog links', () => {
     render(<ToolsPageInfo lang="fr" />);
 
     expect(screen.getByRole('heading', { name: 'ℹ️ Informations sur les outils' })).toBeInTheDocument();
-    expect(screen.getByText(/Fonctionne sur mobile et ordinateur/)).toBeInTheDocument();
+    expect(screen.getByText(/Fonctionne sur mobile et ordinateur/).closest('ul'))
+      .toHaveClass('text-[var(--text-primary)]');
     expect(screen.queryByText('ℹ️ 정보')).not.toBeInTheDocument();
   });
 

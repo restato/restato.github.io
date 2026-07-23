@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { getTool } from '../../data/tools';
 import type { Language } from '../../data/tools/types';
 import { getLocalizedToolHref } from './toolLinks';
 import { catalogUi } from '../../i18n/tool-ui';
@@ -60,6 +61,11 @@ export default function RecentTools({ className = '', lang = 'en' }: RecentTools
 
   if (tools.length === 0) return null;
   const heading = catalogUi[lang].recent;
+  const toolsWithDescriptions = tools.map(tool => {
+    const definition = getTool(tool.slug);
+    const content = definition?.content[lang] ?? definition?.content.en ?? definition?.content.ko;
+    return { ...tool, description: content?.description };
+  });
 
   return (
     <section className={className} aria-labelledby="recent-tools-heading">
@@ -73,15 +79,22 @@ export default function RecentTools({ className = '', lang = 'en' }: RecentTools
       </h2>
       <div className="fc-surface overflow-hidden">
         <ul className="m-0 grid list-none p-0 sm:grid-cols-2 lg:grid-cols-3">
-          {tools.map((tool) => (
+          {toolsWithDescriptions.map((tool) => (
             <li key={tool.slug} className="border-b border-[var(--border-subtle)] sm:border-r">
               <a
                 href={getLocalizedToolHref(tool.slug, lang)}
-                className="group flex min-h-14 items-center gap-3 px-4 py-3 text-sm transition-colors hover:bg-[var(--surface-soft)]"
+                className="group flex min-h-20 items-center gap-3 px-4 py-3 text-sm transition-colors hover:bg-[var(--surface-soft)]"
               >
                 <span className="w-8 shrink-0 text-center" aria-hidden="true">{tool.icon}</span>
-                <span className="min-w-0 flex-1 truncate font-bold text-[var(--text-primary)] group-hover:text-[var(--brand)]">
-                  {tool.title}
+                <span className="min-w-0 flex-1">
+                  <strong className="block truncate text-[var(--text-primary)] group-hover:text-[var(--brand)]">
+                    {tool.title}
+                  </strong>
+                  {tool.description && (
+                    <span className="mt-0.5 block truncate text-sm text-[var(--text-primary)]">
+                      {tool.description}
+                    </span>
+                  )}
                 </span>
                 <span className="text-[var(--text-muted)]" aria-hidden="true">→</span>
               </a>

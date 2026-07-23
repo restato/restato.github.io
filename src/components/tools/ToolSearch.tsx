@@ -63,9 +63,9 @@ export default function ToolSearch({ lang = 'en', tools = defaultTools }: ToolSe
   const resultsId = `${inputId}-results`;
   const [query, setQuery] = useState('');
   const [isOpen, setIsOpen] = useState(false);
-  const [selectedIndex, setSelectedIndex] = useState(0);
+  const [activeIndex, setActiveIndex] = useState(-1);
   const inputRef = useRef<HTMLInputElement>(null);
-  const listRef = useRef<HTMLDivElement>(null);
+  const closeTimeoutRef = useRef<number | null>(null);
 
   const filteredTools = useMemo(() => {
     if (!query.trim()) return [];
@@ -78,8 +78,26 @@ export default function ToolSearch({ lang = 'en', tools = defaultTools }: ToolSe
     ).slice(0, 8);
   }, [query, tools]);
 
+  const cancelPendingClose = () => {
+    if (closeTimeoutRef.current !== null) {
+      window.clearTimeout(closeTimeoutRef.current);
+      closeTimeoutRef.current = null;
+    }
+  };
+
+  const closeResults = () => {
+    cancelPendingClose();
+    setIsOpen(false);
+    setActiveIndex(-1);
+  };
+
+  const optionId = (index: number) => `${resultsId}-option-${index}`;
+  const hasQuery = Boolean(query);
+  const isExpanded = isOpen && hasQuery && filteredTools.length > 0;
+  const showEmptyResults = isOpen && hasQuery && filteredTools.length === 0;
+
   useEffect(() => {
-    setSelectedIndex(0);
+    setActiveIndex(-1);
   }, [filteredTools]);
 
   useEffect(() => {
@@ -87,37 +105,45 @@ export default function ToolSearch({ lang = 'en', tools = defaultTools }: ToolSe
       // Cmd/Ctrl + K to focus search
       if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
         e.preventDefault();
+        cancelPendingClose();
         inputRef.current?.focus();
         setIsOpen(true);
-      }
-
-      // Escape to close
-      if (e.key === 'Escape') {
-        setIsOpen(false);
-        inputRef.current?.blur();
       }
     };
 
     window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+      cancelPendingClose();
+    };
   }, []);
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (!isOpen || filteredTools.length === 0) return;
+    if (e.key === 'Escape') {
+      e.preventDefault();
+      closeResults();
+      return;
+    }
+
+    if (filteredTools.length === 0) return;
 
     switch (e.key) {
       case 'ArrowDown':
         e.preventDefault();
-        setSelectedIndex(i => Math.min(i + 1, filteredTools.length - 1));
+        setIsOpen(true);
+        setActiveIndex(i => i >= filteredTools.length - 1 ? 0 : i + 1);
         break;
       case 'ArrowUp':
         e.preventDefault();
-        setSelectedIndex(i => Math.max(i - 1, 0));
+        setIsOpen(true);
+        setActiveIndex(i => i <= 0 ? filteredTools.length - 1 : i - 1);
         break;
       case 'Enter':
-        e.preventDefault();
-        if (filteredTools[selectedIndex]) {
-          window.location.href = getLocalizedToolHref(filteredTools[selectedIndex].slug, lang);
+        if (isOpen && activeIndex >= 0 && filteredTools[activeIndex]) {
+          e.preventDefault();
+          const activeOptionId = optionId(activeIndex);
+          closeResults();
+          document.getElementById(activeOptionId)?.click();
         }
         break;
     }
@@ -131,7 +157,7 @@ export default function ToolSearch({ lang = 'en', tools = defaultTools }: ToolSe
       >
         <span>{visibleLabel}</span>
         <kbd className="fc-chip hidden font-mono text-xs md:inline-flex" aria-hidden="true">
-          ⌘K
+          ⌘/Ctrl K
         </kbd>
       </label>
       <div className="relative">
@@ -149,13 +175,36 @@ export default function ToolSearch({ lang = 'en', tools = defaultTools }: ToolSe
           ref={inputRef}
           type="search"
           value={query}
-          onChange={(e) => setQuery(e.target.value)}
-          onFocus={() => setIsOpen(true)}
-          onBlur={() => setTimeout(() => setIsOpen(false), 200)}
+          onChange={(e) => {
+            cancelPendingClose();
+            setQuery(e.target.value);
+            setIsOpen(true);
+            setActiveIndex(-1);
+          }}
+          onFocus={() => {
+            cancelPendingClose();
+            setIsOpen(true);
+          }}
+          onBlur={() => {
+            cancelPendingClose();
+            closeTimeoutRef.current = window.setTimeout(() => {
+              setIsOpen(false);
+              setActiveIndex(-1);
+              closeTimeoutRef.current = null;
+            }, 200);
+          }}
           onKeyDown={handleKeyDown}
           placeholder={ui.placeholder}
           aria-label={ui.placeholder}
-          aria-controls={resultsId}
+          role="combobox"
+          aria-autocomplete="list"
+          aria-expanded={isExpanded}
+          aria-controls={isExpanded ? resultsId : undefined}
+          aria-activedescendant={
+            isExpanded && activeIndex >= 0 && filteredTools[activeIndex]
+              ? optionId(activeIndex)
+              : undefined
+          }
           className="fc-input min-h-14 pl-12 pr-14 text-lg"
         />
         {query && (
@@ -164,8 +213,10 @@ export default function ToolSearch({ lang = 'en', tools = defaultTools }: ToolSe
             aria-label={clearLabel}
             className="fc-button fc-button-quiet absolute right-1 top-1/2 min-h-11 -translate-y-1/2 px-3 text-[var(--text-muted)]"
             onClick={() => {
+              cancelPendingClose();
               setQuery('');
-              setSelectedIndex(0);
+              setActiveIndex(-1);
+              setIsOpen(true);
               inputRef.current?.focus();
             }}
           >
@@ -180,27 +231,33 @@ export default function ToolSearch({ lang = 'en', tools = defaultTools }: ToolSe
         </span>
       )}
 
-      {isOpen && filteredTools.length > 0 && (
+      {isExpanded && (
         <div
           id={resultsId}
-          ref={listRef}
           className="fc-surface absolute z-50 mt-2 max-h-96 w-full overflow-auto py-2"
+          role="listbox"
         >
           {filteredTools.map((tool, index) => (
             <a
               key={tool.slug}
+              id={optionId(index)}
               href={getLocalizedToolHref(tool.slug, lang)}
+              role="option"
+              aria-selected={index === activeIndex}
+              tabIndex={-1}
               className={`flex items-center gap-3 px-4 py-3 transition-colors
-                ${index === selectedIndex
+                ${index === activeIndex
                   ? 'bg-[var(--surface-soft)] text-[var(--brand)]'
                   : 'hover:bg-[var(--surface-soft)]'
                 }`}
-              onMouseEnter={() => setSelectedIndex(index)}
+              onMouseDown={(event) => event.preventDefault()}
+              onMouseEnter={() => setActiveIndex(index)}
+              onClick={closeResults}
             >
               <span className="w-9 shrink-0 text-center text-xl" aria-hidden="true">{tool.icon}</span>
               <div className="flex-1 min-w-0">
                 <div className="font-bold text-[var(--text-primary)]">{tool.title}</div>
-                <div className="truncate text-sm text-[var(--text-muted)]">
+                <div className="truncate text-sm text-[var(--text-primary)]">
                   {tool.description}
                 </div>
               </div>
@@ -210,13 +267,10 @@ export default function ToolSearch({ lang = 'en', tools = defaultTools }: ToolSe
         </div>
       )}
 
-      {isOpen && query && filteredTools.length === 0 && (
-        <div
-          id={resultsId}
-          className="fc-surface absolute z-50 mt-2 w-full px-5 py-8 text-center text-[var(--text-muted)]"
-        >
+      {showEmptyResults && (
+        <div className="fc-surface absolute z-50 mt-2 w-full px-5 py-6 text-center text-[var(--text-primary)]">
           <p>{ui.noResults}</p>
-          <p className="text-sm mt-1">{ui.tryAnother}</p>
+          <p className="mt-1 text-sm">{ui.tryAnother}</p>
         </div>
       )}
     </div>
