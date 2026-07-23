@@ -140,8 +140,15 @@ describe('dynamic game semantics', () => {
   it('preserves pre-game keyboard flags without sacrificing first-reveal safety', async () => {
     const user = userEvent.setup();
     const random = vi.spyOn(Math, 'random');
-    let randomIndex = 0;
-    random.mockImplementation(() => ((randomIndex++ * 17) % 64) / 64);
+    let randomCall = 0;
+    random.mockImplementation(() => {
+      const cellIndex = Math.floor(randomCall / 2) % 64;
+      const coordinate = randomCall % 2 === 0
+        ? Math.floor(cellIndex / 8)
+        : cellIndex % 8;
+      randomCall++;
+      return (coordinate + 0.5) / 8;
+    });
     render(<Minesweeper />);
 
     const flagMode = screen.getByRole('button', { name: '깃발 모드' });
