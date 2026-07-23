@@ -247,7 +247,7 @@ export default function SnakeGame() {
         {!isPlaying && (
           <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/70 rounded-xl">
             {gameOver && (
-              <div className="text-3xl mb-4">
+              <div className="text-3xl mb-4" role="status" aria-live="assertive">
                 {t({ ko: '게임 오버!', en: 'Game Over!', ja: 'ゲームオーバー!' })}
               </div>
             )}

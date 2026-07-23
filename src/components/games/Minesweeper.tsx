@@ -35,22 +35,25 @@ export default function Minesweeper() {
 
   const config = DIFFICULTIES[difficulty];
 
-  // Initialize board
-  const initBoard = useCallback((excludeRow?: number, excludeCol?: number) => {
-    const { rows, cols, mines } = config;
-
-    // Create empty board
-    const newBoard: Cell[][] = Array(rows)
+  const createEmptyBoard = useCallback((): Cell[][] => (
+    Array(config.rows)
       .fill(null)
       .map(() =>
-        Array(cols)
+        Array(config.cols)
           .fill(null)
           .map(() => ({
             isMine: false,
             state: 'hidden' as CellState,
             adjacentMines: 0,
           }))
-      );
+      )
+  ), [config]);
+
+  // Initialize board
+  const initBoard = useCallback((excludeRow?: number, excludeCol?: number, pregameBoard?: Cell[][]) => {
+    const { rows, cols, mines } = config;
+
+    const newBoard = createEmptyBoard();
 
     // Place mines randomly
     let minesPlaced = 0;
@@ -87,8 +90,16 @@ export default function Minesweeper() {
       }
     }
 
+    pregameBoard?.forEach((row, rowIndex) => {
+      row.forEach((cell, colIndex) => {
+        if (cell.state === 'flagged') {
+          newBoard[rowIndex][colIndex].state = 'flagged';
+        }
+      });
+    });
+
     return newBoard;
-  }, [config]);
+  }, [config, createEmptyBoard]);
 
   // Reveal cell
   const revealCell = useCallback((board: Cell[][], row: number, col: number): Cell[][] => {
@@ -128,10 +139,7 @@ export default function Minesweeper() {
     let currentBoard = board;
 
     if (flagMode) {
-      if (!started) {
-        currentBoard = initBoard();
-        setStarted(true);
-      }
+      if (!currentBoard.length) currentBoard = createEmptyBoard();
       if (currentBoard[row][col].state === 'revealed') return;
 
       const newBoard = currentBoard.map(r => r.map(c => ({ ...c })));
@@ -147,11 +155,11 @@ export default function Minesweeper() {
       return;
     }
 
-    if (board[row]?.[col]?.state !== 'hidden') return;
+    if (board[row]?.[col]?.state === 'flagged' || (started && board[row]?.[col]?.state !== 'hidden')) return;
 
     // First click - initialize board
     if (!started) {
-      currentBoard = initBoard(row, col);
+      currentBoard = initBoard(row, col, board);
       setStarted(true);
     }
 
@@ -181,10 +189,12 @@ export default function Minesweeper() {
   // Handle right click (flag)
   const handleRightClick = (e: React.MouseEvent, row: number, col: number) => {
     e.preventDefault();
-    if (gameOver || won || !started) return;
-    if (board[row][col].state === 'revealed') return;
+    if (gameOver || won) return;
 
-    const newBoard = board.map(r => r.map(c => ({ ...c })));
+    const currentBoard = board.length ? board : createEmptyBoard();
+    if (currentBoard[row][col].state === 'revealed') return;
+
+    const newBoard = currentBoard.map(r => r.map(c => ({ ...c })));
     const cell = newBoard[row][col];
 
     if (cell.state === 'hidden') {
@@ -246,6 +256,8 @@ export default function Minesweeper() {
     return `${position} ${cell.adjacentMines}`;
   };
 
+  const displayBoard = board.length ? board : createEmptyBoard();
+
   return (
     <div className="fc-game mx-auto flex w-full max-w-lg flex-col items-center px-0 lg:max-w-2xl">
       {/* Difficulty */}
@@ -297,7 +309,7 @@ export default function Minesweeper() {
             gridTemplateColumns: `repeat(${config.cols}, minmax(0, 1fr))`,
           }}
         >
-        {(started ? board : Array(config.rows).fill(Array(config.cols).fill({ state: 'hidden', isMine: false, adjacentMines: 0 }))).map((row, i) =>
+        {displayBoard.map((row, i) =>
           row.map((cell: Cell, j: number) => (
             <button
               type="button"

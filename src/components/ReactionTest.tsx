@@ -122,7 +122,7 @@ export default function ReactionTest() {
         {state === 'result' && rank && (
           <div className="text-6xl mb-4 animate-bounce">{rank.emoji}</div>
         )}
-        <div role="status" aria-live="assertive">
+        <div>
           <div className="text-4xl md:text-5xl font-bold mb-2">{stateText.main}</div>
           <div className="text-lg opacity-90">{stateText.sub}</div>
         </div>
@@ -132,6 +132,9 @@ export default function ReactionTest() {
           </div>
         )}
       </button>
+      <div className="sr-only" role="status" aria-live="assertive">
+        {stateText.main} {stateText.sub}
+      </div>
 
       {/* 통계 */}
       <div className="mt-8 grid grid-cols-3 gap-4">

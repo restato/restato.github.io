@@ -305,14 +305,14 @@ export default function DinoRunner() {
         {!isPlaying && (
           <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/50 rounded-xl">
             {gameOver && (
-              <>
+              <div role="status" aria-live="assertive" className="text-center">
                 <div className="text-2xl font-bold text-white mb-2">
                   {t({ ko: '게임 오버!', en: 'Game Over!', ja: 'ゲームオーバー!' })}
                 </div>
                 <div className="text-lg text-white/80 mb-4">
                   {t({ ko: '점수', en: 'Score', ja: 'スコア' })}: {score}
                 </div>
-              </>
+              </div>
             )}
             <div className="text-5xl mb-4">🦖</div>
             <div className="text-white text-lg">

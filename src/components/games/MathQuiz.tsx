@@ -224,6 +224,14 @@ export default function MathQuiz() {
         )}
       </div>
 
+      {feedback && (
+        <div className="sr-only" role="status" aria-live="assertive">
+          {feedback === 'correct'
+            ? t({ ko: '정답!', en: 'Correct!', ja: '正解！' })
+            : t({ ko: '오답!', en: 'Incorrect!', ja: '不正解！' })}
+        </div>
+      )}
+
       {/* Input */}
       {isPlaying && (
         <form onSubmit={handleSubmit} className="w-full mb-6">

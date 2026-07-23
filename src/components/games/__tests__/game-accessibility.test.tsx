@@ -5,6 +5,7 @@ import MemoryGame from '../../MemoryGame';
 import ReactionTest from '../../ReactionTest';
 import Roulette from '../../Roulette';
 import SlotMachine from '../../SlotMachine';
+import ColorMatch from '../ColorMatch';
 import LadderGame from '../LadderGame';
 import MathQuiz from '../MathQuiz';
 import Minesweeper from '../Minesweeper';
@@ -94,7 +95,26 @@ describe('dynamic game semantics', () => {
     fireEvent.click(screen.getByRole('button', { name: /클릭하여 시작/ }));
     act(() => vi.advanceTimersByTime(2000));
 
-    expect(screen.getByRole('status')).toHaveTextContent('지금!');
+    const status = screen.getByRole('status');
+    expect(status).toHaveTextContent('지금!');
+    expect(screen.getByRole('button', { name: /지금!/ })).not.toContainElement(status);
+  });
+
+  it('announces per-answer feedback for math and color games', async () => {
+    vi.spyOn(Math, 'random').mockReturnValue(0);
+    const user = userEvent.setup();
+    const math = render(<MathQuiz />);
+
+    await user.click(screen.getByRole('button', { name: '시작' }));
+    await user.type(screen.getByRole('spinbutton', { name: '정답' }), '2');
+    await user.click(screen.getByRole('button', { name: '확인' }));
+    expect(screen.getByRole('status')).toHaveTextContent('정답');
+    math.unmount();
+
+    render(<ColorMatch />);
+    await user.click(screen.getByRole('button', { name: '시작' }));
+    await user.click(screen.getByRole('button', { name: '빨강' }));
+    expect(screen.getByRole('status')).toHaveTextContent('정답');
   });
 
   it('announces slot-machine outcomes', () => {
@@ -117,8 +137,11 @@ describe('dynamic game semantics', () => {
     expect(screen.getAllByRole('button', { name: /빈 구멍/ })).toHaveLength(8);
   });
 
-  it('supports keyboard flag mode and exposes cell flag state', async () => {
+  it('preserves pre-game keyboard flags without sacrificing first-reveal safety', async () => {
     const user = userEvent.setup();
+    const random = vi.spyOn(Math, 'random');
+    let randomIndex = 0;
+    random.mockImplementation(() => ((randomIndex++ * 17) % 64) / 64);
     render(<Minesweeper />);
 
     const flagMode = screen.getByRole('button', { name: '깃발 모드' });
@@ -126,9 +149,28 @@ describe('dynamic game semantics', () => {
     await user.click(flagMode);
     expect(flagMode).toHaveAttribute('aria-pressed', 'true');
 
-    const firstCell = screen.getAllByRole('button', { name: /행.*열/ })[0];
-    await user.click(firstCell);
-    expect(firstCell).toHaveAccessibleName(/깃발/);
+    const cells = screen.getAllByRole('button', { name: /행.*열/ });
+    const flaggedCell = cells[0];
+    random.mockClear();
+    await user.click(flaggedCell);
+    expect(random).not.toHaveBeenCalled();
+    expect(flaggedCell).toHaveAccessibleName(/깃발/);
+
+    await user.click(flaggedCell);
+    expect(random).not.toHaveBeenCalled();
+    expect(flaggedCell).toHaveAccessibleName(/숨김/);
+    await user.click(flaggedCell);
+    expect(random).not.toHaveBeenCalled();
+    expect(flaggedCell).toHaveAccessibleName(/깃발/);
+
+    await user.click(flagMode);
+    const firstReveal = cells[10];
+    await user.click(firstReveal);
+
+    expect(random).toHaveBeenCalled();
+    expect(flaggedCell).toHaveAccessibleName(/깃발/);
+    expect(firstReveal).not.toHaveAccessibleName(/지뢰/);
+    expect(firstReveal).not.toHaveAccessibleName(/숨김/);
   });
 
   it('uses a named fullscreen region and restores the inline experience on Escape', async () => {

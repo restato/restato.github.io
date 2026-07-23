@@ -287,7 +287,7 @@ export default function Breakout() {
         {!isPlaying && (
           <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/70 rounded-xl">
             {(gameOver || won) && (
-              <>
+              <div role="status" aria-live="assertive" className="text-center">
                 <div className="text-3xl font-bold text-white mb-2">
                   {won
                     ? t({ ko: '승리!', en: 'You Win!', ja: '勝利!' })
@@ -296,7 +296,7 @@ export default function Breakout() {
                 <div className="text-xl text-white/80 mb-4">
                   {t({ ko: '점수', en: 'Score', ja: 'スコア' })}: {score}
                 </div>
-              </>
+              </div>
             )}
             <div className="text-5xl mb-4">🧱</div>
             <button

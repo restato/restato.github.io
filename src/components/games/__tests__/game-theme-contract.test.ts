@@ -115,6 +115,15 @@ describe('Forest Café game structure contract', () => {
     expect(violations).toEqual([]);
   });
 
+  it('sets an explicit type on every native game button', () => {
+    const violations = controls
+      .filter(element => element.tag === 'button')
+      .filter(element => !getAttribute(element, 'type'))
+      .map(element => `${element.file}:${element.line} <button>`);
+
+    expect(violations).toEqual([]);
+  });
+
   it('associates every game input and textarea with a real accessible label', () => {
     const violations = controls
       .filter(element => element.tag === 'input' || element.tag === 'textarea')
@@ -198,6 +207,29 @@ describe('Forest Café game structure contract', () => {
     const violations = Object.entries(expectations).flatMap(([file, pattern]) => (
       pattern.test(readFileSync(file, 'utf8')) ? [] : [file]
     ));
+
+    expect(violations).toEqual([]);
+  });
+
+  it('enumerates every dynamic or terminal status owner', () => {
+    const statusOwners = [
+      'src/components/ReactionTest.tsx',
+      'src/components/games/Breakout.tsx',
+      'src/components/games/DinoRunner.tsx',
+      'src/components/games/FlappyBird.tsx',
+      'src/components/games/SnakeGame.tsx',
+      'src/components/games/MathQuiz.tsx',
+      'src/components/games/ColorMatch.tsx',
+    ];
+
+    const violations = statusOwners.flatMap(file => {
+      const owner = elements.find(element => (
+        element.file === file
+        && /role="status"/.test(attributeSource(element, 'role'))
+        && getAttribute(element, 'aria-live')
+      ));
+      return owner ? [] : [`${file}: missing explicit live status owner`];
+    });
 
     expect(violations).toEqual([]);
   });
