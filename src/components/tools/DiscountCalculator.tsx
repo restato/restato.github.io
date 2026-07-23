@@ -3,6 +3,7 @@ import { useTranslation } from '../../i18n/useTranslation';
 import { ToolActions } from './ui/ToolActions';
 import { ToolField } from './ui/ToolField';
 import { ToolPanel } from './ui/ToolPanel';
+import { ToolResult } from './ui/ToolResult';
 
 export default function DiscountCalculator() {
   const { t, lang } = useTranslation();
@@ -90,7 +91,8 @@ export default function DiscountCalculator() {
 
       {/* Results */}
       {finalPrice && (
-        <div className="space-y-4">
+        <ToolResult status="success">
+          <div className="space-y-4">
           <div className="grid grid-cols-2 gap-4">
             {/* Saved Amount */}
             <div className="p-4 rounded-lg bg-red-500/10 border border-red-500/20">
@@ -130,7 +132,8 @@ export default function DiscountCalculator() {
               <span className="text-green-500 font-bold">{finalPrice} {currency}</span>
             </div>
           </div>
-        </div>
+          </div>
+        </ToolResult>
       )}
 
       {/* Common Discount Scenarios */}

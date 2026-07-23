@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useTranslation } from '../../i18n/useTranslation';
 import { ToolField } from './ui/ToolField';
 import { ToolPanel } from './ui/ToolPanel';
+import { ToolResult } from './ui/ToolResult';
 
 interface AgeResult {
   koreanAge: number;
@@ -199,7 +200,8 @@ export default function AgeCalculator() {
 
       {/* Results */}
       {result && (
-        <div className="space-y-4">
+        <ToolResult status="success">
+          <div className="space-y-4">
           {/* Main Age Display */}
           <div className="grid grid-cols-2 gap-4">
             <div className="p-4 rounded-lg bg-primary-500/10 border border-primary-500/20 text-center">
@@ -259,7 +261,8 @@ export default function AgeCalculator() {
               <p>• ~{(result.totalDays * 24 * 60 * 72).toLocaleString()} {t(tc.heartbeats)}</p>
             </div>
           </div>
-        </div>
+          </div>
+        </ToolResult>
       )}
     </ToolPanel>
   );

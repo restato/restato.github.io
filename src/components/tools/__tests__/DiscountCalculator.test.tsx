@@ -17,7 +17,7 @@ describe('DiscountCalculator', () => {
   });
 
   it('calculates discount price correctly', async () => {
-    render(<DiscountCalculator />);
+    const { container } = render(<DiscountCalculator />);
     const user = userEvent.setup();
 
     const inputs = screen.getAllByRole('spinbutton');
@@ -32,6 +32,7 @@ describe('DiscountCalculator', () => {
 
     // Should show 8000 (10000 - 20%)
     expect(screen.getAllByText(/8,?000|8000/).length).toBeGreaterThan(0);
+    expect(container.querySelector('.fc-tool-result-success')).toHaveAttribute('role', 'status');
   });
 
   it('calculates discount amount correctly', async () => {

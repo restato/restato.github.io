@@ -12,11 +12,12 @@ describe('AgeCalculator local calendar dates', () => {
   afterEach(() => vi.useRealTimers());
 
   it('keeps a date-only birthday on its local zodiac boundary', () => {
-    render(<AgeCalculator />);
+    const { container } = render(<AgeCalculator />);
 
     fireEvent.change(screen.getByLabelText('생년월일'), { target: { value: '2000-03-21' } });
 
     expect(screen.getByText('양자리')).toBeInTheDocument();
+    expect(container.querySelector('.fc-tool-result-success')).toHaveAttribute('role', 'status');
   });
 
   it('does not calculate a future local-calendar birthday', () => {
