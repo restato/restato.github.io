@@ -22,11 +22,11 @@ describe('Forest Café design system', () => {
         '--surface-raised': '#fffaf0',
         '--surface-soft': '#ebe4d7',
         '--text-primary': '#203027',
-        '--text-muted': '#667168',
+        '--text-muted': '#5e6960',
         '--border-subtle': '#d9d1c4',
         '--brand': '#174a35',
         '--brand-hover': '#236345',
-        '--accent': '#a7663b',
+        '--accent': '#935832',
         '--focus': '#2f7658',
       },
       '.dark': {
