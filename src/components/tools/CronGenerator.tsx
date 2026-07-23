@@ -1,5 +1,7 @@
 import { useState, useMemo } from 'react';
 import { useTranslation } from '../../i18n/useTranslation';
+import { ToolActions } from './ui/ToolActions';
+import { ToolField } from './ui/ToolField';
 import { ToolPanel } from './ui/ToolPanel';
 
 interface CronParts {
@@ -155,13 +157,9 @@ export default function CronGenerator() {
       <div className="p-6 rounded-xl bg-[var(--color-card)] border border-[var(--color-border)]">
         <div className="flex items-center justify-between mb-4">
           <span className="text-sm text-[var(--color-text-muted)]">Cron Expression</span>
-          <button
-            onClick={copyToClipboard}
-            className="px-3 py-1 text-sm bg-[var(--color-bg)] hover:bg-[var(--color-card-hover)]
-              border border-[var(--color-border)] rounded transition-colors"
-          >
+          <ToolActions primary={<button onClick={copyToClipboard}>
             {copied ? t({ ko: '복사됨!', en: 'Copied!', ja: 'コピーしました!' }) : t({ ko: '복사', en: 'Copy', ja: 'コピー' })}
-          </button>
+          </button>} />
         </div>
         <code className="block text-3xl font-mono text-center text-primary-500 py-4">
           {cronExpression}
@@ -202,22 +200,14 @@ export default function CronGenerator() {
           { key: 'month', label: { ko: '월', en: 'Month', ja: '月' }, range: '1-12' },
           { key: 'dayOfWeek', label: { ko: '요일', en: 'DoW', ja: '曜日' }, range: '0-6' },
         ].map(({ key, label, range }) => (
-          <div key={key} className="space-y-1">
-            <label className="block text-xs text-center text-[var(--color-text-muted)]">
-              {t(label)}
-            </label>
+          <ToolField key={key} id={`cron-${key}`} label={t(label)} hint={range}>
             <input
               type="text"
               value={parts[key as keyof CronParts]}
               onChange={(e) => setParts({ ...parts, [key]: e.target.value })}
-              className="w-full px-2 py-2 text-center font-mono text-lg rounded-lg
-                border border-[var(--color-border)] bg-[var(--color-card)]
-                text-[var(--color-text)] focus:outline-none focus:ring-2 focus:ring-primary-500"
+              className="text-center font-mono text-lg"
             />
-            <span className="block text-xs text-center text-[var(--color-text-muted)]">
-              {range}
-            </span>
-          </div>
+          </ToolField>
         ))}
       </div>
 

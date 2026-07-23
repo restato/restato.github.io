@@ -1,6 +1,9 @@
 import { useState, useMemo } from 'react';
 import { useTranslation } from '../../i18n/useTranslation';
+import { ToolActions } from './ui/ToolActions';
+import { ToolField } from './ui/ToolField';
 import { ToolPanel } from './ui/ToolPanel';
+import { ToolResult } from './ui/ToolResult';
 
 interface JwtParts {
   header: Record<string, unknown> | null;
@@ -104,34 +107,19 @@ export default function JwtDecoder() {
     <ToolPanel className="gap-6">
       {/* Input */}
       <div className="space-y-2">
-        <div className="flex justify-between items-center">
-          <label className="block text-sm font-medium text-[var(--color-text)]">
-            {t({ ko: 'JWT 토큰', en: 'JWT Token', ja: 'JWTトークン' })}
-          </label>
-          <button
-            onClick={loadExample}
-            className="px-3 py-1 text-xs bg-[var(--color-card)] hover:bg-[var(--color-card-hover)]
-              border border-[var(--color-border)] rounded transition-colors"
-          >
+        <ToolActions primary={<button onClick={loadExample}>
             {t({ ko: '예제 불러오기', en: 'Load Example', ja: 'サンプルを読み込む' })}
-          </button>
-        </div>
-        <textarea
-          value={token}
-          onChange={(e) => setToken(e.target.value)}
-          placeholder="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
-          rows={4}
-          className="w-full px-4 py-3 rounded-lg border border-[var(--color-border)]
-            bg-[var(--color-card)] text-[var(--color-text)] font-mono text-sm resize-y
-            focus:outline-none focus:ring-2 focus:ring-primary-500 break-all"
-        />
+          </button>} />
+        <ToolField id="jwt-token" label={t({ ko: 'JWT 토큰', en: 'JWT Token', ja: 'JWTトークン' })}>
+          <textarea value={token} onChange={(e) => setToken(e.target.value)} placeholder="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..." rows={4} className="font-mono text-sm break-all" />
+        </ToolField>
       </div>
 
       {/* Error */}
       {decoded && !decoded.isValid && (
-        <div className="p-4 rounded-lg bg-red-100 dark:bg-red-900/20 border border-red-200 dark:border-red-800">
+        <ToolResult status="error">
           <p className="text-red-600 dark:text-red-400 font-medium">{decoded.error}</p>
-        </div>
+        </ToolResult>
       )}
 
       {/* Decoded Parts */}

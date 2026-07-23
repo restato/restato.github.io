@@ -1,5 +1,7 @@
 import { useState } from 'react';
 import { useTranslation } from '../../i18n/useTranslation';
+import { ToolActions } from './ui/ToolActions';
+import { ToolField } from './ui/ToolField';
 import { ToolPanel } from './ui/ToolPanel';
 
 type Mode = 'encode' | 'decode';
@@ -82,8 +84,7 @@ export default function UrlEncoder() {
   return (
     <ToolPanel className="gap-6">
       {/* Mode Toggle */}
-      <div className="flex rounded-lg overflow-hidden border border-[var(--color-border)]">
-        <button
+      <ToolActions className="grid grid-cols-2" primary={<button
           onClick={() => handleModeChange('encode')}
           className={`flex-1 py-3 font-medium transition-colors
             ${mode === 'encode'
@@ -92,8 +93,7 @@ export default function UrlEncoder() {
             }`}
         >
           {t({ ko: '인코딩', en: 'Encode', ja: 'エンコード' })}
-        </button>
-        <button
+        </button>} secondary={<button
           onClick={() => handleModeChange('decode')}
           className={`flex-1 py-3 font-medium transition-colors
             ${mode === 'decode'
@@ -102,8 +102,7 @@ export default function UrlEncoder() {
             }`}
         >
           {t({ ko: '디코딩', en: 'Decode', ja: 'デコード' })}
-        </button>
-      </div>
+        </button>} />
 
       {/* Options */}
       <div className="flex flex-wrap gap-4">
@@ -154,20 +153,15 @@ export default function UrlEncoder() {
       </div>
 
       {/* Input */}
-      <div className="space-y-2">
-        <label className="block text-sm font-medium text-[var(--color-text)]">
-          {t({ ko: '입력', en: 'Input', ja: '入力' })}
-        </label>
+      <ToolField id="url-input" label={t({ ko: '입력', en: 'Input', ja: '入力' })} error={error || undefined}>
         <textarea
           value={input}
           onChange={(e) => handleInputChange(e.target.value)}
           placeholder={t({ ko: 'URL 또는 텍스트를 입력하세요', en: 'Enter URL or text', ja: 'URLまたはテキストを入力' })}
           rows={4}
-          className="w-full px-4 py-3 rounded-lg border border-[var(--color-border)]
-            bg-[var(--color-card)] text-[var(--color-text)] font-mono text-sm resize-y
-            focus:outline-none focus:ring-2 focus:ring-primary-500"
+          className="font-mono text-sm"
         />
-      </div>
+      </ToolField>
 
       {/* Swap Button */}
       <div className="flex justify-center">
@@ -211,12 +205,6 @@ export default function UrlEncoder() {
       </div>
 
       {/* Error */}
-      {error && (
-        <div className="p-3 rounded-lg bg-red-100 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-red-600 dark:text-red-400">
-          {error}
-        </div>
-      )}
-
       {/* Reference */}
       <div className="p-4 rounded-lg bg-[var(--color-card)] border border-[var(--color-border)]">
         <h3 className="text-sm font-medium text-[var(--color-text)] mb-2">

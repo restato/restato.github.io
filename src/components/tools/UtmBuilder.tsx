@@ -1,5 +1,7 @@
 import { useState, useMemo } from 'react';
 import { useTranslation } from '../../i18n/useTranslation';
+import { ToolActions } from './ui/ToolActions';
+import { ToolField } from './ui/ToolField';
 import { ToolPanel } from './ui/ToolPanel';
 
 interface UtmParams {
@@ -104,38 +106,21 @@ export default function UtmBuilder() {
   return (
     <ToolPanel className="gap-6">
       {/* Actions */}
-      <div className="flex gap-2">
-        <button
-          onClick={loadExample}
-          className="px-3 py-1.5 text-sm bg-[var(--color-card)] hover:bg-[var(--color-card-hover)]
-            border border-[var(--color-border)] rounded-lg transition-colors"
-        >
+      <ToolActions primary={<button onClick={loadExample}>
           {t({ ko: '예제 불러오기', en: 'Load Example', ja: 'サンプルを読み込む' })}
-        </button>
-        <button
-          onClick={clearAll}
-          className="px-3 py-1.5 text-sm bg-[var(--color-card)] hover:bg-[var(--color-card-hover)]
-            border border-[var(--color-border)] rounded-lg transition-colors"
-        >
+        </button>} secondary={<button onClick={clearAll}>
           {t({ ko: '초기화', en: 'Clear', ja: 'クリア' })}
-        </button>
-      </div>
+        </button>} />
 
       {/* URL Input */}
-      <div className="space-y-2">
-        <label className="block text-sm font-medium text-[var(--color-text)]">
-          {t({ ko: '웹사이트 URL', en: 'Website URL', ja: 'ウェブサイトURL' })} *
-        </label>
+      <ToolField id="utm-url" label={`${t({ ko: '웹사이트 URL', en: 'Website URL', ja: 'ウェブサイトURL' })} *`}>
         <input
           type="text"
           value={params.url}
           onChange={(e) => setParams({ ...params, url: e.target.value })}
           placeholder="https://example.com/page"
-          className="w-full px-4 py-2 rounded-lg border border-[var(--color-border)]
-            bg-[var(--color-card)] text-[var(--color-text)]
-            focus:outline-none focus:ring-2 focus:ring-primary-500"
         />
-      </div>
+      </ToolField>
 
       {/* Required Parameters */}
       <div className="grid md:grid-cols-3 gap-4">

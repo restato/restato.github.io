@@ -1,6 +1,9 @@
 import { useState, useMemo } from 'react';
 import { useTranslation } from '../../i18n/useTranslation';
+import { ToolActions } from './ui/ToolActions';
+import { ToolField } from './ui/ToolField';
 import { ToolPanel } from './ui/ToolPanel';
+import { ToolResult } from './ui/ToolResult';
 
 interface Match {
   text: string;
@@ -136,8 +139,8 @@ export default function RegexTester() {
       </div>
 
       {/* Flags */}
-      <div className="flex flex-wrap gap-2">
-        {flagOptions.map(({ value, label, desc }) => (
+      <ToolActions
+        primary={flagOptions.slice(0, 1).map(({ value, label, desc }) => (
           <button
             key={value}
             onClick={() => toggleFlag(value)}
@@ -151,7 +154,10 @@ export default function RegexTester() {
             {label}
           </button>
         ))}
-      </div>
+        secondary={flagOptions.slice(1).map(({ value, label, desc }) => (
+          <button key={value} onClick={() => toggleFlag(value)} title={t(desc)}>{label}</button>
+        ))}
+      />
 
       {/* Common Patterns */}
       <div className="space-y-2">
@@ -173,27 +179,17 @@ export default function RegexTester() {
       </div>
 
       {/* Error */}
-      {error && (
-        <div className="p-3 rounded-lg bg-red-100 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-red-600 dark:text-red-400">
-          <code className="text-sm">{error}</code>
-        </div>
-      )}
+      {error && <ToolResult status="error"><code className="text-sm">{error}</code></ToolResult>}
 
       {/* Test String */}
-      <div className="space-y-2">
-        <label className="block text-sm font-medium text-[var(--color-text)]">
-          {t(tt.testString)}
-        </label>
+      <ToolField id="regex-test-string" label={t(tt.testString)}>
         <textarea
           value={testString}
           onChange={(e) => setTestString(e.target.value)}
           placeholder={t({ ko: '테스트할 문자열을 입력하세요...', en: 'Enter test string...', ja: 'テスト文字列を入力...' })}
           rows={4}
-          className="w-full px-4 py-3 rounded-lg border border-[var(--color-border)]
-            bg-[var(--color-card)] text-[var(--color-text)] resize-y
-            focus:outline-none focus:ring-2 focus:ring-primary-500"
         />
-      </div>
+      </ToolField>
 
       {/* Highlighted Result */}
       {testString && (

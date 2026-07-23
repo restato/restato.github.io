@@ -1,5 +1,7 @@
 import { useState, useCallback, useEffect } from 'react';
 import { useTranslation } from '../../i18n/useTranslation';
+import { ToolActions } from './ui/ToolActions';
+import { ToolField } from './ui/ToolField';
 import { ToolPanel } from './ui/ToolPanel';
 
 function generateUUID(): string {
@@ -78,21 +80,17 @@ export default function UuidGenerator() {
       {/* Options */}
       <div className="flex flex-wrap gap-4 items-center">
         {/* Count */}
-        <div className="flex items-center gap-2">
-          <label htmlFor="uuid-count" className="text-sm text-[var(--color-text)]">{t(tt.count)}:</label>
+        <ToolField id="uuid-count" label={`${t(tt.count)}:`}>
           <input
-            id="uuid-count"
             type="number"
             min="1"
             max="100"
             value={count}
             onChange={(e) => setCount(e.target.value)}
             onBlur={() => setCount(String(Math.max(1, Math.min(100, Number(count) || 1))))}
-            className="w-20 px-3 py-2 rounded-lg border border-[var(--color-border)]
-              bg-[var(--color-card)] text-[var(--color-text)] text-center
-              focus:outline-none focus:ring-2 focus:ring-primary-500"
+            className="w-20 text-center"
           />
-        </div>
+        </ToolField>
 
         {/* Options checkboxes */}
         <label className="flex items-center gap-2 cursor-pointer">
@@ -119,17 +117,13 @@ export default function UuidGenerator() {
       </div>
 
       {/* Generate Button */}
-      <button
-        onClick={generate}
-        className="w-full py-3 bg-primary-500 hover:bg-primary-600 text-white rounded-lg
-          font-medium transition-colors flex items-center justify-center gap-2"
-      >
+      <ToolActions primary={<button className="w-full" onClick={generate}>
         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
             d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
         </svg>
         {t(tc.generate)}
-      </button>
+      </button>} />
 
       {/* UUIDs List */}
       <div className="space-y-2">

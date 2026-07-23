@@ -1,5 +1,7 @@
 import { useState, useMemo } from 'react';
 import { useTranslation } from '../../i18n/useTranslation';
+import { ToolActions } from './ui/ToolActions';
+import { ToolField } from './ui/ToolField';
 import { ToolPanel } from './ui/ToolPanel';
 
 // Simple markdown parser
@@ -135,43 +137,15 @@ export default function MarkdownPreview() {
       <div className="grid min-w-0 md:grid-cols-2 gap-4">
         {/* Editor */}
         <div className="min-w-0 space-y-2">
-          <div className="flex justify-between items-center">
-            <label className="text-sm font-medium text-[var(--color-text)]">
-              {t(tt.editor)}
-            </label>
-            <button
-              onClick={() => setMarkdown('')}
-              className="px-3 py-1 text-xs bg-[var(--color-card)] hover:bg-[var(--color-card-hover)]
-                border border-[var(--color-border)] rounded transition-colors"
-            >
-              {t(tc.clear)}
-            </button>
-          </div>
-          <textarea
-            value={markdown}
-            onChange={(e) => setMarkdown(e.target.value)}
-            placeholder={t(tt.placeholder)}
-            className="w-full h-[500px] px-4 py-3 rounded-lg border border-[var(--color-border)]
-              bg-[var(--color-card)] text-[var(--color-text)] font-mono text-sm resize-none
-              focus:outline-none focus:ring-2 focus:ring-primary-500"
-            spellCheck={false}
-          />
+          <ToolActions secondary={<button onClick={() => setMarkdown('')}>{t(tc.clear)}</button>} primary={<button onClick={copyHtml}>{copied ? t(tc.copied) : 'Copy HTML'}</button>} />
+          <ToolField id="markdown-editor" label={t(tt.editor)}>
+            <textarea value={markdown} onChange={(e) => setMarkdown(e.target.value)} placeholder={t(tt.placeholder)} className="h-[500px] font-mono text-sm resize-none" spellCheck={false} />
+          </ToolField>
         </div>
 
         {/* Preview */}
         <div className="min-w-0 space-y-2">
-          <div className="flex justify-between items-center">
-            <label className="text-sm font-medium text-[var(--color-text)]">
-              {t(tt.preview)}
-            </label>
-            <button
-              onClick={copyHtml}
-              className="px-3 py-1 text-xs bg-[var(--color-card)] hover:bg-[var(--color-card-hover)]
-                border border-[var(--color-border)] rounded transition-colors"
-            >
-              {copied ? t(tc.copied) : 'Copy HTML'}
-            </button>
-          </div>
+          <p className="fc-label">{t(tt.preview)}</p>
           <div
             className="w-full h-[500px] px-4 py-3 rounded-lg border border-[var(--color-border)]
               bg-[var(--color-bg)] overflow-y-auto prose prose-sm max-w-none

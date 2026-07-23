@@ -91,6 +91,31 @@ describe('All Tools Smoke Tests', () => {
     it(`${name} renders without crashing`, () => {
       expect(() => render(<Component />)).not.toThrow();
     });
+
+    it(`${name} renders real shared fields and action groups`, () => {
+      const { container } = render(<Component />);
+      const nativeFields = container.querySelectorAll(
+        'textarea, select, input:not([type="hidden"]):not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="color"])',
+      );
+      if (nativeFields.length > 0) {
+        const sharedField = container.querySelector('.fc-tool-field');
+        expect(sharedField).not.toBeNull();
+        const control = sharedField?.querySelector<HTMLElement>('textarea, select, input');
+        expect(control).toHaveAccessibleName();
+        expect(control?.classList.contains('fc-input')
+          || control?.classList.contains('fc-select')
+          || control?.classList.contains('fc-textarea')).toBe(true);
+      }
+
+      const buttons = screen.queryAllByRole('button');
+      if (buttons.length > 0) {
+        const actionGroup = container.querySelector('.fc-tool-actions');
+        expect(actionGroup).not.toBeNull();
+        const primary = actionGroup?.querySelector('.fc-button-primary');
+        expect(primary).not.toBeNull();
+        expect(primary).not.toHaveClass('fc-button-secondary');
+      }
+    });
   });
 });
 

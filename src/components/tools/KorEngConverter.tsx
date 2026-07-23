@@ -1,5 +1,7 @@
 import { useState } from 'react';
 import { useTranslation } from '../../i18n/useTranslation';
+import { ToolActions } from './ui/ToolActions';
+import { ToolField } from './ui/ToolField';
 import { ToolPanel } from './ui/ToolPanel';
 
 // Korean keyboard mapping
@@ -207,8 +209,7 @@ export default function KorEngConverter() {
   return (
     <ToolPanel className="gap-6">
       {/* Mode Toggle */}
-      <div className="flex gap-2">
-        <button
+      <ToolActions className="grid grid-cols-2" primary={<button
           onClick={() => setMode('engToKor')}
           className={`flex-1 px-4 py-3 rounded-lg font-medium transition-colors
             ${mode === 'engToKor'
@@ -217,8 +218,7 @@ export default function KorEngConverter() {
             }`}
         >
           {t({ ko: '🔤 영타 → 한글', en: '🔤 English keys → Korean', ja: '🔤 英字キー → 韓国語' })}
-        </button>
-        <button
+        </button>} secondary={<button
           onClick={() => setMode('korToEng')}
           className={`flex-1 px-4 py-3 rounded-lg font-medium transition-colors
             ${mode === 'korToEng'
@@ -227,24 +227,18 @@ export default function KorEngConverter() {
             }`}
         >
           {t({ ko: '🇰🇷 한타 → 영어', en: '🇰🇷 Korean keys → English', ja: '🇰🇷 韓国語キー → 英語' })}
-        </button>
-      </div>
+        </button>} />
 
       {/* Input */}
-      <div className="space-y-2">
-        <label className="block text-sm font-medium text-[var(--color-text)]">
-          {mode === 'engToKor' ? t({ ko: '영어로 입력된 텍스트', en: 'Text typed with English keys', ja: '英字キーで入力したテキスト' }) : t({ ko: '한글로 입력된 텍스트', en: 'Text typed with Korean keys', ja: '韓国語キーで入力したテキスト' })}
-        </label>
+      <ToolField id="kor-eng-input" label={mode === 'engToKor' ? t({ ko: '영어로 입력된 텍스트', en: 'Text typed with English keys', ja: '英字キーで入力したテキスト' }) : t({ ko: '한글로 입력된 텍스트', en: 'Text typed with Korean keys', ja: '韓国語キーで入力したテキスト' })}>
         <textarea
           value={input}
           onChange={(e) => setInput(e.target.value)}
           placeholder={mode === 'engToKor' ? 'dkssudgktpdy (안녕하세요)' : 'ㅗ디ㅣㅐ (hello)'}
           rows={4}
-          className="w-full px-4 py-3 rounded-lg border border-[var(--color-border)]
-            bg-[var(--color-card)] text-[var(--color-text)]
-            focus:outline-none focus:ring-2 focus:ring-primary-500 resize-none"
+          className="resize-none"
         />
-      </div>
+      </ToolField>
 
       {/* Swap Button */}
       <button

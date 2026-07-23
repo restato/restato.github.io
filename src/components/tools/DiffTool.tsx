@@ -1,5 +1,7 @@
 import { useState, useMemo } from 'react';
 import { useTranslation } from '../../i18n/useTranslation';
+import { ToolActions } from './ui/ToolActions';
+import { ToolField } from './ui/ToolField';
 import { ToolPanel } from './ui/ToolPanel';
 
 interface DiffLine {
@@ -138,27 +140,13 @@ const name = "Universe";`);
     <ToolPanel className="gap-6">
       {/* Actions */}
       <div className="flex flex-wrap gap-2 items-center">
-        <button
-          onClick={loadExample}
-          className="px-3 py-1.5 text-sm bg-[var(--color-card)] hover:bg-[var(--color-card-hover)]
-            border border-[var(--color-border)] rounded-lg transition-colors"
-        >
+        <ToolActions primary={<button onClick={loadExample}>
           {t({ ko: '예제 불러오기', en: 'Load Example', ja: 'サンプルを読み込む' })}
-        </button>
-        <button
-          onClick={swapTexts}
-          className="px-3 py-1.5 text-sm bg-[var(--color-card)] hover:bg-[var(--color-card-hover)]
-            border border-[var(--color-border)] rounded-lg transition-colors"
-        >
+        </button>} secondary={<><button onClick={swapTexts}>
           {t({ ko: '교환', en: 'Swap', ja: '入れ替え' })}
-        </button>
-        <button
-          onClick={clearAll}
-          className="px-3 py-1.5 text-sm bg-[var(--color-card)] hover:bg-[var(--color-card-hover)]
-            border border-[var(--color-border)] rounded-lg transition-colors"
-        >
+        </button><button onClick={clearAll}>
           {t({ ko: '지우기', en: 'Clear', ja: 'クリア' })}
-        </button>
+        </button></>} />
 
         <div className="flex-1" />
 
@@ -188,21 +176,16 @@ const name = "Universe";`);
 
       {/* Input Areas */}
       <div className="grid md:grid-cols-2 gap-4">
-        <div className="space-y-2">
-          <label className="text-sm font-medium text-[var(--color-text)]">
-            {t({ ko: '원본 텍스트', en: 'Original Text', ja: '元のテキスト' })}
-          </label>
+        <ToolField id="diff-original" label={t({ ko: '원본 텍스트', en: 'Original Text', ja: '元のテキスト' })}>
           <textarea
             value={text1}
             onChange={(e) => setText1(e.target.value)}
             placeholder={t({ ko: '원본 텍스트를 입력하세요...', en: 'Enter original text...', ja: '元のテキストを入力...' })}
             rows={10}
-            className="w-full px-4 py-3 rounded-lg border border-[var(--color-border)]
-              bg-[var(--color-card)] text-[var(--color-text)] font-mono text-sm resize-y
-              focus:outline-none focus:ring-2 focus:ring-primary-500"
+            className="font-mono text-sm"
             spellCheck={false}
           />
-        </div>
+        </ToolField>
         <div className="space-y-2">
           <label className="text-sm font-medium text-[var(--color-text)]">
             {t({ ko: '변경된 텍스트', en: 'Changed Text', ja: '変更されたテキスト' })}

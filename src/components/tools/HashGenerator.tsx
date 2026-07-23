@@ -1,5 +1,7 @@
 import { useState, useCallback, useRef } from 'react';
 import { useTranslation } from '../../i18n/useTranslation';
+import { ToolActions } from './ui/ToolActions';
+import { ToolField } from './ui/ToolField';
 import { ToolPanel } from './ui/ToolPanel';
 
 type Algorithm = 'SHA-1' | 'SHA-256' | 'SHA-384' | 'SHA-512';
@@ -231,21 +233,14 @@ export default function HashGenerator() {
   return (
     <ToolPanel className="gap-6">
       {/* Input */}
-      <div className="space-y-2">
-        <label className="block text-sm font-medium text-[var(--color-text)]">
-          {t(tc.input)}
-        </label>
+      <ToolField id="hash-input" label={t(tc.input)}>
         <textarea
-          aria-label={t(tc.input)}
           value={input}
           onChange={(e) => handleInputChange(e.target.value)}
           placeholder={t(tt.inputPlaceholder)}
           rows={4}
-          className="w-full px-4 py-3 rounded-lg border border-[var(--color-border)]
-            bg-[var(--color-card)] text-[var(--color-text)] resize-y
-            focus:outline-none focus:ring-2 focus:ring-primary-500"
         />
-      </div>
+      </ToolField>
 
       {/* Hash Results */}
       <div className="space-y-3">
@@ -256,15 +251,12 @@ export default function HashGenerator() {
           >
             <div className="flex justify-between items-center mb-2">
               <span className="text-sm font-medium text-[var(--color-text)]">{algo}</span>
-              <button
+              <ToolActions primary={<button
                 onClick={() => copyHash(algo)}
                 disabled={!hashes[algo]}
-                className="px-3 py-1 text-xs bg-[var(--color-bg)] hover:bg-[var(--color-card-hover)]
-                  border border-[var(--color-border)] rounded transition-colors
-                  disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {copiedAlgo === algo ? t(tc.copied) : t(tc.copy)}
-              </button>
+              </button>} />
             </div>
             <code className="block text-sm font-mono text-[var(--color-text-muted)] break-all min-h-[1.5rem]">
               {isGenerating ? '...' : hashes[algo] || '-'}

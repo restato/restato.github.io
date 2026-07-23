@@ -1,5 +1,7 @@
 import { useState, useCallback } from 'react';
 import { useTranslation } from '../../i18n/useTranslation';
+import { ToolActions } from './ui/ToolActions';
+import { ToolField } from './ui/ToolField';
 import { ToolPanel } from './ui/ToolPanel';
 
 const LOREM_WORDS = [
@@ -149,19 +151,16 @@ export default function LoremIpsumGenerator() {
 
       {/* Options */}
       <div className="flex flex-wrap gap-4 items-center">
-        <div className="flex items-center gap-2">
-          <label className="text-sm text-[var(--color-text)]">{t(tt.count)}:</label>
+        <ToolField id="lorem-count" label={`${t(tt.count)}:`}>
           <input
             type="number"
             min="1"
             max={type === 'words' ? 1000 : type === 'sentences' ? 100 : 20}
             value={count}
             onChange={(e) => setCount(Math.max(1, Number(e.target.value)))}
-            className="w-20 px-3 py-2 rounded-lg border border-[var(--color-border)]
-              bg-[var(--color-card)] text-[var(--color-text)] text-center
-              focus:outline-none focus:ring-2 focus:ring-primary-500"
+            className="w-20 text-center"
           />
-        </div>
+        </ToolField>
 
         <label className="flex items-center gap-2 cursor-pointer">
           <input
@@ -176,17 +175,13 @@ export default function LoremIpsumGenerator() {
       </div>
 
       {/* Generate Button */}
-      <button
-        onClick={generate}
-        className="w-full py-3 bg-primary-500 hover:bg-primary-600 text-white rounded-lg
-          font-medium transition-colors flex items-center justify-center gap-2"
-      >
+      <ToolActions primary={<button className="w-full" onClick={generate}>
         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
             d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
         </svg>
         {t(tc.generate)}
-      </button>
+      </button>} />
 
       {/* Output */}
       {output && (

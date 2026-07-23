@@ -1,5 +1,7 @@
 import { useState, useCallback } from 'react';
 import { useTranslation } from '../../i18n/useTranslation';
+import { ToolActions } from './ui/ToolActions';
+import { ToolField } from './ui/ToolField';
 import { ToolPanel } from './ui/ToolPanel';
 
 const CHAR_SETS = {
@@ -96,11 +98,8 @@ export default function PasswordGenerator() {
   return (
     <ToolPanel className="gap-6">
       {/* Generated Password Display */}
-      <div className="space-y-2">
-        <label className="block text-sm font-medium text-[var(--color-text)]">
-          {t(tc.result)}
-        </label>
-        <div className="flex min-w-0 gap-2">
+      <div className="grid min-w-0 gap-2 sm:grid-cols-[1fr_auto] sm:items-end">
+        <ToolField id="password-result" label={t(tc.result)}>
           <input
             type="text"
             value={password}
@@ -110,16 +109,10 @@ export default function PasswordGenerator() {
               bg-[var(--color-card)] text-[var(--color-text)] font-mono text-lg
               focus:outline-none"
           />
-          <button
-            onClick={copyPassword}
-            disabled={!password}
-            className="px-4 py-2 bg-[var(--color-card)] hover:bg-[var(--color-card-hover)]
-              border border-[var(--color-border)] rounded-lg transition-colors
-              disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            {copied ? t(tc.copied) : t(tc.copy)}
-          </button>
-        </div>
+        </ToolField>
+        <ToolActions
+          primary={<button onClick={copyPassword} disabled={!password}>{copied ? t(tc.copied) : t(tc.copy)}</button>}
+        />
       </div>
 
       {/* Strength indicator */}
@@ -182,17 +175,13 @@ export default function PasswordGenerator() {
       </div>
 
       {/* Generate button */}
-      <button
-        onClick={generatePassword}
-        className="w-full py-3 bg-primary-500 hover:bg-primary-600 text-white rounded-lg
-          font-medium transition-colors flex items-center justify-center gap-2"
-      >
+      <ToolActions primary={<button className="w-full" onClick={generatePassword}>
         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
             d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
         </svg>
         {t(tc.generate)}
-      </button>
+      </button>} />
     </ToolPanel>
   );
 }

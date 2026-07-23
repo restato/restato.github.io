@@ -14,14 +14,15 @@ export interface ToolActionsProps {
 }
 
 type ActionProps = {
+  children?: ReactNode;
   className?: string;
 };
 
-function styleActions(actions: ReactNode, variant: 'primary' | 'secondary') {
+function styleActions(actions: ReactNode, variant: 'primary' | 'secondary'): ReactNode {
   return Children.map(actions, (action) => {
     if (!isValidElement<ActionProps>(action)) return action;
     if (action.type === Fragment) {
-      return cloneElement(action, {
+      return cloneElement(action as ReactElement<ActionProps>, {
         children: styleActions(action.props.children, variant),
       });
     }

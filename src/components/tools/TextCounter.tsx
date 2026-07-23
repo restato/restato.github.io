@@ -1,5 +1,7 @@
 import { useState, useMemo } from 'react';
 import { useTranslation } from '../../i18n/useTranslation';
+import { ToolActions } from './ui/ToolActions';
+import { ToolField } from './ui/ToolField';
 import { ToolPanel } from './ui/ToolPanel';
 
 interface TextStats {
@@ -73,42 +75,27 @@ export default function TextCounter() {
       </div>
 
       {/* Text Input */}
-      <div className="space-y-2">
-        <label htmlFor="text-counter-input" className="block text-sm font-medium text-[var(--color-text)]">
-          {t(tc.input)}
-        </label>
+      <ToolField id="text-counter-input" label={t(tc.input)}>
         <textarea
-          id="text-counter-input"
           value={text}
           onChange={(e) => setText(e.target.value)}
           placeholder={t(tt.placeholder)}
           rows={10}
-          className="w-full px-4 py-3 rounded-lg border border-[var(--color-border)]
-            bg-[var(--color-card)] text-[var(--color-text)] resize-y
-            focus:outline-none focus:ring-2 focus:ring-primary-500"
         />
-      </div>
+      </ToolField>
 
       {/* Actions */}
-      <div className="flex gap-2">
-        <button
-          onClick={() => setText('')}
-          className="px-4 py-2 bg-[var(--color-card)] hover:bg-[var(--color-card-hover)]
-            border border-[var(--color-border)] rounded-lg transition-colors"
-        >
-          {t(tc.clear)}
-        </button>
-        <button
+      <ToolActions
+        primary={<button
           onClick={async () => {
             const clipText = await navigator.clipboard.readText();
             setText(clipText);
           }}
-          className="px-4 py-2 bg-[var(--color-card)] hover:bg-[var(--color-card-hover)]
-            border border-[var(--color-border)] rounded-lg transition-colors"
         >
           {t({ ko: '붙여넣기', en: 'Paste', ja: '貼り付け' })}
-        </button>
-      </div>
+        </button>}
+        secondary={<button onClick={() => setText('')}>{t(tc.clear)}</button>}
+      />
 
       {/* Reading time estimate */}
       {stats.words > 0 && (
