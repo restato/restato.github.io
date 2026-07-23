@@ -120,5 +120,8 @@ describe('localized tool page metadata', () => {
     expect(source).toContain('interactiveFallbackNotice');
     expect(source).toContain('"@type": "WebApplication"');
     expect(source).toContain('"@type": "BreadcrumbList"');
+    expect(source).toContain('<h2>{helpUi.privacy}</h2>');
+    expect(source).toContain('<p>{privacy}</p>');
+    expect(source.match(/class="fc-tool-privacy"/g)).toHaveLength(1);
   });
 });

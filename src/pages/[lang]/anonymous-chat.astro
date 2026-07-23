@@ -109,6 +109,7 @@ const faqSchema = {
       </div>
       <div><h2>{helpUi.output}</h2><ul>{seo.examples.map(example => <li>{example}</li>)}</ul></div>
       <div><h2>{helpUi.limitations}</h2><ul>{seo.limitations.map(limitation => <li>{limitation}</li>)}</ul></div>
+      <div><h2>{helpUi.privacy}</h2><p>{privacy}</p></div>
       <div><h2>{helpUi.faq}</h2><div class="fc-tool-faq">{seo.faq.map(item => <details><summary>{item.question}</summary><p>{item.answer}</p></details>)}</div></div>
     </section>
     <AdSlot placement="tool-after-help" class="mt-8" />
