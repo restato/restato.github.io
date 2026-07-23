@@ -89,4 +89,10 @@ describe('TranslationProvider SSR locale boundary', () => {
   ] as const)('renders the complete initial %s island without Hangul in English fallback', (slug) => {
     expect(renderToString(<LocalizedToolIsland slug={slug} lang="fr" />), slug).not.toMatch(/[가-힣]/);
   });
+
+  it('describes coin-flip randomness truthfully in English fallback', () => {
+    const html = renderToString(<LocalizedToolIsland slug="coin-flip" lang="fr" />);
+    expect(html).not.toMatch(/cryptographically secure/i);
+    expect(html).toMatch(/not for security or gambling decisions/i);
+  });
 });

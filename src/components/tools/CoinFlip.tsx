@@ -120,7 +120,7 @@ export default function CoinFlip() {
         <h3 className="font-medium text-[var(--color-text)] mb-2">💡 {t({ ko: '사용 팁', en: 'Tips', ja: '使い方のヒント' })}</h3>
         <ul className="text-sm text-[var(--color-text-muted)] space-y-1">
           <li>• {t({ ko: '결정을 내리기 어려울 때 사용하세요', en: 'Use it when a choice is hard to make', ja: '選択に迷ったときに使えます' })}</li>
-          <li>• {t({ ko: '암호학적으로 안전한 난수 생성기를 사용합니다', en: 'Uses a cryptographically secure random generator', ja: '暗号学的に安全な乱数生成器を使用します' })}</li>
+          <li>• {t({ ko: '간단한 무작위 선택용이며 보안 또는 도박 판단에는 적합하지 않습니다', en: 'For casual random choices; not for security or gambling decisions', ja: '簡単なランダム選択用であり、セキュリティや賭博の判断には適しません' })}</li>
           <li>• {t({ ko: '앞면과 뒷면의 확률은 각각 50%입니다', en: 'Heads and tails each have a 50% probability', ja: '表と裏の確率はそれぞれ50％です' })}</li>
         </ul>
       </div>
