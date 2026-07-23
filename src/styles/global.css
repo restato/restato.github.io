@@ -65,8 +65,9 @@
     min-block-size: 100vh;
     margin: 0;
     font-feature-settings: "ss01", "ss02", "cv01";
+    font-size: 1rem;
     font-synthesis: none;
-    line-height: 1.5;
+    line-height: 1.7;
   }
 
   :where(button, input, select, textarea) {
@@ -80,7 +81,7 @@
 
 @layer components {
   .prose {
-    @apply max-w-none;
+    max-inline-size: 68ch;
   }
 
   .prose pre {
@@ -88,7 +89,7 @@
   }
 
   .prose code {
-    @apply bg-primary-500/10 text-primary-600 dark:text-primary-400 px-2 py-0.5 rounded-md text-sm font-medium;
+    @apply bg-primary-500/10 text-primary-600 dark:text-primary-400 px-2 py-0.5 rounded-[0.625rem] text-sm font-medium;
   }
 
   .prose pre code {
@@ -114,13 +115,13 @@
   }
 
   .prose img {
-    @apply rounded-xl shadow-lg ring-1 ring-[var(--color-border)];
+    @apply rounded-xl ring-1 ring-[var(--color-border)];
   }
 
   .prose blockquote {
-    @apply border-s-4 border-primary-500 ps-6 py-1 my-6
-           bg-primary-500/5 rounded-e-lg
+    @apply border-s-4 border-primary-500 ps-6 py-1 my-6 bg-primary-500/5
            text-[var(--color-text-muted)];
+    border-radius: 0.75rem;
   }
 
   .prose blockquote p {
@@ -152,19 +153,16 @@
   }
 
   .card {
-    @apply bg-[var(--color-card)] border border-[var(--color-border)] rounded-2xl p-6
-           hover:shadow-xl hover:shadow-primary-500/5 hover:-translate-y-1
-           transition-all duration-300 ease-out;
+    @apply bg-[var(--color-card)] border border-[var(--color-border)] p-6;
+    border-radius: 0.75rem;
   }
 
   .btn {
-    @apply px-5 py-2.5 rounded-xl font-medium transition-all duration-200
-           inline-flex items-center justify-center gap-2;
+    @apply px-5 py-2.5 rounded-xl font-medium inline-flex items-center justify-center gap-2;
   }
 
   .btn-primary {
-    @apply bg-primary-600 text-white hover:bg-primary-700
-           shadow-lg shadow-primary-500/25 hover:shadow-primary-500/40;
+    @apply bg-primary-600 text-white hover:bg-primary-700;
   }
 
   .btn-outline {
@@ -177,13 +175,12 @@
   }
 
   .gradient-text {
-    @apply bg-gradient-to-r from-primary-500 via-primary-600 to-accent-500
-           bg-clip-text text-transparent;
+    color: var(--brand);
   }
 
   .gradient-bg {
-    @apply bg-gradient-to-br from-primary-500 via-primary-600 to-accent-500;
-    background-size: 200% 200%;
+    background: var(--surface-soft);
+    color: var(--text-primary);
   }
 }
 
@@ -225,17 +222,6 @@
   }
 }
 
-@keyframes slide-up {
-  from {
-    transform: translateY(100%);
-    opacity: 0;
-  }
-  to {
-    transform: translateY(0);
-    opacity: 1;
-  }
-}
-
 .animate-slide-up {
-  animation: slide-up 0.3s ease-out;
+  /* Quiet compatibility alias for existing markup. */
 }

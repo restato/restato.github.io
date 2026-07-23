@@ -25,4 +25,17 @@ describe('Forest Café design system', () => {
     expect(css).toContain('color-scheme: light');
     expect(css).toContain('color-scheme: dark');
   });
+
+  it('uses a readable body rhythm and capped long-form measure', () => {
+    expect(css).toMatch(/body\s*\{[^}]*font-size:\s*1rem;[^}]*line-height:\s*1\.7;/s);
+    expect(css).toMatch(/\.prose\s*\{[^}]*max-inline-size:\s*68ch;/s);
+    expect(config).toContain("maxWidth: '68ch'");
+  });
+
+  it('keeps shared presentation quiet and within the radius contract', () => {
+    expect(css).toMatch(/\.card\s*\{[^}]*border-radius:\s*0\.75rem;/s);
+    expect(css).toMatch(/\.prose blockquote\s*\{[^}]*border-radius:\s*0\.75rem;/s);
+    expect(css).not.toMatch(/shadow|hover:-translate|translateY|bg-gradient|@keyframes|animation:\s/);
+    expect(config).not.toMatch(/animation:|keyframes:/);
+  });
 });
