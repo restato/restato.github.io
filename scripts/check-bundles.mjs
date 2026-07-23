@@ -107,21 +107,20 @@ function isPdfEntry(key, entry) {
 
 function collectEntries(rootKeys, manifest, includeDynamicImports = false) {
   const visited = new Set();
-  const active = new Set();
 
   function visit(key) {
-    if (active.has(key)) throw new Error(`Cycle in Vite manifest imports at ${key}`);
     if (visited.has(key)) return;
     const entry = manifest[key];
     if (!entry) throw new Error(`Unknown Vite manifest import: ${key}`);
 
-    active.add(key);
+    // Vite can emit valid ESM cycles when a lazily loaded package imports a
+    // shared chunk that also owns the dynamic-import boundary. Count each
+    // manifest entry once instead of rejecting a build the browser can load.
+    visited.add(key);
     const importedKeys = includeDynamicImports
       ? [...(entry.imports ?? []), ...(entry.dynamicImports ?? [])]
       : entry.imports ?? [];
     for (const importedKey of importedKeys) visit(importedKey);
-    active.delete(key);
-    visited.add(key);
   }
 
   for (const key of rootKeys) visit(key);

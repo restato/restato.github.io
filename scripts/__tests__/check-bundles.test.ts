@@ -212,17 +212,6 @@ describe('auditBundles', () => {
       /unknown vite manifest import/i,
     ],
     [
-      'cyclic imports',
-      {
-        manifest: {
-          entry: { file: '_astro/entry.js', imports: ['shared'] },
-          shared: { file: '_astro/shared.js', imports: ['entry'] },
-        },
-        html: '<script src="/_astro/entry.js"></script>',
-      },
-      /cycle/i,
-    ],
-    [
       'invalid dynamic imports',
       {
         manifest: { entry: { file: '_astro/entry.js', dynamicImports: [42] } },
@@ -238,17 +227,6 @@ describe('auditBundles', () => {
       },
       /unknown vite manifest import/i,
     ],
-    [
-      'cyclic dynamic imports',
-      {
-        manifest: {
-          entry: { file: '_astro/entry.js', dynamicImports: ['lazy'] },
-          lazy: { file: '_astro/lazy.js', dynamicImports: ['entry'] },
-        },
-        html: '<script src="/_astro/entry.js"></script>',
-      },
-      /cycle/i,
-    ],
   ])('fails closed for %s', async (_name, fixture, expected) => {
     const directory = await createFixture(fixture);
     await expect(
@@ -256,6 +234,22 @@ describe('auditBundles', () => {
         { route: '/ko/tools', kind: 'hub', budgetKb: 180 },
       ]),
     ).rejects.toThrow(expected);
+  });
+
+  it('handles valid cyclic Vite imports by counting each static asset once', async () => {
+    const directory = await createFixture({
+      manifest: {
+        entry: { file: '_astro/entry.js', imports: ['shared'] },
+        shared: { file: '_astro/shared.js', imports: ['entry'] },
+      },
+      html: '<script src="/_astro/entry.js"></script>',
+      assets: { '_astro/entry.js': 'entry', '_astro/shared.js': 'shared' },
+    });
+
+    const [result] = await auditBundles(directory, [
+      { route: '/ko/tools', kind: 'hub', budgetKb: 180 },
+    ]);
+    expect(result.assets.sort()).toEqual(['_astro/entry.js', '_astro/shared.js']);
   });
 
   it('fails closed when a configured route has no manifest-backed JavaScript', async () => {

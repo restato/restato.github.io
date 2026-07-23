@@ -5,6 +5,8 @@ import ShareButton from '../../../components/tools/ShareButton';
 import FavoriteButton from '../../../components/tools/FavoriteButton';
 import BookmarkPrompt from '../../../components/tools/BookmarkPrompt';
 import LocalizedToolIsland from '../../../components/tools/LocalizedToolIsland';
+import AdditionalToolIsland from '../../../components/tools/AdditionalToolIsland';
+import { isAdditionalToolSlug } from '../../../components/tools/additionalToolSlugs';
 import AdSlot from '../../../components/ads/AdSlot.astro';
 import { getPublishedTools, type ToolDefinition } from '../../../data/tools';
 import { getLocalizedToolPageMetadata } from '../../../data/tools/pageMetadata';
@@ -144,7 +146,9 @@ const faqSchema = {
 
     <!-- Tool Content -->
     <div class="p-6 rounded-xl bg-[var(--color-card)] border border-[var(--color-border)]">
-      <LocalizedToolIsland client:load slug={tool.slug} lang={lang} />
+      {isAdditionalToolSlug(tool.slug)
+        ? <AdditionalToolIsland client:load slug={tool.slug} lang={lang} />
+        : <LocalizedToolIsland client:load slug={tool.slug} lang={lang} />}
     </div>
 
     <section class="mt-8 space-y-8 rounded-xl border border-[var(--color-border)] bg-[var(--color-card)] p-6">

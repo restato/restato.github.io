@@ -16,16 +16,16 @@ import { buildLocalizedWorkflow } from '../../data/tools/localizedWorkflows';
 import { getToolFallbackNotice } from '../landing';
 
 describe('localized tool completeness', () => {
-  it('resolves exactly 41 tools across exactly 12 supported languages', () => {
+  it('resolves exactly 54 tools across exactly 12 supported languages', () => {
     expect(supportedLanguages).toEqual([
       'ko', 'en', 'ja', 'zh-CN', 'zh-TW', 'es', 'pt', 'de', 'fr', 'it', 'id', 'hi',
     ]);
-    expect(toolsRegistry).toHaveLength(41);
+    expect(toolsRegistry).toHaveLength(54);
 
     for (const tool of toolsRegistry) {
       expect(Object.keys(tool.content).sort()).toEqual([...supportedLanguages].sort());
     }
-    expect(toolsRegistry.flatMap(tool => Object.keys(tool.content))).toHaveLength(41 * 12);
+    expect(toolsRegistry.flatMap(tool => Object.keys(tool.content))).toHaveLength(54 * 12);
   });
 
   it('publishes substantive, actionable and visible help content for every resolved record', () => {
@@ -52,13 +52,13 @@ describe('localized tool completeness', () => {
   it('keeps resolved copy tool-specific instead of repeating one generic record', () => {
     for (const lang of supportedLanguages) {
       const records = toolsRegistry.map(tool => tool.content[lang]!);
-      expect(new Set(records.map(record => record.title)).size).toBe(41);
-      expect(new Set(records.map(record => record.description)).size).toBe(41);
-      expect(new Set(records.map(record => record.overview)).size).toBe(41);
-      expect(new Set(records.map(record => record.steps.join('\n'))).size).toBe(41);
-      expect(new Set(records.map(record => record.examples.join('\n'))).size).toBe(41);
-      expect(new Set(records.map(record => record.limitations.join('\n'))).size).toBe(41);
-      expect(new Set(records.map(record => record.faq.map(item => item.question).join('\n'))).size).toBe(41);
+      expect(new Set(records.map(record => record.title)).size).toBe(toolsRegistry.length);
+      expect(new Set(records.map(record => record.description)).size).toBe(toolsRegistry.length);
+      expect(new Set(records.map(record => record.overview)).size).toBe(toolsRegistry.length);
+      expect(new Set(records.map(record => record.steps.join('\n'))).size).toBe(toolsRegistry.length);
+      expect(new Set(records.map(record => record.examples.join('\n'))).size).toBe(toolsRegistry.length);
+      expect(new Set(records.map(record => record.limitations.join('\n'))).size).toBe(toolsRegistry.length);
+      expect(new Set(records.map(record => record.faq.map(item => item.question).join('\n'))).size).toBe(toolsRegistry.length);
     }
   });
 
@@ -175,8 +175,8 @@ describe('localized tool completeness', () => {
     for (const lang of supportedLanguages.filter(language => language !== 'en')) {
       const examples = toolsRegistry.map(tool => tool.content[lang]!.examples[0]);
       const limitations = toolsRegistry.map(tool => tool.content[lang]!.limitations[0]);
-      expect(new Set(examples).size, `${lang} examples`).toBe(41);
-      expect(new Set(limitations).size, `${lang} limitations`).toBe(41);
+      expect(new Set(examples).size, `${lang} examples`).toBe(toolsRegistry.length);
+      expect(new Set(limitations).size, `${lang} limitations`).toBe(toolsRegistry.length);
       for (const example of examples) expect(example, `${lang}: ${example}`).not.toMatch(bannedExampleFragments);
       expect(toolsRegistry.find(tool => tool.slug === 'utm')!.content[lang]!.limitations[0]).toMatch(/parameter|매개변수|パラメータ|参数|參數|parámetro|parâmetro|Parameter|paramètre|parametr|पैरामीटर/i);
     }

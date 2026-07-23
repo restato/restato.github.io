@@ -41,6 +41,7 @@ import CoinFlip from './CoinFlip';
 import DiceRoller from './DiceRoller';
 import KorEngConverter from './KorEngConverter';
 import AppStoreScreenshotResizer from './AppStoreScreenshotResizer';
+import { isAdditionalToolSlug } from './additionalToolSlugs';
 
 const toolComponents: Record<string, ComponentType> = {
   'qr-code': QRCodeGenerator,
@@ -85,7 +86,7 @@ const toolComponents: Record<string, ComponentType> = {
   'appstore-screenshot': AppStoreScreenshotResizer,
 };
 
-export const hasLocalizedToolComponent = (slug: string): boolean => slug in toolComponents;
+export const hasLocalizedToolComponent = (slug: string): boolean => slug in toolComponents || isAdditionalToolSlug(slug);
 
 export default function LocalizedToolIsland({ slug, lang }: { slug: string; lang: Language }) {
   const ToolComponent = toolComponents[slug];

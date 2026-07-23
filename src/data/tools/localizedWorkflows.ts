@@ -55,6 +55,19 @@ const toolWorkflows = {
   dice: ['configure', 'randomize', 'inspect'],
   'kor-eng': ['configure', 'liveConvert', 'copy'],
   'anonymous-chat': ['chatOpen', 'chatShareRoomLink', 'chatSend'],
+  'pdf-merge': ['upload', 'process', 'download'],
+  'pdf-split': ['upload', 'configure', 'download'],
+  'pdf-rotate': ['upload', 'configure', 'download'],
+  'images-to-pdf': ['upload', 'process', 'download'],
+  'pdf-to-images': ['upload', 'process', 'download'],
+  'csv-json': ['configure', 'liveConvert', 'copy'],
+  'text-cleaner': ['configure', 'liveConvert', 'copy'],
+  'seo-generator': ['configure', 'liveGenerate', 'copy'],
+  'modern-image-converter': ['upload', 'process', 'download'],
+  'exif-remover': ['upload', 'process', 'download'],
+  'favicon-generator': ['upload', 'process', 'download'],
+  'loan-calculator': ['configure', 'calculate', 'inspect'],
+  'audio-trimmer': ['upload', 'configure', 'download'],
 } satisfies Record<string, ToolWorkflow>;
 
 export function getToolWorkflow(slug: string): ToolWorkflow {

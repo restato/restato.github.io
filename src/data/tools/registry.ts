@@ -1,7 +1,10 @@
 import { existingToolLanguages, supportedLanguages } from './locales';
 import type { Language, Localized, ToolContent, ToolDefinition, ToolPrivacyMode } from './types';
-import { createCompleteLocalizedContent } from './localizedContent';
+import { createAdditionalLocalizedContent, createCompleteLocalizedContent } from './localizedContent';
 import { isSubstantiveToolContent } from '../../i18n/completeness';
+import { additionalTools as pdfTools } from './additions/pdf';
+import { additionalTools as dataTextTools } from './additions/data-text';
+import { additionalTools as mediaCalcTools } from './additions/media-calc';
 
 export interface ToolSEO {
   title: string;
@@ -1054,6 +1057,7 @@ const clustersByCategory: Record<string, string> = {
   productivity: 'productivity',
   random: 'random',
   text: 'text',
+  pdf: 'pdf',
 };
 
 function getRelatedSlugs(tool: ToolConfig): string[] {
@@ -1069,7 +1073,7 @@ function createLocalizedContent(tool: ToolConfig): Localized<ToolContent> {
   return createCompleteLocalizedContent(tool.slug, privacyMode);
 }
 
-export const toolsRegistry: ToolDefinition[] = registryToolConfigs.map(tool => {
+const establishedTools: ToolDefinition[] = registryToolConfigs.map(tool => {
   const definition: ToolDefinition = {
     slug: tool.slug,
     icon: tool.icon,
@@ -1088,6 +1092,32 @@ export const toolsRegistry: ToolDefinition[] = registryToolConfigs.map(tool => {
   );
   return definition;
 });
+
+const additionalToolDefinitions: ToolDefinition[] = [
+  ...pdfTools,
+  ...dataTextTools,
+  ...mediaCalcTools,
+].map(tool => {
+  const definition: ToolDefinition = {
+    slug: tool.slug,
+    icon: tool.icon,
+    category: tool.category,
+    cluster: clustersByCategory[tool.category] ?? tool.category,
+    component: tool.component,
+    privacyMode: 'local-only',
+    related: tool.related ?? [],
+    content: createAdditionalLocalizedContent(tool.slug, tool.profiles, 'local-only'),
+    indexableLanguages: [],
+    released: true,
+    updatedAt: '2026-07-23',
+  };
+  definition.indexableLanguages = supportedLanguages.filter(language =>
+    isSubstantiveToolContent(definition, language),
+  );
+  return definition;
+});
+
+export const toolsRegistry: ToolDefinition[] = [...establishedTools, ...additionalToolDefinitions];
 
 export function getTool(slug: string): ToolDefinition | undefined {
   return toolsRegistry.find(tool => tool.slug === slug);

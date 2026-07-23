@@ -4,6 +4,9 @@ import { localizedProfilesCore, localizedSemanticsCore } from './localizedProfil
 import { localizedProfilesWest } from './localizedProfilesWest';
 import { localizedProfilesAsia } from './localizedProfilesAsia';
 import { buildLocalizedWorkflow } from './localizedWorkflows';
+import { additionalTools as pdfTools } from './additions/pdf';
+import { additionalTools as dataTextTools } from './additions/data-text';
+import { additionalTools as mediaCalcTools } from './additions/media-calc';
 
 export { getToolWorkflow } from './localizedWorkflows';
 
@@ -13,6 +16,14 @@ interface ToolProfile {
   output: string;
   example: string;
   caveat: string;
+}
+
+export interface AdditionalToolProfile {
+  name: string;
+  input: string;
+  output: string;
+  example: string;
+  limitation: string;
 }
 
 const profiles: Record<string, ToolProfile> = {
@@ -205,8 +216,47 @@ export function createCompleteLocalizedContent(slug: string, privacyMode: ToolPr
   })) as Localized<ToolContent>;
 }
 
+export function createAdditionalLocalizedContent(
+  slug: string,
+  additionalProfiles: Record<Language, AdditionalToolProfile>,
+  privacyMode: ToolPrivacyMode = 'local-only',
+): Localized<ToolContent> {
+  return Object.fromEntries(supportedLanguages.map(lang => {
+    const pack = packs[lang];
+    const semanticPack = semanticPacks[lang];
+    const profile = additionalProfiles[lang];
+    if (!profile) throw new Error(`Missing ${lang} additional profile for ${slug}`);
+    const faq = pack.faq(profile.name, profile.output, profile.limitation).map(item => ({
+      question: normalizeLocalizedPunctuation(item.question),
+      answer: normalizeLocalizedPunctuation(item.answer),
+    }));
+    return [lang, {
+      status: 'complete',
+      name: profile.name,
+      title: pack.title(profile.name),
+      description: normalizeLocalizedPunctuation(pack.description(profile.name, profile.input, profile.output)),
+      searchIntent: pack.intent(profile.name),
+      overview: normalizeLocalizedPunctuation(`${pack.overview(profile.name, profile.input, profile.output)} ${semanticPack.overview(profile.example)}`),
+      steps: buildLocalizedWorkflow(slug, lang, { name: profile.name, input: profile.input, output: profile.output }).map(normalizeLocalizedPunctuation),
+      examples: [normalizeLocalizedPunctuation(pack.example(profile.name, profile.example))],
+      limitations: [normalizeLocalizedPunctuation(pack.limitation(profile.name, profile.limitation))],
+      privacy: normalizeLocalizedPunctuation(privacy[lang][privacyMode](profile.name)),
+      faq,
+    } satisfies ToolContent];
+  })) as Localized<ToolContent>;
+}
+
 export function getEnglishProfilePhrases(slug: string): Pick<ToolProfile, 'label' | 'input' | 'output' | 'caveat'> {
   const profile = profiles[slug];
-  if (!profile) throw new Error(`Missing localized content profile for ${slug}`);
-  return { label: profile.label, input: profile.input, output: profile.output, caveat: profile.caveat };
+  if (profile) return { label: profile.label, input: profile.input, output: profile.output, caveat: profile.caveat };
+
+  const additional = [...pdfTools, ...dataTextTools, ...mediaCalcTools]
+    .find(tool => tool.slug === slug)?.profiles.en;
+  if (!additional) throw new Error(`Missing localized content profile for ${slug}`);
+  return {
+    label: additional.name,
+    input: additional.input,
+    output: additional.output,
+    caveat: additional.limitation,
+  };
 }
