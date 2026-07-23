@@ -84,6 +84,12 @@
     max-inline-size: 68ch;
   }
 
+  /* Overrides a single Tailwind max-w-none utility on long-form reading content. */
+  .prose.prose-lg {
+    max-width: 68ch;
+    max-inline-size: 68ch;
+  }
+
   .prose pre {
     @apply bg-[#1e1e2e] rounded-xl p-5 overflow-x-auto border border-[var(--color-border)];
   }
