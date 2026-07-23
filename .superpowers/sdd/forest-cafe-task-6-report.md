@@ -424,3 +424,28 @@ Status: passed — 2 files, 29 tests. Media feedback now carries explicit
 success/error state, failure paths render assertive alerts, idle tools render
 no empty result, working conversion has truthful copy, and the redundant loan
 result headings are removed.
+
+### Batch 5 — anonymous chat shared UI migration
+
+RED:
+
+```sh
+npm test -- --run src/components/__tests__/Chat.test.tsx --reporter=dot
+```
+
+Status: failed as expected — 5 failures and 21 passes showed that the chat
+container, fields, actions, error/working results, and localized route shell
+did not yet implement the shared tool UI contract.
+
+GREEN:
+
+```sh
+npm test -- --run src/components/__tests__/Chat.test.tsx \
+  src/hooks/__tests__/useChatService.test.tsx --reporter=dot
+```
+
+Status: passed — 2 files, 27 tests. The localized chat route now uses the
+standard page header/workspace/privacy/instructions structure, while chat
+controls use real shared panels, fields, actions, and result states. Existing
+room-link, messaging, reconnect, localization, and service behavior remains
+covered.

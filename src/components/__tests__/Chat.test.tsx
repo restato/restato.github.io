@@ -1,4 +1,6 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import { readFileSync } from 'node:fs';
+import { resolve } from 'node:path';
 import { render, screen, waitFor, act } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import Chat from '../Chat';
@@ -148,6 +150,12 @@ describe('Chat', () => {
       render(<Chat />);
       expect(document.querySelector('svg.animate-spin')).toBeInTheDocument();
     });
+
+    it('uses the shared panel and working-result contracts', () => {
+      const { container } = render(<Chat />);
+      expect(container.querySelector('.fc-tool-panel')).toBeInTheDocument();
+      expect(container.querySelector('.fc-tool-result-working')).toBeInTheDocument();
+    });
   });
 
   describe('Status Changes', () => {
@@ -228,6 +236,8 @@ describe('Chat', () => {
         expect(screen.getByText('이 링크를 공유하세요:')).toBeInTheDocument();
         expect(screen.getByDisplayValue(/test-room-123/)).toBeInTheDocument();
       });
+      expect(screen.getByDisplayValue(/test-room-123/).closest('.fc-tool-field')).not.toBeNull();
+      expect(screen.getByRole('button', { name: '복사' }).closest('.fc-tool-actions')).not.toBeNull();
     });
 
     it('copies link to clipboard when copy button is clicked', async () => {
@@ -276,6 +286,9 @@ describe('Chat', () => {
         expect(screen.getByPlaceholderText('메시지를 입력하세요...')).toBeInTheDocument();
         expect(screen.getByText('전송')).toBeInTheDocument();
       });
+      expect(screen.getByPlaceholderText('메시지를 입력하세요...').closest('.fc-tool-field')).not.toBeNull();
+      expect(screen.getByRole('button', { name: '전송' })).toHaveClass('fc-button', 'fc-button-primary');
+      expect(screen.getByRole('button', { name: '전송' }).closest('.fc-tool-actions')).not.toBeNull();
     });
 
     it('does not show input field when not connected', () => {
@@ -436,6 +449,8 @@ describe('Chat', () => {
       await waitFor(() => {
         expect(screen.getByText('새 대화 시작')).toBeInTheDocument();
       });
+      expect(screen.getByRole('alert')).toHaveClass('fc-tool-result-error');
+      expect(screen.getByRole('button', { name: '새 대화 시작' }).closest('.fc-tool-actions')).not.toBeNull();
     });
 
     it('shows new chat button when expired', async () => {
@@ -540,5 +555,14 @@ describe('Chat', () => {
       const statusElements = screen.getAllByRole('status');
       expect(statusElements.length).toBeGreaterThan(0);
     });
+  });
+
+  it('keeps the localized route on the shared tool-page shell', () => {
+    const source = readFileSync(resolve('src/pages/[lang]/anonymous-chat.astro'), 'utf8');
+    expect(source).toContain('fc-page fc-tool-shell');
+    expect(source).toContain('fc-tool-header');
+    expect(source).toContain('fc-tool-workspace');
+    expect(source).toContain('fc-tool-privacy');
+    expect(source).toContain('fc-tool-instructions');
   });
 });

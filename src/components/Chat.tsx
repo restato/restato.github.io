@@ -4,6 +4,10 @@ import { useTranslation } from '../i18n/useTranslation';
 import { useChatService } from '../hooks/useChatService';
 import { useScrollToBottom } from '../hooks/useScrollToBottom';
 import { useTimeFormat } from '../hooks/useTimeFormat';
+import { ToolActions } from './tools/ui/ToolActions';
+import { ToolField } from './tools/ui/ToolField';
+import { ToolPanel } from './tools/ui/ToolPanel';
+import { ToolResult } from './tools/ui/ToolResult';
 
 // URL hash에서 roomId 추출
 function getRoomIdFromHash(): string | null {
@@ -134,7 +138,7 @@ export default function Chat() {
   }, [status]);
 
   return (
-    <div className="flex flex-col h-full max-w-3xl mx-auto border border-[var(--color-border)] rounded-lg overflow-hidden bg-[var(--color-card)]">
+    <ToolPanel className="flex flex-col h-full max-w-3xl mx-auto overflow-hidden">
       {/* 헤더 */}
       <div
         className="flex items-center justify-between px-4 py-2 border-b border-[var(--color-border)] bg-[var(--color-bg)]"
@@ -182,22 +186,23 @@ export default function Chat() {
       {/* 공유 링크 */}
       {currentRoomId && status === 'waiting' && (
         <div className="px-4 py-3 bg-blue-500/10 border-b border-[var(--color-border)]" role="region" aria-label={t(tt.ui.shareLink)}>
-          <p className="text-sm mb-2 text-[var(--color-text)]">{t(tt.ui.shareLink)}</p>
           <div className="flex gap-2">
-            <input
-              type="text"
-              readOnly
-              value={`${typeof window !== 'undefined' ? window.location.origin + window.location.pathname : ''}#${currentRoomId}`}
-              className="flex-1 px-3 py-2 text-sm rounded border border-[var(--color-border)] bg-[var(--color-bg)] text-[var(--color-text)] focus:outline-none focus:ring-2 focus:ring-blue-500"
-              aria-label={t(tt.ui.shareLink)}
+            <div className="flex-1">
+              <ToolField id="chat-share-link" label={t(tt.ui.shareLink)}>
+                <input
+                  type="text"
+                  readOnly
+                  value={`${typeof window !== 'undefined' ? window.location.origin + window.location.pathname : ''}#${currentRoomId}`}
+                />
+              </ToolField>
+            </div>
+            <ToolActions
+              primary={(
+                <button onClick={handleCopyLink} aria-label={copied ? t(tt.ui.copied) : t(tt.ui.copy)}>
+                  {copied ? t(tt.ui.copied) : t(tt.ui.copy)}
+                </button>
+              )}
             />
-            <button
-              onClick={handleCopyLink}
-              className="px-4 py-2 text-sm rounded bg-blue-500 text-white hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors"
-              aria-label={copied ? t(tt.ui.copied) : t(tt.ui.copy)}
-            >
-              {copied ? t(tt.ui.copied) : t(tt.ui.copy)}
-            </button>
           </div>
         </div>
       )}
@@ -253,48 +258,45 @@ export default function Chat() {
 
       {/* 만료/에러 상태 */}
       {(status === 'expired' || status === 'error' || status === 'disconnected') && (
-        <div className="px-4 py-3 bg-red-500/10 border-t border-[var(--color-border)]" role="alert" aria-live="assertive">
+        <ToolResult status="error">
           <p className="text-sm text-center mb-2 text-[var(--color-text)]">
             {status === 'expired' ? t(tt.messages.sessionExpired) : t(tt.messages.connectionLost)}
           </p>
-          <button
-            onClick={handleNewChat}
-            className="w-full py-2 text-sm rounded bg-blue-500 text-white hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors"
-            aria-label={t(tt.ui.newChat)}
-          >
-            {t(tt.ui.newChat)}
-          </button>
-        </div>
+          <ToolActions
+            primary={<button onClick={handleNewChat} aria-label={t(tt.ui.newChat)}>{t(tt.ui.newChat)}</button>}
+          />
+        </ToolResult>
       )}
 
       {/* 입력 영역 */}
       {status === 'connected' && (
         <form onSubmit={handleSendMessage} className="p-4 border-t border-[var(--color-border)]" role="form" aria-label={t(tt.ui.messageInputForm)}>
           <div className="flex gap-2">
-            <input
-              type="text"
-              value={inputText}
-              onChange={(e) => setInputText(e.target.value)}
-              placeholder={t(tt.ui.inputPlaceholder)}
-              className="flex-1 px-4 py-2 rounded-lg border border-[var(--color-border)] bg-[var(--color-bg)] text-[var(--color-text)] placeholder:text-[var(--color-text-muted)] focus:outline-none focus:ring-2 focus:ring-blue-500"
-              aria-label={t(tt.ui.inputPlaceholder)}
-              autoComplete="off"
+            <div className="flex-1">
+              <ToolField id="chat-message" label={t(tt.ui.inputPlaceholder)}>
+                <input
+                  type="text"
+                  value={inputText}
+                  onChange={(e) => setInputText(e.target.value)}
+                  placeholder={t(tt.ui.inputPlaceholder)}
+                  autoComplete="off"
+                />
+              </ToolField>
+            </div>
+            <ToolActions
+              primary={(
+                <button type="submit" disabled={!inputText.trim()} aria-label={t(tt.ui.send)}>
+                  {t(tt.ui.send)}
+                </button>
+              )}
             />
-            <button
-              type="submit"
-              disabled={!inputText.trim()}
-              className="px-6 py-2 rounded-lg bg-blue-500 text-white hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-              aria-label={t(tt.ui.send)}
-            >
-              {t(tt.ui.send)}
-            </button>
           </div>
         </form>
       )}
 
       {/* 대기 중일 때 입력창 대신 안내 */}
       {(status === 'waiting' || status === 'connecting' || status === 'initializing') && (
-        <div className="p-4 border-t border-[var(--color-border)]" role="status" aria-live="polite">
+        <ToolResult status="working">
           <div className="flex items-center justify-center gap-2 text-[var(--color-text-muted)] mb-3">
             <svg
               className="animate-spin h-5 w-5"
@@ -313,8 +315,8 @@ export default function Chat() {
           <div className="text-center text-xs text-[var(--color-text-muted)]">
             <p>{t(tt.quickGuide.share)} · {t(tt.quickGuide.random)}</p>
           </div>
-        </div>
+        </ToolResult>
       )}
-    </div>
+    </ToolPanel>
   );
 }

@@ -43,14 +43,23 @@ const faqSchema = {
   alternateUrls={alternateUrls}
 >
   <script type="application/ld+json" set:html={JSON.stringify(faqSchema)} />
-  <div class="chat-page px-4 py-4">
-    <header class="chat-header"><h1>{seo.name}</h1><p>{seo.description}</p></header>
-    {fallbackNotice && <p class="chat-fallback">{fallbackNotice}</p>}
-    {interactiveFallbackNotice && <p class="chat-interactive-notice">{interactiveFallbackNotice}</p>}
-    <div class="chat-container">
-      <LocalizedChatIsland client:load lang={lang} />
-    </div>
-    <section class="chat-help">
+  <div class="fc-page fc-tool-shell">
+    {fallbackNotice && <p class="fc-surface-soft fc-surface-padding-sm">{fallbackNotice}</p>}
+    {interactiveFallbackNotice && <p class="fc-surface-soft fc-surface-padding-sm">{interactiveFallbackNotice}</p>}
+    <header class="fc-tool-header">
+      <div class="fc-tool-heading">
+        <p class="fc-eyebrow">{helpUi.tools}</p>
+        <h1><span aria-hidden="true">{tool.icon}</span> {seo.name}</h1>
+        <p>{seo.description}</p>
+      </div>
+    </header>
+    <section class="fc-tool-workspace fc-surface fc-surface-padding-md" aria-label={seo.name}>
+      <p class="fc-tool-privacy"><span aria-hidden="true">🔒</span>{privacy}</p>
+      <div class="chat-container">
+        <LocalizedChatIsland client:load lang={lang} />
+      </div>
+    </section>
+    <section class="fc-tool-instructions fc-prose">
       <div>
         <h2>{helpUi.usageGuide}</h2>
         <p>{seo.overview}</p>
@@ -58,71 +67,21 @@ const faqSchema = {
       </div>
       <div><h2>{helpUi.output}</h2><ul>{seo.examples.map(example => <li>{example}</li>)}</ul></div>
       <div><h2>{helpUi.limitations}</h2><ul>{seo.limitations.map(limitation => <li>{limitation}</li>)}</ul></div>
-      <div><h2>{helpUi.privacy}</h2><p class="chat-privacy">{privacy}</p></div>
-      <div><h2>{helpUi.faq}</h2>{seo.faq.map(item => <details><summary>{item.question}</summary><p>{item.answer}</p></details>)}</div>
+      <div><h2>{helpUi.privacy}</h2><p>{privacy}</p></div>
+      <div><h2>{helpUi.faq}</h2><div class="fc-tool-faq">{seo.faq.map(item => <details><summary>{item.question}</summary><p>{item.answer}</p></details>)}</div></div>
     </section>
   </div>
 </MainLayout>
 
 <style>
-  .chat-page {
-    display: flex;
-    flex-direction: column;
-    gap: 0.75rem;
-    max-width: 64rem;
-    margin: 0 auto;
-  }
-
-  .chat-header { max-width: 48rem; margin: 0 auto 0.5rem; text-align: center; }
-  .chat-header h1 { color: var(--color-text); font-size: 1.875rem; font-weight: 700; }
-  .chat-header p { margin-top: 0.5rem; color: var(--color-text-muted); }
-
-  .chat-privacy {
-    max-width: 48rem;
-    margin: 0 auto;
-    color: var(--color-text-muted);
-    font-size: 0.875rem;
-    line-height: 1.5;
-  }
-
-  .chat-fallback, .chat-interactive-notice {
-    max-width: 48rem;
-    margin: 0 auto;
-    padding: 0.75rem 1rem;
-    border: 1px solid #f59e0b;
-    border-radius: 0.5rem;
-    color: var(--color-text);
-    font-size: 0.875rem;
-  }
-
   .chat-container {
     min-height: 32rem;
     height: calc(100vh - 180px);
   }
 
-  .chat-interactive-notice { border-color: #3b82f6; }
-
-  .chat-help {
-    display: grid;
-    gap: 2rem;
-    margin: 1.5rem auto 2rem;
-    padding: 1.5rem;
-    border: 1px solid var(--color-border);
-    border-radius: 0.75rem;
-    background: var(--color-card);
-    color: var(--color-text-muted);
-  }
-  .chat-help h2 { margin-bottom: 0.75rem; color: var(--color-text); font-size: 1.125rem; font-weight: 600; }
-  .chat-help ol, .chat-help ul { margin-top: 0.75rem; padding-left: 1.25rem; }
-  .chat-help ol { list-style: decimal; }
-  .chat-help ul { list-style: disc; }
-  .chat-help li, .chat-help details { margin-top: 0.5rem; }
-  .chat-help summary { cursor: pointer; color: var(--color-text); font-weight: 500; }
-  .chat-help details p { margin-top: 0.5rem; }
-
   @media (max-width: 768px) {
-    .chat-page {
-      padding-inline: 0.75rem;
+    .chat-container {
+      height: calc(100vh - 220px);
     }
   }
 </style>
