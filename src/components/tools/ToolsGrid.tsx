@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import type { Language } from '../../i18n';
 import { getLocalizedToolHref } from './toolLinks';
-import { catalogUi } from '../../i18n/tool-ui';
+import { catalogUi, sharedToolUi } from '../../i18n/tool-ui';
 
 interface Tool {
   slug: string;
@@ -39,15 +39,21 @@ export default function ToolsGrid({ lang, tools, categories }: ToolsGridProps) {
   return (
     <div>
       {/* Category Filters */}
-      <div className="flex flex-wrap gap-2 mb-8">
+      <div
+        className="-mx-4 mb-6 flex flex-nowrap gap-2 overflow-x-auto px-4 pb-2 md:mx-0 md:flex-wrap md:overflow-visible md:px-0"
+        role="group"
+        aria-label={sharedToolUi[lang].tools}
+      >
         {categories.map((category) => (
           <button
+            type="button"
             key={category.id}
             onClick={() => setSelectedCategory(category.id)}
-            className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors
+            aria-pressed={selectedCategory === category.id}
+            className={`fc-chip shrink-0 border transition-colors
               ${selectedCategory === category.id
-                ? 'bg-primary-500 text-white'
-                : 'bg-[var(--color-card)] hover:bg-[var(--color-card-hover)] text-[var(--color-text)] border border-[var(--color-border)]'
+                ? 'border-[var(--brand)] bg-[var(--brand)] text-[var(--surface-raised)]'
+                : 'border-[var(--border-subtle)] hover:border-[var(--brand)] hover:text-[var(--brand)]'
               }`}
           >
             {typeof category.label === 'string' ? category.label : getLocalizedText(category.label)}
@@ -56,35 +62,41 @@ export default function ToolsGrid({ lang, tools, categories }: ToolsGridProps) {
       </div>
 
       {/* Tools Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {filteredTools.map((tool) => (
-          <a
-            key={tool.slug}
-            href={tool.slug.startsWith('/') ? tool.slug : getLocalizedToolHref(tool.slug, lang)}
-            className="group p-6 rounded-xl bg-[var(--color-card)] border border-[var(--color-border)]
-              hover:border-primary-500 hover:shadow-lg transition-all"
-          >
-            <div className="flex items-start gap-4">
-              <span className="text-3xl">{tool.icon}</span>
-              <div className="flex-1 min-w-0">
-                <h3 className="text-lg font-semibold text-[var(--color-text)] group-hover:text-primary-500 transition-colors">
-                  {getDisplayText(tool.title)}
-                </h3>
-                <p className="text-sm text-[var(--color-text-muted)] mt-1">
-                  {getDisplayText(tool.description)}
-                </p>
-              </div>
-              <svg className="w-5 h-5 text-[var(--color-text-muted)] group-hover:text-primary-500 transition-colors flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-              </svg>
-            </div>
-          </a>
-        ))}
-      </div>
+      {filteredTools.length > 0 ? (
+        <div className="fc-surface overflow-hidden">
+          <ul className="m-0 grid list-none p-0 md:grid-cols-2 lg:grid-cols-3">
+            {filteredTools.map((tool) => (
+              <li key={tool.slug} className="border-b border-[var(--border-subtle)] md:border-r">
+                <a
+                  href={tool.slug.startsWith('/') ? tool.slug : getLocalizedToolHref(tool.slug, lang)}
+                  className="group flex min-h-20 items-center gap-3 px-4 py-3 transition-colors hover:bg-[var(--surface-soft)]"
+                >
+                  <span className="w-10 shrink-0 text-center text-2xl" aria-hidden="true">{tool.icon}</span>
+                  <div className="min-w-0 flex-1">
+                    <h3 className="m-0 truncate font-bold text-[var(--text-primary)] group-hover:text-[var(--brand)]">
+                      {getDisplayText(tool.title)}
+                    </h3>
+                    <span className="mt-0.5 block truncate text-sm text-[var(--text-muted)]">
+                      {getDisplayText(tool.description)}
+                    </span>
+                  </div>
+                  <span className="shrink-0 text-[var(--text-muted)]" aria-hidden="true">→</span>
+                </a>
+              </li>
+            ))}
+          </ul>
+        </div>
+      ) : (
+        <div className="fc-empty-state">
+          <p>{catalogUi[lang].noResults}</p>
+        </div>
+      )}
 
       {/* Tool Count */}
-      <div className="mt-8 text-center text-[var(--color-text-muted)]">
-        <span className="font-bold text-[var(--color-text)]">{catalogUi[lang].count(filteredTools.length)}</span>
+      <div className="mt-6 text-center text-sm text-[var(--text-muted)]">
+        <span aria-live="polite" className="font-bold text-[var(--text-primary)]">
+          {catalogUi[lang].count(filteredTools.length)}
+        </span>
       </div>
     </div>
   );

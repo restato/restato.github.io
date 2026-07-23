@@ -76,13 +76,13 @@ const { robots, alternateUrls } = getToolCatalogPublicationState(lang);
   robots={robots}
   alternateUrls={alternateUrls}
 >
-  <div class="max-w-6xl mx-auto px-4 py-8">
+  <div class="fc-page fc-content">
     {usesFallback && fallbackNotice && <p class="mb-6 rounded-lg border border-amber-300 bg-amber-50 p-4 text-sm text-amber-900 dark:border-amber-700 dark:bg-amber-950/30 dark:text-amber-200">{fallbackNotice}</p>}
     <!-- Header with i18n support -->
     <ToolsPageHeader client:load lang={lang} />
 
     <!-- Search -->
-    <div class="mb-6">
+    <div class="fc-surface fc-surface-padding-md mb-6">
       <ToolSearch client:load lang={lang} tools={tools} />
     </div>
 

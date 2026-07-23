@@ -10,16 +10,21 @@ export default function ToolsPageHeader({ lang = 'en' }: ToolsPageHeaderProps) {
 
   return (
     <>
-      <nav className="text-sm mb-6">
+      <nav className="mb-5 text-sm">
         <ol className="flex items-center gap-2">
-          <li><a href={`/${lang}/`} className="text-[var(--color-text-muted)] hover:text-primary-500">{text.home}</a></li>
-          <li className="text-[var(--color-text-muted)]">/</li>
-          <li className="text-[var(--color-text)]">{text.tools}</li>
+          <li>
+            <a href={`/${lang}/`} className="text-[var(--text-muted)] hover:text-[var(--brand)]">
+              {text.home}
+            </a>
+          </li>
+          <li className="text-[var(--text-muted)]" aria-hidden="true">/</li>
+          <li className="font-bold text-[var(--text-primary)]" aria-current="page">{text.tools}</li>
         </ol>
       </nav>
-      <header className="mb-8">
-        <h1 className="text-3xl md:text-4xl font-bold text-[var(--color-text)] mb-4">{text.heading}</h1>
-        <p className="text-[var(--color-text-muted)] text-lg">{text.description}</p>
+      <header className="fc-page-header border-b border-[var(--border-subtle)] pb-8">
+        <p className="fc-eyebrow">RESTATO · WEB TOOLS</p>
+        <h1>{text.heading}</h1>
+        <p className="fc-page-description text-lg">{text.description}</p>
       </header>
     </>
   );

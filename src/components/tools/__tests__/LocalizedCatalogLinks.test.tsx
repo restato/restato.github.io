@@ -20,7 +20,7 @@ describe('localized catalog links', () => {
   it('search links directly to the localized anonymous-chat special route', async () => {
     render(<ToolSearch lang="fr" tools={tools} />);
 
-    await userEvent.type(screen.getByRole('textbox'), 'anonymous');
+    await userEvent.type(screen.getByRole('searchbox'), 'anonymous');
     expect(screen.getByRole('link', { name: /Anonymous Chat/ }))
       .toHaveAttribute('href', '/fr/anonymous-chat/');
     expect(screen.getByPlaceholderText('Rechercher un outil… (⌘K)')).toBeInTheDocument();

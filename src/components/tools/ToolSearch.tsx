@@ -1,7 +1,7 @@
-import { useState, useMemo, useRef, useEffect } from 'react';
+import { useState, useMemo, useRef, useEffect, useId } from 'react';
 import type { Language } from '../../data/tools/types';
 import { getLocalizedToolHref } from './toolLinks';
-import { catalogUi } from '../../i18n/tool-ui';
+import { catalogUi, sharedToolUi } from '../../i18n/tool-ui';
 
 export interface SearchableTool {
   slug: string;
@@ -57,6 +57,10 @@ interface ToolSearchProps {
 export default function ToolSearch({ lang = 'en', tools = defaultTools }: ToolSearchProps) {
   const copy = catalogUi[lang];
   const ui = { placeholder: copy.search, noResults: copy.noResults, tryAnother: copy.tryAnother };
+  const visibleLabel = ui.placeholder.replace(/\s*\(⌘K\)\s*$/, '');
+  const clearLabel = sharedToolUi[lang].clear;
+  const inputId = useId();
+  const resultsId = `${inputId}-results`;
   const [query, setQuery] = useState('');
   const [isOpen, setIsOpen] = useState(false);
   const [selectedIndex, setSelectedIndex] = useState(0);
@@ -72,7 +76,7 @@ export default function ToolSearch({ lang = 'en', tools = defaultTools }: ToolSe
       tool.description.toLowerCase().includes(lowerQuery) ||
       tool.keywords?.some(k => k.toLowerCase().includes(lowerQuery))
     ).slice(0, 8);
-  }, [query]);
+  }, [query, tools]);
 
   useEffect(() => {
     setSelectedIndex(0);
@@ -120,46 +124,67 @@ export default function ToolSearch({ lang = 'en', tools = defaultTools }: ToolSe
   };
 
   return (
-    <div className="relative w-full max-w-md">
+    <div className="relative w-full" role="search">
+      <label
+        className="fc-label mb-2 flex items-center justify-between gap-4"
+        htmlFor={inputId}
+      >
+        <span>{visibleLabel}</span>
+        <kbd className="fc-chip hidden font-mono text-xs md:inline-flex" aria-hidden="true">
+          ⌘K
+        </kbd>
+      </label>
       <div className="relative">
         <svg
-          className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-[var(--color-text-muted)]"
+          className="pointer-events-none absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-[var(--text-muted)]"
           fill="none" stroke="currentColor" viewBox="0 0 24 24"
+          aria-hidden="true"
         >
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
             d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
           />
         </svg>
         <input
+          id={inputId}
           ref={inputRef}
-          type="text"
+          type="search"
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           onFocus={() => setIsOpen(true)}
           onBlur={() => setTimeout(() => setIsOpen(false), 200)}
           onKeyDown={handleKeyDown}
           placeholder={ui.placeholder}
-          className="w-full pl-10 pr-4 py-3 rounded-xl
-            bg-[var(--color-card)] border border-[var(--color-border)]
-            focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20
-            outline-none transition-all
-            text-[var(--color-text)] placeholder:text-[var(--color-text-muted)]"
+          aria-label={ui.placeholder}
+          aria-controls={resultsId}
+          className="fc-input min-h-14 pl-12 pr-14 text-lg"
         />
-        <kbd className="hidden md:flex absolute right-3 top-1/2 -translate-y-1/2
-          items-center gap-1 px-2 py-1 rounded
-          bg-[var(--color-card-hover)] text-[var(--color-text-muted)]
-          text-xs font-mono border border-[var(--color-border)]"
-        >
-          ⌘K
-        </kbd>
+        {query && (
+          <button
+            type="button"
+            aria-label={clearLabel}
+            className="fc-button fc-button-quiet absolute right-1 top-1/2 min-h-11 -translate-y-1/2 px-3 text-[var(--text-muted)]"
+            onClick={() => {
+              setQuery('');
+              setSelectedIndex(0);
+              inputRef.current?.focus();
+            }}
+          >
+            <span aria-hidden="true">×</span>
+          </button>
+        )}
       </div>
+
+      {query && (
+        <span className="sr-only" role="status" aria-live="polite">
+          {copy.count(filteredTools.length)}
+        </span>
+      )}
 
       {isOpen && filteredTools.length > 0 && (
         <div
+          id={resultsId}
           ref={listRef}
-          className="absolute z-50 w-full mt-2 py-2 rounded-xl
-            bg-[var(--color-card)] border border-[var(--color-border)]
-            shadow-xl max-h-96 overflow-auto"
+          className="fc-surface absolute z-50 mt-2 max-h-96 w-full overflow-auto py-2"
         >
           {filteredTools.map((tool, index) => (
             <a
@@ -167,30 +192,28 @@ export default function ToolSearch({ lang = 'en', tools = defaultTools }: ToolSe
               href={getLocalizedToolHref(tool.slug, lang)}
               className={`flex items-center gap-3 px-4 py-3 transition-colors
                 ${index === selectedIndex
-                  ? 'bg-primary-500/10 text-primary-500'
-                  : 'hover:bg-[var(--color-card-hover)]'
+                  ? 'bg-[var(--surface-soft)] text-[var(--brand)]'
+                  : 'hover:bg-[var(--surface-soft)]'
                 }`}
               onMouseEnter={() => setSelectedIndex(index)}
             >
-              <span className="text-xl">{tool.icon}</span>
+              <span className="w-9 shrink-0 text-center text-xl" aria-hidden="true">{tool.icon}</span>
               <div className="flex-1 min-w-0">
-                <div className="font-medium">{tool.title}</div>
-                <div className="text-sm text-[var(--color-text-muted)] truncate">
+                <div className="font-bold text-[var(--text-primary)]">{tool.title}</div>
+                <div className="truncate text-sm text-[var(--text-muted)]">
                   {tool.description}
                 </div>
               </div>
-              <svg className="w-4 h-4 text-[var(--color-text-muted)]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-              </svg>
+              <span className="text-[var(--text-muted)]" aria-hidden="true">→</span>
             </a>
           ))}
         </div>
       )}
 
       {isOpen && query && filteredTools.length === 0 && (
-        <div className="absolute z-50 w-full mt-2 py-8 rounded-xl
-          bg-[var(--color-card)] border border-[var(--color-border)]
-          shadow-xl text-center text-[var(--color-text-muted)]"
+        <div
+          id={resultsId}
+          className="fc-surface absolute z-50 mt-2 w-full px-5 py-8 text-center text-[var(--text-muted)]"
         >
           <p>{ui.noResults}</p>
           <p className="text-sm mt-1">{ui.tryAnother}</p>
