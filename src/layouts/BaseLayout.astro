@@ -4,6 +4,7 @@ import { localeMetadata } from '../i18n';
 import type { Language } from '../data/tools/types';
 import { normalizeHeadAlternates, parseLanguage } from '../i18n/urlUtils';
 import ConsentBanner from '../components/ConsentBanner.astro';
+import { getAdsenseClient } from '../lib/ad-config';
 
 interface AlternateUrl {
   lang: string;
@@ -54,6 +55,12 @@ const canonicalURL = canonical
 const siteName = 'Restato';
 const twitterHandle = '@restato_dev';
 const gaId = import.meta.env.PUBLIC_GA_ID?.trim() ?? '';
+const adsenseClient = getAdsenseClient({
+  PUBLIC_ADSENSE_ENABLED: import.meta.env.PUBLIC_ADSENSE_ENABLED,
+  PUBLIC_ADSENSE_CLIENT: import.meta.env.PUBLIC_ADSENSE_CLIENT,
+  PUBLIC_ADSENSE_SLOT_TOOL: import.meta.env.PUBLIC_ADSENSE_SLOT_TOOL,
+  PUBLIC_ADSENSE_SLOT_CATALOG: import.meta.env.PUBLIC_ADSENSE_SLOT_CATALOG,
+});
 
 // JSON-LD Schema
 const websiteSchema = {
@@ -150,7 +157,7 @@ const articleSchema = type === 'article' ? {
     <meta name="robots" content={robots} />
     <meta name="googlebot" content={robots} />
     <meta name="google-site-verification" content="0GLTtjarMTr8NsaJaP-z0tbHPycvu_rOoQykr81BL0o" />
-    <meta name="google-adsense-account" content="ca-pub-5341896100319873" />
+    {adsenseClient && <meta name="google-adsense-account" content={adsenseClient} />}
     <link rel="alternate" type="application/rss+xml" title="RSS Feed" href="/rss.xml" />
     <slot name="head" />
 

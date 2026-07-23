@@ -5,6 +5,7 @@ import ShareButton from '../../../components/tools/ShareButton';
 import FavoriteButton from '../../../components/tools/FavoriteButton';
 import BookmarkPrompt from '../../../components/tools/BookmarkPrompt';
 import LocalizedToolIsland from '../../../components/tools/LocalizedToolIsland';
+import AdSlot from '../../../components/ads/AdSlot.astro';
 import { getPublishedTools, type ToolDefinition } from '../../../data/tools';
 import { getLocalizedToolPageMetadata } from '../../../data/tools/pageMetadata';
 import { supportedLanguages } from '../../../data/tools/locales';
@@ -171,6 +172,8 @@ const faqSchema = {
         <div class="space-y-4">{content.faq.map(item => <details><summary class="cursor-pointer font-medium text-[var(--color-text)]">{item.question}</summary><p class="mt-2 text-[var(--color-text-muted)]">{item.answer}</p></details>)}</div>
       </div>
     </section>
+
+    <AdSlot placement="tool-after-help" class="mt-8" />
 
     <!-- Related Tools -->
     <RelatedTools currentSlug={tool.slug} currentCategory={tool.category} lang={lang} />

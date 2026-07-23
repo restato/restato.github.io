@@ -5,6 +5,7 @@ import { supportedLanguages } from '../../data/tools/locales';
 import type { Language, ToolDefinition } from '../../data/tools/types';
 import { getToolFallbackNotice, landingContent } from '../../i18n/landing';
 import { getAlternateUrls } from '../../i18n/urlUtils';
+import AdSlot from '../../components/ads/AdSlot.astro';
 
 export function getStaticPaths() {
   return supportedLanguages.map(lang => ({ params: { lang } }));
@@ -60,31 +61,34 @@ const getDisplayContent = (tool: ToolDefinition) =>
       </div>
 
       <div class="space-y-10">
-        {Object.entries(groupedTools).map(([cluster, clusterTools]) => (
-          <section id={cluster} aria-labelledby={`${cluster}-heading`}>
-            <h3 id={`${cluster}-heading`} class="text-xl font-semibold text-[var(--color-text)] mb-4">
-              {clusterNames[lang][cluster] ?? clusterNames.en[cluster] ?? cluster}
-            </h3>
-            <ul class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-              {clusterTools.map(tool => {
-                const content = getDisplayContent(tool);
-                const usesFallback = content?.status === 'fallback' || !tool.content[lang];
-                const fallbackNotice = getToolFallbackNotice(tool, lang);
-                return (
-                  <li>
-                    <a
-                      href={tool.slug === 'anonymous-chat' ? `/${lang}/anonymous-chat/` : `/${lang}/tools/${tool.slug}/`}
-                      class="block h-full p-5 rounded-xl border border-[var(--color-border)] bg-[var(--color-card)] hover:border-primary-500 transition-colors"
-                    >
-                      <h4 class="font-semibold text-[var(--color-text)]">{tool.icon} {content?.name ?? tool.slug}</h4>
-                      <p class="mt-2 text-sm text-[var(--color-text-muted)]">{content?.description}</p>
-                      {usesFallback && fallbackNotice && <p class="mt-3 text-xs text-amber-700 dark:text-amber-300">{fallbackNotice}</p>}
-                    </a>
-                  </li>
-                );
-              })}
-            </ul>
-          </section>
+        {Object.entries(groupedTools).map(([cluster, clusterTools], index) => (
+          <>
+            <section id={cluster} aria-labelledby={`${cluster}-heading`}>
+              <h3 id={`${cluster}-heading`} class="text-xl font-semibold text-[var(--color-text)] mb-4">
+                {clusterNames[lang][cluster] ?? clusterNames.en[cluster] ?? cluster}
+              </h3>
+              <ul class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                {clusterTools.map(tool => {
+                  const content = getDisplayContent(tool);
+                  const usesFallback = content?.status === 'fallback' || !tool.content[lang];
+                  const fallbackNotice = getToolFallbackNotice(tool, lang);
+                  return (
+                    <li>
+                      <a
+                        href={tool.slug === 'anonymous-chat' ? `/${lang}/anonymous-chat/` : `/${lang}/tools/${tool.slug}/`}
+                        class="block h-full p-5 rounded-xl border border-[var(--color-border)] bg-[var(--color-card)] hover:border-primary-500 transition-colors"
+                      >
+                        <h4 class="font-semibold text-[var(--color-text)]">{tool.icon} {content?.name ?? tool.slug}</h4>
+                        <p class="mt-2 text-sm text-[var(--color-text-muted)]">{content?.description}</p>
+                        {usesFallback && fallbackNotice && <p class="mt-3 text-xs text-amber-700 dark:text-amber-300">{fallbackNotice}</p>}
+                      </a>
+                    </li>
+                  );
+                })}
+              </ul>
+            </section>
+            {index === 0 && <AdSlot placement="catalog-between-clusters" />}
+          </>
         ))}
       </div>
     </section>
