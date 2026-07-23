@@ -81,21 +81,21 @@
 
 @layer components {
   .fc-page {
-    width: min(100% - 2rem, 72rem);
+    inline-size: calc(100% - 2rem);
     margin-inline: auto;
     padding-block: clamp(2rem, 5vw, 4rem);
   }
 
   .fc-reading {
-    max-width: 68ch;
+    max-inline-size: 68ch;
   }
 
   .fc-content {
-    max-width: 72rem;
+    max-inline-size: 72rem;
   }
 
   .fc-wide {
-    max-width: 88rem;
+    max-inline-size: 88rem;
   }
 
   .fc-page-header {
@@ -137,12 +137,10 @@
     border: 1px solid var(--border-subtle);
     border-radius: 1rem;
     background: var(--surface-raised);
-    box-shadow: 0 0.625rem 1.875rem color-mix(in srgb, var(--text-primary) 7%, transparent);
   }
 
   .fc-surface-soft {
     background: var(--surface-soft);
-    box-shadow: none;
   }
 
   .fc-surface-padding-none {
