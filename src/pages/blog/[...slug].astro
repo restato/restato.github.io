@@ -3,6 +3,7 @@ import MainLayout from '../../layouts/MainLayout.astro';
 import PageShell from '../../components/ui/PageShell.astro';
 import { getCollection } from 'astro:content';
 import { toBlogTagSlug } from '../../lib/blogTags';
+import { selectArticleLanguage } from '../../i18n/article-language';
 
 export async function getStaticPaths() {
   const posts = await getCollection('blog');
@@ -14,6 +15,7 @@ export async function getStaticPaths() {
 
 const { post } = Astro.props;
 const { Content } = await post.render();
+const articleLanguage = selectArticleLanguage(post.data);
 
 const formattedDate = post.data.date.toLocaleDateString('en-US', {
   year: 'numeric',
@@ -33,7 +35,8 @@ const readingTime = Math.max(1, Math.ceil(wordCount / 200));
   image={post.data.image}
   type="article"
   publishedTime={post.data.date}
-  lang="en"
+  lang={articleLanguage}
+  lockLanguage={true}
   robots={post.data.draft ? 'noindex, nofollow' : 'index, follow'}
 >
   <PageShell size="reading">

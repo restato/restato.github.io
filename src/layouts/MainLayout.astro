@@ -3,6 +3,7 @@ import BaseLayout from './BaseLayout.astro';
 import Header from '../components/Header.astro';
 import Footer from '../components/Footer.astro';
 import type { Language } from '../data/tools/types';
+import { getSkipLinkLabel, skipLinkLabels } from '../i18n/skip-link';
 
 interface AlternateUrl {
   lang: string;
@@ -25,21 +26,7 @@ interface Props {
 }
 
 const { title, description, image, type, publishedTime, modifiedTime, author, robots, canonical, lang, lockLanguage, alternateUrls } = Astro.props;
-const skipLinkLabels: Record<Language, string> = {
-  ko: '본문으로 건너뛰기',
-  en: 'Skip to main content',
-  ja: '本文へ移動',
-  'zh-CN': '跳到主要内容',
-  'zh-TW': '跳到主要內容',
-  es: 'Saltar al contenido principal',
-  pt: 'Pular para o conteúdo principal',
-  de: 'Zum Hauptinhalt springen',
-  fr: 'Aller au contenu principal',
-  it: 'Vai al contenuto principale',
-  id: 'Lewati ke konten utama',
-  hi: 'मुख्य सामग्री पर जाएँ',
-};
-const skipLinkLabel = skipLinkLabels[lang ?? 'ko'];
+const skipLinkLabel = getSkipLinkLabel(lang ?? 'ko');
 ---
 
 <BaseLayout title={title} description={description} image={image} type={type} publishedTime={publishedTime} modifiedTime={modifiedTime} author={author} robots={robots} canonical={canonical} lang={lang} lockLanguage={lockLanguage} alternateUrls={alternateUrls}>
@@ -47,6 +34,8 @@ const skipLinkLabel = skipLinkLabels[lang ?? 'ko'];
   <a
     href="#main-content"
     class="fc-button fc-button-primary fixed left-4 top-3 z-[60] -translate-y-24 transition-transform focus:translate-y-0"
+    data-skip-link
+    data-skip-link-labels={JSON.stringify(skipLinkLabels)}
   >
     {skipLinkLabel}
   </a>
@@ -55,4 +44,21 @@ const skipLinkLabel = skipLinkLabels[lang ?? 'ko'];
     <slot />
   </main>
   <Footer lang={lang} />
+  <script>
+    const skipLink = document.querySelector('[data-skip-link]');
+    if (skipLink instanceof HTMLAnchorElement) {
+      const labels = JSON.parse(skipLink.dataset.skipLinkLabels || '{}');
+      const updateSkipLink = (language: string) => {
+        skipLink.textContent = labels[language] || labels.ko;
+      };
+
+      const storedLanguage = localStorage.getItem('lang');
+      updateSkipLink(storedLanguage && labels[storedLanguage]
+        ? storedLanguage
+        : document.documentElement.lang);
+      window.addEventListener('languageChange', (event) => {
+        updateSkipLink((event as CustomEvent<string>).detail);
+      });
+    }
+  </script>
 </BaseLayout>

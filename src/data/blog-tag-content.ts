@@ -1,5 +1,6 @@
 import type { Language } from './tools/types';
 import { supportedLanguages } from './tools/locales';
+import { selectArticleLanguage } from '../i18n/article-language';
 
 export interface BlogTagContent {
   metaDescription: string;
@@ -160,20 +161,6 @@ export function inferBlogTagLanguage(tag: string): Language {
   return 'en';
 }
 
-function inferArticleMetadataLanguage(post: BlogTagLanguagePost): Language {
-  if (post.data.lang && supportedLanguages.includes(post.data.lang)) {
-    return post.data.lang;
-  }
-
-  const metadata = `${post.data.title} ${post.data.description}`;
-  if (/\p{Script=Hangul}/u.test(metadata)) return 'ko';
-  if (/[\p{Script=Hiragana}\p{Script=Katakana}]/u.test(metadata)) return 'ja';
-  if (/\p{Script=Devanagari}/u.test(metadata)) return 'hi';
-  if (/[\u3100-\u312f]|[體臺灣與為這個學習網頁開發實際]/u.test(metadata)) return 'zh-TW';
-  if (/\p{Script=Han}/u.test(metadata)) return 'zh-CN';
-  return 'en';
-}
-
 /**
  * A tag page represents the articles assigned to it, so article metadata is
  * authoritative. Plurality wins; ties use the newest article represented by
@@ -188,7 +175,7 @@ export function selectBlogTagLanguage(
 
   const languageStats = new Map<Language, { count: number; newest: number }>();
   for (const post of posts) {
-    const language = inferArticleMetadataLanguage(post);
+    const language = selectArticleLanguage(post.data);
     const timestamp = post.data.date.valueOf();
     const newest = Number.isFinite(timestamp) ? timestamp : Number.NEGATIVE_INFINITY;
     const current = languageStats.get(language);

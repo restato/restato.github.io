@@ -29,7 +29,7 @@ const helpUi = sharedToolUi[lang];
 const interactiveFallbackNotice = !['ko', 'en', 'ja'].includes(lang) ? interactiveNotices[lang] : null;
 
 const pageTitle = `${seo.title} | Restato`;
-const canonicalUrl = `https://restato.github.io/${lang}/anonymous-chat`;
+const canonicalUrl = `https://restato.github.io/${lang}/anonymous-chat/`;
 const appSchema = {
   "@context": "https://schema.org",
   "@type": "WebApplication",
@@ -67,6 +67,7 @@ const faqSchema = {
   description={seo.description}
   lang={lang}
   robots={robots}
+  canonical={canonicalUrl}
   alternateUrls={alternateUrls}
 >
   <script type="application/ld+json" set:html={JSON.stringify(appSchema)} />
