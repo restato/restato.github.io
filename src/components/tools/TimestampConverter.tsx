@@ -1,5 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useTranslation } from '../../i18n/useTranslation';
+import { ToolActions } from './ui/ToolActions';
+import { ToolField } from './ui/ToolField';
 import { ToolPanel } from './ui/ToolPanel';
 
 export default function TimestampConverter() {
@@ -107,7 +109,7 @@ export default function TimestampConverter() {
   return (
     <ToolPanel className="gap-6">
       {/* Current Time */}
-      <div className="p-4 rounded-xl bg-gradient-to-r from-primary-500/10 to-primary-500/5 border border-primary-500/20">
+      <div className="p-4 rounded-xl bg-[var(--surface-soft)] border border-primary-500/20">
         <div className="flex items-center justify-between">
           <div>
             <p className="text-sm text-[var(--color-text-muted)]">{t(tc.currentTimestamp)}</p>
@@ -115,7 +117,7 @@ export default function TimestampConverter() {
               {currentTimestamp}
             </p>
           </div>
-          <button
+          <ToolActions primary={<button
             onClick={() => {
               setTimestamp(String(currentTimestamp));
               copyText(String(currentTimestamp));
@@ -123,7 +125,7 @@ export default function TimestampConverter() {
             className="px-4 py-2 bg-primary-500 hover:bg-primary-600 text-white rounded-lg text-sm font-medium transition-colors"
           >
             {t(tc.copyAndUse)}
-          </button>
+          </button>} />
         </div>
         <p className="text-sm text-[var(--color-text-muted)] mt-2">
           {currentTime ? formatDate(new Date(currentTime)) : '—'}
@@ -131,8 +133,7 @@ export default function TimestampConverter() {
       </div>
 
       {/* Unit Toggle */}
-      <div className="flex gap-2">
-        <button
+      <ToolActions className="grid grid-cols-2" primary={<button
           onClick={() => setUnit('seconds')}
           className={`flex-1 px-4 py-2 rounded-lg text-sm font-medium transition-colors
             ${unit === 'seconds'
@@ -141,8 +142,7 @@ export default function TimestampConverter() {
             }`}
         >
           {t(tc.seconds)}
-        </button>
-        <button
+        </button>} secondary={<button
           onClick={() => setUnit('milliseconds')}
           className={`flex-1 px-4 py-2 rounded-lg text-sm font-medium transition-colors
             ${unit === 'milliseconds'
@@ -151,22 +151,21 @@ export default function TimestampConverter() {
             }`}
         >
           {t(tc.milliseconds)}
-        </button>
-      </div>
+        </button>} />
 
       {/* Timestamp to Date */}
       <div className="p-4 rounded-lg bg-[var(--color-card)] border border-[var(--color-border)]">
         <h3 className="font-medium text-[var(--color-text)] mb-4">⏱️ {t(tc.timestampToDate)}</h3>
         <div className="space-y-4">
+          <ToolField id="timestamp-input" label={t(tc.timestampToDate)}>
           <input
             type="text"
             value={timestamp}
             onChange={(e) => setTimestamp(e.target.value.replace(/\D/g, ''))}
             placeholder={unit === 'milliseconds' ? '1704067200000' : '1704067200'}
-            className="w-full px-4 py-3 rounded-lg border border-[var(--color-border)]
-              bg-[var(--color-bg)] text-[var(--color-text)] font-mono
-              focus:outline-none focus:ring-2 focus:ring-primary-500"
+            className="font-mono"
           />
+          </ToolField>
 
           {timestampDate && (
             <div className="space-y-2">

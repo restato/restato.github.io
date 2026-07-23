@@ -1,5 +1,7 @@
 import { useState, useMemo } from 'react';
 import { useTranslation } from '../../i18n/useTranslation';
+import { ToolActions } from './ui/ToolActions';
+import { ToolField } from './ui/ToolField';
 import { ToolPanel } from './ui/ToolPanel';
 
 type UnitCategory = 'length' | 'weight' | 'temperature' | 'area' | 'volume';
@@ -205,8 +207,8 @@ export default function UnitConverter() {
   return (
     <ToolPanel className="gap-6">
       {/* Category Tabs */}
-      <div className="flex flex-wrap gap-2">
-        {(Object.keys(units) as UnitCategory[]).map((cat) => (
+      <ToolActions
+        primary={(Object.keys(units) as UnitCategory[]).slice(0, 1).map((cat) => (
           <button
             key={cat}
             onClick={() => handleCategoryChange(cat)}
@@ -219,22 +221,19 @@ export default function UnitConverter() {
             {t(categoryLabels[cat])}
           </button>
         ))}
-      </div>
+        secondary={(Object.keys(units) as UnitCategory[]).slice(1).map((cat) => (
+          <button key={cat} onClick={() => handleCategoryChange(cat)}>{t(categoryLabels[cat])}</button>
+        ))}
+      />
 
       {/* Converter */}
       <div className="space-y-4">
         {/* From */}
-        <div className="space-y-2">
-          <label className="text-sm font-medium text-[var(--color-text)]">{t(tt.from)}</label>
+        <div className="grid min-w-0 gap-2 sm:grid-cols-[1fr_auto] sm:items-end">
+          <ToolField id="unit-from-value" label={t(tt.from)}>
+            <input type="number" value={fromValue} onChange={(e) => setFromValue(e.target.value)} className="text-lg" />
+          </ToolField>
           <div className="flex min-w-0 gap-2">
-            <input
-              type="number"
-              value={fromValue}
-              onChange={(e) => setFromValue(e.target.value)}
-              className="min-w-0 flex-1 px-4 py-3 rounded-lg border border-[var(--color-border)]
-                bg-[var(--color-card)] text-[var(--color-text)] text-lg
-                focus:outline-none focus:ring-2 focus:ring-primary-500"
-            />
             <select
               value={fromUnit}
               onChange={(e) => setFromUnit(e.target.value)}

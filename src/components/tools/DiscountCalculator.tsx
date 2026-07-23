@@ -1,5 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useTranslation } from '../../i18n/useTranslation';
+import { ToolActions } from './ui/ToolActions';
+import { ToolField } from './ui/ToolField';
 import { ToolPanel } from './ui/ToolPanel';
 
 export default function DiscountCalculator() {
@@ -31,24 +33,17 @@ export default function DiscountCalculator() {
   return (
     <ToolPanel className="gap-6">
       {/* Original Price */}
-      <div className="space-y-2">
-        <label className="block text-sm font-medium text-[var(--color-text)]">
-          {t({ ko: '원래 가격', en: 'Original price', ja: '元の価格' })}
-        </label>
-        <div className="relative">
+      <div className="grid gap-1">
+        <ToolField id="discount-original" label={t({ ko: '원래 가격', en: 'Original price', ja: '元の価格' })}>
           <input
             type="number"
             value={originalPrice}
             onChange={(e) => setOriginalPrice(e.target.value)}
             placeholder="10000"
-            className="w-full px-4 py-3 pr-12 rounded-lg border border-[var(--color-border)]
-              bg-[var(--color-card)] text-[var(--color-text)] text-lg
-              focus:outline-none focus:ring-2 focus:ring-primary-500"
+            className="text-lg"
           />
-          <span className="absolute right-4 top-1/2 -translate-y-1/2 text-[var(--color-text-muted)]">
-            {currency}
-          </span>
-        </div>
+        </ToolField>
+        <span className="text-sm text-[var(--color-text-muted)]">{currency}</span>
       </div>
 
       {/* Discount Percent */}
@@ -74,8 +69,8 @@ export default function DiscountCalculator() {
         </div>
 
         {/* Quick Discount Buttons */}
-        <div className="flex flex-wrap gap-2 mt-2">
-          {quickDiscounts.map((d) => (
+        <ToolActions
+          primary={quickDiscounts.slice(0, 1).map((d) => (
             <button
               key={d}
               onClick={() => setDiscountPercent(String(d))}
@@ -88,7 +83,10 @@ export default function DiscountCalculator() {
               {d}%
             </button>
           ))}
-        </div>
+          secondary={quickDiscounts.slice(1).map((d) => (
+            <button key={d} onClick={() => setDiscountPercent(String(d))}>{d}%</button>
+          ))}
+        />
       </div>
 
       {/* Results */}

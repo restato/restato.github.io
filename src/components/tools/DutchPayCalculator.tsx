@@ -1,5 +1,7 @@
 import { useState } from 'react';
 import { useTranslation } from '../../i18n/useTranslation';
+import { ToolActions } from './ui/ToolActions';
+import { ToolField } from './ui/ToolField';
 import { ToolPanel } from './ui/ToolPanel';
 
 interface Person {
@@ -83,24 +85,17 @@ export default function DutchPayCalculator() {
   return (
     <ToolPanel className="gap-6">
       {/* Total Amount */}
-      <div className="space-y-2">
-        <label className="block text-sm font-medium text-[var(--color-text)]">
-          {t({ ko: '총 금액', en: 'Total amount', ja: '合計金額' })}
-        </label>
-        <div className="relative">
+      <div className="grid gap-1">
+        <ToolField id="dutch-total" label={t({ ko: '총 금액', en: 'Total amount', ja: '合計金額' })}>
           <input
             type="number"
             value={totalAmount}
             onChange={(e) => setTotalAmount(e.target.value)}
             placeholder="50000"
-            className="w-full px-4 py-3 pr-12 rounded-lg border border-[var(--color-border)]
-              bg-[var(--color-card)] text-[var(--color-text)] text-lg
-              focus:outline-none focus:ring-2 focus:ring-primary-500"
+            className="text-lg"
           />
-          <span className="absolute right-4 top-1/2 -translate-y-1/2 text-[var(--color-text-muted)]">
-            {currency}
-          </span>
-        </div>
+        </ToolField>
+        <span className="text-sm text-[var(--color-text-muted)]">{currency}</span>
       </div>
 
       {/* Quick Split Display */}
@@ -126,8 +121,8 @@ export default function DutchPayCalculator() {
         <label className="block text-sm font-medium text-[var(--color-text)]">
           {t({ ko: '인원수', en: 'Number of people', ja: '人数' })}
         </label>
-        <div className="flex flex-wrap gap-2">
-          {[2, 3, 4, 5, 6, 7, 8, 10].map((num) => (
+        <ToolActions
+          primary={[2].map((num) => (
             <button
               key={num}
               onClick={() => {
@@ -148,7 +143,10 @@ export default function DutchPayCalculator() {
               {t({ ko: `${num}명`, en: `${num} people`, ja: `${num}人` })}
             </button>
           ))}
-        </div>
+          secondary={[3, 4, 5, 6, 7, 8, 10].map((num) => (
+            <button key={num} onClick={() => setPeople(Array.from({ length: num }, (_, i) => ({ id: String(i + 1), name: personName(i + 1), paid: 0, shouldPay: 0 })))}>{t({ ko: `${num}명`, en: `${num} people`, ja: `${num}人` })}</button>
+          ))}
+        />
       </div>
 
       {/* Advanced Mode Toggle */}

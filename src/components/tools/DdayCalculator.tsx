@@ -1,5 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useTranslation } from '../../i18n/useTranslation';
+import { ToolActions } from './ui/ToolActions';
+import { ToolField } from './ui/ToolField';
 import { ToolPanel } from './ui/ToolPanel';
 
 interface DdayResult {
@@ -89,20 +91,14 @@ export default function DdayCalculator() {
   return (
     <ToolPanel className="gap-6">
       {/* Event Name */}
-      <div className="space-y-2">
-        <label className="block text-sm font-medium text-[var(--color-text)]">
-          {t({ ko: '이벤트 이름 (선택)', en: 'Event name (optional)', ja: 'イベント名（任意）' })}
-        </label>
+      <ToolField id="dday-event" label={t({ ko: '이벤트 이름 (선택)', en: 'Event name (optional)', ja: 'イベント名（任意）' })}>
         <input
           type="text"
           value={eventName}
           onChange={(e) => setEventName(e.target.value)}
           placeholder={t({ ko: '예: 휴가, 시험, 생일...', en: 'e.g. vacation, exam, birthday...', ja: '例：休暇、試験、誕生日…' })}
-          className="w-full px-4 py-3 rounded-lg border border-[var(--color-border)]
-            bg-[var(--color-card)] text-[var(--color-text)]
-            focus:outline-none focus:ring-2 focus:ring-primary-500"
         />
-      </div>
+      </ToolField>
 
       {/* Target Date */}
       <div className="space-y-2">
@@ -119,8 +115,8 @@ export default function DdayCalculator() {
         />
 
         {/* Quick Date Buttons */}
-        <div className="flex flex-wrap gap-2 mt-2">
-          {quickDates.map((q) => (
+        <ToolActions
+          primary={quickDates.slice(0, 1).map((q) => (
             <button
               key={q.label}
               onClick={() => {
@@ -134,7 +130,10 @@ export default function DdayCalculator() {
               {q.label}
             </button>
           ))}
-        </div>
+          secondary={quickDates.slice(1).map((q) => (
+            <button key={q.label} onClick={() => { setTargetDate(q.getDate()); setEventName(q.label); }}>{q.label}</button>
+          ))}
+        />
       </div>
 
       {/* Result */}

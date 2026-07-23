@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { useTranslation } from '../../i18n/useTranslation';
+import { ToolActions } from './ui/ToolActions';
 import { ToolPanel } from './ui/ToolPanel';
 
 type Mode = 'timer' | 'stopwatch';
@@ -114,8 +115,7 @@ export default function TimerStopwatch() {
   return (
     <ToolPanel className="gap-6">
       {/* Mode Toggle */}
-      <div className="flex rounded-lg overflow-hidden border border-[var(--color-border)]">
-        <button
+      <ToolActions className="grid grid-cols-2" primary={<button
           onClick={() => handleModeChange('stopwatch')}
           className={`flex-1 py-3 font-medium transition-colors
             ${mode === 'stopwatch'
@@ -124,8 +124,7 @@ export default function TimerStopwatch() {
             }`}
         >
           {t(tt.stopwatchTab)}
-        </button>
-        <button
+        </button>} secondary={<button
           onClick={() => handleModeChange('timer')}
           className={`flex-1 py-3 font-medium transition-colors
             ${mode === 'timer'
@@ -134,8 +133,7 @@ export default function TimerStopwatch() {
             }`}
         >
           {t(tt.timerTab)}
-        </button>
-      </div>
+        </button>} />
 
       {/* Timer Input (only for timer mode when not running) */}
       {mode === 'timer' && !isRunning && time === 0 && (
@@ -179,8 +177,8 @@ export default function TimerStopwatch() {
       </div>
 
       {/* Controls */}
-      <div className="flex justify-center gap-4">
-        {!isRunning ? (
+      <ToolActions
+        primary={!isRunning ? (
           <button
             onClick={start}
             className="px-8 py-3 bg-green-500 hover:bg-green-600 text-white rounded-full
@@ -197,7 +195,7 @@ export default function TimerStopwatch() {
             {t(tc.pause)}
           </button>
         )}
-
+        secondary={<>
         {mode === 'stopwatch' && isRunning && (
           <button
             onClick={lap}
@@ -215,7 +213,8 @@ export default function TimerStopwatch() {
         >
           {t(tc.reset)}
         </button>
-      </div>
+        </>}
+      />
 
       {/* Laps (stopwatch mode) */}
       {mode === 'stopwatch' && laps.length > 0 && (

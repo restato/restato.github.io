@@ -1,5 +1,7 @@
 import { useState, useEffect, useMemo } from 'react';
 import { useTranslation } from '../../i18n/useTranslation';
+import { ToolActions } from './ui/ToolActions';
+import { ToolField } from './ui/ToolField';
 import { ToolPanel } from './ui/ToolPanel';
 
 interface Timezone {
@@ -167,8 +169,8 @@ export default function WorldClock() {
         <label className="text-sm font-medium text-[var(--color-text)]">
           {t({ ko: '시간대 추가', en: 'Add Timezone', ja: 'タイムゾーンを追加' })}
         </label>
-        <div className="flex flex-wrap gap-2">
-          {TIMEZONES.filter((z) => !selectedZones.includes(z.id)).map((zone) => (
+        <ToolActions
+          primary={TIMEZONES.filter((z) => !selectedZones.includes(z.id)).slice(0, 1).map((zone) => (
             <button
               key={zone.id}
               onClick={() => toggleZone(zone.id)}
@@ -178,7 +180,10 @@ export default function WorldClock() {
               {zone.city}
             </button>
           ))}
-        </div>
+          secondary={TIMEZONES.filter((z) => !selectedZones.includes(z.id)).slice(1).map((zone) => (
+            <button key={zone.id} onClick={() => toggleZone(zone.id)}>{zone.city}</button>
+          ))}
+        />
       </div>
 
       {/* Time Converter */}
@@ -188,19 +193,13 @@ export default function WorldClock() {
         </h3>
 
         <div className="flex flex-wrap gap-4 items-end">
-          <div className="space-y-1">
-            <label className="text-xs text-[var(--color-text-muted)]">
-              {t({ ko: '날짜', en: 'Date', ja: '日付' })}
-            </label>
+          <ToolField id="world-clock-date" label={t({ ko: '날짜', en: 'Date', ja: '日付' })}>
             <input
               type="date"
               value={inputDate}
               onChange={(e) => setInputDate(e.target.value)}
-              className="px-3 py-2 rounded-lg border border-[var(--color-border)]
-                bg-[var(--color-bg)] text-[var(--color-text)]
-                focus:outline-none focus:ring-2 focus:ring-primary-500"
             />
-          </div>
+          </ToolField>
 
           <div className="space-y-1">
             <label className="text-xs text-[var(--color-text-muted)]">

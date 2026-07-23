@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useTranslation } from '../../i18n/useTranslation';
+import { ToolActions } from './ui/ToolActions';
 import { ToolPanel } from './ui/ToolPanel';
 
 interface DiceConfig {
@@ -126,14 +127,9 @@ export default function DiceRoller() {
       )}
 
       {/* Roll Button */}
-      <button
-        onClick={roll}
-        disabled={isRolling}
-        className="w-full py-4 bg-primary-500 hover:bg-primary-600 text-white rounded-xl
-          font-bold text-xl transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-      >
+      <ToolActions primary={<button className="w-full" onClick={roll} disabled={isRolling}>
         {isRolling ? t({ ko: '굴리는 중...', en: 'Rolling...', ja: '振っています…' }) : t({ ko: `🎲 ${config.count}D${config.sides} 굴리기`, en: `🎲 Roll ${config.count}D${config.sides}`, ja: `🎲 ${config.count}D${config.sides}を振る` })}
-      </button>
+      </button>} />
 
       {/* Preset Rolls */}
       <div className="flex flex-wrap gap-2">

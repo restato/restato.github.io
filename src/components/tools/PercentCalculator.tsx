@@ -1,5 +1,7 @@
 import { useState } from 'react';
 import { useTranslation } from '../../i18n/useTranslation';
+import { ToolActions } from './ui/ToolActions';
+import { ToolField } from './ui/ToolField';
 import { ToolPanel } from './ui/ToolPanel';
 
 type CalculationType = 'whatPercent' | 'percentOf' | 'percentChange' | 'addPercent' | 'subtractPercent';
@@ -81,8 +83,9 @@ export default function PercentCalculator() {
         <label className="block text-sm font-medium text-[var(--color-text)]">
           {t({ ko: '계산 유형', en: 'Calculation type', ja: '計算タイプ' })}
         </label>
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-          {calculationTypes.map((type) => (
+        <ToolActions
+          className="grid grid-cols-1 sm:grid-cols-2"
+          primary={calculationTypes.slice(0, 1).map((type) => (
             <button
               key={type.id}
               onClick={() => {
@@ -98,25 +101,22 @@ export default function PercentCalculator() {
               {type.label}
             </button>
           ))}
-        </div>
+          secondary={calculationTypes.slice(1).map((type) => (
+            <button key={type.id} onClick={() => { setCalcType(type.id as CalculationType); setResult(null); }}>{type.label}</button>
+          ))}
+        />
       </div>
 
       {/* Inputs */}
       <div className="grid grid-cols-2 gap-4">
-        <div className="space-y-2">
-          <label className="block text-sm font-medium text-[var(--color-text)]">
-            {labels.label1}
-          </label>
+        <ToolField id="percent-value-1" label={labels.label1}>
           <input
             type="number"
             value={value1}
             onChange={(e) => setValue1(e.target.value)}
             placeholder={t({ ko: '숫자 입력', en: 'Enter a number', ja: '数値を入力' })}
-            className="w-full px-4 py-3 rounded-lg border border-[var(--color-border)]
-              bg-[var(--color-card)] text-[var(--color-text)]
-              focus:outline-none focus:ring-2 focus:ring-primary-500"
           />
-        </div>
+        </ToolField>
         <div className="space-y-2">
           <label className="block text-sm font-medium text-[var(--color-text)]">
             {labels.label2}
@@ -134,13 +134,9 @@ export default function PercentCalculator() {
       </div>
 
       {/* Calculate Button */}
-      <button
-        onClick={calculate}
-        className="w-full py-3 bg-primary-500 hover:bg-primary-600 text-white rounded-lg
-          font-medium transition-colors"
-      >
+      <ToolActions primary={<button className="w-full" onClick={calculate}>
         {t({ ko: '계산하기', en: 'Calculate', ja: '計算する' })}
-      </button>
+      </button>} />
 
       {/* Result */}
       {result && (

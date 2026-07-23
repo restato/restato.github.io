@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useTranslation } from '../../i18n/useTranslation';
+import { ToolField } from './ui/ToolField';
 import { ToolPanel } from './ui/ToolPanel';
 
 interface AgeResult {
@@ -186,21 +187,15 @@ export default function AgeCalculator() {
   return (
     <ToolPanel className="gap-6">
       {/* Birth Date Input */}
-      <div className="space-y-2">
-        <label htmlFor="birth-date" className="block text-sm font-medium text-[var(--color-text)]">
-          {t(tc.birthDate)}
-        </label>
+      <ToolField id="birth-date" label={t(tc.birthDate)}>
         <input
-          id="birth-date"
           type="date"
           value={birthDate}
           onChange={(e) => setBirthDate(e.target.value)}
           max={formatLocalDate(new Date())}
-          className="w-full px-4 py-3 rounded-lg border border-[var(--color-border)]
-            bg-[var(--color-card)] text-[var(--color-text)] text-lg
-            focus:outline-none focus:ring-2 focus:ring-primary-500"
+          className="text-lg"
         />
-      </div>
+      </ToolField>
 
       {/* Results */}
       {result && (

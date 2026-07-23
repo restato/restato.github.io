@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { useTranslation } from '../../i18n/useTranslation';
+import { ToolActions } from './ui/ToolActions';
 import { ToolPanel } from './ui/ToolPanel';
 
 type TimerMode = 'work' | 'shortBreak' | 'longBreak';
@@ -200,8 +201,7 @@ export default function PomodoroTimer() {
       </div>
 
       {/* Controls */}
-      <div className="flex justify-center gap-4">
-        <button
+      <ToolActions primary={<button
           onClick={toggleTimer}
           className={`px-8 py-3 rounded-full font-medium text-white transition-colors text-lg
             ${isRunning
@@ -212,15 +212,13 @@ export default function PomodoroTimer() {
           {isRunning
             ? t({ ko: '일시정지', en: 'Pause', ja: '一時停止' })
             : t({ ko: '시작', en: 'Start', ja: 'スタート' })}
-        </button>
-        <button
+        </button>} secondary={<button
           onClick={resetTimer}
           className="px-6 py-3 rounded-full font-medium bg-[var(--color-card)] hover:bg-[var(--color-card-hover)]
             border border-[var(--color-border)] transition-colors"
         >
           {t({ ko: '리셋', en: 'Reset', ja: 'リセット' })}
-        </button>
-      </div>
+        </button>} />
 
       {/* Session Counter */}
       <div className="flex justify-center items-center gap-2">

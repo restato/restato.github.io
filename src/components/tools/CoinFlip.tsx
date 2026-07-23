@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useTranslation } from '../../i18n/useTranslation';
+import { ToolActions } from './ui/ToolActions';
 import { ToolPanel } from './ui/ToolPanel';
 
 export default function CoinFlip() {
@@ -64,14 +65,9 @@ export default function CoinFlip() {
       </div>
 
       {/* Flip Button */}
-      <button
-        onClick={flip}
-        disabled={isFlipping}
-        className="w-full py-4 bg-primary-500 hover:bg-primary-600 text-white rounded-xl
-          font-bold text-xl transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-      >
+      <ToolActions primary={<button className="w-full" onClick={flip} disabled={isFlipping}>
         {isFlipping ? t({ ko: '던지는 중...', en: 'Flipping...', ja: '投げています…' }) : t({ ko: '🪙 동전 던지기', en: '🪙 Flip Coin', ja: '🪙 コインを投げる' })}
-      </button>
+      </button>} />
 
       {/* Statistics */}
       {total > 0 && (
