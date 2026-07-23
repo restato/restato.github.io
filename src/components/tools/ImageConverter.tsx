@@ -1,6 +1,9 @@
 import { useState, useRef, useCallback } from 'react';
 import { useTranslation } from '../../i18n/useTranslation';
+import { ToolActions } from './ui/ToolActions';
+import { ToolField } from './ui/ToolField';
 import { ToolPanel } from './ui/ToolPanel';
+import { ToolResult } from './ui/ToolResult';
 
 interface ConvertedImage {
   original: {
@@ -218,27 +221,19 @@ export default function ImageConverter() {
 
       {/* Settings */}
       <div className="flex flex-wrap gap-4 items-center p-4 rounded-lg bg-[var(--color-card)] border border-[var(--color-border)]">
-        <div className="flex items-center gap-2">
-          <label className="text-sm text-[var(--color-text)]">
-            {t({ ko: '출력 포맷', en: 'Output Format', ja: '出力フォーマット' })}:
-          </label>
+        <ToolField id="image-converter-format" label={`${t({ ko: '출력 포맷', en: 'Output Format', ja: '出力フォーマット' })}:`}>
           <select
             value={outputFormat}
             onChange={(e) => setOutputFormat(e.target.value as OutputFormat)}
-            className="px-3 py-2 rounded-lg border border-[var(--color-border)]
-              bg-[var(--color-bg)] text-[var(--color-text)]"
           >
             <option value="jpeg">JPEG</option>
             <option value="png">PNG</option>
             <option value="webp">WebP</option>
           </select>
-        </div>
+        </ToolField>
 
         {outputFormat !== 'png' && (
-          <div className="flex items-center gap-2">
-            <label className="text-sm text-[var(--color-text)]">
-              {t({ ko: '품질', en: 'Quality', ja: '品質' })}:
-            </label>
+          <ToolField id="image-converter-quality" label={`${t({ ko: '품질', en: 'Quality', ja: '品質' })}:`}>
             <input
               type="range"
               min="10"
@@ -248,18 +243,15 @@ export default function ImageConverter() {
               className="w-24 accent-primary-500"
             />
             <span className="text-sm text-[var(--color-text-muted)] w-10">{quality}%</span>
-          </div>
+          </ToolField>
         )}
 
         {images.length > 0 && (
-          <button
-            onClick={reconvertAll}
-            disabled={isConverting}
-            className="px-3 py-2 text-sm bg-primary-500 hover:bg-primary-600 text-white rounded-lg
-              transition-colors disabled:opacity-50"
-          >
-            {t({ ko: '다시 변환', en: 'Re-convert', ja: '再変換' })}
-          </button>
+          <ToolActions primary={
+            <button onClick={reconvertAll} disabled={isConverting}>
+              {t({ ko: '다시 변환', en: 'Re-convert', ja: '再変換' })}
+            </button>
+          } />
         )}
       </div>
 
@@ -294,38 +286,32 @@ export default function ImageConverter() {
 
       {/* Converting indicator */}
       {isConverting && (
-        <div className="flex items-center justify-center gap-2 p-4">
+        <ToolResult status="working">
+        <div className="flex items-center justify-center gap-2">
           <div className="w-5 h-5 border-2 border-primary-500 border-t-transparent rounded-full animate-spin" />
           <span className="text-[var(--color-text)]">
             {t({ ko: '변환 중...', en: 'Converting...', ja: '変換中...' })}
           </span>
         </div>
+        </ToolResult>
       )}
 
       {/* Results */}
       {images.length > 0 && (
         <div className="space-y-4">
           {/* Actions */}
-          <div className="flex gap-2">
-            <button
-              onClick={downloadAll}
-              className="px-4 py-2 bg-green-500 hover:bg-green-600 text-white rounded-lg
-                transition-colors flex items-center gap-2"
-            >
+          <ToolActions
+            primary={<button onClick={downloadAll}>
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
                   d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
               </svg>
               {t({ ko: '모두 다운로드', en: 'Download All', ja: 'すべてダウンロード' })}
-            </button>
-            <button
-              onClick={clearAll}
-              className="px-4 py-2 bg-[var(--color-card)] hover:bg-[var(--color-card-hover)]
-                border border-[var(--color-border)] rounded-lg transition-colors"
-            >
+            </button>}
+            secondary={<button onClick={clearAll}>
               {t({ ko: '모두 삭제', en: 'Clear All', ja: 'すべて削除' })}
-            </button>
-          </div>
+            </button>}
+          />
 
           {/* Image list */}
           <div className="space-y-3">

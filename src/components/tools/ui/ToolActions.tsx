@@ -1,6 +1,7 @@
 import {
   Children,
   cloneElement,
+  Fragment,
   isValidElement,
   type ReactElement,
   type ReactNode,
@@ -19,6 +20,11 @@ type ActionProps = {
 function styleActions(actions: ReactNode, variant: 'primary' | 'secondary') {
   return Children.map(actions, (action) => {
     if (!isValidElement<ActionProps>(action)) return action;
+    if (action.type === Fragment) {
+      return cloneElement(action, {
+        children: styleActions(action.props.children, variant),
+      });
+    }
     const variantClass = variant === 'primary' ? 'fc-button-primary' : 'fc-button-secondary';
     const callerClasses = (action.props.className ?? '')
       .split(/\s+/)

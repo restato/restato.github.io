@@ -17,7 +17,10 @@ describe('BmiCalculator', () => {
     expect(inputs.length).toBeGreaterThanOrEqual(2);
     expect(container.firstElementChild).toHaveClass('fc-tool-panel');
     expect(inputs[0]).toHaveClass('fc-input');
+    expect(screen.getByRole('spinbutton', { name: '키 (cm)' })).toBe(inputs[0]);
+    expect(screen.getByRole('spinbutton', { name: '몸무게 (kg)' })).toBe(inputs[1]);
     expect(screen.getByRole('button', { name: 'BMI 계산하기' })).toHaveClass('fc-button', 'fc-button-primary');
+    expect(screen.getByRole('button', { name: 'BMI 계산하기' }).closest('.fc-tool-actions')).not.toBeNull();
   });
 
   it('calculates BMI correctly', async () => {
@@ -37,6 +40,7 @@ describe('BmiCalculator', () => {
 
     // BMI = 70 / (1.7)^2 = ~24.22
     expect(screen.getByText('24.2')).toBeInTheDocument();
+    expect(screen.getByRole('status')).toHaveClass('fc-tool-result-success');
   });
 
   it('shows BMI category (normal, overweight, etc.)', async () => {

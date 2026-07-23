@@ -31,6 +31,8 @@ describe('additional browser tools', () => {
     expect(picker).toHaveClass('fc-tool-drop-zone');
     expect(container.querySelector('.fc-tool-panel')).toBeInTheDocument();
     expect(screen.getByRole('button', { name: /Merge PDF/ })).toHaveClass('fc-button', 'fc-button-primary');
+    expect(screen.getByRole('button', { name: /Merge PDF/ })).not.toHaveClass('fc-button-secondary');
+    expect(screen.getAllByRole('button', { name: /Choose PDFs to merge/ })).toHaveLength(1);
   });
 
   it('renders the audio workflow with shared field, action, and status classes', async () => {
@@ -38,8 +40,9 @@ describe('additional browser tools', () => {
 
     expect(await screen.findByLabelText('Choose audio file')).toHaveClass('fc-input');
     expect(screen.getByRole('button', { name: 'Export trimmed WAV' })).toHaveClass('fc-button', 'fc-button-primary');
+    expect(screen.getByRole('button', { name: 'Export trimmed WAV' }).closest('.fc-tool-actions')).not.toBeNull();
     expect(container.querySelector('.fc-tool-panel')).toBeInTheDocument();
-    expect(container.querySelector('.fc-tool-result')).toHaveAttribute('aria-live', 'polite');
+    expect(container.querySelector('.fc-tool-result')).toBeNull();
   });
 
   it('keeps every additional route as an independent lazy import', () => {

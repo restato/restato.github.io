@@ -1,6 +1,9 @@
 import { useState, useCallback } from 'react';
 import { useTranslation } from '../../i18n/useTranslation';
+import { ToolActions } from './ui/ToolActions';
+import { ToolField } from './ui/ToolField';
 import { ToolPanel } from './ui/ToolPanel';
+import { ToolResult } from './ui/ToolResult';
 
 export default function JsonFormatter() {
   const { t, translations } = useTranslation();
@@ -87,60 +90,35 @@ export default function JsonFormatter() {
   return (
     <ToolPanel className="gap-6">
       {/* Actions */}
-      <div className="flex flex-wrap gap-2">
-        <button
-          onClick={formatJson}
-          className="px-4 py-2 bg-primary-500 hover:bg-primary-600 text-white rounded-lg
-            transition-colors font-medium"
-        >
-          {t(tt.format)}
-        </button>
-        <button
-          onClick={minifyJson}
-          className="px-4 py-2 bg-[var(--color-card)] hover:bg-[var(--color-card-hover)]
-            border border-[var(--color-border)] rounded-lg transition-colors"
-        >
-          {t(tt.minify)}
-        </button>
-        <button
-          onClick={validateJson}
-          className="px-4 py-2 bg-[var(--color-card)] hover:bg-[var(--color-card-hover)]
-            border border-[var(--color-border)] rounded-lg transition-colors"
-        >
-          {t(tt.validate)}
-        </button>
-        <button
-          onClick={loadSample}
-          className="px-4 py-2 bg-[var(--color-card)] hover:bg-[var(--color-card-hover)]
-            border border-[var(--color-border)] rounded-lg transition-colors text-sm"
-        >
-          {t({ ko: '샘플 불러오기', en: 'Load Sample', ja: 'サンプルを読み込む' })}
-        </button>
-
-        {/* Indent size */}
-        <div className="flex items-center gap-2 ml-auto">
-          <label htmlFor="json-indent" className="text-sm text-[var(--color-text-muted)]">Indent:</label>
+      <div className="grid gap-3 sm:grid-cols-[1fr_auto] sm:items-end">
+        <ToolActions
+          primary={<button onClick={formatJson}>{t(tt.format)}</button>}
+          secondary={
+            <>
+              <button onClick={minifyJson}>{t(tt.minify)}</button>
+              <button onClick={validateJson}>{t(tt.validate)}</button>
+              <button onClick={loadSample}>
+                {t({ ko: '샘플 불러오기', en: 'Load Sample', ja: 'サンプルを読み込む' })}
+              </button>
+            </>
+          }
+        />
+        <ToolField id="json-indent" label="Indent:">
           <select
-            id="json-indent"
             value={indentSize}
             onChange={(e) => setIndentSize(Number(e.target.value))}
-            className="px-2 py-1 rounded border border-[var(--color-border)]
-              bg-[var(--color-card)] text-[var(--color-text)] text-sm"
           >
             <option value={2}>2 spaces</option>
             <option value={4}>4 spaces</option>
             <option value={1}>1 space</option>
           </select>
-        </div>
+        </ToolField>
       </div>
 
       {/* Validation Status */}
       {isValid !== null && (
-        <div role="status" aria-live="polite" className={`p-3 rounded-lg flex items-center gap-2 ${
-          isValid
-            ? 'bg-green-100 dark:bg-green-900/20 border border-green-200 dark:border-green-800 text-green-700 dark:text-green-400'
-            : 'bg-red-100 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-400'
-        }`}>
+        <ToolResult status={isValid ? 'success' : 'error'}>
+          <div className={`flex items-center gap-2 ${isValid ? 'text-green-700 dark:text-green-400' : 'text-red-700 dark:text-red-400'}`}>
           {isValid ? (
             <>
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -156,25 +134,16 @@ export default function JsonFormatter() {
               {t(tt.invalid)}
             </>
           )}
-        </div>
-      )}
-
-      {/* Error Message */}
-      {error && (
-        <div className="p-3 rounded-lg bg-red-50 dark:bg-red-900/10 border border-red-200 dark:border-red-800">
-          <code className="text-sm text-red-700 dark:text-red-400 break-all">{error}</code>
-        </div>
+          </div>
+          {error && <code className="block mt-2 text-sm text-red-700 dark:text-red-400 break-all">{error}</code>}
+        </ToolResult>
       )}
 
       {/* Input/Output Grid */}
       <div className="grid md:grid-cols-2 gap-4">
         {/* Input */}
-        <div className="space-y-2">
-          <label htmlFor="json-input" className="block text-sm font-medium text-[var(--color-text)]">
-            {t(tc.input)}
-          </label>
+        <ToolField id="json-input" label={t(tc.input)}>
           <textarea
-            id="json-input"
             value={input}
             onChange={(e) => {
               setInput(e.target.value);
@@ -183,39 +152,19 @@ export default function JsonFormatter() {
             }}
             placeholder={t(tt.inputPlaceholder)}
             rows={15}
-            className="w-full px-4 py-3 rounded-lg border border-[var(--color-border)]
-              bg-[var(--color-card)] text-[var(--color-text)] font-mono text-sm resize-y
-              focus:outline-none focus:ring-2 focus:ring-primary-500"
+            className="font-mono text-sm"
             spellCheck={false}
           />
-        </div>
+        </ToolField>
 
         {/* Output */}
         <div className="space-y-2">
-          <div className="flex justify-between items-center">
-            <label htmlFor="json-output" className="block text-sm font-medium text-[var(--color-text)]">
-              {t(tc.output)}
-            </label>
-            <button
-              onClick={copyOutput}
-              disabled={!output}
-              className="px-3 py-1 text-sm bg-[var(--color-card)] hover:bg-[var(--color-card-hover)]
-                border border-[var(--color-border)] rounded-lg transition-colors
-                disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              {copied ? t(tc.copied) : t(tc.copy)}
-            </button>
-          </div>
-          <textarea
-            id="json-output"
-            value={output}
-            readOnly
-            rows={15}
-            className="w-full px-4 py-3 rounded-lg border border-[var(--color-border)]
-              bg-[var(--color-bg)] text-[var(--color-text)] font-mono text-sm resize-y
-              focus:outline-none"
-            spellCheck={false}
+          <ToolActions
+            primary={<button onClick={copyOutput} disabled={!output}>{copied ? t(tc.copied) : t(tc.copy)}</button>}
           />
+          <ToolField id="json-output" label={t(tc.output)}>
+            <textarea value={output} readOnly rows={15} className="font-mono text-sm" spellCheck={false} />
+          </ToolField>
         </div>
       </div>
     </ToolPanel>

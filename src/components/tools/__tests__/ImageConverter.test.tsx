@@ -46,11 +46,26 @@ describe('ImageConverter', () => {
     const dropZone = screen.getByRole('button', { name: '이미지를 드래그하거나 클릭하여 업로드' });
 
     expect(container.firstElementChild).toHaveClass('fc-tool-panel');
-    expect(screen.getByRole('combobox')).toHaveClass('fc-select');
+    expect(screen.getByRole('combobox', { name: '출력 포맷:' })).toHaveClass('fc-select');
     expect(dropZone).toHaveClass('fc-tool-drop-zone');
     fireEvent.keyDown(dropZone, { key: 'Enter' });
     fireEvent.keyDown(dropZone, { key: ' ' });
     expect(openPicker).toHaveBeenCalledTimes(2);
+  });
+
+  it('orders the primary batch action before its secondary action in the shared mobile group', async () => {
+    const { container } = render(<ImageConverter />);
+    fireEvent.change(container.querySelector('input[type="file"]')!, {
+      target: { files: [new File(['x'], 'sample.png', { type: 'image/png' })] },
+    });
+
+    expect(await screen.findByText('sample.png')).toBeInTheDocument();
+    const actions = screen.getByRole('button', { name: '모두 다운로드' }).closest('.fc-tool-actions');
+    expect(actions).not.toBeNull();
+    expect(Array.from(actions!.querySelectorAll('button')).map(button => button.textContent)).toEqual([
+      '모두 다운로드',
+      '모두 삭제',
+    ]);
   });
 
   it('converts repeated non-Latin image selections to the chosen output format', async () => {

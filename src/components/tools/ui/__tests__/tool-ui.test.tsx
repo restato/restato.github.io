@@ -84,6 +84,18 @@ describe('shared tool interface primitives', () => {
     expect(secondary).not.toHaveClass('fc-button-primary');
   });
 
+  it('styles each action inside an explicit fragment without mutating the fragment', () => {
+    render(
+      <ToolActions
+        primary={<button>Convert</button>}
+        secondary={<><button>Clear</button><button>Sample</button></>}
+      />,
+    );
+
+    expect(screen.getByRole('button', { name: 'Clear' })).toHaveClass('fc-button-secondary');
+    expect(screen.getByRole('button', { name: 'Sample' })).toHaveClass('fc-button-secondary');
+  });
+
   it('announces non-error results politely and reports working progress', () => {
     const { rerender } = render(<ToolResult title="Output">Ready</ToolResult>);
 

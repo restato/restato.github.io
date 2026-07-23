@@ -1,6 +1,9 @@
 import { useState } from 'react';
 import { useTranslation } from '../../i18n/useTranslation';
+import { ToolActions } from './ui/ToolActions';
+import { ToolField } from './ui/ToolField';
 import { ToolPanel } from './ui/ToolPanel';
+import { ToolResult } from './ui/ToolResult';
 
 interface BmiResult {
   bmi: number;
@@ -109,47 +112,34 @@ export default function BmiCalculator() {
     <ToolPanel className="gap-6">
       {/* Input Fields */}
       <div className="grid grid-cols-2 gap-4">
-        <div className="space-y-2">
-          <label className="block text-sm font-medium text-[var(--color-text)]">
-            {t(tc.height)}
-          </label>
+        <ToolField id="bmi-height" label={t(tc.height)}>
           <input
             type="number"
             value={height}
             onChange={(e) => setHeight(e.target.value)}
             placeholder="170"
-            className="w-full px-4 py-3 rounded-lg border border-[var(--color-border)]
-              bg-[var(--color-card)] text-[var(--color-text)] text-lg
-              focus:outline-none focus:ring-2 focus:ring-primary-500"
+            className="text-lg"
           />
-        </div>
-        <div className="space-y-2">
-          <label className="block text-sm font-medium text-[var(--color-text)]">
-            {t(tc.weight)}
-          </label>
+        </ToolField>
+        <ToolField id="bmi-weight" label={t(tc.weight)}>
           <input
             type="number"
             value={weight}
             onChange={(e) => setWeight(e.target.value)}
             placeholder="70"
-            className="w-full px-4 py-3 rounded-lg border border-[var(--color-border)]
-              bg-[var(--color-card)] text-[var(--color-text)] text-lg
-              focus:outline-none focus:ring-2 focus:ring-primary-500"
+            className="text-lg"
           />
-        </div>
+        </ToolField>
       </div>
 
       {/* Calculate Button */}
-      <button
-        onClick={calculateBMI}
-        className="w-full py-3 bg-primary-500 hover:bg-primary-600 text-white rounded-lg
-          font-medium transition-colors"
-      >
-        {t(tc.calculate)}
-      </button>
+      <ToolActions
+        primary={<button className="w-full" onClick={calculateBMI}>{t(tc.calculate)}</button>}
+      />
 
       {/* Result */}
       {result && (
+        <ToolResult status="success">
         <div className="space-y-4">
           {/* BMI Value */}
           <div className="text-center p-6 rounded-lg bg-[var(--color-card)] border border-[var(--color-border)]">
@@ -191,6 +181,7 @@ export default function BmiCalculator() {
             />
           </div>
         </div>
+        </ToolResult>
       )}
 
       {/* BMI Table */}

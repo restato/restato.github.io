@@ -19,6 +19,10 @@ describe('JsonFormatter', () => {
     expect(screen.getByRole('button', { name: '포매팅' })).toHaveClass('fc-button', 'fc-button-primary');
     expect(screen.getByRole('button', { name: '압축' })).toHaveClass('fc-button', 'fc-button-secondary');
     expect(screen.getByPlaceholderText('JSON을 입력하세요')).toHaveClass('fc-textarea');
+    expect(screen.getByRole('textbox', { name: '입력' })).toBeInTheDocument();
+    const actions = screen.getByRole('button', { name: '포매팅' }).closest('.fc-tool-actions');
+    expect(actions).not.toBeNull();
+    expect(actions?.querySelectorAll('button')[0]).toHaveTextContent('포매팅');
   });
 
   it('formats valid JSON correctly', async () => {
@@ -58,7 +62,7 @@ describe('JsonFormatter', () => {
     await user.click(screen.getByText('검증'));
 
     expect(screen.getByText('유효한 JSON')).toBeInTheDocument();
-    expect(screen.getByRole('status')).toHaveClass('text-green-700', 'dark:text-green-400');
+    expect(screen.getByRole('status')).toHaveClass('fc-tool-result-success');
   });
 
   it('shows invalid status for invalid JSON', async () => {
@@ -71,7 +75,7 @@ describe('JsonFormatter', () => {
     await user.click(screen.getByText('검증'));
 
     expect(screen.getByText('유효하지 않은 JSON')).toBeInTheDocument();
-    expect(screen.getByRole('status')).toHaveClass('text-red-700', 'dark:text-red-400');
+    expect(screen.getByRole('alert')).toHaveClass('fc-tool-result-error');
     const errorDetail = document.querySelector('code');
     expect(errorDetail).toHaveTextContent('JSON');
     expect(errorDetail).toHaveClass('text-red-700', 'dark:text-red-400');

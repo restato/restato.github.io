@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react';
 import { audioBufferToChannels, encodeWavSegment } from '../../../lib/media-calc/audio';
 import { downloadBlob } from '../../../lib/media-calc/image';
+import { ToolActions } from '../ui/ToolActions';
+import { ToolField } from '../ui/ToolField';
 import { ToolShell, ToolStatus, buttonClass, fieldClass } from './ToolShell';
 
 export default function AudioTrimmerTool() {
@@ -19,9 +21,10 @@ export default function AudioTrimmerTool() {
   };
   return <ToolShell>
     <p className="text-sm text-[var(--color-text-muted)]">Web Audio decoding varies by browser. Export is uncompressed 16-bit WAV only; this tool does not claim MP3 or AAC encoding.</p>
-    <label>Choose audio file<input aria-label="Choose audio file" className={fieldClass} type="file" accept="audio/*" onChange={(e) => load(e.target.files?.[0] ?? null)} /></label>
+    <ToolField id="audio-file" label="Choose audio file"><input className={fieldClass} type="file" accept="audio/*" onChange={(e) => load(e.target.files?.[0] ?? null)} /></ToolField>
     {preview && <audio className="w-full" controls src={preview}>Your browser does not support audio preview.</audio>}
-    <div className="grid gap-4 sm:grid-cols-2"><label>Start (seconds)<input className={fieldClass} type="number" min="0" max={end} step="0.01" value={start} onChange={(e) => setStart(+e.target.value)} /></label><label>End (seconds)<input className={fieldClass} type="number" min={start} max={buffer?.duration} step="0.01" value={end} onChange={(e) => setEnd(+e.target.value)} /></label></div>
-    <button className={buttonClass} disabled={!buffer || end <= start} onClick={exportWav}>Export trimmed WAV</button><ToolStatus status={message ? 'success' : 'idle'}>{message}</ToolStatus>
+    <div className="grid gap-4 sm:grid-cols-2"><ToolField id="audio-start" label="Start (seconds)"><input className={fieldClass} type="number" min="0" max={end} step="0.01" value={start} onChange={(e) => setStart(+e.target.value)} /></ToolField><ToolField id="audio-end" label="End (seconds)"><input className={fieldClass} type="number" min={start} max={buffer?.duration} step="0.01" value={end} onChange={(e) => setEnd(+e.target.value)} /></ToolField></div>
+    <ToolActions primary={<button className={buttonClass} disabled={!buffer || end <= start} onClick={exportWav}>Export trimmed WAV</button>} />
+    {message && <ToolStatus status="success">{message}</ToolStatus>}
   </ToolShell>;
 }
