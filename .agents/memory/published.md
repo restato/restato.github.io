@@ -15,6 +15,24 @@
 
 기존 `src/content/blog/`가 현재 발행 상태의 원본이며, 이 파일은 에이전트의 빠른 중복 판단용 인덱스입니다.
 
+## 2026-07-23 — AI Gateway 실시간 전사 가이드: streamTranscribe, PCM, 임시 토큰
+- type: new
+- slug: /blog/ai-gateway-streaming-transcription-guide/
+- file: src/content/blog/ai-gateway-streaming-transcription-guide.mdx
+- topics: [Vercel AI Gateway, AI SDK, streamTranscribe, Speech to Text, Voice Agent]
+- sources: [https://vercel.com/changelog/ai-gateway-now-supports-streaming-transcription, https://vercel.com/ai-gateway/models/grok-stt/about, https://vercel.com/ai-gateway/models?features=websockets&modality=audio%3Atranscription]
+- commit: 47ab504724d4f43a9d1806a95605d9c5add7b210
+- notes: 출시 코드 요약보다 raw PCM 형식, 서버 발급 임시 토큰, 부분·최종 전사 상태 분리, 텍스트 에이전트 연결과 쓰기 도구 승인 경계를 하나의 운영 절차로 제공함
+
+## 2026-07-23 — eve 에이전트 확장 패키지 만들기: tools·skills·hooks를 npm으로 배포하기
+- type: new
+- slug: /blog/eve-installable-agent-extensions-guide/
+- file: src/content/blog/eve-installable-agent-extensions-guide.mdx
+- topics: [eve, AI Agent, Agent Skills, Extensions, TypeScript]
+- sources: [https://vercel.com/changelog/eve-extensions, https://eve.dev/, https://eve.dev/integrations, https://agent-browser.dev/eve]
+- commit: ec869740a2d449e453f37ea586f68e0222a0c879
+- notes: scaffold와 mount 설명을 넘어 tool namespace, config schema, secret 분리, approval·disable 정책, package version과 소비 에이전트 통합 테스트를 운영 계약으로 정리함
+
 ## 2026-07-22 — Gemini 3.6 Flash 마이그레이션 가이드: 가격, API 변경, Copilot·AI Gateway
 - type: new
 - slug: /blog/gemini-3-6-flash-migration-guide/
