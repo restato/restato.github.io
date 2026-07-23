@@ -25,6 +25,8 @@
 - Modify: `tests/e2e/forest-cafe-routes.ts`
 - Modify: `tests/e2e/catalog.spec.ts`
 - Create: `tests/project-pages-contract.test.ts`
+- Create: `tests/e2e/project-pages.spec.ts`
+- Create: `tests/e2e/localization-contract.spec.ts`
 - Test: `tests/e2e/accessibility.spec.ts`
 - Test: `tests/e2e/forest-cafe-visual.spec.ts`
 
@@ -80,7 +82,7 @@ Run:
 
 ```bash
 npx vitest run tests/project-pages-contract.test.ts
-npx playwright test tests/e2e/catalog.spec.ts --project=chromium-desktop
+npx playwright test tests/e2e/catalog.spec.ts --project=desktop --grep "route matrix"
 ```
 
 Expected: FAIL because legacy project styles/semantics remain and the route
@@ -184,7 +186,7 @@ git commit -m "feat: migrate project pages to forest cafe"
 
 **Files:**
 - Modify: `src/pages/projects/gallery.astro`
-- Modify: `tests/e2e/catalog.spec.ts`
+- Create: `tests/e2e/project-pages.spec.ts`
 
 **Interfaces:**
 - Consumes: gallery image data already present in `gallery.astro`.
@@ -212,7 +214,7 @@ Space to prove native button keyboard activation.
 Run:
 
 ```bash
-npx playwright test tests/e2e/catalog.spec.ts --project=chromium-desktop --grep "gallery dialog"
+npx playwright test tests/e2e/project-pages.spec.ts --project=desktop --grep "gallery dialog"
 ```
 
 Expected: FAIL because the current cards are not native controls and the
@@ -249,14 +251,14 @@ button click activation.
 Run:
 
 ```bash
-npx playwright test tests/e2e/catalog.spec.ts --project=chromium-desktop --grep "gallery dialog"
+npx playwright test tests/e2e/project-pages.spec.ts --project=desktop --grep "gallery dialog"
 npx vitest run tests/project-pages-contract.test.ts
 ```
 
 Expected: PASS.
 
 ```bash
-git add src/pages/projects/gallery.astro tests/e2e/catalog.spec.ts
+git add src/pages/projects/gallery.astro tests/e2e/project-pages.spec.ts
 git commit -m "fix: make gallery lightbox an accessible dialog"
 ```
 
@@ -272,7 +274,7 @@ git commit -m "fix: make gallery lightbox an accessible dialog"
 - Modify: `src/layouts/MainLayout.astro`
 - Modify: `src/pages/blog/[...slug].astro`
 - Modify: `src/pages/[lang]/anonymous-chat.astro`
-- Modify: `tests/e2e/catalog.spec.ts`
+- Create: `tests/e2e/localization-contract.spec.ts`
 
 **Interfaces:**
 - Produces: `selectArticleLanguage(data: { lang?: Language; title: string; description: string }): Language`.
@@ -308,7 +310,7 @@ Run:
 
 ```bash
 npx vitest run src/i18n/__tests__/article-language.test.ts src/i18n/__tests__/skip-link.test.ts
-npx playwright test tests/e2e/catalog.spec.ts --project=chromium-desktop --grep "article language|skip link|anonymous chat canonical"
+npx playwright test tests/e2e/localization-contract.spec.ts --project=desktop
 ```
 
 Expected: FAIL because the helpers do not exist, articles hardcode English,
@@ -358,7 +360,7 @@ application and breadcrumb JSON-LD.
 Run the two commands from Step 2. Expected: PASS.
 
 ```bash
-git add src/i18n src/layouts/MainLayout.astro src/pages/blog/'[...slug].astro' src/pages/'[lang]'/anonymous-chat.astro tests/e2e/catalog.spec.ts
+git add src/i18n src/layouts/MainLayout.astro src/pages/blog/'[...slug].astro' src/pages/'[lang]'/anonymous-chat.astro tests/e2e/localization-contract.spec.ts
 git commit -m "fix: synchronize page language and canonical metadata"
 ```
 
@@ -381,7 +383,7 @@ git commit -m "fix: synchronize page language and canonical metadata"
 Run the normal visual command without update mode:
 
 ```bash
-npx playwright test tests/e2e/forest-cafe-visual.spec.ts --project=visual-desktop --project=visual-mobile
+npx playwright test tests/e2e/forest-cafe-visual.spec.ts --project=desktop --project=mobile-390
 ```
 
 Expected: FAIL only for the 18 missing screenshots belonging to the six new
@@ -392,8 +394,8 @@ routes (desktop light, desktop dark, mobile dark).
 Run:
 
 ```bash
-npx playwright test tests/e2e/forest-cafe-visual.spec.ts --project=visual-desktop --project=visual-mobile --update-snapshots
-npx playwright test tests/e2e/forest-cafe-visual.spec.ts --project=visual-desktop --project=visual-mobile
+npx playwright test tests/e2e/forest-cafe-visual.spec.ts --project=desktop --project=mobile-390 --update-snapshots
+npx playwright test tests/e2e/forest-cafe-visual.spec.ts --project=desktop --project=mobile-390
 ```
 
 Expected: the update run writes 18 new baselines; the normal run reports 38
@@ -467,12 +469,25 @@ Expected: PASS with the expanded 18-route matrix under both themes.
 Run:
 
 ```bash
-npx playwright test tests/e2e/catalog.spec.ts tests/e2e/forest-cafe-visual.spec.ts --project=chromium-desktop --project=mobile-390 --project=visual-desktop --project=visual-mobile
+npx playwright test tests/e2e/catalog.spec.ts tests/e2e/forest-cafe-visual.spec.ts --project=desktop --project=mobile-390
 ```
 
 Expected: exactly 68 tests passed.
 
-- [ ] **Step 4: Update observed report values and commit**
+- [ ] **Step 4: Run the separate project and localization behavior specs**
+
+Run:
+
+```bash
+npx playwright test tests/e2e/project-pages.spec.ts tests/e2e/localization-contract.spec.ts --project=desktop --project=mobile-390
+```
+
+Expected: every gallery keyboard/focus, project overflow/contrast, article
+language lock, skip-link synchronization, and canonical-equality check passes.
+Record this separate exact count in the report without adding it to the 68-test
+catalog-plus-visual contract.
+
+- [ ] **Step 5: Update observed report values and commit**
 
 If exact observed values differ from provisional report prose, update the
 non-protected report to the observed passing values. Commit only that report:
@@ -482,7 +497,7 @@ git add docs/superpowers/reports/2026-07-23-forest-cafe-verification.md
 git commit -m "docs: record project page remediation evidence"
 ```
 
-- [ ] **Step 5: Remove ephemeral outputs and verify protected-file isolation**
+- [ ] **Step 6: Remove ephemeral outputs and verify protected-file isolation**
 
 Remove only generated output already designated ephemeral by repository policy
 (for example Playwright `test-results/` and HTML report directories), then run:
