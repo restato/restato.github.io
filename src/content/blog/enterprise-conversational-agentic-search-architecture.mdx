@@ -1,0 +1,675 @@
+---
+title: "Enterprise Agentic Search: Architecture, Security, Cost, and a Food-Commerce Blueprint"
+description: "A buildable enterprise guide to conversational and agentic search, informed by Ask DoorDash: architecture, retrieval, tools, memory, security, cost, evaluation, component choices, food-commerce scenarios, and a maturity roadmap."
+date: 2026-07-23
+tags: ["Agentic Search", "Conversational Search", "Enterprise AI", "Search", "Food Commerce", "AI Platform", "AI Governance"]
+---
+
+The search box asks users to translate a goal into keywords. Conversational search lets them describe the goal. Agentic search goes one step further: it can plan how to satisfy the goal, inspect several live systems, preserve constraints across turns, assemble an editable result, and—within explicit authority—take an action.
+
+Consider a food-commerce request:
+
+> Build five vegetarian dinners for two under $70. Use what I usually buy, avoid peanuts, and make sure tonight's ingredients can arrive before 7 p.m.
+
+No single vector query can answer it. The system must resolve an address and delivery window, distinguish a preference from an allergy, retrieve recipes or meal patterns, inspect live merchants and inventory, normalize units, choose substitutions, optimize a basket under a budget, explain assumptions, and wait before changing a cart. The answer is not a paragraph. It is a grounded, versioned shopping artifact.
+
+DoorDash's 2026 launch of Ask DoorDash makes the architecture unusually concrete. Its public engineering account describes a gateway, orchestrator, domain agents, shared typed tools, session state, versioned artifacts, consumer memory, and existing search, catalog, cart, and order systems beneath them. The lesson is broader than delivery:
+
+**Agentic search is not a chatbot placed over a vector database. It is a governed planning layer over mature retrieval, ranking, recommendation, live systems of record, editable state, and narrowly authorized actions.**
+
+This guide turns that principle into a buildable enterprise architecture. It covers the default system, component choices, security and privacy, cost and latency, food-commerce flows, evaluation, ownership, and a baseline-to-advanced roadmap. Current product and research claims were checked on July 23, 2026.
+
+## Search, conversational search, and agentic search
+
+The terms describe increasing responsibility, not successive replacements.
+
+| Mode | What the system does | Example | Appropriate authority |
+| --- | --- | --- | --- |
+| Traditional search | Retrieves and ranks results for an explicit query | `tofu near me` | Read only |
+| Conversational search | Carries context across turns and explains or refines results | “Closer, less spicy, and open after 10” | Read only |
+| Agentic search | Decomposes a goal, calls several sources, creates an artifact, and may propose actions | “Plan dinners and build the cart under $70” | Read; writes only through policy and confirmation |
+
+Keep all three paths. Exact item names, order IDs, known brands, and simple filters should stay on the deterministic search path. A vague discovery request may need semantic retrieval and a conversational layer. A constrained multi-step job may justify an agent.
+
+Routing everything through an agent adds cost, latency, and new failure modes without improving every query. Routing nothing through an agent leaves complex goals trapped in filters and tabs.
+
+### The useful output is often an artifact
+
+A generated answer disappears into chat history. An artifact has identity, schema, version, provenance, and editable fields:
+
+```json
+{
+  "artifact_id": "meal_plan_8421",
+  "version": 7,
+  "goal": "five vegetarian dinners for two under $70",
+  "constraints": {
+    "hard": ["peanut_exclusion", "budget_usd_70"],
+    "soft": ["prefer_usual_brands"]
+  },
+  "items": [
+    {
+      "sku": "sku_193",
+      "quantity": 2,
+      "price": 3.49,
+      "inventory_checked_at": "2026-07-23T09:41:12Z",
+      "source": "catalog_api"
+    }
+  ],
+  "subtotal": 66.18,
+  "status": "draft"
+}
+```
+
+The user can remove an item or change quantity without paying for another model turn. The agent can read the latest version on the next turn. The cart service can validate it before mutation. An evaluator can reconstruct what the user actually saw.
+
+## What Ask DoorDash reveals—and what it does not
+
+DoorDash announced Ask DoorDash on June 11, 2026 for restaurant and grocery discovery, with recipe links or cookbook photos, cart building, iterative refinement, and future reservations. Its product announcement says an average U.S. consumer can face roughly 800,000 eligible menu items and grocery products. The assistant is therefore a response to choice overload and changing local state, not merely a new chat surface.
+
+The public engineering details are more instructive:
+
+- Around seven in ten early messages were discovery requests, and sessions were mostly multi-turn.
+- The largest potential production-failure category was grounding: recommending a closed store, reporting a wrong price, or claiming an item entered a cart. DoorDash's stated remedy was to route claims through tools backed by systems of record.
+- An illustrative grocery turn could involve 6–8 LLM calls, several tools, low hundreds of thousands of input tokens, and 20–30 seconds end to end.
+- Direct edits to a rendered shopping artifact bypass the LLM and recompute against the live catalog.
+- The runtime includes a gateway, orchestrator, restaurant and grocery domain agents, managed state, versioned artifacts, consumer memory, shared MCP tools, and established backend services.
+- The assistant does not commit a purchase without explicit consumer confirmation.
+
+Those are first-party implementation disclosures, not independent benchmarks. The published memory results—about 24% higher relative grocery checkout-basket conversion, 15% higher relative conversion for open-ended restaurant queries, and 33% fewer intent misunderstandings in an LLM-judge measure—should be read as DoorDash's observed results in its product and experiment design, not universal effects.
+
+The hard lesson is the cost profile. A sophisticated agent can make an impressive cart and still be the wrong default for “Coke Zero.” An enterprise implementation should preserve a fast deterministic lane and earn every extra model and tool call.
+
+## A buildable reference architecture
+
+The following architecture separates language judgment from authoritative data and effects.
+
+```text
+ web · mobile · voice · image · recipe URL · partner API
+                              │
+                              ▼
+                    EDGE / SEARCH GATEWAY
+          auth · tenant · session · quotas · SSE · abuse controls
+                              │
+                              ▼
+                       INTENT ROUTER
+          ┌───────────────────┼─────────────────────┐
+          │                   │                     │
+     fast search        conversational         task planner
+   known item/filter    discovery/refine     multi-step artifact
+          │                   │                     │
+          └────────────── ORCHESTRATOR ─────────────┘
+                    budget · state · loop guard
+                   clarify · parallelize · stop
+                              │
+        ┌─────────────────────┼─────────────────────────┐
+        ▼                     ▼                         ▼
+  QUERY & ONTOLOGY      RETRIEVAL / RANKING       POLICY / TOOL GATEWAY
+ intent · entities      BM25 · vector · geo       scopes · validation
+ constraints · units    filters · fusion          approval · idempotency
+ aliases · relations    rerank · diversity        audit · postconditions
+        │                     │                         │
+        ▼                     ▼                         ▼
+ catalog/search index   recommendation features   live business tools
+        │                                             │
+        └──────── systems of record ──────────────────┘
+ inventory · price · ETA · eligibility · deals · orders · cart · payment
+
+       SESSION STATE · VERSIONED ARTIFACTS · CONSENTED MEMORY
+                              │
+       TRACES · COST · EVALS · FEEDBACK · INCIDENT EVIDENCE
+```
+
+The architecture can begin as one deployable service. The boxes are responsibility boundaries, not a demand for microservices.
+
+### 1. Channels and the gateway
+
+The gateway authenticates the caller and establishes tenant, locale, location, purpose, and session. It enforces request and spend limits, streams progress and results, and attaches a trace ID. It also normalizes text, voice transcript, image, or imported recipe into a typed request.
+
+SSE is a sensible default for server-to-client partial results and widgets. WebSocket is justified when the channel is truly bidirectional, such as live audio. Internal gRPC can be useful at high scale, but HTTP and a queue are sufficient for many first versions.
+
+Do not stream private chain-of-thought. Stream user-facing progress such as “Checking stores that can deliver before 7” and concrete partial artifacts.
+
+### 2. Intent router and fast lane
+
+Use a small classifier plus deterministic rules to choose a route:
+
+```text
+exact item / brand / SKU / order ID → lexical or direct lookup
+simple natural-language discovery   → hybrid retrieval + rerank
+follow-up refinement                 → reuse session constraints and search
+multi-source constrained goal        → planner and artifact
+support or account request           → separate support domain and permissions
+```
+
+The router should emit a route, confidence, extracted entities, hard constraints, and an estimated budget. Low confidence can fall back to ordinary search or ask one targeted clarification.
+
+Avoid an LLM call when a parser or index already knows the answer. DoorDash's memory team publicly describes the same principle: semantic retrieval is useful when meaning is uncertain, deterministic keyword lookup is better when the agent already knows the token, and a cheap scan should precede a large read.
+
+### 3. Query understanding and the domain model
+
+Food language is not standardized. “Hot” can mean temperature or spice. “Veggie” may or may not mean vegan. A menu “combo” relates to modifiers and options; a grocery “pack” has quantity and unit. Korean food commerce adds spacing variation, abbreviations, mixed scripts, romanization, brand nicknames, and address-specific availability.
+
+The query layer should produce a structured plan:
+
+```json
+{
+  "intent": "weekly_meal_plan",
+  "entities": {
+    "household_size": 2,
+    "meals": 5,
+    "delivery_deadline": "19:00"
+  },
+  "constraints": [
+    { "type": "diet", "value": "vegetarian", "strength": "hard" },
+    { "type": "exclude", "value": "peanut", "strength": "safety" },
+    { "type": "budget", "value": 70, "currency": "USD", "strength": "hard" }
+  ],
+  "preferences": [
+    { "type": "brand_history", "strength": "soft" }
+  ],
+  "unknowns": ["pantry_staples"]
+}
+```
+
+A small ontology or semantic layer makes the structure reusable. Core objects might include `Merchant`, `Location`, `Item`, `MenuOption`, `Ingredient`, `DietaryAttribute`, `AllergenDeclaration`, `Offer`, `Availability`, `DeliveryPromise`, `Recipe`, `Order`, `Cart`, and `UserPreference`. Relations such as `item_contains_ingredient`, `item_sold_by_merchant`, `offer_applies_to_item`, and `substitute_for` support both retrieval and validation.
+
+Do not turn the ontology into a multi-year master-data program. Start with identifiers, constraints, and relations needed by the first three scenarios. Preserve provenance and confidence for inferred metadata. A merchant declaration, ingredient text, and model-inferred tag are not equal evidence.
+
+DoorDash's food-metadata team describes multimodal inference, per-tag evaluation, distributed backfills, small-model distillation, and merchant overrides. The override is crucial: generated enrichment should improve discovery, not silently overwrite authoritative merchant data.
+
+### 4. Retrieval is a pipeline, not a vector store
+
+A practical first-stage search runs several retrievers under the same hard filters:
+
+```text
+lexical BM25       exact dishes, brands, aliases, rare terms
+dense retrieval    vague needs and semantic similarity
+structured lookup  IDs, taxonomy, price, attributes
+geo/eligibility    address, delivery radius, open status
+recommendation     affinity, reorder likelihood, diversity
+```
+
+Fuse candidate lists, then rerank a bounded set with query, context, live features, and policy. Reciprocal rank fusion is a good unlabeled baseline because it combines rank positions without calibrating incompatible raw scores. Elastic's official hybrid-search guidance recommends RRF as a starting method. With sufficient judgments and behavioral data, a learned ranker can combine relevance, availability, ETA, price, personalization, quality, diversity, and business constraints.
+
+Hard constraints must remain hard filters or validators. Do not ask a generative model to remember the budget, infer stock, or “mostly” respect an exclusion. Apply filters before and after approximate retrieval because ANN recall and post-filter behavior can remove candidates.
+
+Use a two-stage budget:
+
+1. retrieve perhaps 50–200 candidates cheaply;
+2. rerank only the top 20–50 with a cross-encoder, specialized reranker, or carefully bounded LLM.
+
+The final result should include stable IDs and evidence. The language model may explain why an item fits, but it must not invent the SKU, price, inventory, merchant hours, delivery promise, or promotion.
+
+### 5. The orchestrator
+
+The default should be one orchestrator implemented as code and a state machine. It decides what can run in parallel, which unknown requires clarification, when evidence is sufficient, and when to stop.
+
+```ts
+type RunBudget = {
+  maxModelCalls: number;
+  maxToolCalls: number;
+  maxInputTokens: number;
+  maxUsd: number;
+  deadlineMs: number;
+};
+
+type RunState = {
+  goal: Goal;
+  artifactId?: string;
+  completedSteps: string[];
+  evidence: EvidenceRef[];
+  budget: RunBudget;
+};
+```
+
+Multi-agent architecture becomes useful when restaurant, grocery, reservations, and support have distinct data, tools, policies, evaluation rubrics, and owning teams. It is not automatically more intelligent. It adds routing errors, handoff context, cascading failures, trace complexity, and more calls. Split a domain only after the single orchestrator becomes an ownership or scaling bottleneck.
+
+Every run needs loop guards, deadlines, cancellation, call and token ceilings, and a partial-result policy. If inventory is unavailable, the agent should return a clearly labeled draft or ordinary search results—not retry until it exhausts the wallet.
+
+### 6. Typed tools and live grounding
+
+Expose business capabilities, not raw databases or broad administrative APIs:
+
+```text
+search_merchants(location, constraints)
+search_catalog(merchant_id, query, filters)
+get_live_offer(item_id, location)
+get_inventory(item_ids, merchant_id)
+get_delivery_promise(merchant_id, address, basket)
+get_order_history(user_id, scope)
+validate_cart(draft_artifact_id)
+preview_cart_change(draft_artifact_id)
+apply_cart_change(confirmed_preview_id, idempotency_key)
+```
+
+Each tool defines JSON schema, caller scopes, data classification, timeout, cost class, side effects, freshness, and auditable result codes. The gateway validates arguments and authorization independently of the model. Live claims carry timestamps and source IDs.
+
+MCP can provide a common tool interface. Its authorization specification requires resource-bound tokens and forbids unsafe token passthrough patterns. That transport control does not replace business authorization. The cart service must still verify the user, cart, tenant, item, amount, and confirmation.
+
+Separate read, preview, and commit:
+
+```text
+agent reads → creates draft → user edits → system previews effect
+                                         → user confirms
+                                         → policy rechecks live state
+                                         → idempotent commit
+                                         → postcondition verified
+```
+
+This pattern contains hallucination, stale state, double clicks, retries, and prompt injection better than “ask the model whether it is safe.”
+
+### 7. State, artifacts, and memory
+
+Use three different stores:
+
+| Store | Lifetime | Content | Default |
+| --- | --- | --- | --- |
+| Session state | Minutes or hours | Current goal, refinements, active store, rejected results | Automatic, short TTL |
+| Artifact store | Product-defined | Versioned list, plan, comparison, or draft cart | Persist when user creates or saves work |
+| User memory | Cross-session | Explicit durable preferences with provenance and TTL | Consent and policy required |
+
+Do not call chat history “memory.” Raw logs are noisy, expensive, sensitive, and vulnerable to poisoning. Extract candidate facts asynchronously, classify durability, deduplicate, record source and time, and let the user inspect, correct, or forget them.
+
+Food preferences need special rules. “No ramen tonight” is transient. “I always eat vegetarian” may be durable. Allergy or medical information is sensitive and should not be inferred or casually persisted. DoorDash says its system does not write health and medical information to memory and uses structured facts, timestamps, TTLs, and add/revise/retract behavior.
+
+At retrieval time, current intent and live data override stale memory. A preferred brand that is unavailable is not an excuse to fabricate stock.
+
+## Component choices by scale and constraint
+
+Choose one option per responsibility based on the company's existing skills and operational tolerance. Product names below are examples, not a required stack.
+
+### Search and vector retrieval
+
+| Option | Good starting condition | Advantages | Watch-outs |
+| --- | --- | --- | --- |
+| PostgreSQL full-text + `pgvector` | Small catalog, existing Postgres team, MVP | One operational system, transactions, fast start | Ranking and large-scale search ergonomics become limiting |
+| OpenSearch or Elasticsearch | General enterprise and commerce search | BM25, filters, geo, vector, hybrid retrieval, mature tooling | Cluster tuning, schema, and relevance expertise still required |
+| Vespa | Very large serving, rich online features, custom ranking | Retrieval and multistage ML ranking in one serving engine | Higher learning and platform cost |
+| Solr | Existing Lucene/Solr estate and expertise | Mature lexical search and control | Semantic and ML workflow may require more integration |
+| Managed search such as Algolia, Azure AI Search, Vertex AI Search | Speed and managed operations matter most | Faster delivery, vendor operations | Cost, customization, portability, and data-boundary trade-offs |
+| Dedicated vector systems such as Qdrant, Weaviate, Pinecone, or Milvus | Vector workloads need independent scale or features | Focused vector operations and filtering | Another system to synchronize; not a replacement for catalog truth |
+
+DoorDash built a custom Lucene-based engine after operating Elasticsearch at scale and reported lower tail latency and hardware cost. That is evidence that search substrate matters—not a recommendation for most companies to build a search engine. Use a mature product until measured scale or control requirements justify ownership.
+
+### Models and routing
+
+Use specialized lanes rather than one frontier model:
+
+| Lane | Task | Typical model class |
+| --- | --- | --- |
+| Deterministic | IDs, rules, filters, totals, validation | Code, SQL, search engine |
+| Small/fast | Route, classify, extract entities, memory candidates | Small commercial or self-hosted language model |
+| Embedding | Semantic candidate generation | Domain-evaluated embedding model |
+| Reranking | Query-candidate relevance | Cross-encoder or hosted reranker |
+| Balanced LLM | Query planning, clarification, grounded composition | Fast tool-capable model |
+| Frontier escalation | Rare ambiguous or long-horizon cases | Strongest approved model under a strict budget |
+
+The gateway should pin model versions, enforce approved providers and regions, capture usage, route by task, and support tested fallback. Direct provider SDKs are simplest. LiteLLM, Portkey, Vercel AI Gateway, or a cloud model gateway can centralize routing and cost; a company may also build a thin internal gateway. The decisive features are policy enforcement, observability, version control, and portability—not the number of providers in a catalog.
+
+DoorDash's evaluation post reports a model migration that reduced latency by 35% after deterministic argument coercion and explicit prompt fixes restored quality parity. The lesson is that model replacement is a system migration. Re-run tool, prompt, retrieval, and end-to-end evaluations rather than comparing a benchmark score.
+
+### Orchestration and durable work
+
+| Need | Start with | Add when required |
+| --- | --- | --- |
+| Request-bounded search | Application code and explicit state machine | LangGraph, Google ADK, OpenAI Agents SDK, or similar when graph/tool complexity pays for it |
+| Long-running or resumable plan | Queue plus persisted checkpoints | Temporal, cloud workflows, or another durable workflow engine |
+| Independent domain ownership | One orchestrator with domain modules | A2A or multi-agent handoffs after contracts and evals stabilize |
+| Typed tools | Internal OpenAPI/RPC adapters | MCP server façades for shared discovery and interoperability |
+
+Do not let an orchestration framework own business truth. Cart, order, inventory, policy, and artifact state belong in durable services.
+
+### Data, cache, streaming, and observability
+
+| Responsibility | Practical options |
+| --- | --- |
+| Session/cache | Redis, Valkey, DynamoDB TTL items, or equivalent |
+| Artifacts and memory metadata | PostgreSQL, distributed SQL, or document store with version checks |
+| Traces and analytical events | OpenTelemetry to ClickHouse, a warehouse, or an observability platform |
+| Client streaming | SSE by default; WebSocket for bidirectional realtime use |
+| Eventing | Kafka/Pulsar at large scale; cloud pub/sub or queues for simpler estates |
+| Agent evaluation | Internal harness; Arize Phoenix, Langfuse, Braintrust, or other tools as accelerators |
+
+The telemetry schema should outlive the framework. At minimum, correlate session, run, user/tenant pseudonym, route, model calls, retrieval queries, candidates, reranks, tool calls, policy decisions, artifact versions, token and dollar cost, latency, and final outcome. Raw content requires separate access and retention controls.
+
+## Security and privacy threat model
+
+Agentic search joins untrusted content, private context, and actions. That combination creates risks ordinary search does not have.
+
+### Indirect prompt injection
+
+A menu description, review, recipe webpage, OCR image, or merchant-provided field can contain text that tells the agent to ignore its instructions, reveal data, or call a tool. Treat all retrieved text as data, never authority.
+
+Controls include:
+
+- isolate system instructions from retrieved content;
+- sanitize and label source fields;
+- parse recipe pages into a restricted schema before planning;
+- never expose secrets in model context;
+- allow only task-specific tools;
+- validate every tool argument and effect outside the model;
+- run adversarial fixtures containing injected catalog and webpage text.
+
+OWASP's AI Agent Security guidance highlights prompt injection, tool abuse, data exfiltration, memory poisoning, excessive autonomy, cascading failure, and denial of wallet. A prompt that says “ignore malicious instructions” is not a security boundary.
+
+### Identity and least privilege
+
+Carry a chain of identity from user to agent to tool. Read-only discovery does not need cart-write authority. A recipe importer does not need order history unless the user selected personalization. Short-lived, audience-bound credentials prevent one tool's token from becoming access to another.
+
+Use attribute-based decisions for tenant, user, purpose, resource, data class, region, and action. Enforce row- and document-level permissions before retrieval, not after generation. Search indexes must preserve access-control changes and deletion.
+
+### Transactions and payments
+
+Do not send payment credentials to the model. Keep tokenized payment and PCI scope in the existing checkout system. The agent may prepare a draft or checkout preview; the ordinary commerce flow authenticates, displays final price and substitutions, obtains confirmation, checks inventory again, and commits idempotently.
+
+Alcohol, age-restricted goods, geographic restrictions, promotions, refunds, and reservations need existing policy engines. The agent does not waive them.
+
+### Allergy and food-safety boundaries
+
+Dietary preference, merchant-declared allergen, ingredient inference, cross-contamination, and medical allergy are not interchangeable. A safe product should:
+
+- ask whether a constraint is a preference or a serious allergy when it changes risk;
+- display the evidence source and uncertainty;
+- avoid guaranteeing “allergen-free” unless an authoritative process supports it;
+- preserve merchant warnings and cross-contamination notices;
+- require the user to verify critical information with the merchant or packaging;
+- exclude health details from general personalization memory.
+
+The model can help narrow choices. It should not become the food-safety authority.
+
+### Memory poisoning and privacy
+
+An attacker can try to store instructions or false preferences that affect later sessions. Validate memory writes against a narrow schema, isolate users and tenants, attach provenance and TTL, block executable or instructional payloads, and audit high-impact changes. Offer inspect, correct, export, and delete controls.
+
+Separate one-time context from durable personalization. Collect only what improves an approved use case. Apply purpose limitation, regional rules, retention, and supplier terms to prompts, traces, embeddings, and evaluation datasets—not just the primary database.
+
+### Abuse and denial of wallet
+
+Rate-limit by user, tenant, IP risk, and route. Enforce budgets before each model or tool call. Cap recursion and retries. Cache safe repeated work. Use circuit breakers for expensive dependencies. Alert on calls, tokens, or spend per successful session, not only total monthly cost.
+
+## Cost and latency engineering
+
+Agentic search cost has at least seven parts:
+
+```text
+query understanding
++ embeddings and retrieval
++ reranking
++ planning model calls
++ tool and data-service calls
++ response generation
++ evaluation and observability
+```
+
+Measure **cost per successful task**, not cost per token. A cheap model that produces invalid tools and retries can cost more than a stronger model. An expensive agent that increases checkout may be economical; an expensive agent for exact lookup is waste.
+
+### The main cost controls
+
+1. **Route simple queries away from the agent.** Exact lookup and filters use the fast lane.
+2. **Scan before read.** Inspect counts, IDs, and metadata before loading histories or catalogs into context.
+3. **Retrieve, rerank, then compress.** Do not paste hundreds of products into a prompt.
+4. **Use structured tool results.** Return only fields needed for the next decision.
+5. **Parallelize independent reads.** Store search and memory lookup can run together under a deadline.
+6. **Edit artifacts without an LLM.** Quantity, delete, swap, and sort actions should be direct operations when intent is explicit.
+7. **Route models by role.** Small models classify; balanced models plan; frontier models handle the hard tail.
+8. **Cache the right things.** Cache embeddings, normalized recipes, static taxonomy, suggestions, and safe prefixes. Never treat cached price or inventory as current.
+9. **Batch asynchronous work.** Metadata enrichment, memory extraction, and offline evaluation need not delay the user turn.
+10. **Stop with a useful partial result.** A deadline can return ranked options and missing constraints instead of a failed 30-second monologue.
+
+Define a per-route latency budget. A reasonable starting product target—not an industry guarantee—might allocate ordinary search under one second, first useful conversational results in a few seconds, and complex cart planning a longer explicit workflow with streamed artifacts. Validate these numbers with users; do not normalize 20–30 seconds merely because one sophisticated public example disclosed it.
+
+## Food-commerce scenarios and exact flows
+
+### Scenario 1: vague dinner discovery
+
+**Request:** “Something warm and comforting, not too heavy, here by 8.”
+
+**Flow:** extract mood, time, location, and soft health preference → retrieve cuisine and dish candidates with semantic and lexical search → live merchant, open, ETA, and delivery eligibility filters → diversify by cuisine and price → present five grounded options.
+
+**Guard:** “not too heavy” is a preference, not a verified nutrition claim. Prices and ETAs come from live tools.
+
+**Measure:** constraint satisfaction, result diversity, first-useful-result latency, refinement rate, and conversion.
+
+### Scenario 2: household order under constraints
+
+**Request:** “Dinner for four under ₩50,000; one child cannot eat peanuts and the adults want spicy food.”
+
+**Flow:** separate shared hard exclusion from individual taste → clarify severity and cross-contamination needs → retrieve restaurants with usable allergen evidence → assemble combinations → verify total, options, delivery fee, and ETA → create an editable order draft.
+
+**Guard:** no allergy guarantee; show merchant evidence and warning. Do not optimize the adults' preference over the child's exclusion.
+
+**Measure:** hard-constraint violations must be zero in the release gate; also track total accuracy and user corrections.
+
+### Scenario 3: recipe link or cookbook photo to cart
+
+**Request:** paste a recipe URL or photograph a page.
+
+**Flow:** fetch or OCR in an isolated importer → treat source as untrusted → extract ingredients, quantities, servings, and instructions into schema → normalize units and map ingredients to taxonomy → ask about servings and pantry staples → search one or more stores → choose pack sizes and substitutions → build a versioned cart draft.
+
+**Guard:** webpage instructions cannot call tools. Recipe copyright and source attribution need product review. Inventory and price are revalidated before commit.
+
+**Measure:** ingredient coverage, unnecessary-item rate, unit correctness, substitution acceptance, final waste estimate, and cart conversion.
+
+### Scenario 4: weekly meal plan and basket optimization
+
+**Request:** “Five vegetarian dinners for two under $70, 30 minutes each.”
+
+**Flow:** generate candidate meal structures → retrieve recipes or known meal templates → estimate ingredient reuse → search current inventory → optimize basket across budget, package sizes, variety, and waste → show trade-offs and assumptions → let the user swap meals directly.
+
+**Guard:** the optimizer calculates totals; the LLM explains them. Budget is checked after every artifact mutation.
+
+**Measure:** budget pass rate, ingredient reuse, estimated waste, direct-edit success, plan completion, and checkout.
+
+### Scenario 5: reorder with live substitutions
+
+**Request:** “Reorder my usual breakfast items.”
+
+**Flow:** scan recent order categories → retrieve relevant history under user authority → create candidates → check current catalog → propose substitutions for missing items with reason and price difference → create draft.
+
+**Guard:** historical purchase is evidence, not permanent preference. Never silently substitute an allergen-sensitive item.
+
+**Measure:** reorder precision, substitution acceptance, correction rate, and time saved.
+
+### Scenario 6: group ordering
+
+**Request:** “Find lunch for eight; collect everyone's choices and stay under the team budget.”
+
+**Flow:** create shared artifact with participant scopes → retrieve eligible merchants → collect constraints and choices → show remaining budget → lock and validate at deadline → ask authorized organizer to confirm.
+
+**Guard:** participants see only appropriate information; one person's preference does not enter another's memory. The organizer, not the model, commits.
+
+**Measure:** participation, time to lock, budget adherence, failed-item resolution, and organizer corrections.
+
+### Scenario 7: time-critical local search
+
+**Request:** “What groceries can get here before the game starts in 45 minutes?”
+
+**Flow:** live eligibility and ETA first → restrict merchants before semantic discovery → search inventory → display confidence and cutoff → revalidate at checkout.
+
+**Guard:** delivery promises change. Timestamp every claim and avoid guarantees beyond the source system.
+
+**Measure:** promise accuracy and successful on-time fulfillment matter more than answer elegance.
+
+### Scenario 8: discovery to reservation
+
+**Request:** “A quiet Italian restaurant for six Friday at 7 near Gangnam, then show me dishes suitable for two vegetarians.”
+
+**Flow:** geo and reservation availability → ambience and cuisine retrieval → party and time validation → menu evidence → reservation preview → explicit confirmation in the reservations system.
+
+**Guard:** review text is untrusted and subjective. Availability is live. Booking follows existing cancellation and deposit rules.
+
+**Measure:** valid options, reservation completion, constraint satisfaction, and cancellation caused by wrong expectations.
+
+## Evaluation: score the trajectory and outcome
+
+Search relevance metrics remain necessary:
+
+- recall@K for candidate generation;
+- nDCG or MRR for ranking;
+- zero-result and reformulation rate;
+- filter and entity extraction accuracy;
+- coverage and diversity.
+
+They are not sufficient for an agent. Evaluate the entire session: the user turns, visible response, retrieved evidence, tool calls and outputs, artifact mutations, policy decisions, and final business outcome.
+
+Create rubrics by route:
+
+| Dimension | Example criterion |
+| --- | --- |
+| Grounding | Every price, inventory, ETA, and item claim matches cited tool output |
+| Constraint satisfaction | All hard dietary, budget, location, and time constraints pass deterministic checks |
+| Retrieval quality | Relevant and diverse candidates survive each stage |
+| Tool correctness | Tool selection, arguments, retries, and ordering are valid |
+| Action safety | No write occurs without current authorization and required confirmation |
+| Artifact correctness | Version, subtotal, items, and user edits are preserved |
+| Communication | Assumptions and uncertainty are concise and visible |
+| Efficiency | Task succeeds within call, token, dollar, and latency budgets |
+
+Use deterministic tests wherever possible. Totals, IDs, policy, inventory freshness, tool schemas, and hard filters should not be judged by another LLM. Use calibrated LLM judges for open-ended relevance and communication, with human-authored rubrics, a labeled calibration set, and regular audits.
+
+DoorDash's published harness illustrates the pattern: OpenTelemetry traces, compact criterion-specific transcripts, frozen tool fixtures, simulated multi-turn users, human-calibrated LLM judges, and the same rubric online and offline. It reports expanding from roughly one employee-submitted feedback to 2,000 auto-graded sessions a day and reducing a broad regression run from over six hours manually to about 20 minutes. Again, those are first-party outcomes, but the system design is reusable.
+
+Sample by head, torso, tail, geography, language, merchant size, time of day, device, and scenario. Engagement alone is unsafe: a persuasive wrong recommendation can convert.
+
+### Production scorecard
+
+Track five families together:
+
+1. **Customer outcome:** successful discovery, artifact completion, checkout, time saved, abandonment.
+2. **Quality:** grounding, constraint satisfaction, relevance, diversity, corrections, complaints.
+3. **Safety and governance:** injection blocks, denied tools, unauthorized retrieval, memory defects, confirmation coverage.
+4. **Reliability:** availability, first useful result, end-to-end latency, tool failures, partial completions.
+5. **Economics and marketplace:** cost per successful session, calls and tokens, merchant coverage, exposure concentration, sponsored-result compliance.
+
+Marketplace fairness deserves explicit review. Personalization and paid placement can concentrate exposure. Label sponsorship, preserve organic relevance rules, monitor merchant segments, and provide policy-controlled exploration rather than letting an opaque model decide commercial visibility.
+
+## Organization and governance
+
+Agentic search crosses product, search relevance, recommendation, data, catalog, application engineering, security, privacy, legal, finance, operations, and domain merchandising. A central AI team cannot own every decision; an uncoordinated feature team cannot define every control.
+
+Use a shared-platform/domain-team model:
+
+| Owner | Responsibilities |
+| --- | --- |
+| Search/recommendation | Query understanding, retrieval, ranking, relevance evaluation |
+| Domain product team | Scenarios, UX, artifacts, business metrics, acceptance criteria |
+| AI platform | Model gateway, orchestration contracts, tool SDK, traces, eval service, cost controls |
+| Data/catalog | IDs, schemas, freshness, metadata provenance, quality, lineage |
+| Security/IAM | Identity chain, scopes, injection testing, secrets, incident response |
+| Privacy/legal | Purpose, consent, retention, memory, regional and supplier obligations |
+| Commerce service owners | Inventory, price, cart, order, payment, reservation enforcement |
+| Finance/FinOps | Unit economics, budgets, provider commitments, cost anomaly review |
+
+Register every production route with owner, risk tier, data sources, models, tools, memory policy, evaluation suite, budget, SLO, rollback, and retirement date. Changes to a prompt, model, embedding, reranker, tool, policy, or memory extractor can all change behavior and should enter the release process proportionate to risk.
+
+## Baseline to advanced roadmap
+
+### Phase 0: make ordinary search trustworthy
+
+Establish stable item and merchant IDs, catalog change streams, Korean and domain analyzers, aliases, geo eligibility, live price and inventory APIs, click/order events, access controls, and a labeled relevance set. Define which fields are authoritative and their freshness SLO.
+
+**Exit criteria:** conventional search meets its latency and relevance baseline; tools can retrieve authoritative live state by ID; the team can reproduce a result.
+
+### Phase 1: read-only conversational discovery
+
+Add session constraints, intent routing, hybrid retrieval, reranking, concise grounded explanations, citations or source indicators, and SSE results. No long-term memory and no write tools.
+
+Start with three high-value scenarios such as vague dinner discovery, natural-language filters, and time-critical search.
+
+**Exit criteria:** no regression on ordinary search, grounding and hard-filter gates pass, cost and latency are within route budgets, and users complete tasks more effectively than the baseline.
+
+### Phase 2: editable artifacts and preview actions
+
+Introduce versioned comparison lists, meal plans, and draft carts. Implement direct edits without an LLM. Add `validate` and `preview` tools, confirmation UI, idempotency, postcondition checks, and full traces.
+
+**Exit criteria:** retries cannot duplicate effects; stale inventory is revalidated; every mutation is attributable and recoverable; end-to-end scenario evals gate release.
+
+### Phase 3: consented personalization
+
+Add session signals, explicit durable preferences, scoped order-history retrieval, provenance, TTL, reconciliation, inspect/correct/delete, and memory-poisoning tests. Begin with non-sensitive preferences and an opt-out.
+
+**Exit criteria:** measured lift exceeds added privacy and operating cost; deletion is verified across serving, index, cache, and evaluation copies; memory precision meets threshold.
+
+### Phase 4: multimodal and cross-domain planning
+
+Add recipe URLs, OCR images, voice input, grocery/restaurant/reservation modules, a budgeted orchestrator, and domain-specific rubrics. Split agents only where ownership and policies genuinely differ.
+
+**Exit criteria:** cross-domain handoffs preserve identity, constraints, evidence, budget, and cancellation; partial failures degrade to a useful artifact.
+
+### Phase 5: continuous optimization under governance
+
+Add learned ranking, small-model distillation, provider routing, automated failure clustering, shadow evaluation, canaries, merchant fairness monitoring, and scenario expansion. Keep high-impact actions bounded and confirmed rather than pursuing autonomy as a maturity badge.
+
+**Exit criteria:** online and offline metrics remain calibrated; rollback and authority reduction are routine; cost per successful task declines without hidden quality or marketplace harm.
+
+## A concrete 90-day first build
+
+### Days 1–30: foundation
+
+- Select three scenarios and write success, safety, latency, and cost rubrics.
+- Map authoritative catalog, inventory, price, ETA, order, and cart APIs.
+- Establish a baseline query set and ordinary-search metrics.
+- Implement the run envelope, trace IDs, and per-route budgets.
+- Build typed read-only tools and an access-controlled search index.
+- Threat-model recipe text, catalog fields, user input, memory, and cart actions.
+
+### Days 31–60: read-only pilot
+
+- Ship router, fast lane, hybrid retrieval, reranker, and one orchestrator.
+- Return structured cards with source and freshness rather than free-form prose alone.
+- Add frozen tool fixtures, deterministic checks, and calibrated relevance rubrics.
+- Run internal adversarial testing and shadow traffic.
+- Measure first useful result, grounding, constraint pass rate, correction, and cost.
+
+### Days 61–90: artifact pilot
+
+- Add one versioned artifact, such as a restaurant shortlist or grocery draft.
+- Implement direct user edits and live recomputation without LLM calls.
+- Add preview-only cart validation; keep production commit disabled until controls pass.
+- Canary to a narrow cohort with explicit feedback and rollback.
+- Decide with evidence whether to add write actions, memory, or another domain.
+
+The first-quarter deliverable is not “an agent platform.” It is one trustworthy search journey plus reusable contracts for identity, tools, artifacts, traces, evaluation, and budgets.
+
+## Decisions to make before procurement
+
+Ask these questions before comparing vendor diagrams:
+
+1. Which queries stay deterministic, and what evidence earns an agent route?
+2. Which fields are authoritative for price, stock, eligibility, ETA, allergens, and offers?
+3. What is the artifact, and can users edit it without a model call?
+4. Which actions are read, preview, reversible write, or irreversible/high impact?
+5. How does caller identity reach every retrieval and tool?
+6. What is never sent to a model, trace, embedding store, or memory?
+7. What are the hard call, token, dollar, and time budgets per route?
+8. Which rubric blocks release even if conversion improves?
+9. How are sponsorship, merchant exposure, and personalization made governable?
+10. Can the company replay a failed session with frozen data and roll back every changed component?
+
+If these answers are missing, a vector database or agent framework will not supply them.
+
+## The durable design principle
+
+The conversational interface is the visible part. The product's reliability comes from everything underneath it: identifiers, catalog quality, hybrid retrieval, live grounding, typed tools, versioned artifacts, explicit permissions, transaction controls, and an evaluation loop tied to real tasks.
+
+Start read-only. Preserve the ordinary search path. Let an agent plan only when the goal needs planning. Make the result an editable artifact. Revalidate every live fact. Put writes behind preview, policy, and confirmation. Add memory only when its measured value justifies its privacy and security surface.
+
+That system can support a dinner recommendation today and a cross-domain commerce assistant later without asking a language model to become the search engine, database, policy engine, and checkout service at once.
+
+For the broader platform around identities, tools, registries, and lifecycle, continue with [Enterprise Agent Platforms](/blog/enterprise-agent-platform-architecture-guide/). For model routing and unit economics, see [Enterprise LLM Strategy](/blog/enterprise-llm-model-selection-platform-strategy/). For shared business semantics, see [Ontology as the Operating Layer for AI Agents](/blog/ontology-operating-layer-for-ai-agents/).
+
+## Sources and further reading
+
+- [DoorDash: Introducing Ask DoorDash](https://about.doordash.com/en-us/news/ask-doordash)
+- [DoorDash Engineering: Building DoorDash Assistant—an engineering overview](https://careersatdoordash.com/blog/building-doordash-assistant-an-engineering-overview/)
+- [DoorDash Engineering: Building Ask DoorDash, Part 2—Intelligence](https://careersatdoordash.com/blog/building-ask-doordash-part-two-intelligence/)
+- [DoorDash Engineering: Building Ask DoorDash, Part 3—Evaluation](https://careersatdoordash.com/blog/building-ask-doordash-part-three-evaluation/)
+- [DoorDash Engineering: Building food metadata with LLM juries, context optimization, and multimodal AI](https://careersatdoordash.com/blog/building-food-metadata-with-llm-juries-context-optimization-multimodal-ai/)
+- [DoorDash Engineering: Introducing DoorDash's in-house search engine](https://careersatdoordash.com/blog/introducing-doordashs-in-house-search-engine/)
+- [DoorDash Engineering: How DoorDash leverages LLMs to evaluate search-result pages](https://careersatdoordash.com/blog/doordash-llms-to-evaluate-search-result-pages/)
+- [DoorDash research: Agentic multi-source query-intent detection](https://arxiv.org/abs/2603.01486)
+- [Elastic documentation: Hybrid search](https://www.elastic.co/docs/solutions/search/hybrid-search)
+- [OWASP: AI Agent Security Cheat Sheet](https://cheatsheetseries.owasp.org/cheatsheets/AI_Agent_Security_Cheat_Sheet.html)
+- [OWASP: LLM06 Excessive Agency](https://genai.owasp.org/llmrisk/llm062025-excessive-agency/)
+- [Model Context Protocol: Authorization](https://modelcontextprotocol.io/specification/2025-11-25/basic/authorization)
+- [NIST AI 600-1: Generative AI Profile](https://doi.org/10.6028/NIST.AI.600-1)
