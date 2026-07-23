@@ -69,116 +69,22 @@ const primaryNavigationTranslations = Object.fromEntries(Object.entries(primaryN
   <nav
     id="primary-navigation"
     aria-label={chrome.primaryNavigation}
-    class="mx-auto flex h-16 max-w-[88rem] items-center gap-3 px-4 sm:px-6"
   >
-    <a href="/" class="flex min-h-11 shrink-0 items-center gap-2 font-bold text-[var(--text-primary)]">
-      <span aria-hidden="true" class="h-2.5 w-2.5 rounded-full bg-[var(--brand)]"></span>
-      <span>Restato</span>
-    </a>
+    <div class="mx-auto flex h-16 max-w-[88rem] items-center gap-3 px-4 sm:px-6">
+      <a href="/" class="flex min-h-11 shrink-0 items-center gap-2 font-bold text-[var(--text-primary)]">
+        <span aria-hidden="true" class="h-2.5 w-2.5 rounded-full bg-[var(--brand)]"></span>
+        <span>Restato</span>
+      </a>
 
-    <ul class="hidden min-w-0 flex-1 items-center justify-center gap-0.5 lg:flex">
-      {navItems.map((item) => (
-        <li>
-          <a
-            href={getNavHref(item.href)}
-            data-base-href={item.href}
-            data-nav-key={item.labelKey}
-            aria-current={isActive(item.href) ? 'page' : undefined}
-            class={`flex min-h-11 items-center rounded-[0.625rem] px-2.5 text-sm font-medium transition-colors ${
-              isActive(item.href)
-                ? 'bg-[var(--surface-soft)] text-[var(--brand)]'
-                : 'text-[var(--text-muted)] hover:bg-[var(--surface-soft)] hover:text-[var(--text-primary)]'
-            }`}
-          >
-            {chrome.nav[item.labelKey]}
-          </a>
-        </li>
-      ))}
-    </ul>
-
-    <div class="ml-auto flex shrink-0 items-center gap-1">
-      {!lockLanguage && <div class="relative hidden lg:block" id="lang-selector">
-        <button
-          id="lang-trigger"
-          type="button"
-          class="fc-button fc-button-secondary px-3 text-sm"
-          aria-label={chrome.selectLanguage}
-          aria-controls="lang-menu"
-          aria-expanded="false"
-          aria-haspopup="true"
-        >
-          <svg aria-hidden="true" class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9"></path>
-          </svg>
-          <span id="lang-current-label">{languages[lang]}</span>
-          <svg aria-hidden="true" id="lang-chevron" class="h-3 w-3 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
-          </svg>
-        </button>
-
-        <div
-          id="lang-menu"
-          class="fc-surface absolute right-0 z-50 mt-1 hidden max-h-[70vh] min-w-36 overflow-y-auto p-1"
-        >
-          {(Object.entries(languages) as [Language, string][]).map(([code, name]) => (
-            <button
-              type="button"
-              data-lang-option={code}
-              aria-pressed={code === lang ? 'true' : 'false'}
-              class={`min-h-11 w-full rounded-[0.625rem] px-3 text-left text-sm transition-colors hover:bg-[var(--surface-soft)] ${
-                code === lang ? 'bg-[var(--surface-soft)] font-medium text-[var(--brand)]' : 'text-[var(--text-primary)]'
-              }`}
-            >
-              {name}
-            </button>
-          ))}
-        </div>
-      </div>}
-
-      <button
-        id="theme-toggle-btn"
-        type="button"
-        class="fc-button fc-button-quiet w-11 px-0"
-        aria-label={chrome.darkMode}
-        aria-pressed="false"
-      >
-        <svg data-theme-icon="dark" aria-hidden="true" class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"></path>
-        </svg>
-        <svg data-theme-icon="light" aria-hidden="true" class="hidden h-5 w-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"></path>
-        </svg>
-      </button>
-
-      <button
-        id="mobile-menu-btn"
-        type="button"
-        class="fc-button fc-button-quiet w-11 px-0 lg:hidden"
-        aria-label={chrome.toggleMenu}
-        aria-controls="mobile-menu"
-        aria-expanded="false"
-      >
-        <svg id="menu-open-icon" aria-hidden="true" class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16"></path>
-        </svg>
-        <svg id="menu-close-icon" aria-hidden="true" class="hidden h-5 w-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"></path>
-        </svg>
-      </button>
-    </div>
-  </nav>
-
-  <div id="mobile-menu" class="hidden border-t border-[var(--border-subtle)] bg-[var(--surface-raised)] lg:hidden">
-    <div class="mx-auto max-w-[88rem] px-4 py-3 sm:px-6">
-      <ul class="grid gap-1 p-0">
+      <ul class="hidden min-w-0 flex-1 items-center justify-center gap-0.5 lg:flex">
         {navItems.map((item) => (
           <li>
             <a
               href={getNavHref(item.href)}
               data-base-href={item.href}
-              data-mobile-nav-key={item.labelKey}
+              data-nav-key={item.labelKey}
               aria-current={isActive(item.href) ? 'page' : undefined}
-              class={`flex min-h-11 items-center rounded-[0.625rem] px-3 font-medium transition-colors ${
+              class={`flex min-h-11 items-center rounded-[0.625rem] px-2.5 text-sm font-medium transition-colors ${
                 isActive(item.href)
                   ? 'bg-[var(--surface-soft)] text-[var(--brand)]'
                   : 'text-[var(--text-muted)] hover:bg-[var(--surface-soft)] hover:text-[var(--text-primary)]'
@@ -189,27 +95,121 @@ const primaryNavigationTranslations = Object.fromEntries(Object.entries(primaryN
           </li>
         ))}
       </ul>
-      {!lockLanguage && <div class="mt-3 border-t border-[var(--border-subtle)] pt-3">
-        <p id="mobile-language-label" class="mb-2 text-sm font-bold text-[var(--text-primary)]">{chrome.selectLanguage}</p>
-        <div class="grid max-h-56 grid-cols-2 gap-1 overflow-y-auto sm:grid-cols-3">
-          {(Object.entries(languages) as [Language, string][]).map(([code, name]) => (
-            <button
-              type="button"
-              data-lang-mobile-option={code}
-              aria-pressed={code === lang ? 'true' : 'false'}
-              class={`min-h-11 rounded-[0.625rem] border border-[var(--border-subtle)] px-3 text-left text-sm transition-colors ${
-                code === lang
-                  ? 'bg-[var(--surface-soft)] font-medium text-[var(--brand)]'
-                  : 'text-[var(--text-muted)] hover:bg-[var(--surface-soft)] hover:text-[var(--text-primary)]'
-              }`}
-            >
-              {name}
-            </button>
-          ))}
-        </div>
-      </div>}
+
+      <div class="ml-auto flex shrink-0 items-center gap-1">
+        {!lockLanguage && <div class="relative hidden lg:block" id="lang-selector">
+          <button
+            id="lang-trigger"
+            type="button"
+            class="fc-button fc-button-secondary px-3 text-sm"
+            aria-label={chrome.selectLanguage}
+            aria-controls="lang-menu"
+            aria-expanded="false"
+          >
+            <svg aria-hidden="true" class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9"></path>
+            </svg>
+            <span id="lang-current-label">{languages[lang]}</span>
+            <svg aria-hidden="true" id="lang-chevron" class="h-3 w-3 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+            </svg>
+          </button>
+
+          <div
+            id="lang-menu"
+            class="fc-surface absolute right-0 z-50 mt-1 hidden max-h-[70vh] min-w-36 overflow-y-auto p-1"
+          >
+            {(Object.entries(languages) as [Language, string][]).map(([code, name]) => (
+              <button
+                type="button"
+                data-lang-option={code}
+                aria-pressed={code === lang ? 'true' : 'false'}
+                class={`min-h-11 w-full rounded-[0.625rem] px-3 text-left text-sm transition-colors hover:bg-[var(--surface-soft)] ${
+                  code === lang ? 'bg-[var(--surface-soft)] font-medium text-[var(--brand)]' : 'text-[var(--text-primary)]'
+                }`}
+              >
+                {name}
+              </button>
+            ))}
+          </div>
+        </div>}
+
+        <button
+          id="theme-toggle-btn"
+          type="button"
+          class="fc-button fc-button-quiet w-11 px-0"
+          aria-label={chrome.darkMode}
+          aria-pressed="false"
+        >
+          <svg data-theme-icon="dark" aria-hidden="true" class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"></path>
+          </svg>
+          <svg data-theme-icon="light" aria-hidden="true" class="hidden h-5 w-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"></path>
+          </svg>
+        </button>
+
+        <button
+          id="mobile-menu-btn"
+          type="button"
+          class="fc-button fc-button-quiet w-11 px-0 lg:hidden"
+          aria-label={chrome.toggleMenu}
+          aria-controls="mobile-menu"
+          aria-expanded="false"
+        >
+          <svg id="menu-open-icon" aria-hidden="true" class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16"></path>
+          </svg>
+          <svg id="menu-close-icon" aria-hidden="true" class="hidden h-5 w-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"></path>
+          </svg>
+        </button>
+      </div>
     </div>
-  </div>
+
+    <div id="mobile-menu" class="hidden border-t border-[var(--border-subtle)] bg-[var(--surface-raised)] lg:hidden">
+      <div class="mx-auto max-w-[88rem] px-4 py-3 sm:px-6">
+        <ul class="grid gap-1 p-0">
+          {navItems.map((item) => (
+            <li>
+              <a
+                href={getNavHref(item.href)}
+                data-base-href={item.href}
+                data-mobile-nav-key={item.labelKey}
+                aria-current={isActive(item.href) ? 'page' : undefined}
+                class={`flex min-h-11 items-center rounded-[0.625rem] px-3 font-medium transition-colors ${
+                  isActive(item.href)
+                    ? 'bg-[var(--surface-soft)] text-[var(--brand)]'
+                    : 'text-[var(--text-muted)] hover:bg-[var(--surface-soft)] hover:text-[var(--text-primary)]'
+                }`}
+              >
+                {chrome.nav[item.labelKey]}
+              </a>
+            </li>
+          ))}
+        </ul>
+        {!lockLanguage && <div class="mt-3 border-t border-[var(--border-subtle)] pt-3">
+          <p id="mobile-language-label" class="mb-2 text-sm font-bold text-[var(--text-primary)]">{chrome.selectLanguage}</p>
+          <div class="grid max-h-56 grid-cols-2 gap-1 overflow-y-auto sm:grid-cols-3">
+            {(Object.entries(languages) as [Language, string][]).map(([code, name]) => (
+              <button
+                type="button"
+                data-lang-mobile-option={code}
+                aria-pressed={code === lang ? 'true' : 'false'}
+                class={`min-h-11 rounded-[0.625rem] border border-[var(--border-subtle)] px-3 text-left text-sm transition-colors ${
+                  code === lang
+                    ? 'bg-[var(--surface-soft)] font-medium text-[var(--brand)]'
+                    : 'text-[var(--text-muted)] hover:bg-[var(--surface-soft)] hover:text-[var(--text-primary)]'
+                }`}
+              >
+                {name}
+              </button>
+            ))}
+          </div>
+        </div>}
+      </div>
+    </div>
+  </nav>
 </header>
 
 <script define:vars={{ navTranslations, darkModeTranslations, selectLanguageTranslations, toggleMenuTranslations, primaryNavigationTranslations, languages, lang, lockLanguage, supportedLanguagePattern }} is:inline>

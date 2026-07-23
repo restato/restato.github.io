@@ -6,10 +6,16 @@ const footer = readFileSync('src/components/Footer.astro', 'utf8');
 const consent = readFileSync('src/components/ConsentBanner.astro', 'utf8');
 const layout = readFileSync('src/layouts/MainLayout.astro', 'utf8');
 const chromeSources = [header, footer, consent, layout].join('\n');
+const primaryNavStart = header.indexOf('<nav');
+const primaryNavEnd = header.indexOf('</nav>', primaryNavStart);
+const mobileDisclosure = header.indexOf('id="mobile-menu"');
 
 describe('Forest Café site chrome', () => {
   it('labels navigation landmarks and exposes the current route', () => {
     expect(header).toMatch(/<nav[^>]+aria-label=\{chrome\.primaryNavigation\}/);
+    expect(primaryNavStart).toBeGreaterThanOrEqual(0);
+    expect(mobileDisclosure).toBeGreaterThan(primaryNavStart);
+    expect(mobileDisclosure).toBeLessThan(primaryNavEnd);
     expect(header).toContain('aria-current={isActive(item.href) ?');
     expect(footer).toMatch(/<nav[^>]+aria-label=\{siteInformationLabel\[lang\]\}/);
   });
@@ -19,11 +25,21 @@ describe('Forest Café site chrome', () => {
     expect(header).toContain('aria-pressed="false"');
     expect(header).toContain('data-theme-icon');
     expect(header).toContain('id="lang-trigger"');
-    expect(header).toContain('aria-haspopup="true"');
+    expect(header).not.toContain('aria-haspopup');
+    expect(header).not.toMatch(/role="(?:menu|menuitem)"/);
     expect(header).toContain('(Object.entries(languages) as [Language, string][])');
     expect(header).toContain('id="mobile-menu-btn"');
     expect(header).toContain('aria-controls="mobile-menu"');
     expect(header).toContain('aria-expanded="false"');
+  });
+
+  it('synchronizes disclosure state for toggles and every close path', () => {
+    expect(header).toContain("langTrigger.setAttribute('aria-expanded', String(!langMenu.classList.contains('hidden')))");
+    expect(header).toContain("if (langTrigger) langTrigger.setAttribute('aria-expanded', 'false')");
+    expect(header).toContain("mobileMenuBtn.setAttribute('aria-expanded', String(!isHidden))");
+    expect(header).toContain("if (mobileMenuBtn) mobileMenuBtn.setAttribute('aria-expanded', 'false')");
+    expect(header).toMatch(/if \(!langSelector\.contains\(event\.target\)\) \{\s*closeLanguageMenu\(\);/);
+    expect(header).toMatch(/if \(event\.key !== 'Escape'\) return;[\s\S]*closeLanguageMenu\(\);[\s\S]*closeMobileMenu\(\);/);
   });
 
   it('preserves explicit theme choice and follows the system only without one', () => {
