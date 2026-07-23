@@ -13,6 +13,33 @@
 
 트렌드 조사에서 가치가 있지만 당장 발행하지 않는 주제를 저장합니다.
 
+## AI Gateway 스트리밍 전사
+- status: published
+- source: Vercel 2026-07-22 AI Gateway streaming transcription 발표, AI Gateway Grok STT 공식 모델 페이지
+- why-now: 완성된 오디오 파일 전사에서 live audio stream과 transcript delta를 주고받는 beta 기능으로 확장됐으며 AI SDK의 experimental_streamTranscribe와 짧은 수명의 client token 흐름이 공개됨
+- target-reader: AI SDK로 실시간 자막, 음성 입력, 텍스트 기반 voice agent를 만드는 TypeScript 개발자
+- search-intent: AI SDK streamTranscribe, AI Gateway streaming transcription, realtime whisper PCM, voice agent transcription token
+- update-existing: false
+- notes: 94점. 2026-07-23 `/blog/ai-gateway-streaming-transcription-guide/`로 발행. raw PCM 형식, 임시 토큰, 부분·최종 전사 분리와 에이전트 승인 경계에 집중함
+
+## eve installable agent extensions
+- status: published
+- source: Vercel 2026-07-22 eve extensions 발표, eve 공식 사이트·integrations, agent-browser 공식 eve extension 문서
+- why-now: tools, connections, skills, instructions, hooks를 하나의 npm 패키지처럼 설치·버전 관리·업그레이드할 수 있게 됨
+- target-reader: 여러 eve 에이전트에서 같은 능력과 정책을 재사용하려는 AI agent·TypeScript 개발자
+- search-intent: eve extension, defineExtension, agent skills package, eve extension build, agent/extensions namespace
+- update-existing: false
+- notes: 92점. 2026-07-23 `/blog/eve-installable-agent-extensions-guide/`로 발행. scaffold 소개보다 승인, secret, namespace, 버전과 통합 테스트를 운영 계약으로 설명함
+
+## GitHub Copilot 영향 대시보드와 저장소 지표
+- status: hold
+- source: GitHub 2026-07-22 Copilot usage metrics impact dashboard, 2026-07-17 repository-level usage metrics API
+- why-now: adoption phase별 merge throughput·merge velocity·LOC·사용자 수와 권장 행동을 시각화하는 dashboard가 추가돼 단순 활성 사용자 수보다 조직 도입 깊이를 판단할 수 있게 됨
+- target-reader: Copilot Business·Enterprise 도입 효과를 측정하는 엔터프라이즈 관리자와 organization owner
+- search-intent: GitHub Copilot impact dashboard, AI adoption phase, Copilot repository usage metrics, merge velocity
+- update-existing: false
+- notes: 80점. 공식 근거와 실무 판단은 강화됐지만 관리자 전용 기능이며 실제 조직 데이터 없이 독자가 재현할 수 있는 예제가 부족해 향후 AI 개발 도구 성과 측정 digest까지 보류
+
 ## Gemini 3.6 Flash API 마이그레이션
 - status: published
 - source: Google Gemini 최신 모델·모델 사양 공식 문서, GitHub Copilot 2026-07-21 changelog, Vercel AI Gateway 2026-07-21 changelog
@@ -65,7 +92,7 @@
 - target-reader: Copilot Business·Enterprise 도입 성과를 저장소 단위로 측정하는 조직 관리자
 - search-intent: GitHub Copilot repository metrics API, coding agent PR metrics, code review metrics
 - update-existing: false
-- notes: 72점. 공식 근거는 강하지만 조직 권한과 실제 데이터가 필요한 주제라 현재 Restato 독자가 바로 재현하기 어려움. 향후 여러 AI 개발 도구의 성과 측정을 묶는 digest 후보
+- notes: 2026-07-23 impact dashboard 후보와 통합해 80점으로 재평가. 조직 권한과 실제 데이터가 필요한 주제라 현재 Restato 독자가 바로 재현하기 어려워 보류
 
 ## AI SDK 7 프로덕션 에이전트 가이드
 - status: published
