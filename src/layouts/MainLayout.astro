@@ -25,12 +25,33 @@ interface Props {
 }
 
 const { title, description, image, type, publishedTime, modifiedTime, author, robots, canonical, lang, lockLanguage, alternateUrls } = Astro.props;
+const skipLinkLabels: Record<Language, string> = {
+  ko: '본문으로 건너뛰기',
+  en: 'Skip to main content',
+  ja: '本文へ移動',
+  'zh-CN': '跳到主要内容',
+  'zh-TW': '跳到主要內容',
+  es: 'Saltar al contenido principal',
+  pt: 'Pular para o conteúdo principal',
+  de: 'Zum Hauptinhalt springen',
+  fr: 'Aller au contenu principal',
+  it: 'Vai al contenuto principale',
+  id: 'Lewati ke konten utama',
+  hi: 'मुख्य सामग्री पर जाएँ',
+};
+const skipLinkLabel = skipLinkLabels[lang ?? 'ko'];
 ---
 
 <BaseLayout title={title} description={description} image={image} type={type} publishedTime={publishedTime} modifiedTime={modifiedTime} author={author} robots={robots} canonical={canonical} lang={lang} lockLanguage={lockLanguage} alternateUrls={alternateUrls}>
   <slot name="head" slot="head" />
+  <a
+    href="#main-content"
+    class="fc-button fc-button-primary fixed left-4 top-3 z-[60] -translate-y-24 transition-transform focus:translate-y-0"
+  >
+    {skipLinkLabel}
+  </a>
   <Header lang={lang} lockLanguage={lockLanguage} />
-  <main class="flex-1">
+  <main id="main-content" class="flex-1" tabindex="-1">
     <slot />
   </main>
   <Footer lang={lang} />
