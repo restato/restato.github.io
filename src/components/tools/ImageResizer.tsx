@@ -4,6 +4,7 @@ import 'react-image-crop/dist/ReactCrop.css';
 import { useTranslation } from '../../i18n/useTranslation';
 import { IMAGE_CROP_PRESETS } from '../../lib/imageCropPresets';
 import { ToolPanel } from './ui/ToolPanel';
+import { ToolActions } from './ui/ToolActions';
 
 interface ImageInfo {
   file: File;
@@ -276,6 +277,15 @@ export default function ImageResizer() {
     link.download = fileName;
     link.href = resized;
     link.click();
+  };
+
+  const resetImage = () => {
+    setOriginal(null);
+    setCrop(undefined);
+    setResized(null);
+    setResizedSize(null);
+    sourceImageRef.current = null;
+    setCropMode('free');
   };
 
   const formatBytes = (bytes: number): string => {
@@ -604,24 +614,8 @@ export default function ImageResizer() {
             </div>
           </div>
 
-          {/* Actions */}
-          <button
-            onClick={() => {
-              setOriginal(null);
-              setCrop(undefined);
-              setResized(null);
-              setResizedSize(null);
-              sourceImageRef.current = null;
-              setCropMode('free');
-            }}
-            className="w-full py-3 bg-[var(--color-card)] hover:bg-[var(--color-card-hover)]
-              border border-[var(--color-border)] rounded-lg transition-colors"
-          >
-            {t(tc.reset)}
-          </button>
-
-          {/* Download */}
-          {resized && (
+          <ToolActions
+            primary={resized ? (
             <button
               onClick={download}
               className="w-full py-3 bg-green-700 hover:bg-green-800 text-white rounded-lg
@@ -633,7 +627,17 @@ export default function ImageResizer() {
               </svg>
               {t(tc.download)}
             </button>
-          )}
+            ) : (
+              <button onClick={resetImage}>
+                {t(tc.reset)}
+              </button>
+            )}
+            secondary={resized ? (
+              <button onClick={resetImage}>
+                {t(tc.reset)}
+              </button>
+            ) : undefined}
+          />
         </>
       )}
     </ToolPanel>

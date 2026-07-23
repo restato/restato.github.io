@@ -41,10 +41,6 @@ export function parsePageSelection(value: string): number[] {
 export function PdfToolShell({ children, error }: { children: ReactNode; error?: string }) {
   return (
     <ToolPanel className="fc-tool-panel-pdf">
-      <p className="fc-tool-privacy">
-        <span aria-hidden="true">🔒</span>
-        파일은 브라우저 안에서만 처리되며 서버로 업로드되지 않습니다. Processing stays in your browser.
-      </p>
       {children}
       {error && <ToolResult status="error">{error}</ToolResult>}
     </ToolPanel>
@@ -78,9 +74,10 @@ export function FilePicker({
       </ToolPanel>
       <input
         ref={inputRef}
-        className="sr-only"
+        className="hidden"
         type="file"
-        aria-label={label}
+        tabIndex={-1}
+        aria-hidden="true"
         accept={accept}
         multiple={multiple}
         onChange={handleChange}

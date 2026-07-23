@@ -418,8 +418,10 @@ export default function ImageMetadataViewer() {
 
       {/* Drop Zone */}
       {!imageUrl && (
-        <div
-          onClick={() => fileInputRef.current?.click()}
+        <ToolPanel
+          variant="drop-zone"
+          onActivate={() => fileInputRef.current?.click()}
+          aria-label={tr('이미지를 드래그하거나 클릭하여 업로드', 'Drag an image or click to upload', '画像をドラッグするかクリックしてアップロード')}
           onDrop={handleDrop}
           onDragOver={(e) => { e.preventDefault(); setIsDragging(true); }}
           onDragLeave={() => setIsDragging(false)}
@@ -442,7 +444,7 @@ export default function ImageMetadataViewer() {
               {tr('JPEG, PNG, HEIC 등 모든 이미지 형식 지원', 'Supports common formats including JPEG, PNG, and HEIC', 'JPEG、PNG、HEICなどの一般的な形式に対応')}
             </p>
           </div>
-        </div>
+        </ToolPanel>
       )}
 
       {/* Loading */}

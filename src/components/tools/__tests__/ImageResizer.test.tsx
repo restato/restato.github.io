@@ -211,4 +211,16 @@ describe('ImageResizer', () => {
     expect(localFetch).not.toHaveBeenCalled();
     expect(xhrSend).not.toHaveBeenCalled();
   });
+
+  it('orders Download before Reset in the shared mobile action group', async () => {
+    render(<ImageResizer />);
+    await uploadImage();
+
+    const actions = screen.getByRole('button', { name: '다운로드' }).closest('.fc-tool-actions');
+    expect(actions).not.toBeNull();
+    expect(Array.from(actions!.querySelectorAll('button')).map(button => button.textContent?.trim())).toEqual([
+      '다운로드',
+      '초기화',
+    ]);
+  });
 });

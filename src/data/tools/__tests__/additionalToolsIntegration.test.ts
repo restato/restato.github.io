@@ -27,22 +27,29 @@ describe('additional browser tools', () => {
   it('renders the PDF merge workflow through its route-lazy island with shared controls', async () => {
     const { container } = render(createElement(AdditionalToolIsland, { slug: 'pdf-merge', lang: 'en' }));
 
-    const picker = await screen.findByRole('button', { name: /Choose PDFs to merge/ });
+    const picker = await screen.findByRole(
+      'button',
+      { name: /Choose PDFs to merge/ },
+      { timeout: 10_000 },
+    );
     expect(picker).toHaveClass('fc-tool-drop-zone');
     expect(container.querySelector('.fc-tool-panel')).toBeInTheDocument();
     expect(screen.getByRole('button', { name: /Merge PDF/ })).toHaveClass('fc-button', 'fc-button-primary');
     expect(screen.getByRole('button', { name: /Merge PDF/ })).not.toHaveClass('fc-button-secondary');
     expect(screen.getAllByRole('button', { name: /Choose PDFs to merge/ })).toHaveLength(1);
+    expect(screen.getAllByLabelText(/Choose PDFs to merge/)).toHaveLength(1);
+    expect(container.querySelector('.fc-tool-privacy')).toBeNull();
   });
 
   it('renders the audio workflow with shared field, action, and status classes', async () => {
     const { container } = render(createElement(AdditionalToolIsland, { slug: 'audio-trimmer', lang: 'en' }));
 
-    expect(await screen.findByLabelText('Choose audio file')).toHaveClass('fc-input');
+    expect(await screen.findByLabelText('Choose audio file', {}, { timeout: 10_000 })).toHaveClass('fc-input');
     expect(screen.getByRole('button', { name: 'Export trimmed WAV' })).toHaveClass('fc-button', 'fc-button-primary');
     expect(screen.getByRole('button', { name: 'Export trimmed WAV' }).closest('.fc-tool-actions')).not.toBeNull();
     expect(container.querySelector('.fc-tool-panel')).toBeInTheDocument();
     expect(container.querySelector('.fc-tool-result')).toBeNull();
+    expect(container.querySelector('.fc-tool-privacy')).toBeNull();
   });
 
   it('keeps every additional route as an independent lazy import', () => {

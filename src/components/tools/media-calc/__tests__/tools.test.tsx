@@ -22,9 +22,9 @@ describe('media and calculator tools', () => {
     [ExifRemoverTool, 'Choose image to clean'],
     [FaviconGeneratorTool, 'Choose icon source image'],
     [AudioTrimmerTool, 'Choose audio file'],
-  ])('exposes an accessible local file picker and privacy statement', (Tool, label) => {
+  ])('exposes an accessible local file picker without duplicating the route privacy row', (Tool, label) => {
     render(<Tool />);
     expect(screen.getByLabelText(label)).toHaveAttribute('type', 'file');
-    expect(screen.getByText(/stays in your browser/i)).toBeInTheDocument();
+    expect(document.querySelector('.fc-tool-privacy')).toBeNull();
   });
 });

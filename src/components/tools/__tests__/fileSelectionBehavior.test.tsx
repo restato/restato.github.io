@@ -46,6 +46,23 @@ describe('file selection results', () => {
     vi.unstubAllGlobals();
   });
 
+  it.each([
+    [BackgroundRemover, '이미지를 드래그하거나 클릭하여 업로드'],
+    [ExifViewer, 'JPEG 이미지를 드래그하거나 클릭하여 업로드'],
+    [ImageMetadataViewer, '이미지를 드래그하거나 클릭하여 업로드'],
+    [AppStoreScreenshotResizer, '이미지를 드래그하거나 클릭하여 업로드 (최대 10장)'],
+  ])('%s exposes one keyboard-operable image picker', (Component, label) => {
+    const { container, unmount } = render(<Component />);
+    const input = container.querySelector('input[type="file"]') as HTMLInputElement;
+    const openPicker = vi.spyOn(input, 'click').mockImplementation(() => {});
+    const picker = screen.getByRole('button', { name: label });
+
+    fireEvent.keyDown(picker, { key: 'Enter' });
+    fireEvent.keyDown(picker, { key: ' ' });
+    expect(openPicker).toHaveBeenCalledTimes(2);
+    unmount();
+  });
+
   it('shows the selected non-Latin filename and missing-EXIF result', async () => {
     const { container } = render(<ExifViewer />);
     const input = container.querySelector('input[type="file"]')!;

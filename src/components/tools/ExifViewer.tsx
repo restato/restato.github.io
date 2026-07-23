@@ -265,8 +265,10 @@ export default function ExifViewer() {
 
       {/* Drop Zone */}
       {!imageUrl && (
-        <div
-          onClick={() => fileInputRef.current?.click()}
+        <ToolPanel
+          variant="drop-zone"
+          onActivate={() => fileInputRef.current?.click()}
+          aria-label={t({ ko: 'JPEG 이미지를 드래그하거나 클릭하여 업로드', en: 'Drag JPEG image or click to upload', ja: 'JPEG画像をドラッグまたはクリックしてアップロード' })}
           onDrop={handleDrop}
           onDragOver={(e) => { e.preventDefault(); setIsDragging(true); }}
           onDragLeave={() => setIsDragging(false)}
@@ -289,7 +291,7 @@ export default function ExifViewer() {
               {t({ ko: 'EXIF 데이터는 JPEG 파일에서만 추출됩니다', en: 'EXIF data is only extracted from JPEG files', ja: 'EXIFデータはJPEGファイルからのみ抽出されます' })}
             </p>
           </div>
-        </div>
+        </ToolPanel>
       )}
 
       {/* Loading */}

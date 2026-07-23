@@ -178,8 +178,10 @@ export default function BackgroundRemover() {
 
       {/* Drop Zone */}
       {!original && (
-        <div
-          onClick={() => fileInputRef.current?.click()}
+        <ToolPanel
+          variant="drop-zone"
+          onActivate={() => fileInputRef.current?.click()}
+          aria-label={t(tt.dropzone)}
           onDrop={handleDrop}
           onDragOver={handleDragOver}
           onDragLeave={handleDragLeave}
@@ -197,7 +199,7 @@ export default function BackgroundRemover() {
           <p className="text-[var(--color-text-muted)] text-center">
             {t(tt.dropzone)}
           </p>
-        </div>
+        </ToolPanel>
       )}
 
       {/* Image Loaded */}

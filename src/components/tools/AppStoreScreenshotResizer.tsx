@@ -337,8 +337,10 @@ export default function AppStoreScreenshotResizer() {
 
       {/* Drop Zone */}
       {images.length === 0 && (
-        <div
-          onClick={() => fileInputRef.current?.click()}
+        <ToolPanel
+          variant="drop-zone"
+          onActivate={() => fileInputRef.current?.click()}
+          aria-label={t(tt.dropzone)}
           onDrop={handleDrop}
           onDragOver={handleDragOver}
           onDragLeave={handleDragLeave}
@@ -356,7 +358,7 @@ export default function AppStoreScreenshotResizer() {
           <p className="text-[var(--color-text-muted)] text-center">
             {t(tt.dropzone)}
           </p>
-        </div>
+        </ToolPanel>
       )}
 
       {images.length > 0 && (
