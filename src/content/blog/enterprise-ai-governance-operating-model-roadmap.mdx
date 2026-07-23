@@ -1,0 +1,359 @@
+---
+title: "Enterprise AI Governance: An Operating Model, Platform, and Maturity Roadmap"
+description: "A practical guide to AI governance across decision rights, policy, platform controls, collaboration, industry examples, agent governance, metrics, and a staged enterprise roadmap."
+date: 2026-07-23
+tags: ["AI Governance", "Enterprise AI", "AI Platform", "AI Agent", "Risk Management"]
+---
+
+Most companies do not need another AI principles document. They need a way to decide which AI uses are worth pursuing, who may approve them, which controls apply, how those controls reach production, and what happens when the system changes or fails.
+
+That is the practical meaning of enterprise AI governance.
+
+**AI governance is the operating system that connects business accountability, risk policy, delivery standards, platform controls, evidence, and improvement across the AI lifecycle.** It should make safe work easier to ship and consequential work harder to do accidentally. If it only produces committee minutes, it is not governing the systems that employees and customers actually use.
+
+This guide lays out the target operating model, policy stack, platform components, collaboration model, and maturity milestones for a company building AI at scale. It also explains how the same foundation must change when an AI system becomes an agent that can act.
+
+The standards, regulations, and company materials referenced here were checked on July 23, 2026. Regulatory applicability still needs jurisdiction- and use-case-specific legal review.
+
+## Why ordinary technology governance is not enough
+
+AI does not replace the need for privacy, security, data governance, model risk, procurement, software delivery, or internal audit. It crosses all of them.
+
+A customer service assistant may use a third-party model, retrieve personal data, generate regulated communications, depend on changing safety filters, and be revised through a prompt rather than a code release. An agent may go further: choose a tool, submit a transaction, delegate work, or preserve memory for a later run. One system can therefore create product, legal, data, cyber, operational, and conduct risk at the same time.
+
+The organization also faces a speed mismatch. Employees can start using a public model in minutes. A central review process may take weeks. When the approved path is slower and less useful than the unofficial path, shadow AI becomes the default architecture.
+
+Governance has to solve both problems:
+
+1. **Control exposure.** Know what AI exists, the decisions or actions it influences, the data it uses, the people it affects, and the owner accountable for outcomes.
+2. **Create a faster trusted path.** Give teams approved workspaces, reusable components, clear risk tiers, automated checks, and predictable review service levels.
+
+This is why governance should be treated as a management system rather than a one-time compliance project. NIST's current [AI Risk Management Framework](https://www.nist.gov/itl/ai-risk-management-framework) organizes the work around Govern, Map, Measure, and Manage and says risk management should continue throughout the lifecycle. NIST also notes that AI RMF 1.0 is under revision. [ISO/IEC 42001](https://www.iso.org/artificial-intelligence/ai-management-systems) frames AI management as a Plan-Do-Check-Act cycle of continual improvement. [ISO/IEC 42005:2025](https://www.iso.org/standard/42005) adds lifecycle guidance for assessing impacts on people and society.
+
+Use those sources as outcome maps. Do not copy them into a master checklist and assume the work is finished.
+
+## The target model: centralized rules, federated accountability
+
+The choice between a central AI committee and complete business-unit autonomy is false. A scalable model centralizes the things that must be consistent and federates the things that require domain knowledge.
+
+Centralize:
+
+- enterprise principles, risk appetite, and prohibited uses;
+- the inventory and risk classification method;
+- minimum control standards and evidence requirements;
+- approved model, data, and tool access paths;
+- policy interpretation, exceptions, incidents, and portfolio reporting;
+- shared platform capabilities and reusable delivery patterns.
+
+Federate:
+
+- use-case selection and business value;
+- workflow design and user experience;
+- domain-specific risks, evaluation cases, and acceptance thresholds;
+- source-data meaning and quality;
+- day-to-day operation, feedback, and outcome ownership.
+
+The business owner cannot hand accountability to a governance office. The governance office cannot infer acceptable customer, clinical, credit, employment, or safety outcomes from a model score. Each needs the other.
+
+### Put decision rights on named roles
+
+An "AI Council" is useful only when it has defined decisions. A workable structure looks like this:
+
+| Role | Decisions and accountabilities |
+| --- | --- |
+| Board or delegated board committee | Oversees AI risk appetite, material exposures, management effectiveness, and independent assurance |
+| Executive AI steering committee | Sets portfolio priorities, resolves cross-functional tradeoffs, funds shared capabilities, and accepts the highest residual risks within its mandate |
+| AI governance office | Owns the policy system, taxonomy, inventory standard, assessment method, review process, training, regulatory mapping, and portfolio reporting |
+| AI platform team | Turns requirements into approved environments, gateways, evaluators, telemetry, evidence, and reusable golden paths |
+| Domain product and process owner | Owns purpose, affected users, workflow, source quality, outcome metrics, human oversight, production support, and retirement |
+| Security, privacy, legal, compliance, data, and model-risk specialists | Define specialist controls, advise delivery teams, review elevated risks, and monitor their domains |
+| Internal audit | Independently assesses whether governance design and controls work as represented |
+
+This maps naturally to the Institute of Internal Auditors' current [Three Lines Model](https://www.theiia.org/globalassets/site/about-us/advocacy/three-lines-model-updated.pdf): business and technology owners manage risk in the first line; governance, risk, legal, security, and compliance provide expertise and challenge in the second; internal audit provides independent assurance in the third. Internal audit should not design the control it will later assess.
+
+Do not send every use case to the executive committee. Low-risk work should move through pre-approved rules and automated evidence. The committee should see material risk, contested judgments, exceptions, incidents, and portfolio trends.
+
+## Build a policy stack, not one AI policy
+
+Principles such as fairness, accountability, transparency, privacy, and safety express intent. Teams still need to know what to do on Tuesday afternoon when a supplier model changes or a business sponsor asks an agent to send customer messages.
+
+A usable policy system has six layers:
+
+| Layer | Example | Owner |
+| --- | --- | --- |
+| Principles and risk appetite | Values, unacceptable harm, prohibited uses, autonomy limits | Board and executive management |
+| Enterprise AI policy | Scope, roles, lifecycle duties, inventory, risk classification, oversight, exceptions | AI governance office |
+| Control standards | Data, model, evaluation, security, vendor, human oversight, transparency, agent, and recordkeeping requirements | Relevant second-line and platform owners |
+| Procedures and playbooks | Intake, impact assessment, release, monitoring, incident, complaint, change, and retirement steps | Governance and operations |
+| Technical policies | Allowed models, data classes, tool operations, approval thresholds, retention, network and identity rules | Platform and control owners |
+| Exceptions | Business justification, compensating controls, approver, affected systems, review date, and expiry | Named risk owner |
+
+The stack prevents two common failures. A single high-level policy is too vague to implement. A collection of technical guardrails without enterprise authority is easy to bypass.
+
+At minimum, the policy should answer:
+
+- Which systems and employee uses are in scope, including embedded vendor features?
+- Which uses are prohibited or require enhanced review?
+- How is risk tier determined by purpose, affected parties, data, consequence, reversibility, scale, and autonomy?
+- Who owns the use case, model or service, data, platform, and final business outcome?
+- What evidence is required before release and during operation?
+- Which changes trigger reassessment?
+- Who can approve an exception, for how long, and with what compensating control?
+- Who can suspend a system, revoke an agent, notify affected parties, and declare recovery?
+
+Map AI requirements into existing privacy, security, procurement, records, HR, consumer, and software policies wherever possible. Create a new control only when AI changes the risk or evidence. Parallel governance systems create conflicting answers and duplicate work.
+
+Regulation reinforces the need for this map. The EU AI Act applies different duties by role and risk category, and its requirements phase in on different schedules. The European Commission's current [implementation page](https://digital-strategy.ec.europa.eu/en/policies/regulatory-framework-ai) should be checked rather than relying on an old slide deck. A company should maintain a live obligations register by jurisdiction, legal role, use case, and deployment date. The enterprise policy should not pretend one global sentence resolves every local duty.
+
+## Make the platform the execution layer of governance
+
+Governance becomes scalable when common controls are delivered as platform products. The platform is not the governance program, but it is how much of the program becomes repeatable and observable.
+
+```text
+business objective and owner
+            │
+       intake + impact assessment
+            │
+ inventory + risk tier + control profile
+            │
+ approved build and evaluation path
+            │
+ identity ─ policy ─ data/model/tool gateways
+            │
+ deployment ─ monitoring ─ evidence ─ incident
+            │
+ outcome review ─ change ─ revalidation ─ retirement
+```
+
+The minimum platform portfolio has eight parts.
+
+### 1. Inventory and system of record
+
+Record the business purpose, owner, affected users, risk tier, deployment, model or service, data sources, vendors, environments, evaluations, approvals, incidents, dependencies, and retirement state. Include AI purchased inside SaaS products and employee-facing tools, not only models built by data scientists.
+
+Registration alone is weak. Approved model calls, production deployments, and consequential agent actions should resolve to a registered use case and version. Unknown production traffic is a control signal.
+
+### 2. Intake, triage, and impact assessment
+
+Use one front door for business value and risk. Ask what decision or workflow changes, who is affected, what failure looks like, what data crosses boundaries, whether a human can detect and reverse an error, and whether the system acts or only advises.
+
+The result should be a control profile, not a generic "approved" badge. A low-risk internal summarizer and an employment-screening system should not wait in the same queue or produce the same evidence.
+
+### 3. Approved AI workspace and model gateway
+
+Offer employees and developers approved access with identity, data-loss controls, model routing, contractual protections, cost attribution, rate limits, and usage telemetry. This is the practical response to shadow AI.
+
+The gateway should enforce model and data policy, but it should not become the only control. An application can comply at the model boundary and still misuse retrieved data or perform an unauthorized business action.
+
+### 4. Data and context governance
+
+Connect identity-aware retrieval, data classification, provenance, quality, consent or permitted-use rules, retention, and source ownership. Preserve the access rights of the requesting user where appropriate. Do not create a central vector store that silently flattens source permissions.
+
+For workflows that act on business objects, shared definitions and typed actions may need an ontology or semantic layer. That design is covered in Restato's [ontology operating-layer guide](/blog/ontology-operating-layer-for-ai-agents/).
+
+### 5. Evaluation and release evidence
+
+Maintain scenario-based evaluation sets, graders, red-team cases, fairness and safety tests where relevant, human review protocols, and business acceptance criteria. Bind results to the exact model, prompt, retrieval, tool, policy, and application version that was tested.
+
+A passing benchmark is not the release decision. It is evidence used by a named owner who also understands consequence and residual risk.
+
+### 6. Identity, policy, and action enforcement
+
+Separate requester identity, workload or agent identity, and downstream service identity. Enforce data and action policy at gateways and systems of record, using short-lived and scoped authority. For high-impact actions, support approvals, delegated mandates, transaction limits, idempotency, postcondition checks, and fast revocation.
+
+### 7. Observability, evidence, and incident response
+
+Capture enough context to reconstruct a material outcome: registered deployment, request purpose, input and source references, model and policy versions, tool requests, approvals, resulting state, evaluation status, and responsible owner. Apply access and retention controls to telemetry because prompts and traces can contain sensitive data.
+
+Join AI incidents to existing security, privacy, operational, legal, and customer-response processes. Add AI-specific playbooks for unsafe output, data leakage, model or prompt regression, vendor change, biased impact, tool misuse, poisoned context, and loss of provenance.
+
+### 8. Lifecycle and change management
+
+Version the complete system, not only the model. A new prompt, retrieval source, tool permission, model endpoint, safety setting, evaluator, or user population can alter risk. Define which changes trigger automated tests, owner review, specialist review, canary deployment, or full reassessment.
+
+Retirement must remove endpoints, scheduled runs, credentials, grants, stored memory, catalog entries, and unsupported dependencies. A stale AI system with live authority is not retired.
+
+Restato's [enterprise agent platform guide](/blog/enterprise-agent-platform-architecture-guide/) goes deeper into the shared runtime and platform architecture. The governance program described here decides why those controls exist, who owns them, and what evidence is sufficient.
+
+## Treat the lifecycle as a set of decisions
+
+A governance workflow should produce explicit decisions at five gates:
+
+| Gate | Question | Minimum evidence |
+| --- | --- | --- |
+| Select | Is the use case worth pursuing? | Owner, baseline, expected value, affected parties, initial risk tier |
+| Design | Is the proposed control design proportionate? | Impact assessment, architecture, data and vendor review, human-oversight design, evaluation plan |
+| Release | Is this version fit for its intended use? | Test results, residual risks, approvals, runbook, monitoring, rollback and communication plan |
+| Operate | Is it still performing within mandate? | Outcomes, incidents, complaints, drift, access, cost, policy decisions, control exceptions |
+| Change or retire | Does the system remain justified and governed? | Change impact, revalidation results, owner attestation, retirement or migration evidence |
+
+Every gate needs an owner, service-level target, escalation route, and durable decision record. Otherwise the process becomes an email archaeology exercise.
+
+## A maturity roadmap with exit criteria
+
+Calendar dates create urgency, but maturity should be earned through observable capabilities. A practical roadmap can fit most organizations with adjustments for size and regulation.
+
+### Milestone 0: discover and contain, days 0-30
+
+- appoint an executive sponsor and interim governance lead;
+- issue a short acceptable-use policy and clear prohibited-use list;
+- discover employee tools, vendor-embedded AI, models, pilots, agents, and production integrations;
+- nominate an owner and purpose for every material use;
+- provide one approved workspace for common low-risk work;
+- choose two use cases: one low-risk productivity case and one bounded business workflow;
+- define an initial risk taxonomy and immediate incident route.
+
+**Exit when:** the company can identify its material AI estate, owners, data boundaries, approved channel, prohibited uses, and pilot baselines. Unknown items remain visible exceptions rather than invisible risk.
+
+### Milestone 1: establish the management system, days 31-90
+
+- approve the operating charter, decision rights, policy stack, and exception process;
+- launch risk-tiered intake and impact assessment;
+- connect the inventory to deployment and procurement records;
+- define minimum evaluation, documentation, human-oversight, and monitoring standards;
+- establish role-based training for employees, builders, owners, reviewers, and executives;
+- deliver a model gateway, basic telemetry, evaluation harness, and release evidence template;
+- run the two pilots through the complete lifecycle.
+
+**Exit when:** both pilots have named owners, reproducible evidence, measured business outcomes, support runbooks, and risk-proportionate release decisions. Review time is measured.
+
+### Milestone 2: control production, months 3-6
+
+- provide golden paths for an internal assistant, a customer-facing system, and a human-reviewed action workflow;
+- enforce approved models, identities, data classes, and high-impact actions at technical boundaries;
+- bind evaluations and approvals to versioned deployments;
+- integrate AI change, vendor, incident, complaint, and retirement processes with existing enterprise workflows;
+- add red-team cases and production feedback to evaluation sets;
+- test rollback, credential revocation, tool suspension, and stakeholder notification;
+- report value, risk, adoption, and control health by use case and tier.
+
+**Exit when:** a sampled production result can be reconstructed, a material permission can be revoked within the target time, a model or prompt change triggers the intended tests, and one incident exercise closes with assigned improvements.
+
+### Milestone 3: federate and scale, months 6-12
+
+- appoint domain AI owners or champions with explicit first-line duties;
+- let low-risk work flow through pre-approved patterns while specialists focus on elevated risk;
+- reuse platform controls across multiple business domains;
+- automate evidence collection and recurring owner attestations;
+- audit exceptions, unknown AI traffic, stale systems, and control bypasses;
+- introduce agent identity, delegation, tool, memory, and action controls;
+- commission independent assurance over one material AI process.
+
+**Exit when:** a second and third domain can onboard without inventing their own governance stack, exception volume is understood, control ownership is tested, and internal audit can obtain evidence without relying on the build team's oral history.
+
+### Milestone 4: continuous assurance, month 12 onward
+
+- refresh risk appetite and control standards from incidents, regulation, research, and business outcomes;
+- continuously monitor high-risk systems and revalidate on material change;
+- measure control effectiveness, not only control presence;
+- compare models and vendors on accepted outcomes, risk, portability, and total operating cost;
+- practice crisis response and agent revocation;
+- retire systems whose value no longer justifies cost or residual risk;
+- publish appropriate internal or external transparency reporting.
+
+**Exit is intentionally absent.** This stage is a management cycle, not a transformation project with a closing ceremony.
+
+## What public industry cases actually teach
+
+Public reports show how companies describe their systems. They do not independently prove that every control works, so the useful comparison is the operating pattern rather than a claim of effectiveness.
+
+### Microsoft: separate policy, expertise, and engineering enablement
+
+Microsoft's published structure combines board and senior oversight, a Responsible AI Council, the Office of Responsible AI, the Aether research and advisory community, and engineering teams. Its [service-assurance description](https://learn.microsoft.com/en-us/compliance/assurance/assurance-artificial-intelligence) says the Office sets company-wide policy and governance while engineering teams build platforms and tools and provide feasibility feedback. The public [Responsible AI Standard](https://blogs.microsoft.com/on-the-issues/2022/06/21/microsofts-framework-for-building-ai-systems-responsibly/) translates principles into goals, requirements, impact assessment, and practices. Its [2025 transparency report](https://www.microsoft.com/en-us/corporate-responsibility/responsible-ai-transparency-report/) also describes a centralized workflow for pre-deployment requirements and records.
+
+The lesson is not to copy Microsoft's org chart. It is to keep scientific advice, policy authority, business accountability, and engineering implementation connected without pretending they are one job. A standard becomes usable when teams receive templates, tooling, and a route for sensitive cases.
+
+### DBS: join data permission, ethical use, and model control
+
+DBS's 2025 sustainability material describes a Responsible Data Use framework around three questions: can the bank use the data, should it use the data, and how should the model use it. Its [PURE framework](https://www.dbs.com/artificial-intelligence-machine-learning/artificial-intelligence/singapore-finTech-festival-2025-powering-dbs-next-phase-of-growth-with-ai.html) tests whether use is Purposeful, Unsurprising, Respectful, and Explainable. DBS also describes ownership in its Chief Data Office, oversight by a Group Responsible Data Use Committee, a cross-functional responsible-AI taskforce, and mandatory training. Its [2024 risk report](https://www.dbs.com/annualreports/2024/cro-statement.html) says the committee reports to the Risk Executive Committee and that a GenAI playbook covers end-to-end risk and control assessments.
+
+The reusable lesson is the three-part decision. Legal access to data does not automatically make a use appropriate, and an appropriate purpose does not prove the model is adequately tested and monitored. The platform and review process should preserve those separate questions.
+
+### IBM: use a central board with a distributed network
+
+IBM says its multidisciplinary AI Ethics Board, now the Responsible Technology Board, has held a governance and decision-making mandate since 2019. IBM's [five-year reflection](https://www.ibm.com/think/insights/reflecting-on-ibm-ai-ethics-board) emphasizes central responsibility, while its public policy testimony describes a global network of focal points and advocates that reviews use cases, teaches practices, and supports decentralized initiatives. IBM's 2025 paper on [agent opportunities and risks](https://www.ibm.com/downloads/documents/us-en/1227c12efb38b2b3) places the multidisciplinary board at the center of its agentic-AI governance description.
+
+The pattern is hub and network, not hub and queue. A small central group cannot discover local context or coach every team. Domain representatives extend the system, but the central mandate preserves a common bar and an escalation point.
+
+Across all three cases, the recurring design is clear: executive authority, a central standard owner, cross-functional expertise, distributed business accountability, delivery tooling, training, and a route for difficult decisions.
+
+## Agents extend governance from outputs to authority
+
+A conventional AI system recommends, scores, or generates. An agent selects steps and uses tools to pursue an objective. The policy questions therefore move from "Is this answer acceptable?" to "May this system take this action, on this resource, for this requester, now?"
+
+Existing AI governance remains necessary, but agent governance adds:
+
+- a stable agent identity, owner, purpose, and lifecycle record;
+- separation of requester, agent, and service identities;
+- action risk tiers based on consequence and reversibility;
+- scoped, short-lived grants instead of shared broad credentials;
+- policy enforcement immediately before consequential tool calls;
+- limits on money, records, recipients, time, tools, delegation depth, and retries;
+- controls for memory provenance, retention, poisoning, and cross-run use;
+- evidence connecting the run, deployment, policy decision, approval, tool call, and resulting state;
+- independent postcondition checks, compensation, revocation, and a tested stop path;
+- trust rules for tools, skills, other agents, and protocol endpoints.
+
+This is now an active standards area. NIST's 2026 [AI Agent Standards Initiative](https://www.nist.gov/artificial-intelligence/ai-agent-standards-initiative) highlights agent authentication, identity infrastructure, secure interoperability, and evaluation. Its identity and authorization concept paper asks how organizations will identify, authorize, audit, and establish non-repudiation for agents. The [OWASP Top 10 for Agentic Applications 2026](https://genai.owasp.org/resource/owasp-top-10-for-agentic-applications-for-2026/) includes goal hijacking, tool misuse, identity and privilege abuse, supply-chain failures, memory poisoning, insecure inter-agent communication, cascading failures, and rogue agents.
+
+Restato's [Agent Governance control-plane guide](/blog/agent-governance-control-plane/) provides the detailed architecture. At company level, the critical point is simpler: no agent should acquire more operational authority than the governance system can identify, constrain, observe, and revoke.
+
+## Collaboration should happen at four cadences
+
+Governance fails when collaboration means a standing meeting with no decisions or an emergency call after release. Use different cadences for different work.
+
+| Cadence | Participants | Work product |
+| --- | --- | --- |
+| Per use case and release | Domain owner, product, engineering, data, platform, relevant specialists | Impact assessment, control profile, test evidence, release or exception decision |
+| Monthly operations | Platform, governance, security, domain operators, service owners | Incidents, complaints, drift, bypasses, review time, cost, outcomes, remediation |
+| Quarterly portfolio | Executive steering committee, governance, finance, risk, domain executives | Priorities, material exposure, value realization, overdue actions, policy changes, investment decisions |
+| Periodic assurance | Internal audit and relevant control owners | Independent assessment, findings, management response, verified closure |
+
+Add temporary working groups for new regulation, a material incident, a new agent capability, or a platform migration. Close them when the defined deliverable is complete.
+
+The most useful collaboration artifact is a decision record: what was decided, by whom, from which evidence, under which policy version, with which residual risk, and when it must be reviewed again.
+
+## Measure whether governance improves decisions
+
+Counting policies, committee meetings, or registered models says little about control effectiveness or business value. Use a balanced scorecard.
+
+| Dimension | Useful measures |
+| --- | --- |
+| Business value | Accepted outcome rate, cycle-time change, revenue or loss effect, human correction time, cost per accepted outcome |
+| Portfolio control | Known-estate coverage, named-owner coverage, risk-tier coverage, overdue reassessments, expired exceptions, unknown production AI |
+| Delivery | Intake-to-decision time by tier, time to first compliant deployment, reuse of golden paths, automated evidence coverage, change-failure rate |
+| Runtime risk | Policy denials and bypasses, high-risk evaluation pass rate, complaints, incidents, repeat failures, drift, time to contain and recover |
+| Adoption and people | Approved-channel use, shadow-AI migration, role-based training completion, user trust, reviewer load, escalation quality |
+| Agents | Scoped-identity coverage, consequential actions with policy evidence, stale grants, delegation violations, postcondition failures, revocation time |
+
+Pair every speed metric with a quality or risk metric. Faster approvals can mean a better paved road or superficial review. More denied actions can mean strong enforcement or a badly designed policy. Read measures together and investigate the mechanism.
+
+## The first executive decisions
+
+An organization does not need a finished platform before it starts governing AI. It does need five decisions early:
+
+1. Name the executive accountable for the management system and the leaders accountable for business outcomes.
+2. Set interim acceptable use, prohibited use, data boundaries, and an incident channel.
+3. Fund an approved workspace and the smallest viable inventory, evaluation, telemetry, and evidence path.
+4. Choose risk tiers that change controls and review time in practice.
+5. Select two real workflows and require them to prove the complete value-and-control loop.
+
+Then build outward from evidence. If a rule repeatedly creates manual work, turn it into a platform capability. If a control produces no decision-useful evidence, redesign it. If teams route around the approved path, fix the path and address the accountability gap. If an agent receives authority, make identity, scope, policy, evidence, and revocation part of the action path before increasing autonomy.
+
+The mature company is not the one with the largest AI committee or the most agents. It is the one that can explain which AI it uses, why each use is justified, who owns the outcome, how authority is constrained, whether the system is still working, and how quickly it can learn or stop.
+
+## Primary resources
+
+- [NIST AI Risk Management Framework](https://www.nist.gov/itl/ai-risk-management-framework)
+- [NIST Generative AI Profile](https://nvlpubs.nist.gov/nistpubs/ai/NIST.AI.600-1.pdf)
+- [ISO/IEC 42001 AI management systems overview](https://www.iso.org/artificial-intelligence/ai-management-systems)
+- [ISO/IEC 42005:2025 AI system impact assessment](https://www.iso.org/standard/42005)
+- [IIA Three Lines Model](https://www.theiia.org/globalassets/site/about-us/advocacy/three-lines-model-updated.pdf)
+- [EU AI Act implementation overview](https://digital-strategy.ec.europa.eu/en/policies/regulatory-framework-ai)
+- [Microsoft responsible AI governance](https://learn.microsoft.com/en-us/compliance/assurance/assurance-artificial-intelligence)
+- [Microsoft Responsible AI Standard](https://blogs.microsoft.com/on-the-issues/2022/06/21/microsofts-framework-for-building-ai-systems-responsibly/)
+- [DBS responsible AI and PURE framework](https://www.dbs.com/artificial-intelligence-machine-learning/artificial-intelligence/singapore-finTech-festival-2025-powering-dbs-next-phase-of-growth-with-ai.html)
+- [DBS 2024 chief risk officer statement](https://www.dbs.com/annualreports/2024/cro-statement.html)
+- [IBM Responsible Technology Board reflection](https://www.ibm.com/think/insights/reflecting-on-ibm-ai-ethics-board)
+- [NIST AI Agent Standards Initiative](https://www.nist.gov/artificial-intelligence/ai-agent-standards-initiative)
+- [OWASP Top 10 for Agentic Applications 2026](https://genai.owasp.org/resource/owasp-top-10-for-agentic-applications-for-2026/)
