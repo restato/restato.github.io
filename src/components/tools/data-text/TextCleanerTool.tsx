@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react';
 import { removeDuplicateLines, transformText, type TextTransformation } from '../../../lib/data-text/text';
-import { buttonClass, copyText, fieldClass, secondaryButtonClass } from './ui';
+import { buttonClass, copyText, fieldClass, panelClass, privacyClass, secondaryButtonClass } from './ui';
 
 const transformations: Array<{ value: TextTransformation; label: string }> = [
   { value: 'upper', label: 'UPPER CASE' },
@@ -28,7 +28,7 @@ export default function TextCleanerTool() {
   };
 
   return (
-    <section className="space-y-4" aria-labelledby="text-cleaner-title">
+    <section className={panelClass} aria-labelledby="text-cleaner-title">
       <h2 id="text-cleaner-title" className="text-xl font-semibold">Text case, slug, and duplicate-line cleaner</h2>
       <label className="block space-y-1">
         <span className="font-medium">Text input</span>
@@ -52,7 +52,7 @@ export default function TextCleanerTool() {
         <textarea className={`${fieldClass} min-h-44`} value={output} readOnly />
       </label>
       <button type="button" className={secondaryButtonClass} onClick={() => copyText(output)} disabled={!output}>Copy output</button>
-      <p className="text-sm text-[var(--color-text-muted)]">Text processing stays entirely in your browser.</p>
+      <p className={privacyClass}>Text processing stays entirely in your browser.</p>
     </section>
   );
 }

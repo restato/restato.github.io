@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { decodeAndEncodeImage, downloadBlob, type ImageOutputMime } from '../../../lib/media-calc/image';
-import { ToolShell, buttonClass, fieldClass } from './ToolShell';
+import { ToolShell, ToolStatus, buttonClass, fieldClass } from './ToolShell';
 
 export default function ModernImageConverterTool() {
   const [file, setFile] = useState<File | null>(null); const [format, setFormat] = useState<ImageOutputMime>('image/jpeg');
@@ -16,6 +16,6 @@ export default function ModernImageConverterTool() {
     <label>Output format<select className={fieldClass} value={format} onChange={(e) => setFormat(e.target.value as ImageOutputMime)}><option value="image/jpeg">JPG</option><option value="image/webp">WebP</option></select></label>
     <label>Quality: {quality}%<input className="w-full" type="range" min="10" max="100" value={quality} onChange={(e) => setQuality(+e.target.value)} /></label>
     <button className={buttonClass} disabled={!file || busy} onClick={convert}>{busy ? 'Converting…' : 'Convert and download'}</button>
-    <p aria-live="polite">{message}</p>
+    <ToolStatus status={busy ? 'working' : message ? 'success' : 'idle'}>{message}</ToolStatus>
   </ToolShell>;
 }

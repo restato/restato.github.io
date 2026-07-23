@@ -1,11 +1,17 @@
 import type { PropsWithChildren } from 'react';
+import { ToolPanel } from '../ui/ToolPanel';
+import { ToolResult, type ToolResultProps } from '../ui/ToolResult';
 
 export function ToolShell({ children, privacy = 'Your file stays in your browser and is never uploaded.' }: PropsWithChildren<{ privacy?: string }>) {
-  return <section className="space-y-5">
-    <p className="rounded-lg border border-emerald-500/30 bg-emerald-500/10 p-3 text-sm text-[var(--color-text)]">🔒 {privacy}</p>
+  return <ToolPanel className="fc-tool-panel-media">
+    <p className="fc-tool-privacy"><span aria-hidden="true">🔒</span>{privacy}</p>
     {children}
-  </section>;
+  </ToolPanel>;
 }
 
-export const fieldClass = 'w-full rounded-lg border border-[var(--color-border)] bg-[var(--color-card)] px-3 py-2 text-[var(--color-text)] focus:outline-none focus:ring-2 focus:ring-primary-500';
-export const buttonClass = 'rounded-lg bg-primary-500 px-4 py-2 font-medium text-white disabled:cursor-not-allowed disabled:opacity-50';
+export function ToolStatus({ children, status = 'idle', title }: ToolResultProps) {
+  return <ToolResult title={title} status={status}>{children}</ToolResult>;
+}
+
+export const fieldClass = 'fc-input';
+export const buttonClass = 'fc-button fc-button-primary';

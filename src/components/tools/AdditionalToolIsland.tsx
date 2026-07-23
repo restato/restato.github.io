@@ -24,7 +24,7 @@ export default function AdditionalToolIsland({ slug, lang }: { slug: string; lan
 
   return (
     <TranslationProvider initialLanguage={lang}>
-      <Suspense fallback={<div className="min-h-40 animate-pulse rounded-xl bg-[var(--color-card)]" aria-label="Loading tool" />}>
+      <Suspense fallback={<div className="fc-tool-panel fc-surface-soft min-h-40" aria-label="Loading tool" />}>
         <ToolComponent />
       </Suspense>
     </TranslationProvider>

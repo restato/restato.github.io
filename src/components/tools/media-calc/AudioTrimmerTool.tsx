@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { audioBufferToChannels, encodeWavSegment } from '../../../lib/media-calc/audio';
 import { downloadBlob } from '../../../lib/media-calc/image';
-import { ToolShell, buttonClass, fieldClass } from './ToolShell';
+import { ToolShell, ToolStatus, buttonClass, fieldClass } from './ToolShell';
 
 export default function AudioTrimmerTool() {
   const [file, setFile] = useState<File | null>(null); const [buffer, setBuffer] = useState<AudioBuffer | null>(null);
@@ -22,6 +22,6 @@ export default function AudioTrimmerTool() {
     <label>Choose audio file<input aria-label="Choose audio file" className={fieldClass} type="file" accept="audio/*" onChange={(e) => load(e.target.files?.[0] ?? null)} /></label>
     {preview && <audio className="w-full" controls src={preview}>Your browser does not support audio preview.</audio>}
     <div className="grid gap-4 sm:grid-cols-2"><label>Start (seconds)<input className={fieldClass} type="number" min="0" max={end} step="0.01" value={start} onChange={(e) => setStart(+e.target.value)} /></label><label>End (seconds)<input className={fieldClass} type="number" min={start} max={buffer?.duration} step="0.01" value={end} onChange={(e) => setEnd(+e.target.value)} /></label></div>
-    <button className={buttonClass} disabled={!buffer || end <= start} onClick={exportWav}>Export trimmed WAV</button><p aria-live="polite">{message}</p>
+    <button className={buttonClass} disabled={!buffer || end <= start} onClick={exportWav}>Export trimmed WAV</button><ToolStatus status={message ? 'success' : 'idle'}>{message}</ToolStatus>
   </ToolShell>;
 }

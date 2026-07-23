@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { convertData, type DataFormat } from '../../../lib/data-text/conversion';
-import { buttonClass, copyText, downloadText, fieldClass, secondaryButtonClass } from './ui';
+import { actionsClass, buttonClass, copyText, downloadText, errorClass, fieldClass, panelClass, privacyClass, secondaryButtonClass } from './ui';
 
 const formats: Array<{ value: DataFormat; label: string }> = [
   { value: 'csv', label: 'CSV' },
@@ -33,7 +33,7 @@ export default function CsvJsonTool() {
   };
 
   return (
-    <section className="space-y-4" aria-labelledby="csv-json-title">
+    <section className={panelClass} aria-labelledby="csv-json-title">
       <h2 id="csv-json-title" className="text-xl font-semibold">CSV, JSON, and TSV converter</h2>
       <div className="grid gap-4 sm:grid-cols-2">
         <label className="space-y-1">
@@ -54,16 +54,16 @@ export default function CsvJsonTool() {
         <textarea className={`${fieldClass} min-h-48 font-mono`} value={input} onChange={(event) => setInput(event.target.value)} spellCheck={false} />
       </label>
       <button type="button" className={buttonClass} onClick={convert}>Convert data</button>
-      {error && <p role="alert" className="text-red-700 dark:text-red-400">{error}</p>}
+      {error && <p role="alert" className={errorClass}>{error}</p>}
       <label className="block space-y-1">
         <span className="font-medium">Converted output</span>
         <textarea className={`${fieldClass} min-h-48 font-mono`} value={output} readOnly />
       </label>
-      <div className="flex flex-wrap gap-2">
+      <div className={actionsClass}>
         <button type="button" className={secondaryButtonClass} onClick={copy} disabled={!output}>{copied ? 'Copied' : 'Copy output'}</button>
         <button type="button" className={secondaryButtonClass} onClick={() => downloadText(output, `converted.${outputFormat}`, outputFormat === 'json' ? 'application/json' : 'text/plain')} disabled={!output}>Download output</button>
       </div>
-      <p className="text-sm text-[var(--color-text-muted)]">Your data is converted locally in this browser and is not uploaded.</p>
+      <p className={privacyClass}>Your data is converted locally in this browser and is not uploaded.</p>
     </section>
   );
 }

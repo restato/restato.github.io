@@ -1,6 +1,11 @@
-export const fieldClass = 'w-full rounded-lg border border-[var(--color-border)] bg-[var(--color-card)] px-3 py-2 text-[var(--color-text)]';
-export const buttonClass = 'rounded-lg bg-primary-500 px-4 py-2 font-medium text-white hover:bg-primary-600 disabled:cursor-not-allowed disabled:opacity-50';
-export const secondaryButtonClass = 'rounded-lg border border-[var(--color-border)] bg-[var(--color-card)] px-4 py-2 hover:bg-[var(--color-card-hover)] disabled:opacity-50';
+export const panelClass = 'fc-tool-panel';
+export const fieldClass = 'fc-input';
+export const buttonClass = 'fc-button fc-button-primary';
+export const secondaryButtonClass = 'fc-button fc-button-secondary';
+export const actionsClass = 'fc-tool-actions';
+export const resultClass = 'fc-tool-result';
+export const errorClass = 'fc-tool-result fc-tool-result-error';
+export const privacyClass = 'fc-tool-privacy';
 
 export async function copyText(value: string): Promise<void> {
   if (value) await navigator.clipboard.writeText(value);

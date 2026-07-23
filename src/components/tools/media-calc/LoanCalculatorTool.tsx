@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { calculateCompoundInterest, calculateLoan } from '../../../lib/media-calc/finance';
-import { ToolShell, buttonClass, fieldClass } from './ToolShell';
+import { ToolShell, ToolStatus, buttonClass, fieldClass } from './ToolShell';
 
 const money = (value: number) => value.toLocaleString(undefined, { style: 'currency', currency: 'USD' });
 export default function LoanCalculatorTool() {
@@ -18,8 +18,8 @@ export default function LoanCalculatorTool() {
       <label>{mode === 'loan' ? 'Loan term (years)' : 'Investment term (years)'}<input className={fieldClass} type="number" min="0.1" value={years} onChange={(e) => setYears(+e.target.value)} /></label>
       {mode === 'compound' && <label>Monthly contribution<input className={fieldClass} type="number" min="0" value={monthly} onChange={(e) => setMonthly(+e.target.value)} /></label>}
     </div>
-    <div aria-live="polite" className="rounded-lg bg-primary-500/10 p-4">
+    <ToolStatus title={mode === 'loan' ? 'Loan result' : 'Compound interest result'} status="success">
       {mode === 'loan' ? <><p>Monthly payment</p><strong className="text-2xl">{money(loan.monthlyPayment)}</strong><p>Total interest: {money(loan.totalInterest)}</p></> : <><p>Future value</p><strong className="text-2xl">{money(compound.futureValue)}</strong><p>Interest earned: {money(compound.interestEarned)}</p></>}
-    </div>
+    </ToolStatus>
   </ToolShell>;
 }

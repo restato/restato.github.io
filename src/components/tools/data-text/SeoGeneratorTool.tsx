@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { generateSeoBundle, type SchemaType, type SeoBundle } from '../../../lib/data-text/seo';
-import { buttonClass, copyText, downloadText, fieldClass, secondaryButtonClass } from './ui';
+import { actionsClass, buttonClass, copyText, downloadText, errorClass, fieldClass, panelClass, privacyClass, secondaryButtonClass } from './ui';
 
 const emptyBundle: SeoBundle = { metaTags: '', robotsTxt: '', jsonLd: '' };
 
@@ -28,7 +28,7 @@ export default function SeoGeneratorTool() {
   };
 
   return (
-    <section className="space-y-4" aria-labelledby="seo-title">
+    <section className={panelClass} aria-labelledby="seo-title">
       <h2 id="seo-title" className="text-xl font-semibold">SEO meta, robots.txt, and Schema generator</h2>
       <div className="grid gap-4 sm:grid-cols-2">
         <label className="space-y-1"><span className="font-medium">Page title</span><input aria-label="Page title" className={fieldClass} maxLength={60} value={title} onChange={(event) => setTitle(event.target.value)} /><small aria-hidden="true">{title.length}/60</small></label>
@@ -43,11 +43,11 @@ export default function SeoGeneratorTool() {
       </div>
       <fieldset className="flex gap-4"><legend className="mb-2 font-medium">Crawler directives</legend><label className="flex items-center gap-2"><input type="checkbox" checked={allowIndex} onChange={(event) => setAllowIndex(event.target.checked)} />Allow indexing</label><label className="flex items-center gap-2"><input type="checkbox" checked={allowFollow} onChange={(event) => setAllowFollow(event.target.checked)} />Allow link following</label></fieldset>
       <button type="button" className={buttonClass} onClick={generate}>Generate SEO files</button>
-      {error && <p role="alert" className="text-red-700 dark:text-red-400">{error}</p>}
+      {error && <p role="alert" className={errorClass}>{error}</p>}
       <Output label="Meta tags output" value={bundle.metaTags} filename="meta-tags.html" />
       <Output label="Robots.txt output" value={bundle.robotsTxt} filename="robots.txt" />
       <Output label="Schema JSON-LD output" value={bundle.jsonLd} filename="schema.json" />
-      <p className="text-sm text-[var(--color-text-muted)]">Generated files are a starting point. Validate them against your site and search-engine requirements.</p>
+      <p className={privacyClass}>Generated files are a starting point. Validate them against your site and search-engine requirements.</p>
     </section>
   );
 }
@@ -56,7 +56,7 @@ function Output({ label, value, filename }: { label: string; value: string; file
   return (
     <div className="space-y-2">
       <label className="block space-y-1"><span className="font-medium">{label}</span><textarea className={`${fieldClass} min-h-36 font-mono text-sm`} value={value} readOnly /></label>
-      <div className="flex gap-2">
+      <div className={actionsClass}>
         <button type="button" className={secondaryButtonClass} onClick={() => copyText(value)} disabled={!value}>Copy {label.replace(' output', '')}</button>
         <button type="button" className={secondaryButtonClass} onClick={() => downloadText(value, filename)} disabled={!value}>Download {filename}</button>
       </div>

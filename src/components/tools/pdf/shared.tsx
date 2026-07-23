@@ -1,4 +1,6 @@
-import type { ChangeEvent, ReactNode } from 'react';
+import { useRef, type ChangeEvent, type ReactNode } from 'react';
+import { ToolPanel } from '../ui/ToolPanel';
+import { ToolResult } from '../ui/ToolResult';
 
 export const pdfInputAccept = 'application/pdf,.pdf';
 export const imageInputAccept = 'image/png,image/jpeg,.png,.jpg,.jpeg';
@@ -38,13 +40,14 @@ export function parsePageSelection(value: string): number[] {
 
 export function PdfToolShell({ children, error }: { children: ReactNode; error?: string }) {
   return (
-    <div className="flex flex-col gap-5">
-      <p className="rounded-lg border border-emerald-300 bg-emerald-50 p-3 text-sm text-emerald-900">
-        🔒 파일은 브라우저 안에서만 처리되며 서버로 업로드되지 않습니다. Processing stays in your browser.
+    <ToolPanel className="fc-tool-panel-pdf">
+      <p className="fc-tool-privacy">
+        <span aria-hidden="true">🔒</span>
+        파일은 브라우저 안에서만 처리되며 서버로 업로드되지 않습니다. Processing stays in your browser.
       </p>
       {children}
-      {error && <p role="alert" className="rounded-lg bg-red-50 p-3 text-sm text-red-700">{error}</p>}
-    </div>
+      {error && <ToolResult status="error">{error}</ToolResult>}
+    </ToolPanel>
   );
 }
 
@@ -59,17 +62,32 @@ export function FilePicker({
   label: string;
   onFiles: (files: File[]) => void;
 }) {
+  const inputRef = useRef<HTMLInputElement>(null);
   const handleChange = (event: ChangeEvent<HTMLInputElement>) => {
     onFiles(Array.from(event.target.files ?? []));
     event.target.value = '';
   };
   return (
-    <label className="flex cursor-pointer flex-col items-center gap-2 rounded-xl border-2 border-dashed border-[var(--color-border)] p-8 text-center">
-      <span className="font-medium text-[var(--color-text)]">{label}</span>
-      <input className="sr-only" type="file" accept={accept} multiple={multiple} onChange={handleChange} />
-    </label>
+    <>
+      <ToolPanel
+        variant="drop-zone"
+        onActivate={() => inputRef.current?.click()}
+        aria-label={label}
+      >
+        <span className="font-medium">{label}</span>
+      </ToolPanel>
+      <input
+        ref={inputRef}
+        className="sr-only"
+        type="file"
+        aria-label={label}
+        accept={accept}
+        multiple={multiple}
+        onChange={handleChange}
+      />
+    </>
   );
 }
 
-export const primaryButton = 'rounded-lg bg-primary-600 px-4 py-2 font-medium text-white disabled:cursor-not-allowed disabled:opacity-50';
-export const fieldClass = 'rounded-lg border border-[var(--color-border)] bg-[var(--color-bg)] px-3 py-2 text-[var(--color-text)]';
+export const primaryButton = 'fc-button fc-button-primary';
+export const fieldClass = 'fc-input';
