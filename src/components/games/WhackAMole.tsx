@@ -76,17 +76,17 @@ export default function WhackAMole() {
   };
 
   return (
-    <div className="w-full max-w-md mx-auto">
+    <div className="fc-game mx-auto w-full max-w-md">
       <div className="grid grid-cols-3 gap-3 mb-6 text-center">
-        <div className="p-3 rounded-xl bg-[var(--color-card)] border border-[var(--color-border)]">
+        <div className="fc-surface p-3">
           <p className="text-xs text-[var(--color-text-muted)]">{t({ ko: '점수', en: 'Score', ja: 'スコア' })}</p>
-          <p className="text-2xl font-bold text-primary-500">{score}</p>
+          <p className="text-2xl font-bold text-[var(--brand)]">{score}</p>
         </div>
-        <div className="p-3 rounded-xl bg-[var(--color-card)] border border-[var(--color-border)]">
+        <div className="fc-surface p-3">
           <p className="text-xs text-[var(--color-text-muted)]">{t({ ko: '남은 시간', en: 'Time', ja: '残り時間' })}</p>
-          <p className="text-2xl font-bold text-orange-500">{timeLeft}</p>
+          <p className="text-2xl font-bold text-[var(--accent)]">{timeLeft}</p>
         </div>
-        <div className="p-3 rounded-xl bg-[var(--color-card)] border border-[var(--color-border)]">
+        <div className="fc-surface p-3">
           <p className="text-xs text-[var(--color-text-muted)]">{t({ ko: '최고 기록', en: 'Best', ja: 'ベスト' })}</p>
           <p className="text-2xl font-bold text-green-500">{bestScore}</p>
         </div>
@@ -126,7 +126,7 @@ export default function WhackAMole() {
         <button
           type="button"
           onClick={startGame}
-          className="px-6 py-3 bg-primary-500 text-white rounded-xl font-bold hover:bg-primary-600 transition-colors"
+          className="fc-button fc-button-primary"
         >
           {isPlaying
             ? t({ ko: '다시 시작', en: 'Restart', ja: 'リスタート' })

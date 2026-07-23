@@ -97,31 +97,20 @@ export default function TeamRandomizer() {
     setTeams([]);
   };
 
-  // Team colors
-  const teamColors = [
-    'from-red-500 to-pink-500',
-    'from-blue-500 to-cyan-500',
-    'from-green-500 to-emerald-500',
-    'from-yellow-500 to-orange-500',
-    'from-purple-500 to-violet-500',
-    'from-indigo-500 to-blue-500',
-    'from-teal-500 to-green-500',
-    'from-rose-500 to-red-500',
-  ];
-
   return (
-    <div className="flex flex-col lg:flex-row gap-6 w-full max-w-6xl mx-auto px-4">
+    <div className="fc-game mx-auto flex w-full max-w-6xl flex-col gap-6 px-0 lg:flex-row">
       {/* Input Section */}
       <div className="w-full lg:w-96 space-y-4">
         {/* Member Input */}
-        <div className="bg-[var(--color-card)] rounded-xl p-4 border border-[var(--color-border)]">
+        <div className="fc-surface p-4">
           <div className="flex justify-between items-center mb-3">
             <h3 className="font-bold">
               {t({ ko: '참가자', en: 'Participants', ja: '参加者' })} ({members.length})
             </h3>
             <button
+              type="button"
               onClick={() => setShowBulkInput(!showBulkInput)}
-              className="text-sm text-primary-500 hover:underline"
+              className="fc-button fc-button-quiet text-sm"
             >
               {t({ ko: '일괄 입력', en: 'Bulk Input', ja: '一括入力' })}
             </button>
@@ -137,18 +126,20 @@ export default function TeamRandomizer() {
                   en: 'Enter names separated by newlines or commas\n(max 100)',
                   ja: '名前を改行またはカンマで区切って入力\n(最大100人)',
                 })}
-                className="w-full h-40 p-3 text-sm border border-[var(--color-border)] rounded-lg resize-none bg-[var(--color-bg)]"
+                className="fc-textarea h-40 text-sm"
               />
               <div className="flex gap-2">
                 <button
+                  type="button"
                   onClick={handleBulkAdd}
-                  className="flex-1 py-2 bg-primary-500 text-white rounded-lg hover:bg-primary-600"
+                  className="fc-button fc-button-primary flex-1"
                 >
                   {t({ ko: '적용', en: 'Apply', ja: '適用' })}
                 </button>
                 <button
+                  type="button"
                   onClick={() => setShowBulkInput(false)}
-                  className="px-4 py-2 border border-[var(--color-border)] rounded-lg hover:bg-[var(--color-card-hover)]"
+                  className="fc-button fc-button-secondary"
                 >
                   {t({ ko: '취소', en: 'Cancel', ja: 'キャンセル' })}
                 </button>
@@ -161,15 +152,16 @@ export default function TeamRandomizer() {
                   type="text"
                   value={newMember}
                   onChange={(e) => setNewMember(e.target.value)}
-                  onKeyPress={(e) => e.key === 'Enter' && addMember()}
+                  onKeyDown={(e) => e.key === 'Enter' && addMember()}
                   placeholder={t({ ko: '이름 입력', en: 'Enter name', ja: '名前入力' })}
-                  className="flex-1 px-3 py-2 text-sm border border-[var(--color-border)] rounded-lg bg-[var(--color-bg)]"
+                  className="fc-input flex-1 text-sm"
                   maxLength={30}
                 />
                 <button
+                  type="button"
                   onClick={addMember}
                   disabled={members.length >= 100}
-                  className="px-4 py-2 bg-primary-500 text-white rounded-lg hover:bg-primary-600 disabled:opacity-50"
+                  className="fc-button fc-button-primary"
                 >
                   {t({ ko: '추가', en: 'Add', ja: '追加' })}
                 </button>
@@ -183,8 +175,10 @@ export default function TeamRandomizer() {
                   >
                     <span className="truncate">{member}</span>
                     <button
+                      type="button"
                       onClick={() => removeMember(idx)}
-                      className="text-red-500 hover:text-red-600 ml-2"
+                      aria-label={`${member} ${t({ ko: '삭제', en: 'Remove', ja: '削除' })}`}
+                      className="fc-button fc-button-quiet ml-2 min-h-11 px-3 text-[var(--accent)]"
                     >
                       ✕
                     </button>
@@ -194,8 +188,9 @@ export default function TeamRandomizer() {
 
               {members.length > 0 && (
                 <button
+                  type="button"
                   onClick={clearAll}
-                  className="mt-2 text-sm text-red-500 hover:underline"
+                  className="fc-button fc-button-quiet mt-2 text-sm text-[var(--accent)]"
                 >
                   {t({ ko: '전체 삭제', en: 'Clear All', ja: 'すべて削除' })}
                 </button>
@@ -205,21 +200,25 @@ export default function TeamRandomizer() {
         </div>
 
         {/* Team Count */}
-        <div className="bg-[var(--color-card)] rounded-xl p-4 border border-[var(--color-border)]">
+        <div className="fc-surface p-4">
           <h3 className="font-bold mb-3">
             {t({ ko: '팀 수', en: 'Number of Teams', ja: 'チーム数' })}
           </h3>
           <div className="flex items-center gap-4">
             <button
+              type="button"
               onClick={() => setTeamCount(Math.max(2, teamCount - 1))}
-              className="w-10 h-10 rounded-full bg-[var(--color-bg)] border border-[var(--color-border)] hover:bg-[var(--color-card-hover)]"
+              aria-label={t({ ko: '팀 수 줄이기', en: 'Decrease teams', ja: 'チーム数を減らす' })}
+              className="fc-button fc-button-secondary h-11 w-11 rounded-full p-0"
             >
               -
             </button>
             <span className="text-3xl font-bold w-12 text-center">{teamCount}</span>
             <button
+              type="button"
               onClick={() => setTeamCount(Math.min(8, teamCount + 1))}
-              className="w-10 h-10 rounded-full bg-[var(--color-bg)] border border-[var(--color-border)] hover:bg-[var(--color-card-hover)]"
+              aria-label={t({ ko: '팀 수 늘리기', en: 'Increase teams', ja: 'チーム数を増やす' })}
+              className="fc-button fc-button-secondary h-11 w-11 rounded-full p-0"
             >
               +
             </button>
@@ -231,9 +230,10 @@ export default function TeamRandomizer() {
 
         {/* Randomize Button */}
         <button
+          type="button"
           onClick={randomizeTeams}
           disabled={members.length < teamCount || isAnimating}
-          className="w-full py-4 bg-gradient-to-r from-primary-500 to-purple-500 text-white text-xl font-bold rounded-xl hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+          className="fc-button fc-button-primary w-full py-4 text-xl"
         >
           {isAnimating
             ? t({ ko: '섞는 중...', en: 'Shuffling...', ja: 'シャッフル中...' })
@@ -258,12 +258,12 @@ export default function TeamRandomizer() {
             {teams.map((team, idx) => (
               <div
                 key={idx}
-                className={`p-4 rounded-xl bg-gradient-to-br ${teamColors[idx % teamColors.length]} text-white ${
+                className={`fc-surface p-4 ${
                   isAnimating ? 'animate-pulse' : ''
                 }`}
               >
                 <h4 className="text-xl font-bold mb-3 flex items-center gap-2">
-                  <span className="w-8 h-8 bg-white/20 rounded-full flex items-center justify-center">
+                  <span className="fc-chip h-8 w-8 justify-center text-[var(--accent)]">
                     {idx + 1}
                   </span>
                   {team.name}
@@ -275,7 +275,7 @@ export default function TeamRandomizer() {
                   {team.members.map((member, memberIdx) => (
                     <div
                       key={memberIdx}
-                      className="px-3 py-2 bg-white/20 rounded-lg text-sm backdrop-blur-sm"
+                      className="fc-surface-soft rounded-lg px-3 py-2 text-sm"
                     >
                       {member}
                     </div>

@@ -109,29 +109,29 @@ export default function ColorMatch() {
   };
 
   return (
-    <div className="flex flex-col items-center w-full max-w-lg lg:max-w-xl mx-auto px-4">
+    <div className="fc-game mx-auto flex w-full max-w-lg flex-col items-center px-0 lg:max-w-xl">
       {/* Stats */}
       <div className="grid grid-cols-4 gap-3 w-full mb-6">
-        <div className="p-3 bg-[var(--color-card)] rounded-xl border border-[var(--color-border)] text-center">
-          <div className="text-2xl font-bold text-primary-500">{timeLeft}</div>
+        <div className="fc-surface p-3 text-center">
+          <div className="text-2xl font-bold text-[var(--brand)]">{timeLeft}</div>
           <div className="text-xs text-[var(--color-text-muted)]">
             {t({ ko: '초', en: 'sec', ja: '秒' })}
           </div>
         </div>
-        <div className="p-3 bg-[var(--color-card)] rounded-xl border border-[var(--color-border)] text-center">
+        <div className="fc-surface p-3 text-center">
           <div className="text-2xl font-bold text-green-500">{score}</div>
           <div className="text-xs text-[var(--color-text-muted)]">
             {t({ ko: '점수', en: 'Score', ja: 'スコア' })}
           </div>
         </div>
-        <div className="p-3 bg-[var(--color-card)] rounded-xl border border-[var(--color-border)] text-center">
-          <div className="text-2xl font-bold text-orange-500">{streak}</div>
+        <div className="fc-surface p-3 text-center">
+          <div className="text-2xl font-bold text-[var(--accent)]">{streak}</div>
           <div className="text-xs text-[var(--color-text-muted)]">
             {t({ ko: '연속', en: 'Streak', ja: '連続' })}
           </div>
         </div>
-        <div className="p-3 bg-[var(--color-card)] rounded-xl border border-[var(--color-border)] text-center">
-          <div className="text-2xl font-bold text-yellow-500">{highScore}</div>
+        <div className="fc-surface p-3 text-center">
+          <div className="text-2xl font-bold text-[var(--accent)]">{highScore}</div>
           <div className="text-xs text-[var(--color-text-muted)]">
             {t({ ko: '최고', en: 'Best', ja: '最高' })}
           </div>
@@ -142,21 +142,23 @@ export default function ColorMatch() {
       {!isPlaying && (
         <div className="flex gap-2 mb-6">
           <button
+            type="button"
             onClick={() => setMode('text-color')}
-            className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+            className={`fc-button text-sm ${
               mode === 'text-color'
-                ? 'bg-primary-500 text-white'
-                : 'bg-[var(--color-card)] border border-[var(--color-border)]'
+                ? 'fc-button-primary'
+                : 'fc-button-secondary'
             }`}
           >
             {t({ ko: '글자 색상 맞추기', en: 'Match Text Color', ja: 'テキスト色を当てる' })}
           </button>
           <button
+            type="button"
             onClick={() => setMode('color-text')}
-            className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+            className={`fc-button text-sm ${
               mode === 'color-text'
-                ? 'bg-primary-500 text-white'
-                : 'bg-[var(--color-card)] border border-[var(--color-border)]'
+                ? 'fc-button-primary'
+                : 'fc-button-secondary'
             }`}
           >
             {t({ ko: '글자 내용 맞추기', en: 'Match Text Meaning', ja: 'テキスト意味を当てる' })}
@@ -201,9 +203,10 @@ export default function ColorMatch() {
         <div className="grid grid-cols-3 gap-3 w-full mb-6">
           {options.map((color) => (
             <button
+              type="button"
               key={color.value}
               onClick={() => handleAnswer(color.value)}
-              className="p-4 rounded-xl font-bold text-white transition-transform hover:scale-105 active:scale-95"
+              className="min-h-11 rounded-xl p-4 font-bold text-white"
               style={{ backgroundColor: color.value }}
             >
               {color.name[lang as keyof typeof color.name] || color.name.en}
@@ -216,19 +219,20 @@ export default function ColorMatch() {
       {!isPlaying && (
         <>
           {timeLeft === 0 && (
-            <div className="mb-6 p-6 bg-gradient-to-r from-primary-500/20 to-purple-500/20 rounded-xl border border-primary-500 text-center">
+            <div className="fc-surface fc-surface-soft mb-6 p-6 text-center" role="status">
               <div className="text-2xl font-bold mb-2">
                 {t({ ko: '게임 종료!', en: 'Game Over!', ja: 'ゲーム終了!' })}
               </div>
-              <div className="text-4xl font-bold text-primary-500">{score}</div>
+              <div className="text-4xl font-bold text-[var(--brand)]">{score}</div>
               <div className="text-sm text-[var(--color-text-muted)]">
                 {t({ ko: '점수', en: 'points', ja: '点' })}
               </div>
             </div>
           )}
           <button
+            type="button"
             onClick={startGame}
-            className="px-8 py-4 bg-primary-500 text-white text-xl font-bold rounded-full hover:bg-primary-600 transition-colors"
+            className="fc-button fc-button-primary px-8 text-xl"
           >
             {t({ ko: '시작', en: 'Start', ja: 'スタート' })}
           </button>

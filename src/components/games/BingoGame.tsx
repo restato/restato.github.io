@@ -117,13 +117,13 @@ export default function BingoGame() {
   const hasBingo = checkBingo();
 
   return (
-    <div className="flex flex-col lg:flex-row gap-6 w-full max-w-5xl mx-auto px-4">
+    <div className="fc-game mx-auto flex w-full max-w-5xl flex-col gap-6 px-0 lg:flex-row">
       {/* Left - Drawing Area */}
       <div className="flex-1 flex flex-col items-center">
         {/* Current Number Display */}
         <div className={`w-32 h-32 md:w-40 md:h-40 rounded-full flex items-center justify-center mb-6 ${
           isAnimating ? 'animate-pulse' : ''
-        } bg-gradient-to-br from-primary-500 to-purple-500 text-white`}>
+        } bg-[var(--brand)] text-white`}>
           <div className="text-center">
             {currentNumber && (
               <>
@@ -139,9 +139,10 @@ export default function BingoGame() {
 
         {/* Draw Button */}
         <button
+          type="button"
           onClick={drawNumber}
           disabled={isAnimating || drawnNumbers.length >= MAX_NUMBER || hasBingo}
-          className="px-8 py-4 bg-gradient-to-r from-primary-500 to-purple-500 text-white text-xl font-bold rounded-full shadow-lg hover:shadow-xl transform hover:scale-105 transition-all disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
+          className="fc-button fc-button-primary px-8 text-xl"
         >
           {isAnimating
             ? t({ ko: '추첨 중...', en: 'Drawing...', ja: '抽選中...' })
@@ -157,8 +158,8 @@ export default function BingoGame() {
 
         {/* Bingo! */}
         {hasBingo && (
-          <div className="mt-6 p-6 bg-gradient-to-r from-yellow-400 to-orange-500 rounded-xl text-white text-center animate-bounce">
-            <div className="text-4xl font-bold">🎉 BINGO! 🎉</div>
+          <div className="fc-surface fc-surface-soft mt-6 p-6 text-center" role="status">
+            <div className="text-4xl font-bold text-[var(--accent)]">🎉 BINGO! 🎉</div>
           </div>
         )}
 
@@ -233,14 +234,16 @@ export default function BingoGame() {
         {/* Controls */}
         <div className="mt-4 space-y-2">
           <button
+            type="button"
             onClick={() => setBingoCard(generateCard())}
-            className="w-full py-2 bg-[var(--color-card)] border border-[var(--color-border)] rounded-lg hover:bg-[var(--color-card-hover)]"
+            className="fc-button fc-button-secondary w-full"
           >
             {t({ ko: '새 카드 생성', en: 'New Card', ja: '新しいカード' })}
           </button>
           <button
+            type="button"
             onClick={resetGame}
-            className="w-full py-2 bg-[var(--color-card)] border border-[var(--color-border)] rounded-lg hover:bg-[var(--color-card-hover)]"
+            className="fc-button fc-button-secondary w-full"
           >
             {t({ ko: '게임 초기화', en: 'Reset Game', ja: 'ゲームリセット' })}
           </button>

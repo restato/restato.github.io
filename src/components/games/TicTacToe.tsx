@@ -175,9 +175,9 @@ export default function TicTacToe() {
   };
 
   return (
-    <div className="flex flex-col items-center w-full max-w-md lg:max-w-lg mx-auto px-4">
+    <div className="fc-game mx-auto flex w-full max-w-md flex-col items-center px-0 lg:max-w-lg">
       {/* Stats */}
-      <div className="flex gap-4 mb-6 p-4 bg-[var(--color-card)] rounded-xl border border-[var(--color-border)]">
+      <div className="fc-surface mb-6 flex gap-4 p-4">
         <div className="text-center">
           <div className="text-2xl font-bold text-green-500">{stats.wins}</div>
           <div className="text-sm text-[var(--color-text-muted)]">
@@ -202,12 +202,13 @@ export default function TicTacToe() {
       <div className="flex gap-2 mb-6">
         {(['easy', 'medium', 'hard'] as const).map((diff) => (
           <button
+            type="button"
             key={diff}
             onClick={() => changeDifficulty(diff)}
-            className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+            className={`fc-button text-sm ${
               difficulty === diff
-                ? 'bg-primary-500 text-white'
-                : 'bg-[var(--color-card)] border border-[var(--color-border)] hover:bg-[var(--color-card-hover)]'
+                ? 'fc-button-primary'
+                : 'fc-button-secondary'
             }`}
           >
             {diff === 'easy' && t({ ko: '쉬움', en: 'Easy', ja: '簡単' })}
@@ -221,6 +222,7 @@ export default function TicTacToe() {
       <div className="grid grid-cols-3 gap-2 mb-6">
         {board.map((cell, index) => (
           <button
+            type="button"
             key={index}
             onClick={() => handleClick(index)}
             disabled={!!cell || !!winner || !isPlayerTurn}
@@ -271,8 +273,9 @@ export default function TicTacToe() {
 
       {/* New Game Button */}
       <button
+        type="button"
         onClick={resetGame}
-        className="px-6 py-3 bg-primary-500 text-white font-bold rounded-lg hover:bg-primary-600 transition-colors"
+        className="fc-button fc-button-primary"
       >
         {t({ ko: '새 게임', en: 'New Game', ja: '新しいゲーム' })}
       </button>

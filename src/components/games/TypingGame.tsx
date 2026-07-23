@@ -148,27 +148,27 @@ export default function TypingGame() {
   const currentWord = words[currentWordIndex] || '';
 
   return (
-    <div className="flex flex-col items-center w-full max-w-2xl lg:max-w-4xl mx-auto px-4">
+    <div className="fc-game mx-auto flex w-full max-w-2xl flex-col items-center px-0 lg:max-w-4xl">
       {/* Header Stats */}
       <div className="grid grid-cols-4 gap-4 w-full mb-6">
-        <div className="p-4 bg-[var(--color-card)] rounded-xl border border-[var(--color-border)] text-center">
-          <div className="text-3xl font-bold text-primary-500">{timeLeft}</div>
+        <div className="fc-surface p-4 text-center">
+          <div className="text-3xl font-bold text-[var(--brand)]">{timeLeft}</div>
           <div className="text-sm text-[var(--color-text-muted)]">
             {t({ ko: '초', en: 'sec', ja: '秒' })}
           </div>
         </div>
-        <div className="p-4 bg-[var(--color-card)] rounded-xl border border-[var(--color-border)] text-center">
+        <div className="fc-surface p-4 text-center">
           <div className="text-3xl font-bold text-green-500">{stats.wpm}</div>
           <div className="text-sm text-[var(--color-text-muted)]">WPM</div>
         </div>
-        <div className="p-4 bg-[var(--color-card)] rounded-xl border border-[var(--color-border)] text-center">
+        <div className="fc-surface p-4 text-center">
           <div className="text-3xl font-bold text-blue-500">{stats.accuracy}%</div>
           <div className="text-sm text-[var(--color-text-muted)]">
             {t({ ko: '정확도', en: 'Accuracy', ja: '正確度' })}
           </div>
         </div>
-        <div className="p-4 bg-[var(--color-card)] rounded-xl border border-[var(--color-border)] text-center">
-          <div className="text-3xl font-bold text-yellow-500">{bestWpm}</div>
+        <div className="fc-surface p-4 text-center">
+          <div className="text-3xl font-bold text-[var(--accent)]">{bestWpm}</div>
           <div className="text-sm text-[var(--color-text-muted)]">
             {t({ ko: '최고', en: 'Best', ja: '最高' })}
           </div>
@@ -179,21 +179,23 @@ export default function TypingGame() {
       {!isPlaying && (
         <div className="flex gap-2 mb-6">
           <button
+            type="button"
             onClick={() => setLanguage('en')}
-            className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+            className={`fc-button ${
               language === 'en'
-                ? 'bg-primary-500 text-white'
-                : 'bg-[var(--color-card)] border border-[var(--color-border)]'
+                ? 'fc-button-primary'
+                : 'fc-button-secondary'
             }`}
           >
             English
           </button>
           <button
+            type="button"
             onClick={() => setLanguage('ko')}
-            className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+            className={`fc-button ${
               language === 'ko'
-                ? 'bg-primary-500 text-white'
-                : 'bg-[var(--color-card)] border border-[var(--color-border)]'
+                ? 'fc-button-primary'
+                : 'fc-button-secondary'
             }`}
           >
             한국어
@@ -202,7 +204,7 @@ export default function TypingGame() {
       )}
 
       {/* Word Display */}
-      <div className="w-full p-6 bg-[var(--color-card)] rounded-xl border border-[var(--color-border)] mb-4">
+      <div className="fc-surface mb-4 w-full p-6">
         {isPlaying ? (
           <div className="flex flex-wrap gap-2 text-lg">
             {words.slice(currentWordIndex, currentWordIndex + 10).map((word, idx) => (
@@ -259,7 +261,7 @@ export default function TypingGame() {
             ? t({ ko: '여기에 입력하세요...', en: 'Type here...', ja: 'ここに入力...' })
             : ''
         }
-        className="w-full p-4 text-lg bg-[var(--color-card)] border-2 border-[var(--color-border)] rounded-xl focus:border-primary-500 focus:outline-none disabled:opacity-50"
+        className="fc-input w-full p-4 text-lg"
         autoComplete="off"
         autoCapitalize="off"
         autoCorrect="off"
@@ -268,8 +270,9 @@ export default function TypingGame() {
 
       {/* Start/Restart Button */}
       <button
+        type="button"
         onClick={startGame}
-        className="mt-6 px-8 py-4 bg-primary-500 text-white text-xl font-bold rounded-full hover:bg-primary-600 transition-colors"
+        className="fc-button fc-button-primary mt-6 px-8 text-xl"
       >
         {isPlaying
           ? t({ ko: '다시 시작', en: 'Restart', ja: 'リスタート' })
@@ -278,13 +281,13 @@ export default function TypingGame() {
 
       {/* Game Over Stats */}
       {!isPlaying && timeLeft === 0 && (
-        <div className="mt-6 p-6 bg-gradient-to-r from-primary-500/20 to-purple-500/20 rounded-xl border border-primary-500 text-center">
+        <div className="fc-surface fc-surface-soft mt-6 p-6 text-center" role="status">
           <div className="text-2xl font-bold mb-4">
             {t({ ko: '결과', en: 'Results', ja: '結果' })}
           </div>
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <div className="text-4xl font-bold text-primary-500">{stats.wpm}</div>
+              <div className="text-4xl font-bold text-[var(--brand)]">{stats.wpm}</div>
               <div className="text-sm text-[var(--color-text-muted)]">WPM</div>
             </div>
             <div>

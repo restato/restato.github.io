@@ -227,9 +227,9 @@ export default function Game2048() {
   };
 
   return (
-    <div className="flex flex-col items-center w-full max-w-md lg:max-w-lg mx-auto px-4">
+    <div className="fc-game mx-auto flex w-full max-w-md flex-col items-center px-0 lg:max-w-lg">
       {/* Header */}
-      <div className="flex justify-between items-center w-full mb-4">
+      <div className="fc-surface mb-4 flex w-full items-center justify-between p-3">
         <h1 className="text-4xl font-bold text-[#776e65]">2048</h1>
         <div className="flex gap-2">
           <div className="bg-[#bbada0] rounded-lg px-4 py-2 text-center">
@@ -249,8 +249,9 @@ export default function Game2048() {
 
       {/* New Game Button */}
       <button
+        type="button"
         onClick={newGame}
-        className="mb-4 px-4 py-2 bg-[#8f7a66] text-white font-bold rounded-lg hover:bg-[#9f8b77] transition-colors"
+        className="fc-button fc-button-primary mb-4"
       >
         {t({ ko: '새 게임', en: 'New Game', ja: '新しいゲーム' })}
       </button>
@@ -292,15 +293,16 @@ export default function Game2048() {
 
         {/* Game Over Overlay */}
         {gameOver && (
-          <div className="absolute inset-0 bg-black/50 rounded-xl flex flex-col items-center justify-center">
+          <div className="absolute inset-0 flex flex-col items-center justify-center rounded-xl bg-black/60" role="status">
             <div className="text-3xl font-bold text-white mb-4">
               {won
                 ? t({ ko: '성공!', en: 'You Win!', ja: '成功!' })
                 : t({ ko: '게임 오버', en: 'Game Over', ja: 'ゲームオーバー' })}
             </div>
             <button
+              type="button"
               onClick={newGame}
-              className="px-6 py-3 bg-[#8f7a66] text-white font-bold rounded-lg hover:bg-[#9f8b77] transition-colors"
+              className="fc-button bg-[#8f7a66] text-white hover:bg-[#9f8b77]"
             >
               {t({ ko: '다시 하기', en: 'Try Again', ja: 'もう一度' })}
             </button>

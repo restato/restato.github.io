@@ -250,9 +250,9 @@ export default function Breakout() {
   }, [isPlaying, score, highScore, initBricks]);
 
   return (
-    <div className="flex flex-col items-center w-full max-w-lg lg:max-w-xl mx-auto px-4">
+    <div className="fc-game mx-auto flex w-full max-w-lg flex-col items-center px-0 lg:max-w-xl">
       {/* Stats */}
-      <div className="flex gap-4 mb-4 p-4 bg-[var(--color-card)] rounded-xl border border-[var(--color-border)]">
+      <div className="fc-surface mb-4 flex gap-4 p-4">
         <div className="text-center">
           <div className="text-2xl font-bold text-primary-500">{score}</div>
           <div className="text-sm text-[var(--color-text-muted)]">
@@ -300,8 +300,9 @@ export default function Breakout() {
             )}
             <div className="text-5xl mb-4">🧱</div>
             <button
+              type="button"
               onClick={startGame}
-              className="px-8 py-4 bg-primary-500 text-white text-xl font-bold rounded-full hover:bg-primary-600 transition-colors"
+              className="fc-button fc-button-primary px-8 text-xl"
             >
               {gameOver || won
                 ? t({ ko: '다시 하기', en: 'Play Again', ja: 'もう一度' })
