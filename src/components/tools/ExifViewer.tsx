@@ -1,5 +1,6 @@
 import { useState, useRef } from 'react';
 import { useTranslation } from '../../i18n/useTranslation';
+import { ToolPanel } from './ui/ToolPanel';
 
 interface ExifData {
   [key: string]: string | number | undefined;
@@ -251,7 +252,7 @@ export default function ExifViewer() {
   };
 
   return (
-    <div className="flex flex-col gap-6">
+    <ToolPanel className="gap-6">
       {/* File input */}
       <input
         ref={fileInputRef}
@@ -375,6 +376,6 @@ export default function ExifViewer() {
           })}
         </p>
       </div>
-    </div>
+    </ToolPanel>
   );
 }

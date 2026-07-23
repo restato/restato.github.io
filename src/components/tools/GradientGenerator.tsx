@@ -1,5 +1,6 @@
 import { useState, useMemo } from 'react';
 import { useTranslation } from '../../i18n/useTranslation';
+import { ToolPanel } from './ui/ToolPanel';
 
 interface ColorStop {
   color: string;
@@ -97,7 +98,7 @@ export default function GradientGenerator() {
   };
 
   return (
-    <div className="flex flex-col gap-6">
+    <ToolPanel className="gap-6">
       {/* Preview */}
       <div
         className="w-full h-48 rounded-xl shadow-lg"
@@ -244,6 +245,6 @@ export default function GradientGenerator() {
           </code>
         </div>
       </div>
-    </div>
+    </ToolPanel>
   );
 }

@@ -1,5 +1,6 @@
 import { useState, useMemo } from 'react';
 import { useTranslation } from '../../i18n/useTranslation';
+import { ToolPanel } from './ui/ToolPanel';
 
 interface Shadow {
   offsetX: number;
@@ -90,7 +91,7 @@ export default function BoxShadowGenerator() {
   };
 
   return (
-    <div className="flex flex-col gap-6">
+    <ToolPanel className="gap-6">
       {/* Preview */}
       <div className="flex items-center justify-center p-12 bg-gray-100 dark:bg-gray-800 rounded-xl">
         <div
@@ -289,6 +290,6 @@ export default function BoxShadowGenerator() {
           </code>
         </div>
       </div>
-    </div>
+    </ToolPanel>
   );
 }

@@ -3,6 +3,7 @@ import ReactCrop, { type Crop, centerCrop, makeAspectCrop } from 'react-image-cr
 import 'react-image-crop/dist/ReactCrop.css';
 import { useTranslation } from '../../i18n/useTranslation';
 import { IMAGE_CROP_PRESETS } from '../../lib/imageCropPresets';
+import { ToolPanel } from './ui/ToolPanel';
 
 interface ImageInfo {
   file: File;
@@ -286,7 +287,7 @@ export default function ImageResizer() {
   };
 
   return (
-    <div className="flex flex-col gap-6">
+    <ToolPanel className="gap-6">
       {/* Hidden canvas for processing */}
       <canvas ref={canvasRef} className="hidden" />
 
@@ -635,6 +636,6 @@ export default function ImageResizer() {
           )}
         </>
       )}
-    </div>
+    </ToolPanel>
   );
 }

@@ -1,5 +1,6 @@
 import { useState, useRef } from 'react';
 import { useTranslation } from '../../i18n/useTranslation';
+import { ToolPanel } from './ui/ToolPanel';
 
 interface ExifData {
   // Basic
@@ -405,7 +406,7 @@ export default function ImageMetadataViewer() {
   };
 
   return (
-    <div className="flex flex-col gap-6">
+    <ToolPanel className="gap-6">
       <input
         ref={fileInputRef}
         type="file"
@@ -655,7 +656,7 @@ export default function ImageMetadataViewer() {
           <li>• {tr('날짜와 시간: 사진 촬영 시각', 'Date and time: when the photo was taken', '日時：写真の撮影時刻')}</li>
         </ul>
       </div>
-    </div>
+    </ToolPanel>
   );
 }
 

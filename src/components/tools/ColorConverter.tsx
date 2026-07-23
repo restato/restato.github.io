@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useTranslation } from '../../i18n/useTranslation';
+import { ToolPanel } from './ui/ToolPanel';
 
 // Color conversion utilities
 function hexToRgb(hex: string): { r: number; g: number; b: number } | null {
@@ -145,7 +146,7 @@ export default function ColorConverter() {
   };
 
   return (
-    <div className="flex flex-col gap-6">
+    <ToolPanel className="gap-6">
       {/* Color Preview */}
       <div className="flex flex-col items-center gap-4">
         <div
@@ -297,6 +298,6 @@ export default function ColorConverter() {
           />
         </div>
       </div>
-    </div>
+    </ToolPanel>
   );
 }

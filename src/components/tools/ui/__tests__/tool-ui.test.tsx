@@ -174,3 +174,26 @@ describe('calculator and time tool family', () => {
     expect(source).toContain('</ToolPanel>');
   });
 });
+
+describe('image and color tool family', () => {
+  const files = [
+    'QRCodeGenerator',
+    'ColorPalette',
+    'ColorConverter',
+    'ImageConverter',
+    'GradientGenerator',
+    'BoxShadowGenerator',
+    'ImageResizer',
+    'ExifViewer',
+    'BackgroundRemover',
+    'ImageMetadataViewer',
+    'AppStoreScreenshotResizer',
+  ];
+
+  it.each(files)('%s delegates native control styling to the shared panel', (file) => {
+    const source = readFileSync(resolve(`src/components/tools/${file}.tsx`), 'utf8');
+    expect(source).toContain("import { ToolPanel } from './ui/ToolPanel'");
+    expect(source).toContain('<ToolPanel');
+    expect(source).toContain('</ToolPanel>');
+  });
+});

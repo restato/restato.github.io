@@ -1,5 +1,6 @@
 import { useState, useRef, useCallback, useEffect } from 'react';
 import { useTranslation } from '../../i18n/useTranslation';
+import { ToolPanel } from './ui/ToolPanel';
 
 interface ImageInfo {
   file: File;
@@ -161,7 +162,7 @@ export default function BackgroundRemover() {
   ];
 
   return (
-    <div className="flex flex-col gap-6">
+    <ToolPanel className="gap-6">
       {/* Hidden canvas for processing */}
       <canvas ref={canvasRef} className="hidden" />
 
@@ -391,6 +392,6 @@ export default function BackgroundRemover() {
           </div>
         </>
       )}
-    </div>
+    </ToolPanel>
   );
 }

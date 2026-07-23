@@ -1,5 +1,6 @@
 import { useState, useRef, useCallback } from 'react';
 import { useTranslation } from '../../i18n/useTranslation';
+import { ToolPanel } from './ui/ToolPanel';
 
 interface ConvertedImage {
   original: {
@@ -33,6 +34,11 @@ export default function ImageConverter() {
     'image/jpeg', 'image/png', 'image/webp', 'image/gif', 'image/bmp',
     'image/heic', 'image/heif', 'image/avif', 'image/tiff'
   ];
+  const dropZoneLabel = t({
+    ko: '이미지를 드래그하거나 클릭하여 업로드',
+    en: 'Drag images or click to upload',
+    ja: '画像をドラッグまたはクリックしてアップロード',
+  });
 
   const formatBytes = (bytes: number): string => {
     if (bytes === 0) return '0 B';
@@ -195,7 +201,7 @@ export default function ImageConverter() {
   };
 
   return (
-    <div className="flex flex-col gap-6">
+    <ToolPanel className="gap-6">
       {/* Hidden canvas */}
       <canvas ref={canvasRef} className="hidden" />
 
@@ -258,8 +264,10 @@ export default function ImageConverter() {
       </div>
 
       {/* Drop Zone */}
-      <div
-        onClick={() => fileInputRef.current?.click()}
+      <ToolPanel
+        variant="drop-zone"
+        onActivate={() => fileInputRef.current?.click()}
+        aria-label={dropZoneLabel}
         onDrop={handleDrop}
         onDragOver={(e) => { e.preventDefault(); setIsDragging(true); }}
         onDragLeave={() => setIsDragging(false)}
@@ -276,13 +284,13 @@ export default function ImageConverter() {
         </svg>
         <div className="text-center">
           <p className="text-[var(--color-text)]">
-            {t({ ko: '이미지를 드래그하거나 클릭하여 업로드', en: 'Drag images or click to upload', ja: '画像をドラッグまたはクリックしてアップロード' })}
+            {dropZoneLabel}
           </p>
           <p className="text-sm text-[var(--color-text-muted)] mt-1">
             {t({ ko: 'JPEG, PNG, WebP, GIF, BMP, HEIC, AVIF 지원', en: 'Supports JPEG, PNG, WebP, GIF, BMP, HEIC, AVIF', ja: 'JPEG, PNG, WebP, GIF, BMP, HEIC, AVIF対応' })}
           </p>
         </div>
-      </div>
+      </ToolPanel>
 
       {/* Converting indicator */}
       {isConverting && (
@@ -412,6 +420,6 @@ export default function ImageConverter() {
           })}
         </p>
       </div>
-    </div>
+    </ToolPanel>
   );
 }

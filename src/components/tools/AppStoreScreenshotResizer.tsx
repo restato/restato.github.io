@@ -2,6 +2,7 @@ import { useState, useRef, useCallback } from 'react';
 import ReactCrop, { type Crop, centerCrop, makeAspectCrop } from 'react-image-crop';
 import 'react-image-crop/dist/ReactCrop.css';
 import { useTranslation } from '../../i18n/useTranslation';
+import { ToolPanel } from './ui/ToolPanel';
 
 interface ScreenSize {
   id: string;
@@ -321,7 +322,7 @@ export default function AppStoreScreenshotResizer() {
   const activeImage = images[activeImageIndex];
 
   return (
-    <div className="flex flex-col gap-6">
+    <ToolPanel className="gap-6">
       <canvas ref={canvasRef} className="hidden" />
 
       <input
@@ -603,6 +604,6 @@ export default function AppStoreScreenshotResizer() {
           )}
         </>
       )}
-    </div>
+    </ToolPanel>
   );
 }

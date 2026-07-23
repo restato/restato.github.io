@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { useTranslation } from '../../i18n/useTranslation';
+import { ToolPanel } from './ui/ToolPanel';
 
 // Simple QR Code generator using canvas
 const QR_ERROR_CORRECTION = {
@@ -140,7 +141,7 @@ export default function QRCodeGenerator() {
   };
 
   return (
-    <div className="flex flex-col gap-6">
+    <ToolPanel className="gap-6">
       {/* Input */}
       <div className="space-y-2">
         <label className="block text-sm font-medium text-[var(--color-text)]">
@@ -214,6 +215,6 @@ export default function QRCodeGenerator() {
       <p className="text-sm text-[var(--color-text-muted)] text-center">
         {t({ ko: 'URL이나 텍스트를 입력하면 QR 코드가 생성됩니다', en: 'Enter URL or text to generate QR code', ja: 'URLやテキストを入力するとQRコードが生成されます' })}
       </p>
-    </div>
+    </ToolPanel>
   );
 }

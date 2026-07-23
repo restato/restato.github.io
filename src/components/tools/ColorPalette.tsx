@@ -1,5 +1,6 @@
 import { useState, useMemo } from 'react';
 import { useTranslation } from '../../i18n/useTranslation';
+import { ToolPanel } from './ui/ToolPanel';
 
 type HarmonyType = 'complementary' | 'triadic' | 'analogous' | 'splitComplementary' | 'tetradic' | 'monochromatic';
 
@@ -188,7 +189,7 @@ export default function ColorPalette() {
   ];
 
   return (
-    <div className="flex flex-col gap-6">
+    <ToolPanel className="gap-6">
       {/* Controls */}
       <div className="flex flex-wrap gap-4 items-center">
         {/* Base Color Picker */}
@@ -310,6 +311,6 @@ export default function ColorPalette() {
           </div>
         ))}
       </div>
-    </div>
+    </ToolPanel>
   );
 }

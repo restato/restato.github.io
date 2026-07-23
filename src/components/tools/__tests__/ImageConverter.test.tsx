@@ -39,6 +39,20 @@ describe('ImageConverter', () => {
     vi.unstubAllGlobals();
   });
 
+  it('uses shared controls and opens the local file picker from the keyboard', () => {
+    const { container } = render(<ImageConverter />);
+    const input = container.querySelector('input[type="file"]') as HTMLInputElement;
+    const openPicker = vi.spyOn(input, 'click').mockImplementation(() => {});
+    const dropZone = screen.getByRole('button', { name: '이미지를 드래그하거나 클릭하여 업로드' });
+
+    expect(container.firstElementChild).toHaveClass('fc-tool-panel');
+    expect(screen.getByRole('combobox')).toHaveClass('fc-select');
+    expect(dropZone).toHaveClass('fc-tool-drop-zone');
+    fireEvent.keyDown(dropZone, { key: 'Enter' });
+    fireEvent.keyDown(dropZone, { key: ' ' });
+    expect(openPicker).toHaveBeenCalledTimes(2);
+  });
+
   it('converts repeated non-Latin image selections to the chosen output format', async () => {
     const { container } = render(<ImageConverter />);
     fireEvent.change(screen.getByRole('combobox'), { target: { value: 'png' } });
