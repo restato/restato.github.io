@@ -52,10 +52,11 @@ Base: `08ee0fa`
 - Parsing, workers, downloads, file privacy, object-URL cleanup, existing error
   text, and other business behavior were not moved into the shared primitives.
 
-The registry's anonymous-chat entry remains on its pre-existing special
+The registry's anonymous-chat entry remains on its special
 `/[lang]/anonymous-chat/` route and is explicitly excluded by the localized
-tool-detail route. It is not a tool-control child in the Task 6 file scope and
-was intentionally left untouched.
+tool-detail route. Review remediation subsequently brought that route and its
+interactive workspace onto the same public tool-shell and shared-control
+contracts without moving it into the generic detail route.
 
 ## Commits
 
@@ -655,3 +656,101 @@ text-counter 200.7/220 KB, JSON 200.7/400 KB, and image-resizer
 
 The protected `.superpowers/sdd/rollout-task-1-report.md` was never staged or
 modified by this task; its pre-existing working-tree change remains untouched.
+
+---
+
+# Final re-review remediation (2026-07-23)
+
+## Outcome by final reviewer finding
+
+- Conditional controls: Dutch-pay participant name/payment fields, Pomodoro
+  settings, and timer duration controls now use labeled `ToolField` instances.
+  The LLM model picker uses keyboard-operable pressed buttons instead of hidden
+  checkboxes.
+- Result contract: Age and Discount calculations render success
+  `ToolResult` regions. `resultAdoption.ts` is the committed production matrix
+  for all 54 public registry tools, with an explicit `tool-result` or
+  `self-announcing` classification and rationale. Its executable contract
+  enforces exact registry equality, uniqueness, rationale completeness, and
+  primitive evidence; Age and Discount behavior tests render and assert the
+  live result regions.
+- Type-specific fields: `ToolField` assigns `fc-input` only to text-like
+  controls and uses `fc-check`, `fc-radio`, `fc-range`, `fc-color-input`, or
+  `fc-file-input` for the corresponding native types. Compact checks/radios no
+  longer inherit full width or 44px input height; their associated label row
+  retains a 44px pointer target. Render-matrix coverage includes Text Cleaner
+  and SEO checkboxes.
+- Media concurrency: Modern image conversion, EXIF removal, favicon
+  generation, and audio decoding use monotonically increasing
+  request/selection versions. Completion from an older request cannot restore
+  feedback, busy state, decoded buffers, previews, or downloads after a newer
+  selection. Deferred out-of-order tests prove the newest operation is the
+  sole owner of the published result and download.
+- Anonymous chat: the standard instruction section again includes a localized
+  `{helpUi.privacy}` heading and the route privacy text. The compact workspace
+  disclosure remains the only `.fc-tool-privacy` row.
+
+## Final re-review commits
+
+- `f5c19ea` — label conditional tool controls and replace hidden model checks
+- `f594343` — assign shared styles by native input type
+- `fb652c6` — add Age/Discount results and exhaustive result-adoption audit
+- `bbb856b` — invalidate stale media operations and previews
+- `cb13c03` — restore anonymous-chat privacy help
+
+## Final TDD and verification evidence
+
+Focused final-review gate:
+
+```sh
+npm test -- --run \
+  src/components/tools/__tests__/conditionalControlsContract.test.tsx \
+  src/components/tools/ui/__tests__/tool-ui.test.tsx \
+  src/components/tools/__tests__/AgeCalculator.test.tsx \
+  src/components/tools/__tests__/DiscountCalculator.test.tsx \
+  src/data/tools/__tests__/resultAdoptionContract.test.ts \
+  src/components/tools/media-calc/__tests__/tools.test.tsx \
+  src/data/tools/__tests__/pageMetadata.test.ts \
+  src/components/__tests__/Chat.test.tsx --reporter=dot
+```
+
+Status: passed — 8 files, 171 tests.
+
+Tool/chat/library regression gate:
+
+```sh
+npm test -- --run src/components/tools \
+  src/components/__tests__/Chat.test.tsx \
+  src/lib/pdf src/lib/data-text src/lib/media-calc --reporter=dot
+```
+
+Status: passed — 47 files, 563 tests.
+
+Complete repository gate:
+
+```sh
+npm test -- --run --reporter=dot
+```
+
+Status: passed — 88 files, 896 tests.
+
+Production gates:
+
+```sh
+npm run check
+npm run build
+node scripts/check-bundles.mjs dist
+```
+
+Status: all passed.
+
+- Astro check: 379 files, 0 errors, 0 warnings, 88 informational hints.
+- Production build: 493 client modules transformed; 1,269 pages built;
+  redirects and four split sitemaps generated; 1,121 final sitemap URLs.
+- Bundle guard: `/ko/tools` 165.9/180 KB, text-counter 201.1/220 KB,
+  JSON 201.1/400 KB, and image-resizer 201.1/550 KB gzip.
+- `git diff --check 08ee0fa..HEAD`: passed.
+
+The protected `.superpowers/sdd/rollout-task-1-report.md` remains unstaged and
+untouched by this task. No push, deployment, merge, or worktree cleanup was
+performed.
