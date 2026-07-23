@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useTranslation } from '../../i18n/useTranslation';
+import { ToolPanel } from './ui/ToolPanel';
 
 interface AgeResult {
   koreanAge: number;
@@ -183,7 +184,7 @@ export default function AgeCalculator() {
   };
 
   return (
-    <div className="flex flex-col gap-6">
+    <ToolPanel className="gap-6">
       {/* Birth Date Input */}
       <div className="space-y-2">
         <label htmlFor="birth-date" className="block text-sm font-medium text-[var(--color-text)]">
@@ -265,6 +266,6 @@ export default function AgeCalculator() {
           </div>
         </div>
       )}
-    </div>
+    </ToolPanel>
   );
 }

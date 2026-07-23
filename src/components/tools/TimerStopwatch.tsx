@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { useTranslation } from '../../i18n/useTranslation';
+import { ToolPanel } from './ui/ToolPanel';
 
 type Mode = 'timer' | 'stopwatch';
 
@@ -111,7 +112,7 @@ export default function TimerStopwatch() {
   };
 
   return (
-    <div className="flex flex-col gap-6">
+    <ToolPanel className="gap-6">
       {/* Mode Toggle */}
       <div className="flex rounded-lg overflow-hidden border border-[var(--color-border)]">
         <button
@@ -244,6 +245,6 @@ export default function TimerStopwatch() {
           </div>
         </div>
       )}
-    </div>
+    </ToolPanel>
   );
 }

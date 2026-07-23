@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useTranslation } from '../../i18n/useTranslation';
+import { ToolPanel } from './ui/ToolPanel';
 
 interface DdayResult {
   days: number;
@@ -86,7 +87,7 @@ export default function DdayCalculator() {
   ];
 
   return (
-    <div className="flex flex-col gap-6">
+    <ToolPanel className="gap-6">
       {/* Event Name */}
       <div className="space-y-2">
         <label className="block text-sm font-medium text-[var(--color-text)]">
@@ -226,6 +227,6 @@ export default function DdayCalculator() {
           </div>
         </div>
       )}
-    </div>
+    </ToolPanel>
   );
 }

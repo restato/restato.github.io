@@ -1,5 +1,6 @@
 import { useState, useMemo, useEffect } from 'react';
 import { useTranslation } from '../../i18n/useTranslation';
+import { ToolPanel } from './ui/ToolPanel';
 
 interface ModelPrice {
   name: string;
@@ -291,7 +292,7 @@ export default function LlmCostCalculator() {
   };
 
   return (
-    <div className="flex flex-col gap-6">
+    <ToolPanel className="gap-6">
       {/* Input Mode Toggle */}
       <div className="flex gap-2">
         <button
@@ -836,6 +837,6 @@ export default function LlmCostCalculator() {
           ))}
         </ul>
       </div>
-    </div>
+    </ToolPanel>
   );
 }

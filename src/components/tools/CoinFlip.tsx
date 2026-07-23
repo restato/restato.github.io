@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useTranslation } from '../../i18n/useTranslation';
+import { ToolPanel } from './ui/ToolPanel';
 
 export default function CoinFlip() {
   const { t } = useTranslation();
@@ -37,7 +38,7 @@ export default function CoinFlip() {
   const headsPercent = total > 0 ? (stats.heads / total) * 100 : 50;
 
   return (
-    <div className="flex flex-col gap-6">
+    <ToolPanel className="gap-6">
       {/* Coin Display */}
       <div className="flex flex-col items-center gap-4">
         <div
@@ -124,6 +125,6 @@ export default function CoinFlip() {
           <li>• {t({ ko: '앞면과 뒷면의 확률은 각각 50%입니다', en: 'Heads and tails each have a 50% probability', ja: '表と裏の確率はそれぞれ50％です' })}</li>
         </ul>
       </div>
-    </div>
+    </ToolPanel>
   );
 }

@@ -10,11 +10,14 @@ describe('BmiCalculator', () => {
   });
 
   it('renders height and weight inputs', () => {
-    render(<BmiCalculator />);
+    const { container } = render(<BmiCalculator />);
 
     // Should have inputs for height and weight
     const inputs = screen.getAllByRole('spinbutton');
     expect(inputs.length).toBeGreaterThanOrEqual(2);
+    expect(container.firstElementChild).toHaveClass('fc-tool-panel');
+    expect(inputs[0]).toHaveClass('fc-input');
+    expect(screen.getByRole('button', { name: 'BMI 계산하기' })).toHaveClass('fc-button', 'fc-button-primary');
   });
 
   it('calculates BMI correctly', async () => {

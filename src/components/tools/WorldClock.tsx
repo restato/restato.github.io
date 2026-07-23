@@ -1,5 +1,6 @@
 import { useState, useEffect, useMemo } from 'react';
 import { useTranslation } from '../../i18n/useTranslation';
+import { ToolPanel } from './ui/ToolPanel';
 
 interface Timezone {
   id: string;
@@ -125,7 +126,7 @@ export default function WorldClock() {
   };
 
   return (
-    <div className="flex flex-col gap-6">
+    <ToolPanel className="gap-6">
       {/* Current Time Display */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         {selectedZones.map((zoneId) => {
@@ -263,6 +264,6 @@ export default function WorldClock() {
           </div>
         )}
       </div>
-    </div>
+    </ToolPanel>
   );
 }

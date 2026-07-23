@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useTranslation } from '../../i18n/useTranslation';
+import { ToolPanel } from './ui/ToolPanel';
 
 interface BmiResult {
   bmi: number;
@@ -105,7 +106,7 @@ export default function BmiCalculator() {
   ];
 
   return (
-    <div className="flex flex-col gap-6">
+    <ToolPanel className="gap-6">
       {/* Input Fields */}
       <div className="grid grid-cols-2 gap-4">
         <div className="space-y-2">
@@ -210,6 +211,6 @@ export default function BmiCalculator() {
       <p className="text-xs text-[var(--color-text-muted)] text-center">
         * {t(tc.disclaimer)}
       </p>
-    </div>
+    </ToolPanel>
   );
 }

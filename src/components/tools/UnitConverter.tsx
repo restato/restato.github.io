@@ -1,5 +1,6 @@
 import { useState, useMemo } from 'react';
 import { useTranslation } from '../../i18n/useTranslation';
+import { ToolPanel } from './ui/ToolPanel';
 
 type UnitCategory = 'length' | 'weight' | 'temperature' | 'area' | 'volume';
 
@@ -202,7 +203,7 @@ export default function UnitConverter() {
   };
 
   return (
-    <div className="flex flex-col gap-6">
+    <ToolPanel className="gap-6">
       {/* Category Tabs */}
       <div className="flex flex-wrap gap-2">
         {(Object.keys(units) as UnitCategory[]).map((cat) => (
@@ -306,6 +307,6 @@ export default function UnitConverter() {
           </p>
         </div>
       )}
-    </div>
+    </ToolPanel>
   );
 }

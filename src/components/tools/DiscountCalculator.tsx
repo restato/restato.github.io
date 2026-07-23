@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useTranslation } from '../../i18n/useTranslation';
+import { ToolPanel } from './ui/ToolPanel';
 
 export default function DiscountCalculator() {
   const { t, lang } = useTranslation();
@@ -28,7 +29,7 @@ export default function DiscountCalculator() {
   const quickDiscounts = [5, 10, 15, 20, 25, 30, 40, 50, 60, 70, 80, 90];
 
   return (
-    <div className="flex flex-col gap-6">
+    <ToolPanel className="gap-6">
       {/* Original Price */}
       <div className="space-y-2">
         <label className="block text-sm font-medium text-[var(--color-text)]">
@@ -156,6 +157,6 @@ export default function DiscountCalculator() {
           ))}
         </div>
       </div>
-    </div>
+    </ToolPanel>
   );
 }

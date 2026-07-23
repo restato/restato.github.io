@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { useTranslation } from '../../i18n/useTranslation';
+import { ToolPanel } from './ui/ToolPanel';
 
 type TimerMode = 'work' | 'shortBreak' | 'longBreak';
 
@@ -139,7 +140,7 @@ export default function PomodoroTimer() {
   };
 
   return (
-    <div className="flex flex-col gap-6">
+    <ToolPanel className="gap-6">
       {/* Mode Tabs */}
       <div className="flex rounded-lg overflow-hidden border border-[var(--color-border)]">
         {(['work', 'shortBreak', 'longBreak'] as TimerMode[]).map((timerMode) => (
@@ -316,6 +317,6 @@ export default function PomodoroTimer() {
           })}
         </p>
       </div>
-    </div>
+    </ToolPanel>
   );
 }

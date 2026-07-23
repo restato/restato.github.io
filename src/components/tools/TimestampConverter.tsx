@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useTranslation } from '../../i18n/useTranslation';
+import { ToolPanel } from './ui/ToolPanel';
 
 export default function TimestampConverter() {
   const { t, lang, translations } = useTranslation();
@@ -104,7 +105,7 @@ export default function TimestampConverter() {
   ];
 
   return (
-    <div className="flex flex-col gap-6">
+    <ToolPanel className="gap-6">
       {/* Current Time */}
       <div className="p-4 rounded-xl bg-gradient-to-r from-primary-500/10 to-primary-500/5 border border-primary-500/20">
         <div className="flex items-center justify-between">
@@ -241,6 +242,6 @@ export default function TimestampConverter() {
           {t(tc.timestampExplanation)}
         </p>
       </div>
-    </div>
+    </ToolPanel>
   );
 }

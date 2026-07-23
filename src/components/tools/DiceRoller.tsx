@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useTranslation } from '../../i18n/useTranslation';
+import { ToolPanel } from './ui/ToolPanel';
 
 interface DiceConfig {
   sides: number;
@@ -52,7 +53,7 @@ export default function DiceRoller() {
   };
 
   return (
-    <div className="flex flex-col gap-6">
+    <ToolPanel className="gap-6">
       {/* Dice Type Selection */}
       <div className="space-y-2">
         <label className="block text-sm font-medium text-[var(--color-text)]">
@@ -180,6 +181,6 @@ export default function DiceRoller() {
           </div>
         </div>
       )}
-    </div>
+    </ToolPanel>
   );
 }
