@@ -1,6 +1,7 @@
 ---
 import MainLayout from '../../../layouts/MainLayout.astro';
 import BlogCard from '../../../components/BlogCard.astro';
+import PageShell from '../../../components/ui/PageShell.astro';
 import { getCollection } from 'astro:content';
 import { getBlogTagEntries, getBlogTagRouteEntries, toBlogTagSlug } from '../../../lib/blogTags';
 
@@ -47,34 +48,29 @@ const allTagEntries = getBlogTagEntries(allPosts.flatMap(post => post.data.tags)
     data-canonical-slug={toBlogTagSlug(tag)}
     set:html={legacyTagPathsJson}
   />
-  <section class="py-20 px-6">
-    <div class="max-w-4xl mx-auto">
-      <!-- Header -->
-      <div class="mb-12">
-        <a href="/blog" class="text-sm font-medium text-primary-600 dark:text-primary-400 mb-2 inline-flex items-center gap-1 hover:underline">
+  <PageShell size="content">
+      <header class="fc-page-header">
+        <a href="/blog" class="fc-button fc-button-quiet w-fit px-2 text-sm">
           <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7" />
           </svg>
           Blog
         </a>
-        <h1 class="text-4xl font-bold mb-4">
-          <span class="text-[var(--color-text-muted)]">#</span>{tag}
+        <h1>
+          <span class="text-[var(--accent)]">#</span>{tag}
         </h1>
-        <p class="text-lg text-[var(--color-text-muted)] max-w-xl">
+        <p class="fc-page-description">
           {posts.length} post{posts.length !== 1 ? 's' : ''} tagged with "{tag}"
         </p>
-      </div>
+      </header>
 
-      <!-- Tags Filter -->
       {allTagEntries.length > 0 && (
-        <div class="mb-10 pb-6 border-b border-[var(--color-border)]">
+        <nav class="mb-10 border-b border-[var(--border-subtle)] pb-6" aria-label="Blog tags">
           <div class="flex flex-wrap gap-2 items-center">
-            <span class="text-sm font-medium text-[var(--color-text-muted)] mr-1">Tags</span>
+            <span class="mr-1 text-sm font-bold text-[var(--text-muted)]">Tags</span>
             <a
               href="/blog"
-              class="text-sm px-3 py-1.5 rounded-lg bg-[var(--color-card)] border border-[var(--color-border)]
-                     hover:border-primary-500/50 hover:text-primary-600 dark:hover:text-primary-400
-                     transition-colors font-medium"
+              class="fc-chip border border-transparent transition-colors hover:border-[var(--brand)] hover:text-[var(--brand)]"
             >
               All
             </a>
@@ -82,22 +78,21 @@ const allTagEntries = getBlogTagEntries(allPosts.flatMap(post => post.data.tags)
               <a
                 href={`/blog/tag/${entry.slug}`}
                 class:list={[
-                  "text-sm px-3 py-1.5 rounded-lg border transition-colors font-medium",
+                  "fc-chip border transition-colors",
                   entry.label === tag
-                    ? "bg-primary-500 text-white border-primary-500"
-                    : "bg-[var(--color-card)] border-[var(--color-border)] hover:border-primary-500/50 hover:text-primary-600 dark:hover:text-primary-400"
+                    ? "border-[var(--brand)] bg-[var(--brand)] text-white"
+                    : "border-transparent hover:border-[var(--brand)] hover:text-[var(--brand)]"
                 ]}
               >
                 {entry.label}
               </a>
             ))}
           </div>
-        </div>
+        </nav>
       )}
 
-      <!-- Posts Grid -->
       {posts.length > 0 ? (
-        <div class="grid md:grid-cols-2 gap-6">
+        <div class="grid gap-6 md:grid-cols-2">
           {posts.map((post) => (
             <BlogCard
               title={post.data.title}
@@ -110,26 +105,16 @@ const allTagEntries = getBlogTagEntries(allPosts.flatMap(post => post.data.tags)
           ))}
         </div>
       ) : (
-        <div class="text-center py-20 px-6 rounded-2xl border border-dashed border-[var(--color-border)]">
-          <div class="w-16 h-16 mx-auto mb-4 rounded-2xl bg-primary-500/10 flex items-center justify-center">
-            <svg class="w-8 h-8 text-primary-500" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M9.568 3H5.25A2.25 2.25 0 003 5.25v4.318c0 .597.237 1.17.659 1.591l9.581 9.581c.699.699 1.78.872 2.607.33a18.095 18.095 0 005.223-5.223c.542-.827.369-1.908-.33-2.607L11.16 3.66A2.25 2.25 0 009.568 3z" />
-              <path stroke-linecap="round" stroke-linejoin="round" d="M6 6h.008v.008H6V6z" />
-            </svg>
-          </div>
-          <h2 class="text-xl font-bold mb-2">No posts found</h2>
-          <p class="text-[var(--color-text-muted)]">
-            No posts are tagged with "{tag}" yet.
-          </p>
+        <div class="fc-empty-state">
+          <h2>No posts found</h2>
+          <p>No posts are tagged with "{tag}" yet.</p>
         </div>
       )}
 
-      <!-- Post count -->
       {posts.length > 0 && (
-        <p class="mt-8 text-center text-sm text-[var(--color-text-muted)]">
+        <p class="mt-8 text-center text-sm text-[var(--text-muted)]">
           {posts.length} post{posts.length !== 1 ? 's' : ''} with tag "{tag}"
         </p>
       )}
-    </div>
-  </section>
+  </PageShell>
 </MainLayout>

@@ -58,7 +58,8 @@ describe('Forest Café design system', () => {
 
   it('uses a readable body rhythm and caps long-form content despite max-w-none utilities', () => {
     expect(css).toMatch(/body\s*\{[^}]*font-size:\s*1rem;[^}]*line-height:\s*1\.7;/s);
-    expect(blogArticle).toContain('prose prose-lg dark:prose-invert max-w-none');
+    expect(blogArticle).toContain('fc-prose prose prose-lg dark:prose-invert');
+    expect(css).toMatch(/\.fc-prose\s*\{[^}]*max-inline-size:\s*68ch;/s);
     expect(css).toMatch(/\.prose\.prose-lg\s*\{[^}]*max-width:\s*68ch;[^}]*max-inline-size:\s*68ch;/s);
     expect(config).toContain("maxWidth: '68ch'");
   });
