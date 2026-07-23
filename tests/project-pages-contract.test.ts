@@ -26,6 +26,20 @@ const forbiddenPresentationPatterns = [
   /\bhover:scale-/,
 ] as const;
 
+function relativeLuminance(hex: string) {
+  const channels = hex.match(/[a-f\d]{2}/gi)?.map((channel) => parseInt(channel, 16) / 255) ?? [];
+  const [red, green, blue] = channels.map((channel) => (
+    channel <= 0.03928 ? channel / 12.92 : ((channel + 0.055) / 1.055) ** 2.4
+  ));
+  return (0.2126 * red) + (0.7152 * green) + (0.0722 * blue);
+}
+
+function contrastRatio(first: string, second: string) {
+  const [lighter, darker] = [relativeLuminance(first), relativeLuminance(second)]
+    .sort((left, right) => right - left);
+  return (lighter + 0.05) / (darker + 0.05);
+}
+
 describe('Forest Café project page contract', () => {
   it.each(projectFiles)('%s uses shared primitives without legacy effects', (file) => {
     const source = projectSources[file];
@@ -65,5 +79,18 @@ describe('Forest Café project page contract', () => {
     expect(localPrice).toMatch(/data-local-price-primary-cta[^>]+fc-button-primary/);
     expect(roomfit).toMatch(/data-roomfit-eyebrow[^>]+fc-eyebrow/);
     expect(roomfit).not.toMatch(/data-roomfit-eyebrow[^>]+text-cyan-/);
+  });
+
+  it('keeps the project CTA and eyebrow token pairs at WCAG AA contrast', () => {
+    const pairs = [
+      ['#fffaf0', '#174a35'], // light primary button
+      ['#18221c', '#6fa989'], // dark primary button
+      ['#935832', '#f4efe5'], // light eyebrow
+      ['#cf936a', '#111814'], // dark eyebrow
+    ] as const;
+
+    for (const [foreground, background] of pairs) {
+      expect(contrastRatio(foreground, background)).toBeGreaterThanOrEqual(4.5);
+    }
   });
 });

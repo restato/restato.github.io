@@ -13,147 +13,144 @@ const images = [
 ---
 
 <MainLayout title="갤러리 | Restato" description="사진 갤러리">
-  <section class="py-8 px-4">
-    <div class="max-w-6xl mx-auto">
-      <!-- Header -->
-      <div class="mb-8">
-        <div class="flex items-center gap-2 text-sm text-[var(--color-text-muted)] mb-2">
-          <a href="/projects" class="hover:text-primary-500">프로젝트</a>
-          <span>/</span>
-          <span>갤러리</span>
-        </div>
-        <h1 class="text-3xl font-bold mb-2">📷 갤러리</h1>
-        <p class="text-[var(--color-text-muted)]">
-          사진 모음
-        </p>
-      </div>
+  <div class="fc-page fc-content">
+    <nav class="fc-tool-breadcrumb" aria-label="이동 경로">
+      <ol>
+        <li><a href="/projects">프로젝트</a></li>
+        <li aria-hidden="true">/</li>
+        <li aria-current="page">갤러리</li>
+      </ol>
+    </nav>
 
-      <!-- Gallery Grid -->
-      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+    <header class="fc-page-header">
+      <p class="fc-eyebrow">Photo collection</p>
+      <h1>📷 갤러리</h1>
+      <p class="fc-page-description">사진 모음</p>
+    </header>
+
+    <section aria-label="사진 모음">
+      <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {images.map((image, index) => (
-          <div
-            class="group relative aspect-[4/3] overflow-hidden rounded-xl cursor-pointer"
+          <button
+            type="button"
+            class="fc-surface group relative aspect-[4/3] overflow-hidden p-0 text-left"
+            data-gallery-item
             data-index={index}
+            aria-label={`${image.title} 크게 보기`}
           >
             <img
               src={image.src}
               alt={image.alt}
-              class="w-full h-full object-cover transition-transform duration-300 group-hover:scale-110"
+              class="h-full w-full object-cover"
               loading="lazy"
             />
-            <div class="absolute inset-0 bg-black/0 group-hover:bg-black/40 transition-colors duration-300 flex items-end">
-              <div class="p-4 text-white opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                <p class="font-medium">{image.title}</p>
-              </div>
-            </div>
-          </div>
+            <span class="absolute inset-x-0 bottom-0 bg-[var(--surface-raised)] p-3 text-sm font-medium text-[var(--text-primary)]">
+              {image.title}
+            </span>
+          </button>
         ))}
       </div>
 
-      <!-- Empty State for when you add your own images -->
       {images.length === 0 && (
-        <div class="text-center py-20">
-          <div class="text-6xl mb-4">📷</div>
-          <h2 class="text-2xl font-bold mb-2">아직 사진이 없습니다</h2>
-          <p class="text-[var(--color-text-muted)]">
-            public/images 폴더에 사진을 추가하세요
-          </p>
+        <div class="fc-empty-state">
+          <div class="text-6xl" aria-hidden="true">📷</div>
+          <h2>아직 사진이 없습니다</h2>
+          <p>public/images 폴더에 사진을 추가하세요</p>
         </div>
       )}
+    </section>
 
-      <!-- Info -->
-      <div class="mt-12 p-6 bg-[var(--color-card)] rounded-xl border border-[var(--color-border)]">
-        <h2 class="text-lg font-bold mb-4">💡 사진 추가하기</h2>
-        <p class="text-[var(--color-text-muted)]">
-          <code class="bg-gray-800 text-green-400 px-2 py-1 rounded">public/images/gallery/</code> 폴더에 사진을 추가하고,
-          이 페이지의 images 배열을 업데이트하세요.
-        </p>
-      </div>
-    </div>
-  </section>
+    <section class="fc-surface fc-surface-padding-md" aria-labelledby="gallery-help-title">
+      <h2 id="gallery-help-title" class="mb-4 text-lg font-bold">💡 사진 추가하기</h2>
+      <p class="text-[var(--text-muted)]">
+        <code class="rounded bg-[var(--surface-soft)] px-2 py-1 text-[var(--accent)]">public/images/gallery/</code> 폴더에 사진을 추가하고,
+        이 페이지의 images 배열을 업데이트하세요.
+      </p>
+    </section>
+  </div>
+
+  <div
+    id="gallery-dialog"
+    class="fixed inset-0 z-50 items-center justify-center bg-[var(--surface-page)]/95 p-4"
+    role="dialog"
+    aria-modal="true"
+    aria-labelledby="gallery-dialog-title"
+    hidden
+  >
+    <h2 id="gallery-dialog-title" class="sr-only">이미지 크게 보기</h2>
+    <button
+      type="button"
+      class="fc-button fc-button-secondary absolute right-4 top-4 h-11 w-11 p-0 text-2xl"
+      data-gallery-close
+      aria-label="닫기"
+    >
+      &times;
+    </button>
+    <button
+      type="button"
+      class="fc-button fc-button-secondary absolute left-4 top-1/2 h-11 w-11 -translate-y-1/2 p-0 text-2xl"
+      data-gallery-previous
+      aria-label="이전 이미지"
+    >
+      &#8249;
+    </button>
+    <button
+      type="button"
+      class="fc-button fc-button-secondary absolute right-4 top-1/2 h-11 w-11 -translate-y-1/2 p-0 text-2xl"
+      data-gallery-next
+      aria-label="다음 이미지"
+    >
+      &#8250;
+    </button>
+    <img id="gallery-dialog-image" src="" alt="" class="max-h-[85vh] max-w-[85vw] object-contain" />
+  </div>
 </MainLayout>
 
-<!-- Lightbox Modal -->
-<div id="lightbox" class="fixed inset-0 z-50 hidden bg-black/90 items-center justify-center">
-  <button
-    id="lightbox-close"
-    class="absolute top-4 right-4 text-white text-4xl hover:text-gray-300 transition-colors"
-  >
-    &times;
-  </button>
-  <button
-    id="lightbox-prev"
-    class="absolute left-4 top-1/2 -translate-y-1/2 text-white text-4xl hover:text-gray-300 transition-colors"
-  >
-    &#8249;
-  </button>
-  <button
-    id="lightbox-next"
-    class="absolute right-4 top-1/2 -translate-y-1/2 text-white text-4xl hover:text-gray-300 transition-colors"
-  >
-    &#8250;
-  </button>
-  <img id="lightbox-img" src="" alt="" class="max-w-[90vw] max-h-[90vh] object-contain" />
-</div>
-
 <script define:vars={{ images }}>
-  const lightbox = document.getElementById('lightbox');
-  const lightboxImg = document.getElementById('lightbox-img');
-  const closeBtn = document.getElementById('lightbox-close');
-  const prevBtn = document.getElementById('lightbox-prev');
-  const nextBtn = document.getElementById('lightbox-next');
+  const dialog = document.getElementById('gallery-dialog');
+  const dialogImage = document.getElementById('gallery-dialog-image');
+  const closeButton = dialog?.querySelector('[data-gallery-close]');
+  const previousButton = dialog?.querySelector('[data-gallery-previous]');
+  const nextButton = dialog?.querySelector('[data-gallery-next]');
   let currentIndex = 0;
 
-  // Open lightbox
-  document.querySelectorAll('[data-index]').forEach((el) => {
-    el.addEventListener('click', () => {
-      currentIndex = parseInt(el.dataset.index);
+  document.querySelectorAll('[data-gallery-item]').forEach((element) => {
+    element.addEventListener('click', () => {
+      currentIndex = Number(element.getAttribute('data-index'));
       showImage(currentIndex);
-      lightbox.classList.remove('hidden');
-      lightbox.classList.add('flex');
+      dialog?.removeAttribute('hidden');
+      dialog?.classList.add('flex');
     });
   });
 
-  // Close lightbox
-  closeBtn?.addEventListener('click', closeLightbox);
-  lightbox?.addEventListener('click', (e) => {
-    if (e.target === lightbox) closeLightbox();
+  closeButton?.addEventListener('click', closeDialog);
+  dialog?.addEventListener('click', (event) => {
+    if (event.target === dialog) closeDialog();
   });
-
-  // Navigation
-  prevBtn?.addEventListener('click', () => {
+  previousButton?.addEventListener('click', () => {
     currentIndex = (currentIndex - 1 + images.length) % images.length;
     showImage(currentIndex);
   });
-
-  nextBtn?.addEventListener('click', () => {
+  nextButton?.addEventListener('click', () => {
     currentIndex = (currentIndex + 1) % images.length;
     showImage(currentIndex);
   });
 
-  // Keyboard navigation
-  document.addEventListener('keydown', (e) => {
-    if (lightbox?.classList.contains('hidden')) return;
-    if (e.key === 'Escape') closeLightbox();
-    if (e.key === 'ArrowLeft') {
-      currentIndex = (currentIndex - 1 + images.length) % images.length;
-      showImage(currentIndex);
-    }
-    if (e.key === 'ArrowRight') {
-      currentIndex = (currentIndex + 1) % images.length;
-      showImage(currentIndex);
-    }
+  document.addEventListener('keydown', (event) => {
+    if (dialog?.hasAttribute('hidden')) return;
+    if (event.key === 'Escape') closeDialog();
+    if (event.key === 'ArrowLeft') previousButton?.click();
+    if (event.key === 'ArrowRight') nextButton?.click();
   });
 
   function showImage(index) {
-    if (lightboxImg) {
-      lightboxImg.src = images[index].src;
-      lightboxImg.alt = images[index].alt;
-    }
+    if (!(dialogImage instanceof HTMLImageElement)) return;
+    dialogImage.src = images[index].src;
+    dialogImage.alt = images[index].alt;
   }
 
-  function closeLightbox() {
-    lightbox?.classList.add('hidden');
-    lightbox?.classList.remove('flex');
+  function closeDialog() {
+    dialog?.setAttribute('hidden', '');
+    dialog?.classList.remove('flex');
   }
 </script>

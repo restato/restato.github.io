@@ -93,25 +93,26 @@ const breadcrumbSchema = {
   <script type="application/ld+json" set:html={JSON.stringify(appSchema)} />
   <script type="application/ld+json" set:html={JSON.stringify(breadcrumbSchema)} />
 
-  <section class="py-16 px-4 bg-gradient-to-b from-indigo-500/10 to-transparent">
+  <div class="fc-page fc-content">
+  <section class="fc-surface fc-surface-padding-md">
     <div class="max-w-5xl mx-auto">
-      <div class="mb-6 text-sm text-[var(--color-text-muted)] flex items-center gap-2">
-        <a href="/" class="hover:text-[var(--color-text)]">Home</a>
+      <div class="fc-tool-breadcrumb mb-6 flex items-center gap-2">
+        <a href="/">Home</a>
         <span>/</span>
-        <a href="/projects" class="hover:text-[var(--color-text)]">Projects</a>
+        <a href="/projects">Projects</a>
         <span>/</span>
-        <span class="text-[var(--color-text)]">Quick Issue</span>
+        <span aria-current="page">Quick Issue</span>
       </div>
 
       <div class="max-w-3xl">
         <div class="flex flex-wrap gap-2 mb-4">
-          <span class="inline-flex items-center px-3 py-1 text-sm font-medium rounded-full bg-indigo-500/10 text-indigo-600 dark:text-indigo-400">
+          <span class="fc-chip">
             PWA
           </span>
-          <span class="inline-flex items-center px-3 py-1 text-sm font-medium rounded-full bg-sky-500/10 text-sky-600 dark:text-sky-400">
+          <span class="fc-chip">
             Mobile-first
           </span>
-          <span class="inline-flex items-center px-3 py-1 text-sm font-medium rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400">
+          <span class="fc-chip">
             Open Source
           </span>
         </div>
@@ -126,7 +127,7 @@ const breadcrumbSchema = {
             href={appUrl}
             target="_blank"
             rel="noopener noreferrer"
-            class="inline-flex items-center px-6 py-3 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-medium transition-colors"
+            class="fc-button fc-button-primary"
           >
             Open Live App
             <svg class="w-5 h-5 ml-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -137,7 +138,7 @@ const breadcrumbSchema = {
             href={githubUrl}
             target="_blank"
             rel="noopener noreferrer"
-            class="inline-flex items-center px-6 py-3 rounded-xl border border-[var(--color-border)] hover:bg-[var(--color-card-hover)] font-medium transition-colors"
+            class="fc-button fc-button-secondary"
           >
             View on GitHub
             <svg class="w-5 h-5 ml-2" fill="currentColor" viewBox="0 0 24 24">
@@ -147,15 +148,15 @@ const breadcrumbSchema = {
         </div>
 
         <div class="grid sm:grid-cols-3 gap-3">
-          <div class="p-4 rounded-xl border border-[var(--color-border)] bg-[var(--color-card)]">
+          <div class="fc-surface p-4">
             <p class="text-xs uppercase tracking-wide text-[var(--color-text-muted)] mb-1">Platform</p>
             <p class="font-semibold">Web PWA</p>
           </div>
-          <div class="p-4 rounded-xl border border-[var(--color-border)] bg-[var(--color-card)]">
+          <div class="fc-surface p-4">
             <p class="text-xs uppercase tracking-wide text-[var(--color-text-muted)] mb-1">Focus</p>
             <p class="font-semibold">GitHub Issue Workflow</p>
           </div>
-          <div class="p-4 rounded-xl border border-[var(--color-border)] bg-[var(--color-card)]">
+          <div class="fc-surface p-4">
             <p class="text-xs uppercase tracking-wide text-[var(--color-text-muted)] mb-1">Target Device</p>
             <p class="font-semibold">Mobile and Desktop</p>
           </div>
@@ -164,12 +165,12 @@ const breadcrumbSchema = {
     </div>
   </section>
 
-  <section class="py-16 px-4">
+  <section>
     <div class="max-w-5xl mx-auto">
       <h2 class="text-3xl font-bold mb-8">App Screenshots</h2>
       <div class="grid md:grid-cols-2 gap-6">
         {screenshots.map((screenshot) => (
-          <figure class="p-4 md:p-5 rounded-2xl border border-[var(--color-border)] bg-[var(--color-card)]">
+          <figure class="fc-surface p-4 md:p-5">
             <img
               src={screenshot.src}
               alt={screenshot.alt}
@@ -183,12 +184,12 @@ const breadcrumbSchema = {
     </div>
   </section>
 
-  <section class="py-16 px-4">
+  <section>
     <div class="max-w-5xl mx-auto">
       <h2 class="text-3xl font-bold mb-8">Core Features</h2>
       <div class="grid md:grid-cols-2 gap-6">
         {features.map((feature) => (
-          <div class="p-6 rounded-2xl border border-[var(--color-border)] bg-[var(--color-card)]">
+          <div class="fc-surface p-6">
             <h3 class="text-xl font-semibold mb-2">{feature.title}</h3>
             <p class="text-[var(--color-text-muted)]">{feature.description}</p>
           </div>
@@ -197,12 +198,12 @@ const breadcrumbSchema = {
     </div>
   </section>
 
-  <section class="py-16 px-4 border-t border-[var(--color-border)]">
+  <section class="border-t border-[var(--border-subtle)] pt-10">
     <div class="max-w-5xl mx-auto">
       <h2 class="text-3xl font-bold mb-8">Tech Stack</h2>
       <div class="grid md:grid-cols-2 gap-4">
         {techStack.map((item) => (
-          <div class="p-5 rounded-xl border border-[var(--color-border)] bg-[var(--color-card)]">
+          <div class="fc-surface p-5">
             <p class="text-sm uppercase tracking-wide text-[var(--color-text-muted)] mb-2">{item.label}</p>
             <p class="font-semibold">{item.value}</p>
           </div>
@@ -210,4 +211,5 @@ const breadcrumbSchema = {
       </div>
     </div>
   </section>
+  </div>
 </MainLayout>
