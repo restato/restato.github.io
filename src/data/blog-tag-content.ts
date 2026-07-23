@@ -1,4 +1,5 @@
 import type { Language } from './tools/types';
+import { supportedLanguages } from './tools/locales';
 
 export interface BlogTagContent {
   metaDescription: string;
@@ -12,6 +13,16 @@ export interface BlogTagContent {
 }
 
 type BlogTagContentFactory = (tag: string, count: number) => BlogTagContent;
+
+export interface BlogTagLanguagePost {
+  slug?: string;
+  data: {
+    lang?: Language;
+    title: string;
+    description: string;
+    date: Date;
+  };
+}
 
 export const blogTagContentByLanguage: Record<Language, BlogTagContentFactory> = {
   ko: (tag, count) => ({
@@ -147,4 +158,50 @@ export function inferBlogTagLanguage(tag: string): Language {
   if (/[\u3100-\u312f]/u.test(tag)) return 'zh-TW';
   if (/\p{Script=Han}/u.test(tag)) return 'zh-CN';
   return 'en';
+}
+
+function inferArticleMetadataLanguage(post: BlogTagLanguagePost): Language {
+  if (post.data.lang && supportedLanguages.includes(post.data.lang)) {
+    return post.data.lang;
+  }
+
+  const metadata = `${post.data.title} ${post.data.description}`;
+  if (/\p{Script=Hangul}/u.test(metadata)) return 'ko';
+  if (/[\p{Script=Hiragana}\p{Script=Katakana}]/u.test(metadata)) return 'ja';
+  if (/\p{Script=Devanagari}/u.test(metadata)) return 'hi';
+  if (/[\u3100-\u312f]|[體臺灣與為這個學習網頁開發實際]/u.test(metadata)) return 'zh-TW';
+  if (/\p{Script=Han}/u.test(metadata)) return 'zh-CN';
+  return 'en';
+}
+
+/**
+ * A tag page represents the articles assigned to it, so article metadata is
+ * authoritative. Plurality wins; ties use the newest article represented by
+ * each language and finally the registry order. The tag label itself is only
+ * consulted for the defensive no-post state.
+ */
+export function selectBlogTagLanguage(
+  tag: string,
+  posts: readonly BlogTagLanguagePost[],
+): Language {
+  if (posts.length === 0) return inferBlogTagLanguage(tag);
+
+  const languageStats = new Map<Language, { count: number; newest: number }>();
+  for (const post of posts) {
+    const language = inferArticleMetadataLanguage(post);
+    const timestamp = post.data.date.valueOf();
+    const newest = Number.isFinite(timestamp) ? timestamp : Number.NEGATIVE_INFINITY;
+    const current = languageStats.get(language);
+    languageStats.set(language, {
+      count: (current?.count ?? 0) + 1,
+      newest: Math.max(current?.newest ?? Number.NEGATIVE_INFINITY, newest),
+    });
+  }
+
+  return [...languageStats.entries()]
+    .sort(([leftLanguage, left], [rightLanguage, right]) => (
+      right.count - left.count
+      || right.newest - left.newest
+      || supportedLanguages.indexOf(leftLanguage) - supportedLanguages.indexOf(rightLanguage)
+    ))[0][0];
 }

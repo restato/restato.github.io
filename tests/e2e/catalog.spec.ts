@@ -22,6 +22,23 @@ test('forest cafe route matrix covers every required family, Korean, English, an
   expect(forestCafeRoutes.every(({ path }) => path.startsWith('/') && path.endsWith('/'))).toBe(true);
 });
 
+test('Latin jekyll tag derives and locks Korean from its matching article metadata', async ({ page }) => {
+  assertNoUnexpectedConsoleErrors(page);
+
+  const response = await page.goto('/blog/tag/jekyll/', { waitUntil: 'networkidle' });
+
+  expect(response?.ok()).toBeTruthy();
+  await expect(page.locator('html')).toHaveAttribute('lang', 'ko');
+  await expect(page.locator('meta[name="description"]')).toHaveAttribute(
+    'content',
+    /Restato 블로그/,
+  );
+  await expect(page.getByRole('heading', { name: '이 모음에서 살펴볼 내용' })).toBeVisible();
+  await expect(page.locator('#lang-selector')).toHaveCount(0);
+  await expect(page.locator('#mobile-language-label')).toHaveCount(0);
+  assertNoUnexpectedConsoleErrors(page);
+});
+
 test('fails closed when a site console error mimics an extension URL', async ({ page }) => {
   assertNoUnexpectedConsoleErrors(page);
   await page.goto('/en/tools', { waitUntil: 'networkidle' });

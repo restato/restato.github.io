@@ -3,7 +3,7 @@ import MainLayout from '../../../layouts/MainLayout.astro';
 import BlogCard from '../../../components/BlogCard.astro';
 import PageShell from '../../../components/ui/PageShell.astro';
 import { getCollection } from 'astro:content';
-import { getBlogTagContent, inferBlogTagLanguage } from '../../../data/blog-tag-content';
+import { getBlogTagContent, selectBlogTagLanguage } from '../../../data/blog-tag-content';
 import { getBlogTagEntries, getBlogTagRouteEntries, toBlogTagSlug } from '../../../lib/blogTags';
 
 export async function getStaticPaths() {
@@ -31,7 +31,7 @@ export async function getStaticPaths() {
 
 const { tag, posts, legacyTagPaths = [] } = Astro.props;
 const legacyTagPathsJson = JSON.stringify(legacyTagPaths).replace(/</g, '\\u003c');
-const tagLanguage = inferBlogTagLanguage(tag);
+const tagLanguage = selectBlogTagLanguage(tag, posts);
 const tagContent = getBlogTagContent(tagLanguage, tag, posts.length);
 
 // Get all unique tags for the filter section
@@ -43,6 +43,7 @@ const allTagEntries = getBlogTagEntries(allPosts.flatMap(post => post.data.tags)
   title={`${tag} | Blog | Restato`}
   description={tagContent.metaDescription}
   lang={tagLanguage}
+  lockLanguage={true}
 >
   <script
     slot="head"
