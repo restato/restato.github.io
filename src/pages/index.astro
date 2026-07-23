@@ -7,7 +7,6 @@ import {
   RecentPostsHeader,
   NoPostsMessage,
   PopularToolsSection,
-  GameCenterBanner,
   ProjectsSection
 } from '../components/HomeContent';
 
@@ -17,39 +16,33 @@ const posts = (await getCollection('blog', ({ data }) => !data.draft))
 ---
 
 <MainLayout title="Restato | Developer Blog">
-  <!-- Hero Section -->
-  <HeroSection client:idle />
+  <div class="fc-page fc-content">
+    <HeroSection client:idle />
+    <PopularToolsSection client:visible />
 
-  <!-- Recent Posts -->
-  <section class="py-20 px-6 border-t border-[var(--color-border)]">
-    <div class="max-w-4xl mx-auto">
-      <RecentPostsHeader client:idle />
+    <div class="grid gap-10 py-10 lg:grid-cols-[minmax(0,1.45fr)_minmax(18rem,0.75fr)] lg:items-start">
+      <section aria-labelledby="recent-notes-heading">
+        <RecentPostsHeader client:idle />
 
-      {posts.length > 0 ? (
-        <div class="grid md:grid-cols-2 gap-6">
-          {posts.map((post) => (
-            <BlogCard
-              title={post.data.title}
-              description={post.data.description}
-              date={post.data.date}
-              slug={post.slug}
-              tags={post.data.tags}
-              image={post.data.image}
-            />
-          ))}
-        </div>
-      ) : (
-        <NoPostsMessage client:idle />
-      )}
+        {posts.length > 0 ? (
+          <div class="grid gap-4">
+            {posts.map((post) => (
+              <BlogCard
+                title={post.data.title}
+                description={post.data.description}
+                date={post.data.date}
+                slug={post.slug}
+                tags={post.data.tags}
+                image={post.data.image}
+              />
+            ))}
+          </div>
+        ) : (
+          <NoPostsMessage client:idle />
+        )}
+      </section>
+
+      <ProjectsSection client:visible />
     </div>
-  </section>
-
-  <!-- Popular Tools Section -->
-  <PopularToolsSection client:visible />
-
-  <!-- Game Center Banner -->
-  <GameCenterBanner client:visible />
-
-  <!-- Projects Section -->
-  <ProjectsSection client:visible />
+  </div>
 </MainLayout>

@@ -1,27 +1,45 @@
 import { useTranslation } from '../i18n/useTranslation';
 
 export default function NotFoundContent() {
-  const { t, translations } = useTranslation();
+  const { lang, t, translations } = useTranslation();
   const notFound = translations.common.notFound;
+  const idx = translations.common.index;
+  const toolLinks = [
+    { href: `/${lang}/tools/`, label: { ko: '도구 검색', en: 'Search tools', ja: 'ツールを検索' } },
+    { href: `/${lang}/tools/json/`, label: idx.jsonFormatter },
+    { href: `/${lang}/tools/qr-code/`, label: idx.qrCode },
+  ];
 
   return (
-    <section className="py-32 px-4">
-      <div className="max-w-xl mx-auto text-center">
-        <div className="text-8xl mb-8">🔍</div>
-        <h1 className="text-6xl font-bold mb-4">404</h1>
-        <p className="text-xl text-[var(--color-text-muted)] mb-8">
-          {t(notFound.title)}
-        </p>
+    <section className="fc-page fc-reading">
+      <header className="fc-page-header">
+        <p className="fc-eyebrow">404 · RESTATO</p>
+        <h1>{t(notFound.title)}</h1>
+        <p className="fc-page-description">{t(notFound.description)}</p>
         <a
           href="/"
-          className="btn btn-primary inline-flex items-center gap-2"
+          className="fc-button fc-button-primary mt-3 w-fit"
         >
-          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
-          </svg>
           {t(notFound.backHome)}
+          <span aria-hidden="true">→</span>
         </a>
-      </div>
+      </header>
+
+      <nav className="fc-surface overflow-hidden" aria-label={t({ ko: '유용한 도구', en: 'Useful tools', ja: '便利なツール' })}>
+        <ul className="m-0 list-none divide-y divide-[var(--border-subtle)] p-0">
+          {toolLinks.map(link => (
+            <li key={link.href}>
+              <a
+                href={link.href}
+                className="flex min-h-14 items-center justify-between gap-4 px-4 py-3 font-bold text-[var(--text-primary)] transition-colors hover:bg-[var(--surface-soft)]"
+              >
+                {t(link.label)}
+                <span className="text-[var(--text-muted)]" aria-hidden="true">→</span>
+              </a>
+            </li>
+          ))}
+        </ul>
+      </nav>
     </section>
   );
 }
