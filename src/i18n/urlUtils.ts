@@ -7,7 +7,17 @@ export const languagePrefixPattern = new RegExp(
   `^/(${supportedLanguagePattern})(?=/|$|[?#])`,
 );
 
-const LANG_SUPPORTED_PATHS = ['/', '/tools', '/anonymous-chat', '/games'];
+const LANG_SUPPORTED_PATHS = [
+  '/',
+  '/tools',
+  '/anonymous-chat',
+  '/games',
+  '/about',
+  '/contact',
+  '/privacy',
+  '/terms',
+  '/disclaimer',
+];
 const GAME_LANGUAGES = new Set<Language>(['ko', 'en', 'ja']);
 
 function splitPathSuffix(value: string): { path: string; suffix: string } {

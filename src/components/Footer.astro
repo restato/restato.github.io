@@ -1,6 +1,7 @@
 ---
 import type { Language } from '../data/tools/types';
 import { sharedToolUi } from '../i18n/tool-ui';
+import { siteContent, siteInformationLabel, sitePageKeys } from '../data/site-content';
 
 interface Props { lang?: Language }
 const { lang = 'ko' } = Astro.props;
@@ -10,12 +11,24 @@ const currentYear = new Date().getFullYear();
 <footer class="mt-auto border-t border-[var(--color-border)]">
   <div class="max-w-4xl mx-auto px-6 py-12">
     <div class="flex flex-col items-center gap-6">
-      <a href="/" class="flex items-center gap-3 font-bold text-lg group">
+      <a href={`/${lang}/`} class="flex items-center gap-3 font-bold text-lg group">
         <span class="w-8 h-8 rounded-lg gradient-bg flex items-center justify-center text-white text-sm shadow-lg shadow-primary-500/20">
           R
         </span>
         <span>Restato</span>
       </a>
+
+      <nav aria-label={siteInformationLabel[lang]}>
+        <ul class="flex flex-wrap justify-center gap-x-5 gap-y-2 text-sm text-[var(--color-text-muted)]">
+          {sitePageKeys.map(page => (
+            <li>
+              <a class="hover:text-[var(--color-text)] hover:underline" href={`/${lang}/${page}/`}>
+                {siteContent[page][lang].title}
+              </a>
+            </li>
+          ))}
+        </ul>
+      </nav>
 
       <div class="flex items-center gap-2">
         <a

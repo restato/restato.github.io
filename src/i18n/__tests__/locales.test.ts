@@ -100,6 +100,11 @@ describe('localized URLs', () => {
       .toBe('https://restato.github.io/zh-CN/tools/json/');
   });
 
+  it.each(['about', 'contact', 'privacy', 'terms', 'disclaimer'])('localizes the %s trust route', route => {
+    expect(buildLanguageUrl(`/ko/${route}/`, 'fr')).toBe(`/fr/${route}/`);
+    expect(getAlternateUrls(`/ko/${route}/`, 'https://restato.github.io')).toHaveLength(12);
+  });
+
   it('adds exactly one English x-default while removing duplicate alternates', () => {
     const alternates = normalizeHeadAlternates([
       { lang: 'en', url: 'https://restato.github.io/en/tools' },
