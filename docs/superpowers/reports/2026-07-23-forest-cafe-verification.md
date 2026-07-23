@@ -37,8 +37,8 @@ This matrix covers every required public page family, the remediated project sur
 
 | Command | Result |
 | --- | --- |
-| `npm test -- --run` | PASS — 96 files, 970/970 tests |
-| `npm run check` | PASS — 396 files, 0 errors, 0 warnings; 81 existing hints |
+| `npm test -- --run` | PASS — 97 files, 977/977 tests |
+| `npm run check` | PASS — 397 files, 0 errors, 0 warnings; 81 existing hints |
 | `npm run build` | PASS — 1,269 pages |
 | `node scripts/validate-site.mjs dist` | PASS — 1,276 HTML files validated |
 | `node scripts/audit-content.mjs dist` | PASS — 1,121 indexable pages audited |
@@ -59,7 +59,8 @@ Bundle results:
 Focused regression checks also passed:
 
 - localized blog-tag content: 21/21;
-- project-page static contract: 10/10;
+- project-page static contract: 16/16;
+- baseline-to-evidence SHA-256 identity contract: 54/54 pairs;
 - article-language and skip-link helpers: 9/9;
 - dynamic game accessibility: 12/12;
 - JSON formatter semantics and contrast classes: 11/11;
@@ -81,7 +82,9 @@ The first visual run failed 19 of 26 tests. The failures exposed stale test assu
 - The first gallery dialog browser check exposed missing initial focus. The gallery openers are now native buttons and the named modal dialog sets initial focus, traps forward and reverse Tab, supports Escape and arrow navigation, and restores focus to its opener.
 - Localization browser RED checks reproduced three stale behaviors: an incorrectly derived article document language, skip-link text that did not follow client locale changes, and a canonical/JSON-LD trailing-slash mismatch. Metadata-first language inference, all 12 localized skip-link labels, the `languageChange` listener, and one reused canonical URL made all 14 dedicated browser cases pass.
 - The missing-baseline run passed 26 existing cases and failed the 12 new route/project cases because 18 references were absent. After reviewing the intended pages, the update run and an unchanged normal run both passed 38/38.
-- A final combined run exposed that the gallery's external `picsum.photos` placeholders could load after one baseline had captured their empty surfaces. A new contract failed first, then the gallery switched to six existing local project assets. Three gallery references and the corresponding manual evidence were reviewed and regenerated; the unchanged combined rerun passed 68/68.
+- A final combined run exposed that the gallery's external `picsum.photos` placeholders could load after one baseline had captured their empty surfaces. A first attempted stabilization substituted unrelated project images and therefore did not preserve the original content. The corrected contract now locks all six original `Sample n` alt strings, `Sample Image n` titles, and seeded media order. Exact 800 × 600 JPEG responses from `https://picsum.photos/seed/1..6/800/600` are vendored under `public/images/gallery/`, so the original content is preserved without a runtime network dependency.
+- Review found inconsistent vertical rhythm between project sections. Five static RED cases now require the shared `fc-section-flow` primitive, whose responsive `clamp(2rem, 5vw, 4rem)` grid gap and direct-child margin normalization are defined once in the Forest Café component layer. A computed browser contract verifies every direct-child gap is at least 32 px on all five pages at 390, 768, 1,024, and 1,440 px.
+- Review also found four baseline/documentation-image mismatches. A new fail-closed test reproduced the mismatch, maps all 54 evidence names to all 54 Darwin baselines, and compares exact SHA-256 hashes. An explicit `--update-snapshots=all` run regenerated all 54 baseline/evidence pairs from the same returned screenshot buffers. Normal visual runs no longer rewrite documentation images, and both the subsequent 38/38 normal run and the 54-pair identity test pass.
 
 ## Browser and manual review
 
@@ -95,7 +98,7 @@ The browser suites verify:
 - logical RTL alignment on the direction-audit route;
 - hover geometry changes by less than one pixel so controls do not shift;
 - dynamic file selection, JSON status announcement, focused downloads, and responsive disclosure interaction.
-- the gallery dialog's initial focus, bidirectional focus trap, Escape close, arrow navigation, and opener focus restoration;
+- the gallery dialog's initial focus, bidirectional focus trap, Escape close, opener focus restoration, next/previous button round-trip, and ArrowRight/ArrowLeft round-trip;
 - project CTA/eyebrow live contrast in both themes and Jobworld connector overflow at 390, 768, 1,024, and 1,440 px;
 - article document-language locking, localized skip-link synchronization on `/` and `/404/`, and exact anonymous-chat canonical/JSON-LD agreement;
 - a clock-controlled, visibly hydrated `client:idle` bookmark prompt that passes Axe, exposes a visible focused close button, dismisses by keyboard, and remains dismissed after reload;
@@ -115,11 +118,13 @@ The original manual review covered 42 combinations: seven representative routes 
 
 All 42 combinations retained obvious primary actions, direction-safe alignment, stable hover geometry, and readable light/dark surfaces without overflow. D2Coding loaded from the local font resource. Korean, English, and Devanagari text rendered without tofu; unsupported glyphs fell through the declared font stack.
 
-The remediation added 36 reviewed combinations: the five project routes plus `/404/`, at the same three widths and two themes. All 36 had zero horizontal overflow, one visible page heading, valid main landmarks, readable body contrast, a visible 2 px solid focus indicator, working theme state, and no console errors. The six 768 px dark screenshots were also inspected together for clipping, overlap, scrolling, illegible surfaces, and hierarchy; no failure was found. At 390 px, the gallery additionally demonstrated close-button initial focus, reverse and forward focus wrapping, Escape close, and opener focus restoration. The cumulative manual review is therefore 78 combinations. The new screenshots and machine-readable measurements live in [`assets/forest-cafe-manual/`](./assets/forest-cafe-manual/).
+The remediation added 36 reviewed combinations: the five project routes plus `/404/`, at the same three widths and two themes. All 36 had zero horizontal overflow, one visible page heading, valid main landmarks, readable body contrast, a visible 2 px solid focus indicator, working theme state, and no console errors. After adding the shared flow and restoring the seeded gallery media, all five project pages were re-captured and inspected together at 390, 768, and 1,440 px. No clipping, overlap, illegible surface, horizontal scrolling, or broken hierarchy was found. At 390 px, the gallery additionally demonstrated button and keyboard image round-trips, close-button initial focus, reverse and forward focus wrapping, Escape close, and opener focus restoration. The cumulative manual review remains 78 combinations. The refreshed screenshots and machine-readable measurements live in [`assets/forest-cafe-manual/`](./assets/forest-cafe-manual/).
 
 ## Screenshot evidence and masking
 
-The automated run saves 54 documentation references in [`assets/forest-cafe/`](./assets/forest-cafe/): desktop light, desktop dark, and mobile-390 dark for each of the 18 matrix routes. The exact same screenshot buffers are also compared against 54 committed Darwin Playwright baselines with `maxDiffPixelRatio: 0.001` (0.1%). Both evidence projects declare the `Asia/Seoul` timezone, and the visual suite fixes the client-side `Date` at 2026-07-20 12:00 KST with `page.clock.setFixedTime` before navigation. This keeps client-rendered dashboard labels independent of the host timezone without intercepting timers. The production footer continues to render the real server year; only its narrow `[data-current-year]` leaf is masked in visual comparisons. Missing baselines and arbitrary visual changes cannot silently bless new images.
+The explicit all-update run saves 54 documentation references in [`assets/forest-cafe/`](./assets/forest-cafe/): desktop light, desktop dark, and mobile-390 dark for each of the 18 matrix routes. Each returned screenshot buffer is written as documentation evidence and passed directly to Playwright's snapshot matcher in the same call. The committed pairs are byte-identical, enforced by exact SHA-256 rather than the visual tolerance. Normal runs capture and compare fresh buffers without rewriting the documentation directory. The `maxDiffPixelRatio: 0.001` (0.1%) threshold remains only the normal visual-regression threshold, not an evidence-synchronization substitute.
+
+Both evidence projects declare the `Asia/Seoul` timezone, and the visual suite fixes the client-side `Date` at 2026-07-20 12:00 KST with `page.clock.setFixedTime` before navigation. This keeps client-rendered dashboard labels independent of the host timezone without intercepting timers. The production footer continues to render the real server year; only its narrow `[data-current-year]` leaf is masked in visual comparisons. Missing baselines, mismatched evidence, and arbitrary visual changes cannot silently bless new images.
 
 Stable masking is intentionally limited to:
 

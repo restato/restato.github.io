@@ -1,4 +1,4 @@
-import { readFileSync } from 'node:fs';
+import { existsSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { describe, expect, it } from 'vitest';
 
@@ -16,6 +16,7 @@ const projectSources = Object.fromEntries(
     readFileSync(join(process.cwd(), 'src/pages/projects', file), 'utf8'),
   ]),
 ) as Record<(typeof projectFiles)[number], string>;
+const globalStyles = readFileSync(join(process.cwd(), 'src/styles/global.css'), 'utf8');
 
 const forbiddenPresentationPatterns = [
   /\bbg-gradient-to-/,
@@ -51,6 +52,15 @@ describe('Forest Café project page contract', () => {
     }
   });
 
+  it.each(projectFiles)('%s uses the shared section-flow hierarchy', (file) => {
+    expect(projectSources[file]).toMatch(/class="fc-page fc-content fc-section-flow"/);
+  });
+
+  it('defines one responsive Forest Café section-flow primitive', () => {
+    expect(globalStyles).toMatch(/\.fc-section-flow\s*{[\s\S]*?display:\s*grid;[\s\S]*?gap:\s*clamp\(/);
+    expect(globalStyles).toMatch(/\.fc-section-flow\s*>\s*:where\([\s\S]*?margin-block:\s*0;/);
+  });
+
   it('makes every gallery opener a semantic button and names the modal dialog', () => {
     const source = projectSources['gallery.astro'];
 
@@ -63,11 +73,21 @@ describe('Forest Café project page contract', () => {
     expect(source).toMatch(/data-gallery-close/);
   });
 
-  it('uses local gallery images so visual evidence is deterministic', () => {
+  it('preserves the six original gallery entries through deterministic local media', () => {
     const source = projectSources['gallery.astro'];
+    const expectedImages = Array.from({ length: 6 }, (_, index) => ({
+      src: `/images/gallery/seed-${index + 1}-800x600.jpg`,
+      alt: `Sample ${index + 1}`,
+      title: `Sample Image ${index + 1}`,
+    }));
 
     expect(source).not.toMatch(/https?:\/\/picsum\.photos/);
-    expect(source.match(/src: '\/images\/projects\//g)).toHaveLength(6);
+    for (const image of expectedImages) {
+      expect(source).toContain(
+        `{ src: '${image.src}', alt: '${image.alt}', title: '${image.title}' }`,
+      );
+      expect(existsSync(join(process.cwd(), 'public', image.src))).toBe(true);
+    }
   });
 
   it('contains the jobworld process connectors in a positioned clipped grid', () => {

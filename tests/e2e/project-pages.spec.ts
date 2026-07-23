@@ -23,6 +23,18 @@ test('gallery dialog traps focus, closes with Escape, and restores its opener', 
   await expect(dialog).toHaveAccessibleName('이미지 크게 보기');
   await expect(closeButton).toBeFocused();
 
+  const dialogImage = dialog.locator('#gallery-dialog-image');
+  await expect(dialogImage).toHaveAttribute('src', '/images/gallery/seed-1-800x600.jpg');
+  await nextButton.click();
+  await expect(dialogImage).toHaveAttribute('src', '/images/gallery/seed-2-800x600.jpg');
+  await previousButton.click();
+  await expect(dialogImage).toHaveAttribute('src', '/images/gallery/seed-1-800x600.jpg');
+  await page.keyboard.press('ArrowRight');
+  await expect(dialogImage).toHaveAttribute('src', '/images/gallery/seed-2-800x600.jpg');
+  await page.keyboard.press('ArrowLeft');
+  await expect(dialogImage).toHaveAttribute('src', '/images/gallery/seed-1-800x600.jpg');
+
+  await closeButton.focus();
   await page.keyboard.press('Shift+Tab');
   await expect(nextButton).toBeFocused();
   await page.keyboard.press('Tab');
@@ -43,14 +55,37 @@ test('gallery dialog traps focus, closes with Escape, and restores its opener', 
   assertNoUnexpectedConsoleErrors(page);
 });
 
-test('jobworld process connectors never create horizontal overflow', async ({ page }) => {
+test('project section flow stays deliberate and jobworld connectors never overflow', async ({ page }) => {
   assertNoUnexpectedConsoleErrors(page);
 
   for (const width of [390, 768, 1024, 1440]) {
     await page.setViewportSize({ width, height: 1000 });
-    const response = await page.goto('/projects/jobworld-kids/', { waitUntil: 'domcontentloaded' });
-    expect(response?.ok(), `${width}px route response`).toBeTruthy();
-    await assertNoHorizontalOverflow(page);
+    for (const route of [
+      '/projects/gallery/',
+      '/projects/jobworld-kids/',
+      '/projects/local-price-extractor/',
+      '/projects/quick-issue/',
+      '/projects/roomfit-3d/',
+    ]) {
+      const response = await page.goto(route, { waitUntil: 'domcontentloaded' });
+      expect(response?.ok(), `${width}px ${route} response`).toBeTruthy();
+      await assertNoHorizontalOverflow(page);
+      const gaps = await page.locator('.fc-section-flow').first().evaluate((container) => {
+        const children = [...container.children].filter((child) => {
+          const style = getComputedStyle(child);
+          return style.display !== 'none' && style.position !== 'fixed';
+        });
+        return children.slice(1).map((child, index) => {
+          const previous = children[index].getBoundingClientRect();
+          const current = child.getBoundingClientRect();
+          return current.top - previous.bottom;
+        });
+      });
+      expect(gaps.length, `${width}px ${route} must expose section gaps`).toBeGreaterThan(0);
+      for (const gap of gaps) {
+        expect(gap, `${width}px ${route} section gap`).toBeGreaterThanOrEqual(32);
+      }
+    }
   }
 
   assertNoUnexpectedConsoleErrors(page);

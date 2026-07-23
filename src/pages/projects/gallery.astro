@@ -1,19 +1,19 @@
 ---
 import MainLayout from '../../layouts/MainLayout.astro';
 
-// Local project images keep the gallery and its visual evidence available offline.
+// Exact local copies of the original seeded Picsum placeholders keep the gallery offline-safe.
 const images = [
-  { src: '/images/projects/jobworld/hero.png', alt: '잡월드 키즈 프로젝트 화면', title: 'Sample Image 1' },
-  { src: '/images/projects/jobworld/feature-history.png', alt: '잡월드 키즈 체험 기록 화면', title: 'Sample Image 2' },
-  { src: '/images/projects/quick-issue/screenshot-1.png', alt: 'Quick Issue 프로젝트 화면', title: 'Sample Image 3' },
-  { src: '/images/projects/quick-issue/screenshot-2.png', alt: 'Quick Issue 이슈 화면', title: 'Sample Image 4' },
-  { src: '/images/projects/roomfit-3d/gallery-detail.png', alt: 'RoomFit 3D 상세 화면', title: 'Sample Image 5' },
-  { src: '/images/projects/pastedock/hero.png', alt: 'PasteDock 프로젝트 화면', title: 'Sample Image 6' },
+  { src: '/images/gallery/seed-1-800x600.jpg', alt: 'Sample 1', title: 'Sample Image 1' },
+  { src: '/images/gallery/seed-2-800x600.jpg', alt: 'Sample 2', title: 'Sample Image 2' },
+  { src: '/images/gallery/seed-3-800x600.jpg', alt: 'Sample 3', title: 'Sample Image 3' },
+  { src: '/images/gallery/seed-4-800x600.jpg', alt: 'Sample 4', title: 'Sample Image 4' },
+  { src: '/images/gallery/seed-5-800x600.jpg', alt: 'Sample 5', title: 'Sample Image 5' },
+  { src: '/images/gallery/seed-6-800x600.jpg', alt: 'Sample 6', title: 'Sample Image 6' },
 ];
 ---
 
 <MainLayout title="갤러리 | Restato" description="사진 갤러리">
-  <div class="fc-page fc-content">
+  <div class="fc-page fc-content fc-section-flow">
     <nav class="fc-tool-breadcrumb" aria-label="이동 경로">
       <ol>
         <li><a href="/projects">프로젝트</a></li>

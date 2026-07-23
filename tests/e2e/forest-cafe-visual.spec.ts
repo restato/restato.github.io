@@ -196,6 +196,7 @@ async function saveEvidenceScreenshot(
   route: ForestCafeRoute,
   projectName: string,
   theme: 'light' | 'dark',
+  writeEvidence: boolean,
 ) {
   await mkdir(screenshotDirectory, { recursive: true });
   const maskSelectors = [
@@ -203,7 +204,9 @@ async function saveEvidenceScreenshot(
     ...(route.visualMasks ?? []),
   ];
   const screenshot = await page.screenshot({
-    path: path.join(screenshotDirectory, `${route.id}-${projectName}-${theme}.png`),
+    ...(writeEvidence
+      ? { path: path.join(screenshotDirectory, `${route.id}-${projectName}-${theme}.png`) }
+      : {}),
     animations: 'disabled',
     caret: 'hide',
     mask: maskSelectors.map((selector) => page.locator(selector)),
@@ -230,7 +233,13 @@ for (const route of forestCafeRoutes) {
       expect(headingDirection.textAlign).not.toBe('left');
     }
     if (testInfo.project.name === 'desktop') {
-      await saveEvidenceScreenshot(page, route, testInfo.project.name, 'light');
+      await saveEvidenceScreenshot(
+        page,
+        route,
+        testInfo.project.name,
+        'light',
+        testInfo.config.updateSnapshots === 'all',
+      );
     }
     await assertKeyboardFocusAndSkipLink(page, semanticThemes.light.focus);
     assertNoUnexpectedConsoleErrors(page);
@@ -238,7 +247,13 @@ for (const route of forestCafeRoutes) {
     await setTheme(page, route, 'dark');
     await assertSemanticTheme(page, 'dark');
     await assertNoHorizontalOverflow(page);
-    await saveEvidenceScreenshot(page, route, testInfo.project.name, 'dark');
+    await saveEvidenceScreenshot(
+      page,
+      route,
+      testInfo.project.name,
+      'dark',
+      testInfo.config.updateSnapshots === 'all',
+    );
     await assertKeyboardFocusAndSkipLink(page, semanticThemes.dark.focus);
     await assertHoverDoesNotShiftLayout(page);
     assertNoUnexpectedConsoleErrors(page);

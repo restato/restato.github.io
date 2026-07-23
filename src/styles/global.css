@@ -98,6 +98,15 @@
     max-inline-size: 72rem;
   }
 
+  .fc-section-flow {
+    display: grid;
+    gap: clamp(2rem, 5vw, 4rem);
+  }
+
+  .fc-section-flow > :where(nav, header, section) {
+    margin-block: 0;
+  }
+
   .fc-wide {
     max-inline-size: 88rem;
   }
