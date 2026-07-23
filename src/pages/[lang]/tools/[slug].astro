@@ -112,68 +112,67 @@ const faqSchema = {
   <script type="application/ld+json" set:html={JSON.stringify(breadcrumbSchema)} />
   <script type="application/ld+json" set:html={JSON.stringify(faqSchema)} />
 
-  <div class="max-w-4xl mx-auto px-4 py-8">
+  <div class="fc-page fc-tool-shell">
     {fallbackNotice && <p class="mb-6 rounded-lg border border-amber-300 bg-amber-50 p-4 text-sm text-amber-900 dark:border-amber-700 dark:bg-amber-950/30 dark:text-amber-200">{fallbackNotice}</p>}
     {interactiveFallbackNotice && <p class="mb-6 rounded-lg border border-blue-300 bg-blue-50 p-4 text-sm text-blue-900 dark:border-blue-700 dark:bg-blue-950/30 dark:text-blue-200">{interactiveFallbackNotice}</p>}
     <!-- Breadcrumb -->
-    <nav class="text-sm mb-6">
-      <ol class="flex items-center gap-2">
-        <li><a href={`/${lang}/tools`} class="text-[var(--color-text-muted)] hover:text-primary-500">{helpUi.home}</a></li>
-        <li class="text-[var(--color-text-muted)]">/</li>
-        <li><a href={`/${lang}/tools`} class="text-[var(--color-text-muted)] hover:text-primary-500">{helpUi.tools}</a></li>
-        <li class="text-[var(--color-text-muted)]">/</li>
-        <li class="text-[var(--color-text)]">{shortTitle}</li>
+    <nav class="fc-tool-breadcrumb" aria-label={helpUi.tools}>
+      <ol>
+        <li><a href={`/${lang}/tools`}>{helpUi.home}</a></li>
+        <li aria-hidden="true">/</li>
+        <li><a href={`/${lang}/tools`}>{helpUi.tools}</a></li>
+        <li aria-hidden="true">/</li>
+        <li aria-current="page">{shortTitle}</li>
       </ol>
     </nav>
 
     <!-- Header -->
-    <header class="mb-8">
-      <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-        <div>
-          <h1 class="text-3xl font-bold text-[var(--color-text)] mb-2">
-            {tool.icon} {shortTitle}
-          </h1>
-          <p class="text-[var(--color-text-muted)]">
-            {seo.description}
-          </p>
-        </div>
-        <div class="flex items-center gap-2">
-          <FavoriteButton client:load lang={lang} slug={tool.slug} title={shortTitle} icon={tool.icon} />
-          <ShareButton client:load lang={lang} title={pageTitle} description={seo.description} />
-        </div>
+    <header class="fc-tool-header">
+      <div class="fc-tool-heading">
+        <p class="fc-eyebrow">{helpUi.tools}</p>
+        <h1><span aria-hidden="true">{tool.icon}</span> {shortTitle}</h1>
+        <p>{seo.description}</p>
+      </div>
+      <div class="fc-tool-header-actions">
+        <FavoriteButton client:load lang={lang} slug={tool.slug} title={shortTitle} icon={tool.icon} />
+        <ShareButton client:load lang={lang} title={pageTitle} description={seo.description} />
       </div>
     </header>
 
     <!-- Tool Content -->
-    <div class="p-6 rounded-xl bg-[var(--color-card)] border border-[var(--color-border)]">
+    <section class="fc-tool-workspace fc-surface fc-surface-padding-md" aria-label={shortTitle}>
+      <p class="fc-tool-privacy">
+        <span aria-hidden="true">🔒</span>
+        {content.privacy}
+      </p>
       {isAdditionalToolSlug(tool.slug)
         ? <AdditionalToolIsland client:load slug={tool.slug} lang={lang} />
         : <LocalizedToolIsland client:load slug={tool.slug} lang={lang} />}
-    </div>
+    </section>
 
-    <section class="mt-8 space-y-8 rounded-xl border border-[var(--color-border)] bg-[var(--color-card)] p-6">
+    <section class="fc-tool-instructions fc-prose">
       <div>
-        <h2 class="mb-3 text-xl font-semibold text-[var(--color-text)]">{helpUi.usageGuide}</h2>
-        <p class="text-[var(--color-text-muted)]">{content.overview}</p>
-        <ol class="mt-4 list-decimal space-y-2 pl-5 text-[var(--color-text-muted)]">
+        <h2>{helpUi.usageGuide}</h2>
+        <p>{content.overview}</p>
+        <ol>
           {content.steps.map(step => <li>{step}</li>)}
         </ol>
       </div>
       <div>
-        <h2 class="mb-3 text-xl font-semibold text-[var(--color-text)]">{helpUi.output}</h2>
-        <ul class="list-disc space-y-2 pl-5 text-[var(--color-text-muted)]">{content.examples.map(example => <li>{example}</li>)}</ul>
+        <h2>{helpUi.output}</h2>
+        <ul>{content.examples.map(example => <li>{example}</li>)}</ul>
       </div>
       <div>
-        <h2 class="mb-3 text-xl font-semibold text-[var(--color-text)]">{helpUi.limitations}</h2>
-        <ul class="list-disc space-y-2 pl-5 text-[var(--color-text-muted)]">{content.limitations.map(limitation => <li>{limitation}</li>)}</ul>
+        <h2>{helpUi.limitations}</h2>
+        <ul>{content.limitations.map(limitation => <li>{limitation}</li>)}</ul>
       </div>
       <div>
-        <h2 class="mb-3 text-xl font-semibold text-[var(--color-text)]">{helpUi.privacy}</h2>
-        <p class="text-[var(--color-text-muted)]">{content.privacy}</p>
+        <h2>{helpUi.privacy}</h2>
+        <p>{content.privacy}</p>
       </div>
       <div>
-        <h2 class="mb-3 text-xl font-semibold text-[var(--color-text)]">{helpUi.faq}</h2>
-        <div class="space-y-4">{content.faq.map(item => <details><summary class="cursor-pointer font-medium text-[var(--color-text)]">{item.question}</summary><p class="mt-2 text-[var(--color-text-muted)]">{item.answer}</p></details>)}</div>
+        <h2>{helpUi.faq}</h2>
+        <div class="fc-tool-faq">{content.faq.map(item => <details><summary>{item.question}</summary><p>{item.answer}</p></details>)}</div>
       </div>
     </section>
 

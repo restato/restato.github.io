@@ -1,4 +1,6 @@
 import { fireEvent, render, screen } from '@testing-library/react';
+import { readFileSync } from 'node:fs';
+import { resolve } from 'node:path';
 import { describe, expect, it, vi } from 'vitest';
 import { ToolActions } from '../ToolActions';
 import { ToolField } from '../ToolField';
@@ -68,5 +70,45 @@ describe('shared tool interface primitives', () => {
     fireEvent.keyDown(dropZone, { key: 'Enter' });
     fireEvent.keyDown(dropZone, { key: ' ' });
     expect(onActivate).toHaveBeenCalledTimes(2);
+  });
+});
+
+describe('tool detail route shell', () => {
+  const legacyLayout = readFileSync(resolve('src/layouts/ToolLayout.astro'), 'utf8');
+  const localizedRoute = readFileSync(resolve('src/pages/[lang]/tools/[slug].astro'), 'utf8');
+
+  it.each([
+    ['legacy layout', legacyLayout],
+    ['localized route', localizedRoute],
+  ])('shares Forest Café shell landmarks in the %s', (_name, source) => {
+    expect(source).toContain('fc-tool-shell');
+    expect(source).toContain('fc-tool-breadcrumb');
+    expect(source).toContain('fc-tool-header');
+    expect(source).toContain('fc-tool-workspace');
+    expect(source).toContain('fc-tool-privacy');
+    expect(source).toContain('fc-tool-instructions');
+  });
+
+  it('preserves localized SEO, lazy islands, ads, bookmarking, and recent tracking', () => {
+    expect(localizedRoute).toContain('robots={robots}');
+    expect(localizedRoute).toContain('alternateUrls={alternateUrls}');
+    expect(localizedRoute).toContain('FAQPage');
+    expect(localizedRoute).toContain('WebApplication');
+    expect(localizedRoute).toContain('<AdSlot placement="tool-after-help"');
+    expect(localizedRoute).toContain('isAdditionalToolSlug(tool.slug)');
+    expect(localizedRoute).toContain('<AdditionalToolIsland client:load');
+    expect(localizedRoute).toContain('<LocalizedToolIsland client:load');
+    expect(localizedRoute).toContain('<BookmarkPrompt client:idle');
+    expect(localizedRoute).toContain("const STORAGE_KEY = 'restato_recent_tools'");
+  });
+
+  it('preserves the legacy canonical, robots policy, schemas, and redirect behavior', () => {
+    expect(legacyLayout).toContain('robots="noindex, follow"');
+    expect(legacyLayout).toContain('canonical={canonicalUrl}');
+    expect(legacyLayout).toContain('FAQPage');
+    expect(legacyLayout).toContain('WebApplication');
+    expect(legacyLayout).toContain('<BookmarkPrompt client:idle');
+    expect(legacyLayout).toContain("const STORAGE_KEY = 'restato_recent_tools'");
+    expect(legacyLayout).toContain('window.location.replace(newPath)');
   });
 });
