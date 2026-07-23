@@ -233,7 +233,23 @@ vi.mock('../../../i18n/useTranslation', () => ({
           dropzone: { ko: '이미지를 드래그하거나 클릭하여 업로드', en: 'Drag or click to upload image', ja: '画像をドラッグまたはクリックしてアップロード' },
           removeButton: { ko: '배경 제거하기', en: 'Remove Background', ja: '背景を削除' },
           processing: { ko: '처리 중', en: 'Processing', ja: '処理中' },
+          transparent: { ko: '투명', en: 'Transparent', ja: '透明' },
+          white: { ko: '흰색', en: 'White', ja: '白' },
+          black: { ko: '검정', en: 'Black', ja: '黒' },
+          customColor: { ko: '사용자 지정 색상', en: 'Custom color', ja: 'カスタム色' },
+          errorMessage: { ko: '배경을 제거하지 못했습니다', en: 'Could not remove background', ja: '背景を削除できませんでした' },
+          original: { ko: '원본', en: 'Original', ja: 'オリジナル' },
+          result: { ko: '결과', en: 'Result', ja: '結果' },
+          clickRemove: { ko: '배경을 제거하려면 클릭하세요', en: 'Click to remove the background', ja: 'クリックして背景を削除' },
+          backgroundColor: { ko: '배경색', en: 'Background color', ja: '背景色' },
+          infoNote: { ko: '이미지는 브라우저에서 처리됩니다', en: 'Images are processed in your browser', ja: '画像はブラウザで処理されます' },
         },
+        llmCost: new Proxy(
+          {},
+          {
+            get: (_target, key) => ({ ko: String(key), en: String(key), ja: String(key) }),
+          },
+        ),
         appStoreScreenshot: {
           title: { ko: '앱스토어 스크린샷 리사이저', en: 'App Store Screenshot Resizer', ja: 'App Storeスクリーンショットリサイザー' },
           description: { ko: '무료 iOS 앱스토어 스크린샷 크기 조절', en: 'Free iOS App Store screenshot resizer', ja: '無料iOS App Storeスクリーンショットリサイザー' },

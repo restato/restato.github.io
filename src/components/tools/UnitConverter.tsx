@@ -208,9 +208,11 @@ export default function UnitConverter() {
     <ToolPanel className="gap-6">
       {/* Category Tabs */}
       <ToolActions
+        selection
         primary={(Object.keys(units) as UnitCategory[]).slice(0, 1).map((cat) => (
           <button
             key={cat}
+            aria-pressed={category === cat}
             onClick={() => handleCategoryChange(cat)}
             className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors
               ${category === cat
@@ -222,7 +224,7 @@ export default function UnitConverter() {
           </button>
         ))}
         secondary={(Object.keys(units) as UnitCategory[]).slice(1).map((cat) => (
-          <button key={cat} onClick={() => handleCategoryChange(cat)}>{t(categoryLabels[cat])}</button>
+          <button key={cat} aria-pressed={category === cat} onClick={() => handleCategoryChange(cat)}>{t(categoryLabels[cat])}</button>
         ))}
       />
 
@@ -233,7 +235,7 @@ export default function UnitConverter() {
           <ToolField id="unit-from-value" label={t(tt.from)}>
             <input type="number" value={fromValue} onChange={(e) => setFromValue(e.target.value)} className="text-lg" />
           </ToolField>
-          <div className="flex min-w-0 gap-2">
+          <ToolField id="unit-from-unit" label={t({ ko: '변환 전 단위', en: 'From unit', ja: '変換元の単位' })}>
             <select
               value={fromUnit}
               onChange={(e) => setFromUnit(e.target.value)}
@@ -247,12 +249,11 @@ export default function UnitConverter() {
                 </option>
               ))}
             </select>
-          </div>
+          </ToolField>
         </div>
 
         {/* Swap Button */}
-        <div className="flex justify-center">
-          <button
+        <ToolActions className="justify-center" primary={<button
             onClick={swapUnits}
             aria-label={t({ ko: '변환 단위 맞바꾸기', en: 'Swap conversion units', ja: '変換単位を入れ替え' })}
             className="p-2 rounded-full bg-[var(--color-card)] hover:bg-[var(--color-card-hover)]
@@ -262,13 +263,11 @@ export default function UnitConverter() {
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
                 d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4" />
             </svg>
-          </button>
-        </div>
+          </button>} />
 
         {/* To */}
-        <div className="space-y-2">
-          <label className="text-sm font-medium text-[var(--color-text)]">{t(tt.to)}</label>
-          <div className="flex min-w-0 gap-2">
+        <div className="grid min-w-0 gap-2 sm:grid-cols-2">
+          <ToolField id="unit-result" label={t(tt.to)}>
             <input
               type="text"
               value={result}
@@ -277,6 +276,8 @@ export default function UnitConverter() {
                 bg-[var(--color-bg)] text-[var(--color-text)] text-lg font-medium
                 focus:outline-none"
             />
+          </ToolField>
+          <ToolField id="unit-to-unit" label={t({ ko: '변환 후 단위', en: 'To unit', ja: '変換先の単位' })}>
             <select
               value={toUnit}
               onChange={(e) => setToUnit(e.target.value)}
@@ -290,7 +291,7 @@ export default function UnitConverter() {
                 </option>
               ))}
             </select>
-          </div>
+          </ToolField>
         </div>
       </div>
 

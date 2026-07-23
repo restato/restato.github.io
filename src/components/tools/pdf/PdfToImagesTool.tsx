@@ -1,6 +1,9 @@
 import { useState } from 'react';
 import { renderPdfPagesToImages } from '../../../lib/pdf/render';
-import { downloadBlob, fieldClass, FilePicker, pdfInputAccept, PdfToolShell, primaryButton, readFileBytes } from './shared';
+import { downloadBlob, FilePicker, pdfInputAccept, PdfToolShell, readFileBytes } from './shared';
+import { ToolActions } from '../ui/ToolActions';
+import { ToolField } from '../ui/ToolField';
+import { ToolResult } from '../ui/ToolResult';
 
 export default function PdfToImagesTool() {
   const [file, setFile] = useState<File>();
@@ -26,8 +29,9 @@ export default function PdfToImagesTool() {
     <PdfToolShell error={error}>
       <FilePicker accept={pdfInputAccept} label="PDF 선택 / Choose a PDF" onFiles={(selected) => setFile(selected[0])} />
       {file && <p>{file.name}</p>}
-      <label className="flex flex-col gap-2">이미지 형식 / Image format<select className={fieldClass} value={format} onChange={(event) => setFormat(event.target.value as 'image/png' | 'image/jpeg')}><option value="image/png">PNG</option><option value="image/jpeg">JPEG</option></select></label>
-      <button className={primaryButton} disabled={!file || busy} onClick={convert}>{busy ? '렌더링 중…' : '이미지로 변환 / Convert to images'}</button>
+      <ToolField id="pdf-image-format" label="이미지 형식 / Image format"><select value={format} onChange={(event) => setFormat(event.target.value as 'image/png' | 'image/jpeg')}><option value="image/png">PNG</option><option value="image/jpeg">JPEG</option></select></ToolField>
+      <ToolActions primary={<button disabled={!file || busy} onClick={convert}>{busy ? '렌더링 중…' : '이미지로 변환 / Convert to images'}</button>} />
+      {busy && <ToolResult status="working">렌더링 중… / Rendering pages…</ToolResult>}
     </PdfToolShell>
   );
 }

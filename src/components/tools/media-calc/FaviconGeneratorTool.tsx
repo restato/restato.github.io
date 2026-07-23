@@ -1,6 +1,8 @@
 import { useState } from 'react';
 import { createIconBlobs, downloadBlob } from '../../../lib/media-calc/image';
-import { ToolShell, ToolStatus, buttonClass, fieldClass } from './ToolShell';
+import { ToolShell, ToolStatus } from './ToolShell';
+import { ToolActions } from '../ui/ToolActions';
+import { ToolField } from '../ui/ToolField';
 
 export default function FaviconGeneratorTool() {
   const [file, setFile] = useState<File | null>(null); const [feedback, setFeedback] = useState<{ message: string; status: 'success' | 'error' } | null>(null);
@@ -11,8 +13,8 @@ export default function FaviconGeneratorTool() {
   };
   return <ToolShell>
     <p className="text-sm text-[var(--color-text-muted)]">Creates transparent PNG icons at 16, 32, 48, 180, 192, and 512 pixels. It does not create the legacy multi-image .ico container.</p>
-    <label>Choose icon source image<input aria-label="Choose icon source image" className={fieldClass} type="file" accept="image/png,image/jpeg,image/webp,image/avif" onChange={(e) => setFile(e.target.files?.[0] ?? null)} /></label>
-    <button className={buttonClass} disabled={!file} onClick={generate}>Generate and download PNG icons</button>
+    <ToolField id="favicon-source" label="Choose icon source image"><input type="file" accept="image/png,image/jpeg,image/webp,image/avif" onChange={(e) => setFile(e.target.files?.[0] ?? null)} /></ToolField>
+    <ToolActions primary={<button disabled={!file} onClick={generate}>Generate and download PNG icons</button>} />
     {feedback && <ToolStatus status={feedback.status}>{feedback.message}</ToolStatus>}
   </ToolShell>;
 }

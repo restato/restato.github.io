@@ -40,6 +40,14 @@ import QRCodeGenerator from '../QRCodeGenerator';
 import UtmBuilder from '../UtmBuilder';
 import KorEngConverter from '../KorEngConverter';
 import DiffTool from '../DiffTool';
+import LlmCostCalculator from '../LlmCostCalculator';
+import ImageConverter from '../ImageConverter';
+import ImageResizer from '../ImageResizer';
+import ExifViewer from '../ExifViewer';
+import BackgroundRemover from '../BackgroundRemover';
+import ImageMetadataViewer from '../ImageMetadataViewer';
+import AppStoreScreenshotResizer from '../AppStoreScreenshotResizer';
+import { toolsConfig } from '../../../data/tools/registry';
 
 // Mock for image-related tools
 vi.mock('@imgly/background-removal', () => ({
@@ -80,6 +88,13 @@ const toolComponents = [
   { name: 'UtmBuilder', Component: UtmBuilder },
   { name: 'KorEngConverter', Component: KorEngConverter },
   { name: 'DiffTool', Component: DiffTool },
+  { name: 'LlmCostCalculator', Component: LlmCostCalculator },
+  { name: 'ImageConverter', Component: ImageConverter },
+  { name: 'ImageResizer', Component: ImageResizer },
+  { name: 'ExifViewer', Component: ExifViewer },
+  { name: 'BackgroundRemover', Component: BackgroundRemover },
+  { name: 'ImageMetadataViewer', Component: ImageMetadataViewer },
+  { name: 'AppStoreScreenshotResizer', Component: AppStoreScreenshotResizer },
 ];
 
 describe('All Tools Smoke Tests', () => {
@@ -94,28 +109,40 @@ describe('All Tools Smoke Tests', () => {
 
     it(`${name} renders real shared fields and action groups`, () => {
       const { container } = render(<Component />);
-      const nativeFields = container.querySelectorAll(
-        'textarea, select, input:not([type="hidden"]):not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="color"])',
+      const nativeFields = container.querySelectorAll<HTMLElement>(
+        'textarea, select, input:not([type="hidden"]):not([aria-hidden="true"]):not(.hidden)',
       );
-      if (nativeFields.length > 0) {
-        const sharedField = container.querySelector('.fc-tool-field');
-        expect(sharedField).not.toBeNull();
-        const control = sharedField?.querySelector<HTMLElement>('textarea, select, input');
-        expect(control).toHaveAccessibleName();
-        expect(control?.classList.contains('fc-input')
+      const violations: string[] = [];
+      nativeFields.forEach((control) => {
+        const sharedField = control.closest('.fc-tool-field');
+        if (!sharedField) violations.push(`${control.tagName.toLowerCase()}[${control.getAttribute('type') ?? ''}] missing ToolField`);
+        if (!control.getAttribute('aria-label') && !control.getAttribute('aria-labelledby') && !control.id) {
+          violations.push(`${control.tagName.toLowerCase()} missing accessible association`);
+        }
+        if (!(control?.classList.contains('fc-input')
           || control?.classList.contains('fc-select')
-          || control?.classList.contains('fc-textarea')).toBe(true);
-      }
+          || control?.classList.contains('fc-textarea'))) {
+          violations.push(`${control.tagName.toLowerCase()} missing shared control class`);
+        }
+      });
 
-      const buttons = screen.queryAllByRole('button');
-      if (buttons.length > 0) {
-        const actionGroup = container.querySelector('.fc-tool-actions');
-        expect(actionGroup).not.toBeNull();
-        const primary = actionGroup?.querySelector('.fc-button-primary');
-        expect(primary).not.toBeNull();
-        expect(primary).not.toHaveClass('fc-button-secondary');
+      const buttons = screen.queryAllByRole('button').filter((button) => !button.classList.contains('fc-tool-drop-zone'));
+      buttons.forEach((button) => {
+        const actionGroup = button.closest('.fc-tool-actions');
+        if (!actionGroup) violations.push(`button "${button.textContent?.trim()}" missing ToolActions`);
+      });
+      expect(violations, name).toEqual([]);
+      const firstAction = container.querySelector('.fc-tool-actions > .fc-button');
+      if (firstAction && !firstAction.parentElement?.hasAttribute('data-selection')) {
+        expect(firstAction).toHaveClass('fc-button-primary');
       }
     });
+  });
+
+  it('covers every standard registry component', () => {
+    expect(toolComponents.map(({ name }) => name).sort()).toEqual(
+      toolsConfig.map(({ component }) => component).sort(),
+    );
   });
 });
 

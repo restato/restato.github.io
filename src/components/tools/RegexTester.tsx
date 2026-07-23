@@ -111,12 +111,8 @@ export default function RegexTester() {
   return (
     <ToolPanel className="gap-6">
       {/* Pattern Input */}
-      <div className="space-y-2">
-        <label className="block text-sm font-medium text-[var(--color-text)]">
-          {t(tt.pattern)}
-        </label>
-        <div className="flex min-w-0 items-center gap-2">
-          <span className="text-[var(--color-text-muted)]">/</span>
+      <div className="grid min-w-0 gap-2 sm:grid-cols-[1fr_6rem]">
+          <ToolField id="regex-pattern" label={t(tt.pattern)}>
           <input
             type="text"
             value={pattern}
@@ -126,7 +122,8 @@ export default function RegexTester() {
               bg-[var(--color-card)] text-[var(--color-text)] font-mono
               focus:outline-none focus:ring-2 focus:ring-primary-500"
           />
-          <span className="text-[var(--color-text-muted)]">/</span>
+          </ToolField>
+          <ToolField id="regex-flags" label={t({ ko: '플래그', en: 'Flags', ja: 'フラグ' })}>
           <input
             type="text"
             value={flags}
@@ -135,14 +132,16 @@ export default function RegexTester() {
               bg-[var(--color-card)] text-[var(--color-text)] font-mono text-center
               focus:outline-none focus:ring-2 focus:ring-primary-500"
           />
-        </div>
+          </ToolField>
       </div>
 
       {/* Flags */}
       <ToolActions
+        selection
         primary={flagOptions.slice(0, 1).map(({ value, label, desc }) => (
           <button
             key={value}
+            aria-pressed={flags.includes(value)}
             onClick={() => toggleFlag(value)}
             className={`px-3 py-1.5 rounded-lg text-sm transition-colors
               ${flags.includes(value)
@@ -155,7 +154,7 @@ export default function RegexTester() {
           </button>
         ))}
         secondary={flagOptions.slice(1).map(({ value, label, desc }) => (
-          <button key={value} onClick={() => toggleFlag(value)} title={t(desc)}>{label}</button>
+          <button key={value} aria-pressed={flags.includes(value)} onClick={() => toggleFlag(value)} title={t(desc)}>{label}</button>
         ))}
       />
 
@@ -164,8 +163,7 @@ export default function RegexTester() {
         <label className="text-sm text-[var(--color-text-muted)]">
           {t({ ko: '자주 사용하는 패턴', en: 'Common Patterns', ja: 'よく使うパターン' })}
         </label>
-        <div className="flex flex-wrap gap-2">
-          {commonPatterns.map(({ name, pattern: p }) => (
+        <ToolActions className="flex flex-wrap gap-2" primary={commonPatterns.map(({ name, pattern: p }) => (
             <button
               key={name}
               onClick={() => setPattern(p)}
@@ -174,8 +172,7 @@ export default function RegexTester() {
             >
               {name}
             </button>
-          ))}
-        </div>
+          ))} />
       </div>
 
       {/* Error */}

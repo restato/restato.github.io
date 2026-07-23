@@ -1,6 +1,10 @@
 import { useState } from 'react';
 import { convertData, type DataFormat } from '../../../lib/data-text/conversion';
-import { actionsClass, buttonClass, copyText, downloadText, errorClass, fieldClass, panelClass, privacyClass, secondaryButtonClass } from './ui';
+import { copyText, downloadText } from './ui';
+import { ToolActions } from '../ui/ToolActions';
+import { ToolField } from '../ui/ToolField';
+import { ToolPanel } from '../ui/ToolPanel';
+import { ToolResult } from '../ui/ToolResult';
 
 const formats: Array<{ value: DataFormat; label: string }> = [
   { value: 'csv', label: 'CSV' },
@@ -33,37 +37,34 @@ export default function CsvJsonTool() {
   };
 
   return (
-    <section className={panelClass} aria-labelledby="csv-json-title">
+    <ToolPanel aria-labelledby="csv-json-title">
       <h2 id="csv-json-title" className="text-xl font-semibold">CSV, JSON, and TSV converter</h2>
       <div className="grid gap-4 sm:grid-cols-2">
-        <label className="space-y-1">
-          <span className="font-medium">Input format</span>
-          <select className={fieldClass} value={inputFormat} onChange={(event) => setInputFormat(event.target.value as DataFormat)}>
+        <ToolField id="csv-json-input-format" label="Input format">
+          <select value={inputFormat} onChange={(event) => setInputFormat(event.target.value as DataFormat)}>
             {formats.map((format) => <option key={format.value} value={format.value}>{format.label}</option>)}
           </select>
-        </label>
-        <label className="space-y-1">
-          <span className="font-medium">Output format</span>
-          <select className={fieldClass} value={outputFormat} onChange={(event) => setOutputFormat(event.target.value as DataFormat)}>
+        </ToolField>
+        <ToolField id="csv-json-output-format" label="Output format">
+          <select value={outputFormat} onChange={(event) => setOutputFormat(event.target.value as DataFormat)}>
             {formats.map((format) => <option key={format.value} value={format.value}>{format.label}</option>)}
           </select>
-        </label>
+        </ToolField>
       </div>
-      <label className="block space-y-1">
-        <span className="font-medium">Input data</span>
-        <textarea className={`${fieldClass} min-h-48 font-mono`} value={input} onChange={(event) => setInput(event.target.value)} spellCheck={false} />
-      </label>
-      <button type="button" className={buttonClass} onClick={convert}>Convert data</button>
-      {error && <p role="alert" className={errorClass}>{error}</p>}
-      <label className="block space-y-1">
-        <span className="font-medium">Converted output</span>
-        <textarea className={`${fieldClass} min-h-48 font-mono`} value={output} readOnly />
-      </label>
-      <div className={actionsClass}>
-        <button type="button" className={secondaryButtonClass} onClick={copy} disabled={!output}>{copied ? 'Copied' : 'Copy output'}</button>
-        <button type="button" className={secondaryButtonClass} onClick={() => downloadText(output, `converted.${outputFormat}`, outputFormat === 'json' ? 'application/json' : 'text/plain')} disabled={!output}>Download output</button>
-      </div>
-      <p className={privacyClass}>Your data is converted locally in this browser and is not uploaded.</p>
-    </section>
+      <ToolField id="csv-json-input" label="Input data">
+        <textarea className="min-h-48 font-mono" value={input} onChange={(event) => setInput(event.target.value)} spellCheck={false} />
+      </ToolField>
+      <ToolActions primary={<button type="button" onClick={convert}>Convert data</button>} />
+      {error && <ToolResult status="error">{error}</ToolResult>}
+      {output && <ToolResult status="success">
+        <ToolField id="csv-json-output" label="Converted output">
+          <textarea className="min-h-48 font-mono" value={output} readOnly />
+        </ToolField>
+      </ToolResult>}
+      <ToolActions
+        primary={<button type="button" onClick={copy} disabled={!output}>{copied ? 'Copied' : 'Copy output'}</button>}
+        secondary={<button type="button" onClick={() => downloadText(output, `converted.${outputFormat}`, outputFormat === 'json' ? 'application/json' : 'text/plain')} disabled={!output}>Download output</button>}
+      />
+    </ToolPanel>
   );
 }

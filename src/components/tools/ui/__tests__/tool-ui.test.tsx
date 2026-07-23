@@ -96,6 +96,21 @@ describe('shared tool interface primitives', () => {
     expect(screen.getByRole('button', { name: 'Sample' })).toHaveClass('fc-button-secondary');
   });
 
+  it('makes the pressed choice primary without changing option order', () => {
+    render(
+      <ToolActions
+        selection
+        primary={<><button aria-pressed="false">First</button><button aria-pressed="true">Second</button></>}
+      />,
+    );
+
+    const [first, second] = screen.getAllByRole('button');
+    expect(first.textContent).toBe('First');
+    expect(first).toHaveClass('fc-button-secondary');
+    expect(second.textContent).toBe('Second');
+    expect(second).toHaveClass('fc-button-primary');
+  });
+
   it('announces non-error results politely and reports working progress', () => {
     const { rerender } = render(<ToolResult title="Output">Ready</ToolResult>);
 

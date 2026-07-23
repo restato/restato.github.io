@@ -1,6 +1,10 @@
 import { useState } from 'react';
 import { generateSeoBundle, type SchemaType, type SeoBundle } from '../../../lib/data-text/seo';
-import { actionsClass, buttonClass, copyText, downloadText, errorClass, fieldClass, panelClass, privacyClass, secondaryButtonClass } from './ui';
+import { copyText, downloadText } from './ui';
+import { ToolActions } from '../ui/ToolActions';
+import { ToolField } from '../ui/ToolField';
+import { ToolPanel } from '../ui/ToolPanel';
+import { ToolResult } from '../ui/ToolResult';
 
 const emptyBundle: SeoBundle = { metaTags: '', robotsTxt: '', jsonLd: '' };
 
@@ -28,38 +32,37 @@ export default function SeoGeneratorTool() {
   };
 
   return (
-    <section className={panelClass} aria-labelledby="seo-title">
+    <ToolPanel aria-labelledby="seo-title">
       <h2 id="seo-title" className="text-xl font-semibold">SEO meta, robots.txt, and Schema generator</h2>
       <div className="grid gap-4 sm:grid-cols-2">
-        <label className="space-y-1"><span className="font-medium">Page title</span><input aria-label="Page title" className={fieldClass} maxLength={60} value={title} onChange={(event) => setTitle(event.target.value)} /><small aria-hidden="true">{title.length}/60</small></label>
-        <label className="space-y-1"><span className="font-medium">Canonical URL</span><input className={fieldClass} type="url" placeholder="https://example.com/page" value={canonicalUrl} onChange={(event) => setCanonicalUrl(event.target.value)} /></label>
+        <ToolField id="seo-title-input" label="Page title" hint={`${title.length}/60`}><input maxLength={60} value={title} onChange={(event) => setTitle(event.target.value)} /></ToolField>
+        <ToolField id="seo-canonical" label="Canonical URL"><input type="url" placeholder="https://example.com/page" value={canonicalUrl} onChange={(event) => setCanonicalUrl(event.target.value)} /></ToolField>
       </div>
-      <label className="block space-y-1"><span className="font-medium">Meta description</span><textarea aria-label="Meta description" className={fieldClass} maxLength={160} value={description} onChange={(event) => setDescription(event.target.value)} /><small aria-hidden="true">{description.length}/160</small></label>
+      <ToolField id="seo-description" label="Meta description" hint={`${description.length}/160`}><textarea maxLength={160} value={description} onChange={(event) => setDescription(event.target.value)} /></ToolField>
       <div className="grid gap-4 sm:grid-cols-2">
-        <label className="space-y-1"><span className="font-medium">Site name (optional)</span><input className={fieldClass} value={siteName} onChange={(event) => setSiteName(event.target.value)} /></label>
-        <label className="space-y-1"><span className="font-medium">Social image URL (optional)</span><input className={fieldClass} type="url" value={imageUrl} onChange={(event) => setImageUrl(event.target.value)} /></label>
-        <label className="space-y-1"><span className="font-medium">Sitemap URL (optional)</span><input className={fieldClass} type="url" value={sitemapUrl} onChange={(event) => setSitemapUrl(event.target.value)} /></label>
-        <label className="space-y-1"><span className="font-medium">Schema type</span><select className={fieldClass} value={schemaType} onChange={(event) => setSchemaType(event.target.value as SchemaType)}>{['WebPage', 'Article', 'Product', 'Organization'].map((type) => <option key={type}>{type}</option>)}</select></label>
+        <ToolField id="seo-site-name" label="Site name (optional)"><input value={siteName} onChange={(event) => setSiteName(event.target.value)} /></ToolField>
+        <ToolField id="seo-image-url" label="Social image URL (optional)"><input type="url" value={imageUrl} onChange={(event) => setImageUrl(event.target.value)} /></ToolField>
+        <ToolField id="seo-sitemap-url" label="Sitemap URL (optional)"><input type="url" value={sitemapUrl} onChange={(event) => setSitemapUrl(event.target.value)} /></ToolField>
+        <ToolField id="seo-schema-type" label="Schema type"><select value={schemaType} onChange={(event) => setSchemaType(event.target.value as SchemaType)}>{['WebPage', 'Article', 'Product', 'Organization'].map((type) => <option key={type}>{type}</option>)}</select></ToolField>
       </div>
-      <fieldset className="flex gap-4"><legend className="mb-2 font-medium">Crawler directives</legend><label className="flex items-center gap-2"><input type="checkbox" checked={allowIndex} onChange={(event) => setAllowIndex(event.target.checked)} />Allow indexing</label><label className="flex items-center gap-2"><input type="checkbox" checked={allowFollow} onChange={(event) => setAllowFollow(event.target.checked)} />Allow link following</label></fieldset>
-      <button type="button" className={buttonClass} onClick={generate}>Generate SEO files</button>
-      {error && <p role="alert" className={errorClass}>{error}</p>}
+      <fieldset className="flex gap-4"><legend className="mb-2 font-medium">Crawler directives</legend><ToolField id="seo-allow-index" label="Allow indexing"><input type="checkbox" checked={allowIndex} onChange={(event) => setAllowIndex(event.target.checked)} /></ToolField><ToolField id="seo-allow-follow" label="Allow link following"><input type="checkbox" checked={allowFollow} onChange={(event) => setAllowFollow(event.target.checked)} /></ToolField></fieldset>
+      <ToolActions primary={<button type="button" onClick={generate}>Generate SEO files</button>} />
+      {error && <ToolResult status="error">{error}</ToolResult>}
       <Output label="Meta tags output" value={bundle.metaTags} filename="meta-tags.html" />
       <Output label="Robots.txt output" value={bundle.robotsTxt} filename="robots.txt" />
       <Output label="Schema JSON-LD output" value={bundle.jsonLd} filename="schema.json" />
-      <p className={privacyClass}>Generated files are a starting point. Validate them against your site and search-engine requirements.</p>
-    </section>
+    </ToolPanel>
   );
 }
 
 function Output({ label, value, filename }: { label: string; value: string; filename: string }) {
   return (
     <div className="space-y-2">
-      <label className="block space-y-1"><span className="font-medium">{label}</span><textarea className={`${fieldClass} min-h-36 font-mono text-sm`} value={value} readOnly /></label>
-      <div className={actionsClass}>
-        <button type="button" className={secondaryButtonClass} onClick={() => copyText(value)} disabled={!value}>Copy {label.replace(' output', '')}</button>
-        <button type="button" className={secondaryButtonClass} onClick={() => downloadText(value, filename)} disabled={!value}>Download {filename}</button>
-      </div>
+      <ToolField id={`seo-${filename}-output`} label={label}><textarea className="min-h-36 font-mono text-sm" value={value} readOnly /></ToolField>
+      <ToolActions
+        primary={<button type="button" onClick={() => copyText(value)} disabled={!value}>Copy {label.replace(' output', '')}</button>}
+        secondary={<button type="button" onClick={() => downloadText(value, filename)} disabled={!value}>Download {filename}</button>}
+      />
     </div>
   );
 }

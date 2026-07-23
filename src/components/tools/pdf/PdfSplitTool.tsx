@@ -1,6 +1,9 @@
 import { useState } from 'react';
 import { extractPdfPages } from '../../../lib/pdf/operations';
-import { downloadPdf, fieldClass, FilePicker, parsePageSelection, pdfInputAccept, PdfToolShell, primaryButton, readFileBytes } from './shared';
+import { downloadPdf, FilePicker, parsePageSelection, pdfInputAccept, PdfToolShell, readFileBytes } from './shared';
+import { ToolActions } from '../ui/ToolActions';
+import { ToolField } from '../ui/ToolField';
+import { ToolResult } from '../ui/ToolResult';
 
 export default function PdfSplitTool() {
   const [file, setFile] = useState<File>();
@@ -26,8 +29,9 @@ export default function PdfSplitTool() {
     <PdfToolShell error={error}>
       <FilePicker accept={pdfInputAccept} label="PDF 선택 / Choose a PDF" onFiles={(selected) => setFile(selected[0])} />
       {file && <p>{file.name}</p>}
-      <label className="flex flex-col gap-2">페이지 (예: 1-3, 5) / Pages<input className={fieldClass} value={pages} onChange={(event) => setPages(event.target.value)} /></label>
-      <button className={primaryButton} disabled={!file || busy} onClick={extract}>{busy ? '처리 중…' : '페이지 추출 / Extract pages'}</button>
+      <ToolField id="pdf-split-pages" label="페이지 (예: 1-3, 5) / Pages"><input value={pages} onChange={(event) => setPages(event.target.value)} /></ToolField>
+      <ToolActions primary={<button disabled={!file || busy} onClick={extract}>{busy ? '처리 중…' : '페이지 추출 / Extract pages'}</button>} />
+      {busy && <ToolResult status="working">처리 중… / Extracting pages…</ToolResult>}
     </PdfToolShell>
   );
 }

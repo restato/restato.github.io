@@ -84,10 +84,12 @@ export default function PercentCalculator() {
           {t({ ko: '계산 유형', en: 'Calculation type', ja: '計算タイプ' })}
         </label>
         <ToolActions
+          selection
           className="grid grid-cols-1 sm:grid-cols-2"
           primary={calculationTypes.slice(0, 1).map((type) => (
             <button
               key={type.id}
+              aria-pressed={calcType === type.id}
               onClick={() => {
                 setCalcType(type.id as CalculationType);
                 setResult(null);
@@ -102,7 +104,7 @@ export default function PercentCalculator() {
             </button>
           ))}
           secondary={calculationTypes.slice(1).map((type) => (
-            <button key={type.id} onClick={() => { setCalcType(type.id as CalculationType); setResult(null); }}>{type.label}</button>
+            <button key={type.id} aria-pressed={calcType === type.id} onClick={() => { setCalcType(type.id as CalculationType); setResult(null); }}>{type.label}</button>
           ))}
         />
       </div>
@@ -117,20 +119,14 @@ export default function PercentCalculator() {
             placeholder={t({ ko: '숫자 입력', en: 'Enter a number', ja: '数値を入力' })}
           />
         </ToolField>
-        <div className="space-y-2">
-          <label className="block text-sm font-medium text-[var(--color-text)]">
-            {labels.label2}
-          </label>
+        <ToolField id="percent-value-2" label={labels.label2}>
           <input
             type="number"
             value={value2}
             onChange={(e) => setValue2(e.target.value)}
             placeholder={t({ ko: '숫자 입력', en: 'Enter a number', ja: '数値を入力' })}
-            className="w-full px-4 py-3 rounded-lg border border-[var(--color-border)]
-              bg-[var(--color-card)] text-[var(--color-text)]
-              focus:outline-none focus:ring-2 focus:ring-primary-500"
           />
-        </div>
+        </ToolField>
       </div>
 
       {/* Calculate Button */}
@@ -150,8 +146,7 @@ export default function PercentCalculator() {
       {/* Quick Reference */}
       <div className="p-4 rounded-lg bg-[var(--color-card)] border border-[var(--color-border)]">
         <h3 className="font-medium text-[var(--color-text)] mb-2">{t({ ko: '빠른 참고', en: 'Quick reference', ja: 'クイックリファレンス' })}</h3>
-        <div className="grid grid-cols-4 gap-2 text-sm text-[var(--color-text-muted)]">
-          {[10, 15, 20, 25, 30, 50, 75, 100].map((p) => (
+        <ToolActions className="grid grid-cols-4 gap-2 text-sm text-[var(--color-text-muted)]" primary={[10, 15, 20, 25, 30, 50, 75, 100].map((p) => (
             <button
               key={p}
               onClick={() => {
@@ -164,8 +159,7 @@ export default function PercentCalculator() {
             >
               {p}%
             </button>
-          ))}
-        </div>
+          ))} />
       </div>
     </ToolPanel>
   );

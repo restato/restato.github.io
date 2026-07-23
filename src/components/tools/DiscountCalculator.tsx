@@ -48,21 +48,18 @@ export default function DiscountCalculator() {
 
       {/* Discount Percent */}
       <div className="space-y-2">
-        <label className="block text-sm font-medium text-[var(--color-text)]">
-          {t({ ko: '할인율', en: 'Discount rate', ja: '割引率' })}
-        </label>
         <div className="relative">
-          <input
-            type="number"
-            value={discountPercent}
-            onChange={(e) => setDiscountPercent(e.target.value)}
-            placeholder="20"
-            min="0"
-            max="100"
-            className="w-full px-4 py-3 pr-12 rounded-lg border border-[var(--color-border)]
-              bg-[var(--color-card)] text-[var(--color-text)] text-lg
-              focus:outline-none focus:ring-2 focus:ring-primary-500"
-          />
+          <ToolField id="discount-rate" label={t({ ko: '할인율', en: 'Discount rate', ja: '割引率' })}>
+            <input
+              type="number"
+              value={discountPercent}
+              onChange={(e) => setDiscountPercent(e.target.value)}
+              placeholder="20"
+              min="0"
+              max="100"
+              className="pr-12 text-lg"
+            />
+          </ToolField>
           <span className="absolute right-4 top-1/2 -translate-y-1/2 text-[var(--color-text-muted)]">
             %
           </span>
@@ -70,9 +67,11 @@ export default function DiscountCalculator() {
 
         {/* Quick Discount Buttons */}
         <ToolActions
+          selection
           primary={quickDiscounts.slice(0, 1).map((d) => (
             <button
               key={d}
+              aria-pressed={discountPercent === String(d)}
               onClick={() => setDiscountPercent(String(d))}
               className={`px-3 py-1 rounded-lg text-sm transition-colors
                 ${discountPercent === String(d)
@@ -84,7 +83,7 @@ export default function DiscountCalculator() {
             </button>
           ))}
           secondary={quickDiscounts.slice(1).map((d) => (
-            <button key={d} onClick={() => setDiscountPercent(String(d))}>{d}%</button>
+            <button key={d} aria-pressed={discountPercent === String(d)} onClick={() => setDiscountPercent(String(d))}>{d}%</button>
           ))}
         />
       </div>
@@ -137,8 +136,7 @@ export default function DiscountCalculator() {
       {/* Common Discount Scenarios */}
       <div className="p-4 rounded-lg bg-[var(--color-card)] border border-[var(--color-border)]">
         <h3 className="font-medium text-[var(--color-text)] mb-3">💡 {t({ ko: '자주 쓰는 할인', en: 'Common discounts', ja: 'よく使う割引' })}</h3>
-        <div className="grid grid-cols-2 gap-2 text-sm">
-          {[
+        <ToolActions selection className="grid grid-cols-2 gap-2 text-sm" primary={[
             { label: t({ ko: '1+1 행사', en: 'Buy one, get one', ja: '1つ買うと1つ無料' }), discount: 50 },
             { label: t({ ko: '반값 할인', en: 'Half price', ja: '半額' }), discount: 50 },
             { label: t({ ko: '블프 세일', en: 'Black Friday sale', ja: 'ブラックフライデー' }), discount: 70 },
@@ -146,14 +144,14 @@ export default function DiscountCalculator() {
           ].map((item) => (
             <button
               key={item.label}
+              aria-pressed={discountPercent === String(item.discount)}
               onClick={() => setDiscountPercent(String(item.discount))}
               className="px-3 py-2 rounded-lg text-left hover:bg-[var(--color-card-hover)]
                 text-[var(--color-text-muted)] transition-colors"
             >
               {item.label} ({item.discount}%)
             </button>
-          ))}
-        </div>
+          ))} />
       </div>
     </ToolPanel>
   );

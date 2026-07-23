@@ -1,6 +1,8 @@
 import { useState } from 'react';
 import { imagesToPdf } from '../../../lib/pdf/operations';
-import { downloadPdf, FilePicker, imageInputAccept, PdfToolShell, primaryButton, readFileBytes } from './shared';
+import { downloadPdf, FilePicker, imageInputAccept, PdfToolShell, readFileBytes } from './shared';
+import { ToolActions } from '../ui/ToolActions';
+import { ToolResult } from '../ui/ToolResult';
 
 export default function ImagesToPdfTool() {
   const [files, setFiles] = useState<File[]>([]);
@@ -28,7 +30,8 @@ export default function ImagesToPdfTool() {
     <PdfToolShell error={error}>
       <FilePicker accept={imageInputAccept} multiple label="PNG/JPEG 이미지 선택 / Choose PNG or JPEG images" onFiles={(selected) => setFiles((current) => [...current, ...selected])} />
       {files.length > 0 && <ol className="list-decimal pl-6">{files.map((file, index) => <li key={`${file.name}-${index}`}>{file.name}</li>)}</ol>}
-      <button className={primaryButton} disabled={files.length === 0 || busy} onClick={convert}>{busy ? '처리 중…' : 'PDF 만들기 / Create PDF'}</button>
+      <ToolActions primary={<button disabled={files.length === 0 || busy} onClick={convert}>{busy ? '처리 중…' : 'PDF 만들기 / Create PDF'}</button>} />
+      {busy && <ToolResult status="working">처리 중… / Creating PDF…</ToolResult>}
     </PdfToolShell>
   );
 }
