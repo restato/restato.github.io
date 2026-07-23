@@ -565,4 +565,20 @@ describe('Chat', () => {
     expect(source).toContain('fc-tool-privacy');
     expect(source).toContain('fc-tool-instructions');
   });
+
+  it('gives anonymous chat the complete public tool-page shell and tracking', () => {
+    const source = readFileSync(resolve('src/pages/[lang]/anonymous-chat.astro'), 'utf8');
+
+    expect(source).toContain('"@type": "WebApplication"');
+    expect(source).toContain('"@type": "BreadcrumbList"');
+    expect(source).toContain('fc-tool-breadcrumb');
+    expect(source).toContain('<FavoriteButton client:load');
+    expect(source).toContain('<ShareButton client:load');
+    expect(source).toContain('<AdSlot placement="tool-after-help"');
+    expect(source).toContain('<RelatedTools currentSlug={tool.slug}');
+    expect(source).toContain('<BookmarkPrompt client:idle />');
+    expect(source).toContain("const STORAGE_KEY = 'restato_recent_tools'");
+    expect(source).toContain('localStorage.setItem(STORAGE_KEY');
+    expect(source.match(/class="fc-tool-privacy"/g)).toHaveLength(1);
+  });
 });

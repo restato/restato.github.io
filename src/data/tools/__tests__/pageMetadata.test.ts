@@ -99,7 +99,7 @@ describe('localized tool page metadata', () => {
     expect(catalogSource).toContain('getPublishedTools().map');
     expect(anonymousChatSource).toContain('getLocalizedToolPageMetadata');
     expect(anonymousChatSource).toContain('const privacy = seo.privacy');
-    expect(anonymousChatSource).toContain('<p class="chat-privacy">{privacy}</p>');
+    expect(anonymousChatSource).toContain('<p class="fc-tool-privacy">');
     expect(anonymousChatSource).toContain('robots={robots}');
     expect(detailSource).toContain('getToolFallbackNotice(tool, lang)');
     expect(anonymousChatSource).toContain('getToolFallbackNotice(tool, lang)');
@@ -118,5 +118,7 @@ describe('localized tool page metadata', () => {
     expect(source).toContain('seo.faq.map');
     expect(source).toContain('FAQPage');
     expect(source).toContain('interactiveFallbackNotice');
+    expect(source).toContain('"@type": "WebApplication"');
+    expect(source).toContain('"@type": "BreadcrumbList"');
   });
 });
