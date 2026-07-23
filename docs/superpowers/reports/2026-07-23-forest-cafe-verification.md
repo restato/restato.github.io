@@ -27,7 +27,7 @@ The production locale registry currently contains 12 left-to-right languages and
 | Project | `/projects/gallery/` | Korean | LTR; accessible modal gallery |
 | Project | `/projects/jobworld-kids/` | Korean | LTR; connector overflow audited |
 | Project | `/projects/local-price-extractor/` | Korean | LTR |
-| Project | `/projects/quick-issue/` | Korean | LTR |
+| Project | `/projects/quick-issue/` | English | LTR |
 | Project | `/projects/roomfit-3d/` | Korean | LTR |
 | Not found | `/404/` | localized client content | LTR |
 
@@ -37,24 +37,24 @@ This matrix covers every required public page family, the remediated project sur
 
 | Command | Result |
 | --- | --- |
-| `npm test -- --run` | PASS — 97 files, 977/977 tests |
-| `npm run check` | PASS — 397 files, 0 errors, 0 warnings; 81 existing hints |
+| `npm test -- --run` | PASS — 98 files, 986/986 tests |
+| `npm run check` | PASS — 400 files, 0 errors, 0 warnings; 81 existing hints |
 | `npm run build` | PASS — 1,269 pages |
 | `node scripts/validate-site.mjs dist` | PASS — 1,276 HTML files validated |
 | `node scripts/audit-content.mjs dist` | PASS — 1,121 indexable pages audited |
 | `node scripts/check-bundles.mjs dist` | PASS — all four route budgets below limits |
 | `npm run test:a11y` | PASS — 42/42 Playwright tests |
 | `npx playwright test tests/e2e/catalog.spec.ts tests/e2e/forest-cafe-visual.spec.ts --project=desktop --project=mobile-390` | PASS — 68/68 Playwright tests |
-| `npx playwright test tests/e2e/project-pages.spec.ts tests/e2e/localization-contract.spec.ts --project=desktop --project=mobile-390` | PASS — 14/14 Playwright tests |
+| `npx playwright test tests/e2e/project-pages.spec.ts tests/e2e/localization-contract.spec.ts --project=desktop --project=mobile-390` | PASS — 28/28 Playwright tests |
 
 Bundle results:
 
 | Route | Actual | Budget |
 | --- | ---: | ---: |
 | `/ko/tools` | 165.9 KB | 180 KB |
-| `/ko/tools/text-counter` | 201.1 KB | 220 KB |
-| `/ko/tools/json` | 201.1 KB | 400 KB |
-| `/ko/tools/image-resizer` | 201.1 KB | 550 KB |
+| `/ko/tools/text-counter` | 201.2 KB | 220 KB |
+| `/ko/tools/json` | 201.2 KB | 400 KB |
+| `/ko/tools/image-resizer` | 201.2 KB | 550 KB |
 
 Focused regression checks also passed:
 

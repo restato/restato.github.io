@@ -1,7 +1,7 @@
 # Forest Café Project Pages and Localization Contract Design
 
-**Date:** 2026-07-24  
-**Status:** Approved  
+**Date:** 2026-07-24
+**Status:** Approved
 **Scope:** Five project pages, `/404`, shared public-page verification, and the
 specified localization/SEO contracts.
 

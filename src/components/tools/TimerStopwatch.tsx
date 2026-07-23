@@ -181,16 +181,14 @@ export default function TimerStopwatch() {
         primary={!isRunning ? (
           <button
             onClick={start}
-            className="px-8 py-3 bg-green-500 hover:bg-green-600 text-white rounded-full
-              font-medium transition-colors text-lg"
+            className="px-8 py-3 rounded-full font-medium transition-colors text-lg"
           >
             {t(tc.start)}
           </button>
         ) : (
           <button
             onClick={pause}
-            className="px-8 py-3 bg-yellow-500 hover:bg-yellow-600 text-white rounded-full
-              font-medium transition-colors text-lg"
+            className="px-8 py-3 rounded-full font-medium transition-colors text-lg"
           >
             {t(tc.pause)}
           </button>
@@ -199,8 +197,7 @@ export default function TimerStopwatch() {
         {mode === 'stopwatch' && isRunning && (
           <button
             onClick={lap}
-            className="px-8 py-3 bg-blue-500 hover:bg-blue-600 text-white rounded-full
-              font-medium transition-colors text-lg"
+            className="px-8 py-3 rounded-full font-medium transition-colors text-lg"
           >
             {t(tt.lap)}
           </button>

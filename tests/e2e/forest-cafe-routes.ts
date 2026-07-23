@@ -149,7 +149,7 @@ export const forestCafeRoutes: readonly ForestCafeRoute[] = [
     name: 'Quick Issue project',
     family: 'project',
     path: '/projects/quick-issue/',
-    locale: 'ko',
+    locale: 'en',
   },
   {
     id: 'project-roomfit-3d',

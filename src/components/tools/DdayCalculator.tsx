@@ -190,28 +190,30 @@ export default function DdayCalculator() {
               return (
                 <div
                   key={index}
-                  className="flex items-center justify-between p-2 rounded-lg hover:bg-[var(--color-bg)]
-                    cursor-pointer transition-colors"
-                  onClick={() => loadDday(dday.date, dday.name)}
+                  className="flex items-center gap-2 rounded-lg p-2 transition-colors"
                 >
-                  <div>
-                    <p className="text-[var(--color-text)] font-medium">{dday.name}</p>
-                    <p className="text-xs text-[var(--color-text-muted)]">{dday.date}</p>
-                  </div>
-                  <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    aria-label={t({ ko: `${dday.name} 불러오기`, en: `Load ${dday.name}`, ja: `${dday.name}を読み込む` })}
+                    className="flex min-h-11 flex-1 items-center justify-between rounded-lg px-2 text-left hover:bg-[var(--color-bg)]"
+                    onClick={() => loadDday(dday.date, dday.name)}
+                  >
+                    <span>
+                      <span className="block font-medium text-[var(--color-text)]">{dday.name}</span>
+                      <span className="block text-xs text-[var(--color-text-muted)]">{dday.date}</span>
+                    </span>
                     <span className={`font-bold ${diff >= 0 ? 'text-primary-500' : 'text-[var(--color-text-muted)]'}`}>
                       D{diff >= 0 ? '-' : '+'}{Math.abs(diff)}
                     </span>
-                    <ToolActions primary={<button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        deleteDday(index);
-                      }}
-                      className="p-1 hover:bg-red-500/10 rounded text-red-500"
-                    >
-                      ✕
-                    </button>} />
-                  </div>
+                  </button>
+                  <ToolActions primary={<button
+                    type="button"
+                    aria-label={t({ ko: `${dday.name} 삭제`, en: `Delete ${dday.name}`, ja: `${dday.name}を削除` })}
+                    onClick={() => deleteDday(index)}
+                    className="p-1 hover:bg-red-500/10 rounded text-red-500"
+                  >
+                    ✕
+                  </button>} />
                 </div>
               );
             })}

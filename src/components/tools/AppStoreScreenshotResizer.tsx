@@ -470,21 +470,28 @@ export default function AppStoreScreenshotResizer() {
               {images.map((img, idx) => (
                 <div
                   key={img.id}
-                  className={`relative flex-shrink-0 cursor-pointer rounded-lg overflow-hidden border-2 transition-colors
-                    ${idx === activeImageIndex ? 'border-primary-500' : 'border-[var(--color-border)]'}`}
-                  onClick={() => setActiveImageIndex(idx)}
+                  className="relative flex-shrink-0"
                 >
-                  <img
-                    src={img.url}
-                    alt={`Image ${idx + 1}`}
-                    className="w-16 h-16 object-cover"
-                  />
-                  <ToolActions className="absolute top-0 right-0" primary={<button onClick={(e) => { e.stopPropagation(); removeImage(idx); }} aria-label={`Remove image ${idx + 1}`}>×</button>} />
-                  {img.processed && (
-                    <div className="absolute bottom-0 left-0 right-0 bg-green-500 text-white text-xs text-center py-0.5">
-                      ✓
-                    </div>
-                  )}
+                  <button
+                    type="button"
+                    aria-label={`Select image ${idx + 1}`}
+                    aria-pressed={idx === activeImageIndex}
+                    className={`block overflow-hidden rounded-lg border-2 transition-colors
+                      ${idx === activeImageIndex ? 'border-primary-500' : 'border-[var(--color-border)]'}`}
+                    onClick={() => setActiveImageIndex(idx)}
+                  >
+                    <img
+                      src={img.url}
+                      alt=""
+                      className="w-16 h-16 object-cover"
+                    />
+                    {img.processed && (
+                      <span data-contrast-target="appstore-processed" className="absolute bottom-0 left-0 right-0 bg-[var(--surface-soft)] py-0.5 text-center text-xs font-bold text-[var(--brand)]">
+                        ✓
+                      </span>
+                    )}
+                  </button>
+                  <ToolActions className="absolute top-0 right-0" primary={<button type="button" onClick={() => removeImage(idx)} aria-label={`Remove image ${idx + 1}`}>×</button>} />
                 </div>
               ))}
               {images.length < 10 && (

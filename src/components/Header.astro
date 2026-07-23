@@ -1,6 +1,6 @@
 ---
 import { languages, type Language } from '../i18n';
-import { getBasePathFromUrl, buildLanguageUrl, supportsLanguageRouting, supportedLanguagePattern } from '../i18n/urlUtils';
+import { getBasePathFromUrl, buildLanguageUrl, supportsLanguageRouting, localizedRouteFamilies, supportedLanguagePattern } from '../i18n/urlUtils';
 import { siteChrome } from '../i18n/tool-ui';
 
 interface NavItem {
@@ -212,9 +212,8 @@ const primaryNavigationTranslations = Object.fromEntries(Object.entries(primaryN
   </nav>
 </header>
 
-<script define:vars={{ navTranslations, darkModeTranslations, selectLanguageTranslations, toggleMenuTranslations, primaryNavigationTranslations, languages, lang, lockLanguage, supportedLanguagePattern }} is:inline>
+<script define:vars={{ navTranslations, darkModeTranslations, selectLanguageTranslations, toggleMenuTranslations, primaryNavigationTranslations, languages, lang, lockLanguage, localizedRouteFamilies, supportedLanguagePattern }} is:inline>
   (() => {
-    const langSupportedPaths = ['/', '/tools', '/anonymous-chat', '/games'];
     const gameLanguages = new Set(['ko', 'en', 'ja']);
     const languagePrefixPattern = new RegExp('^/(' + supportedLanguagePattern + ')(?=/|$|[?#])');
 
@@ -226,7 +225,7 @@ const primaryNavigationTranslations = Object.fromEntries(Object.entries(primaryN
     function supportsLangRouting(pathname) {
       const basePath = getBasePath(pathname);
       const pathOnly = basePath.split(/[?#]/, 1)[0];
-      return langSupportedPaths.some((path) => path === '/'
+      return localizedRouteFamilies.some((path) => path === '/'
         ? pathOnly === '/'
         : pathOnly === path || pathOnly.startsWith(path + '/'));
     }

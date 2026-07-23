@@ -25,8 +25,9 @@ interface Props {
   alternateUrls?: AlternateUrl[];
 }
 
-const { title, description, image, type, publishedTime, modifiedTime, author, robots, canonical, lang, lockLanguage, alternateUrls } = Astro.props;
-const skipLinkLabel = getSkipLinkLabel(lang ?? 'ko');
+const { title, description, image, type, publishedTime, modifiedTime, author, robots, canonical, lang, lockLanguage = false, alternateUrls } = Astro.props;
+const resolvedLanguage = lang ?? 'ko';
+const skipLinkLabel = getSkipLinkLabel(resolvedLanguage);
 ---
 
 <BaseLayout title={title} description={description} image={image} type={type} publishedTime={publishedTime} modifiedTime={modifiedTime} author={author} robots={robots} canonical={canonical} lang={lang} lockLanguage={lockLanguage} alternateUrls={alternateUrls}>
@@ -36,6 +37,8 @@ const skipLinkLabel = getSkipLinkLabel(lang ?? 'ko');
     class="fc-button fc-button-primary fixed left-4 top-3 z-[60] -translate-y-24 transition-transform focus:translate-y-0"
     data-skip-link
     data-skip-link-labels={JSON.stringify(skipLinkLabels)}
+    data-page-language={resolvedLanguage}
+    data-lock-language={lockLanguage ? 'true' : 'false'}
   >
     {skipLinkLabel}
   </a>
@@ -48,15 +51,20 @@ const skipLinkLabel = getSkipLinkLabel(lang ?? 'ko');
     const skipLink = document.querySelector('[data-skip-link]');
     if (skipLink instanceof HTMLAnchorElement) {
       const labels = JSON.parse(skipLink.dataset.skipLinkLabels || '{}');
+      const lockLanguage = skipLink.dataset.lockLanguage === 'true';
+      const pageLanguage = skipLink.dataset.pageLanguage || document.documentElement.lang;
       const updateSkipLink = (language: string) => {
         skipLink.textContent = labels[language] || labels.ko;
       };
 
       const storedLanguage = localStorage.getItem('lang');
-      updateSkipLink(storedLanguage && labels[storedLanguage]
-        ? storedLanguage
-        : document.documentElement.lang);
+      updateSkipLink(lockLanguage
+        ? pageLanguage
+        : storedLanguage && labels[storedLanguage]
+          ? storedLanguage
+          : document.documentElement.lang);
       window.addEventListener('languageChange', (event) => {
+        if (lockLanguage) return;
         updateSkipLink((event as CustomEvent<string>).detail);
       });
     }

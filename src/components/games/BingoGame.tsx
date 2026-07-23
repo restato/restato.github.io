@@ -121,9 +121,9 @@ export default function BingoGame() {
       {/* Left - Drawing Area */}
       <div className="flex-1 flex flex-col items-center">
         {/* Current Number Display */}
-        <div className={`w-32 h-32 md:w-40 md:h-40 rounded-full flex items-center justify-center mb-6 ${
+        <div data-contrast-target="bingo-current" className={`w-32 h-32 md:w-40 md:h-40 rounded-full flex items-center justify-center mb-6 ${
           isAnimating ? 'animate-pulse' : ''
-        } bg-[var(--brand)] text-white`}>
+        } border border-[var(--brand)] bg-[var(--surface-soft)] text-[var(--brand)]`}>
           <div className="text-center">
             {currentNumber && (
               <>
@@ -217,10 +217,11 @@ export default function BingoGame() {
 
               return (
                 <div
+                  data-contrast-target={isMarked ? 'bingo-marked' : undefined}
                   key={`${rowIdx}-${colIdx}`}
                   className={`aspect-square flex items-center justify-center font-bold text-lg rounded transition-colors ${
                     isMarked
-                      ? 'bg-green-500 text-white'
+                      ? 'border border-[var(--brand)] bg-[var(--surface-soft)] text-[var(--brand)]'
                       : 'bg-[var(--color-bg)]'
                   }`}
                 >

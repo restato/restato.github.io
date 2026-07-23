@@ -251,7 +251,7 @@ export default function EventRoulette() {
                     className="flex items-center justify-between p-2 bg-[var(--color-bg)] rounded-lg"
                   >
                     <span className="flex items-center gap-2">
-                      <span className="w-6 h-6 flex items-center justify-center bg-yellow-500 text-white text-xs font-bold rounded-full">
+                      <span data-contrast-target="roulette-history-rank" className="flex h-6 w-6 items-center justify-center rounded-full border border-[var(--accent)] bg-[var(--surface-soft)] text-xs font-bold text-[var(--accent)]">
                         {idx + 1}
                       </span>
                       <span className="font-medium">{w.text}</span>

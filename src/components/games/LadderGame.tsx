@@ -254,12 +254,13 @@ export default function LadderGame() {
           {participants.map((p, idx) => (
             <button
               type="button"
+              data-contrast-target={selectedIndex === idx ? 'ladder-selected' : undefined}
               key={p.id}
               onClick={() => !isAnimating && ladderData.length > 0 && animatePath(idx)}
               disabled={isAnimating || ladderData.length === 0}
               className={`fc-game-cell flex-1 rounded-t-lg py-2 text-center text-sm font-medium ${
                 selectedIndex === idx
-                  ? 'bg-red-500 text-white'
+                  ? 'border border-[var(--accent)] bg-[var(--surface-soft)] text-[var(--accent)]'
                   : 'bg-[var(--color-card)] border border-[var(--color-border)] hover:bg-[var(--color-card-hover)]'
               } ${isAnimating || ladderData.length === 0 ? 'cursor-not-allowed opacity-50' : 'cursor-pointer'}`}
             >

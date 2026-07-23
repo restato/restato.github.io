@@ -89,7 +89,7 @@ const breadcrumbSchema = {
 };
 ---
 
-<MainLayout title={pageTitle} description={pageDescription}>
+<MainLayout title={pageTitle} description={pageDescription} lang="en" lockLanguage={true}>
   <script type="application/ld+json" set:html={JSON.stringify(appSchema)} />
   <script type="application/ld+json" set:html={JSON.stringify(breadcrumbSchema)} />
 

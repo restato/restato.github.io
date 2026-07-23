@@ -69,7 +69,8 @@ describe('localized landing pages', () => {
     ]);
 
     expect(headerSource).toContain('window.location.pathname + window.location.search + window.location.hash');
-    expect(headerSource).toContain("const langSupportedPaths = ['/', '/tools', '/anonymous-chat', '/games']");
+    expect(headerSource).toContain('supportsLanguageRouting, localizedRouteFamilies');
+    expect(headerSource).toContain('localizedRouteFamilies, supportedLanguagePattern');
     expect(headerSource).toContain('const pathOnly = basePath.split(/[?#]/, 1)[0]');
     expect(baseSource).toContain('parseLanguage(Astro.url.pathname)');
     expect(landingSource).not.toContain('lockLanguage={true}');

@@ -7,7 +7,7 @@ export const languagePrefixPattern = new RegExp(
   `^/(${supportedLanguagePattern})(?=/|$|[?#])`,
 );
 
-const LANG_SUPPORTED_PATHS = [
+export const localizedRouteFamilies = [
   '/',
   '/tools',
   '/anonymous-chat',
@@ -17,7 +17,7 @@ const LANG_SUPPORTED_PATHS = [
   '/privacy',
   '/terms',
   '/disclaimer',
-];
+] as const;
 const GAME_LANGUAGES = new Set<Language>(['ko', 'en', 'ja']);
 
 function splitPathSuffix(value: string): { path: string; suffix: string } {
@@ -40,7 +40,7 @@ export function getBasePathFromUrl(pathname: string): string {
 
 export function supportsLanguageRouting(pathname: string): boolean {
   const { path } = splitPathSuffix(getBasePathFromUrl(pathname));
-  return LANG_SUPPORTED_PATHS.some(
+  return localizedRouteFamilies.some(
     supportedPath => supportedPath === '/'
       ? path === '/' || path === ''
       : path === supportedPath || path.startsWith(`${supportedPath}/`),
