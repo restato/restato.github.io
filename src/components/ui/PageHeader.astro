@@ -1,0 +1,17 @@
+---
+interface Props {
+  eyebrow?: string;
+  title: string;
+  description?: string;
+  align?: 'start' | 'center';
+}
+
+const { eyebrow, title, description, align = 'start' } = Astro.props;
+---
+
+<header class:list={['fc-page-header', `fc-page-header-${align}`]}>
+  {eyebrow && <p class="fc-eyebrow">{eyebrow}</p>}
+  <h1>{title}</h1>
+  {description && <p class="fc-page-description">{description}</p>}
+  <slot name="actions" />
+</header>

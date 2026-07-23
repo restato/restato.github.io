@@ -1,0 +1,13 @@
+---
+interface Props {
+  as?: 'section' | 'article' | 'div';
+  tone?: 'raised' | 'soft';
+  padding?: 'none' | 'sm' | 'md';
+}
+
+const { as: Tag = 'section', tone = 'raised', padding = 'md' } = Astro.props;
+---
+
+<Tag class:list={['fc-surface', tone === 'soft' && 'fc-surface-soft', `fc-surface-padding-${padding}`]}>
+  <slot />
+</Tag>
