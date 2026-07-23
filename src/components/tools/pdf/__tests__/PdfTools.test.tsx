@@ -14,9 +14,9 @@ describe('PDF tool components', () => {
     vi.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(() => {});
   });
 
-  it.each(components)('states that processing stays in the browser', (Component) => {
-    render(<Component />);
-    expect(screen.getByText(/브라우저 안에서만|browser/i)).toBeInTheDocument();
+  it.each(components)('leaves privacy copy to the route workspace', (Component) => {
+    const { container } = render(<Component />);
+    expect(container.querySelector('.fc-tool-privacy')).toBeNull();
   });
 
   it('merges selected PDFs into a real downloadable PDF without network requests', async () => {

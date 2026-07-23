@@ -449,3 +449,42 @@ standard page header/workspace/privacy/instructions structure, while chat
 controls use real shared panels, fields, actions, and result states. Existing
 room-link, messaging, reconnect, localization, and service behavior remains
 covered.
+
+## Final verification
+
+The first complete-suite pass exposed five stale PDF tests that still required
+nested privacy copy; those expectations now enforce route ownership instead.
+A subsequent complete run reached 495 of 496 before the LLM cost test's
+15-second per-test budget expired under parallel load. The same test passed
+alone in 8.6 seconds, so its load budget was widened without changing behavior.
+
+Fresh final evidence:
+
+```sh
+npm test -- --run src/components/tools \
+  src/components/__tests__/Chat.test.tsx \
+  src/hooks/__tests__/useChatService.test.tsx \
+  src/lib/pdf src/lib/data-text src/lib/media-calc --reporter=dot
+```
+
+Status: passed — 44 files, 496 tests.
+
+```sh
+npm run check
+```
+
+Status: passed — 373 files, 0 errors, 0 warnings, 86 pre-existing hints.
+
+```sh
+npm run build
+```
+
+Status: passed — 1,269 pages built; sitemap generation completed.
+
+```sh
+node scripts/check-bundles.mjs dist
+```
+
+Status: passed — all guarded routes remain below their gzip budgets
+(`/ko/tools` 165.9/180 KB; text-counter 199.9/220 KB; JSON 199.9/400 KB;
+image-resizer 199.9/550 KB).

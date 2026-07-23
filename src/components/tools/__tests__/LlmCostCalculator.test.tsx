@@ -29,5 +29,5 @@ describe('LlmCostCalculator', () => {
 
     fireEvent.change(input, { target: { value: '안녕' } });
     expect(screen.getByText('≈ 1 토큰 (추정)')).toBeInTheDocument();
-  }, 15_000);
+  }, 60_000);
 });
