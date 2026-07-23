@@ -103,3 +103,46 @@ Additional focused evidence:
 - Audited the base-to-head diff for SEO metadata, routes, schemas, source constants, Firebase/chat behavior, article bodies, and data logic; no out-of-scope changes found.
 - Preserved the unrelated pre-existing modification to `.superpowers/sdd/rollout-task-1-report.md`.
 - No deployment, push, registry change, SEO-logic change, or protected report action was performed.
+
+## Review remediation
+
+Review found that the legacy `.prose` rules compiled after equal-specificity
+`.fc-prose` rules, so blog links, code, pre blocks, and blockquotes did not
+consistently receive the Forest Café treatment. It also found two non-visual
+LLM Wiki gradients, two English eyebrows on Korean pages, and incorrect
+blog-post breadcrumb current-page semantics.
+
+The public-pages contract was strengthened before production changes. The RED
+run failed 4 of 8 contract tests with 12 scoped assertions:
+
+- eight computed-style failures from the compiled Tailwind prose cascade;
+- the hero-grid and adoption-card outer gradients;
+- the unlocalized article/jobs labels;
+- the Blog ancestor/current article breadcrumb relationship.
+
+The remediation:
+
+- adds later, higher-specificity `.prose.fc-prose` editorial rules without
+  `!important`;
+- compiles `global.css` in the contract and checks computed styles for the
+  reading measure, links, inline code, pre/code, and blockquotes;
+- includes `llm-wiki.css` and all non-graph LLM Wiki experience/control
+  components in the public-page contract;
+- replaces the hero backdrop and adoption CTA gradient with quiet Forest Café
+  solid surfaces and subtle borders while retaining visualization gradients;
+- removes the English eyebrows from the Korean articles and jobs pages;
+- keeps Blog as an ancestor link and marks the article title as
+  `aria-current="page"`, while retaining article metadata inputs.
+
+Fresh remediation verification:
+
+- public-pages contract: 8 tests passed;
+- exact focused suite: 8 files passed, 56 tests passed;
+- `npm run check`: 384 files checked, 0 errors; 81 pre-existing hints;
+- `npm run build`: exit 0; 1,269 pages built; four sitemap families regenerated;
+- `git diff --check`: clean.
+
+The unrelated pre-existing modification to
+`.superpowers/sdd/rollout-task-1-report.md` remains untouched. No push, deploy,
+protected-report edit, route change, schema change, or content-body rewrite was
+performed.
