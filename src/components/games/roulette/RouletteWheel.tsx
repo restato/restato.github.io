@@ -195,7 +195,7 @@ export default function RouletteWheel({
         role="button"
         tabIndex={0}
         aria-label={spinLabel}
-        className={`cursor-pointer ${isSpinning ? 'pointer-events-none' : ''}`}
+        className={`h-auto max-w-full cursor-pointer touch-manipulation ${isSpinning ? 'pointer-events-none' : ''}`}
         style={{
           filter: 'drop-shadow(0 4px 6px rgba(0, 0, 0, 0.1))',
         }}

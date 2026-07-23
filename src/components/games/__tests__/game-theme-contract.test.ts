@@ -90,6 +90,11 @@ describe('Forest Café game theme contract', () => {
         ? [`${file}: clickable canvas missing keyboard semantics`]
         : [];
 
+      const mobileCanvasViolations = file.endsWith('/RouletteWheel.tsx')
+        && !source.includes('max-w-full')
+        ? [`${file}: fullscreen canvas can overflow narrow viewports`]
+        : [];
+
       const pointerActionViolations = file.endsWith('/FlappyBird.tsx')
         && source.includes('onClick={handleInteraction}')
         && (!source.includes('role="button"')
@@ -109,6 +114,7 @@ describe('Forest Café game theme contract', () => {
       return [
         ...buttonViolations,
         ...canvasActionViolations,
+        ...mobileCanvasViolations,
         ...pointerActionViolations,
         ...touchActionViolations,
       ];
