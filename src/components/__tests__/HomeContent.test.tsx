@@ -1,24 +1,30 @@
 import { render, screen } from '@testing-library/react';
 import { beforeEach, describe, expect, it } from 'vitest';
 
+import { supportedLanguages } from '../../data/tools/locales';
+import type { Language } from '../../data/tools/types';
 import {
   HeroSection,
   PopularToolsSection,
   ProjectsSection,
   RecentPostsHeader,
 } from '../HomeContent';
-import { TranslationProvider } from '../../i18n/useTranslation';
+import NotFoundContent from '../NotFoundContent';
 
-function renderHome(language: 'ko' | 'en' | 'ja') {
-  window.history.replaceState({}, '', `/${language}/`);
+function selectLanguage(language: Language, pathname: string) {
+  localStorage.setItem('lang', language);
+  window.history.replaceState({}, '', pathname);
+}
 
+function renderHome(language: Language) {
+  selectLanguage(language, '/');
   return render(
-    <TranslationProvider initialLanguage={language}>
+    <>
       <HeroSection />
       <PopularToolsSection />
       <RecentPostsHeader />
       <ProjectsSection />
-    </TranslationProvider>,
+    </>,
   );
 }
 
@@ -35,13 +41,15 @@ describe('Forest Café home content', () => {
     expect(screen.getByRole('heading', { level: 2, name: 'Projects & play' })).toBeInTheDocument();
   });
 
-  it('makes tool search prominent and preserves localized tool links', () => {
-    renderHome('ja');
+  it.each(supportedLanguages)('preserves the selected %s locale in every tool link', language => {
+    const { container } = renderHome(language);
 
-    expect(screen.getByRole('link', { name: 'ツールを検索' }))
-      .toHaveAttribute('href', '/ja/tools/');
-    expect(screen.getByRole('link', { name: /JSONフォーマッタ/ }))
-      .toHaveAttribute('href', '/ja/tools/json/');
+    expect(container.querySelector('a.fc-button-primary'))
+      .toHaveAttribute('href', `/${language}/tools/`);
+    expect(container.querySelector(`a[href="/${language}/tools/json/"]`))
+      .toBeInTheDocument();
+    expect(container.querySelector(`a[href="/${language}/anonymous-chat/"]`))
+      .toBeInTheDocument();
   });
 
   it('uses quiet shared surfaces without legacy floating effects', () => {
@@ -51,5 +59,25 @@ describe('Forest Café home content', () => {
     expect(container.innerHTML).not.toMatch(
       /\bgradient-|\bbackdrop-blur|\bhover:-translate|\bhover:scale|\bshadow-(?:lg|xl|2xl)\b/,
     );
+  });
+});
+
+describe('Forest Café not-found content', () => {
+  beforeEach(() => localStorage.clear());
+
+  it.each(supportedLanguages)('preserves the selected %s locale in return and tool links', language => {
+    selectLanguage(language, '/missing-page');
+    const { container } = render(<NotFoundContent />);
+    const usefulLinks = Array.from(container.querySelectorAll('nav a'));
+
+    expect(container.querySelectorAll('h1')).toHaveLength(1);
+    expect(container.querySelector('a.fc-button-primary'))
+      .toHaveAttribute('href', `/${language}/`);
+    expect(usefulLinks.map(link => link.getAttribute('href'))).toEqual([
+      `/${language}/tools/`,
+      `/${language}/tools/json/`,
+      `/${language}/tools/qr-code/`,
+      `/${language}/anonymous-chat/`,
+    ]);
   });
 });

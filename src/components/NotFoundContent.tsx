@@ -1,13 +1,14 @@
 import { useTranslation } from '../i18n/useTranslation';
 
 export default function NotFoundContent() {
-  const { lang, t, translations } = useTranslation();
+  const { routingLang, t, translations } = useTranslation();
   const notFound = translations.common.notFound;
   const idx = translations.common.index;
   const toolLinks = [
-    { href: `/${lang}/tools/`, label: { ko: '도구 검색', en: 'Search tools', ja: 'ツールを検索' } },
-    { href: `/${lang}/tools/json/`, label: idx.jsonFormatter },
-    { href: `/${lang}/tools/qr-code/`, label: idx.qrCode },
+    { href: `/${routingLang}/tools/`, label: { ko: '도구 검색', en: 'Search tools', ja: 'ツールを検索' } },
+    { href: `/${routingLang}/tools/json/`, label: idx.jsonFormatter },
+    { href: `/${routingLang}/tools/qr-code/`, label: idx.qrCode },
+    { href: `/${routingLang}/anonymous-chat/`, label: { ko: '익명 채팅', en: 'Anonymous chat', ja: '匿名チャット' } },
   ];
 
   return (
@@ -17,7 +18,7 @@ export default function NotFoundContent() {
         <h1>{t(notFound.title)}</h1>
         <p className="fc-page-description">{t(notFound.description)}</p>
         <a
-          href="/"
+          href={`/${routingLang}/`}
           className="fc-button fc-button-primary mt-3 w-fit"
         >
           {t(notFound.backHome)}

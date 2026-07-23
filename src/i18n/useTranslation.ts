@@ -1,6 +1,6 @@
 // React hook for translations
 import { createContext, createElement, useState, useEffect, useCallback, useContext, type ReactNode } from 'react';
-import { getLanguage, setLanguage, type Language } from './index';
+import { defaultLang, getLanguage, setLanguage, type Language } from './index';
 import { toolTranslations } from './translations/tools';
 import { gameTranslations } from './translations/games';
 import { commonTranslations } from './translations/common';
@@ -20,7 +20,7 @@ type ExistingUiLanguage = 'ko' | 'en' | 'ja';
 const getExistingUiLanguage = (language: Language): ExistingUiLanguage =>
   language === 'ko' || language === 'ja' ? language : 'en';
 
-const InitialLanguageContext = createContext<ExistingUiLanguage | null>(null);
+const InitialLanguageContext = createContext<Language | null>(null);
 
 export function TranslationProvider({
   initialLanguage,
@@ -31,21 +31,27 @@ export function TranslationProvider({
 }) {
   return createElement(
     InitialLanguageContext.Provider,
-    { value: getExistingUiLanguage(initialLanguage) },
+    { value: initialLanguage },
     children,
   );
 }
 
 export function useTranslation() {
   const initialLanguage = useContext(InitialLanguageContext);
-  const [lang, setLang] = useState<ExistingUiLanguage>(() => initialLanguage ?? 'ko');
+  const [routingLang, setRoutingLang] = useState<Language>(() => initialLanguage ?? defaultLang);
+  const [lang, setLang] = useState<ExistingUiLanguage>(() =>
+    getExistingUiLanguage(initialLanguage ?? defaultLang)
+  );
 
   useEffect(() => {
     // Set initial language
-    setLang(getExistingUiLanguage(getLanguage()));
+    const currentLanguage = getLanguage();
+    setRoutingLang(currentLanguage);
+    setLang(getExistingUiLanguage(currentLanguage));
 
     // Listen for language changes
     const handleLanguageChange = (e: CustomEvent<Language>) => {
+      setRoutingLang(e.detail);
       setLang(getExistingUiLanguage(e.detail));
     };
 
@@ -63,11 +69,13 @@ export function useTranslation() {
 
   const changeLanguage = useCallback((newLang: Language) => {
     setLanguage(newLang);
+    setRoutingLang(newLang);
     setLang(getExistingUiLanguage(newLang));
   }, []);
 
   return {
     lang,
+    routingLang,
     t,
     changeLanguage,
     translations,

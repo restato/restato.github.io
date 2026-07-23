@@ -1,4 +1,5 @@
 import { useTranslation } from '../i18n/useTranslation';
+import type { Language } from '../data/tools/types';
 
 const editorialCopy = {
   eyebrow: {
@@ -63,7 +64,8 @@ const editorialCopy = {
   },
 } as const;
 
-function toolPath(lang: 'ko' | 'en' | 'ja', slug?: string) {
+function toolPath(lang: Language, slug?: string) {
+  if (slug === 'anonymous-chat') return `/${lang}/anonymous-chat/`;
   return `/${lang}/tools/${slug ? `${slug}/` : ''}`;
 }
 
@@ -72,7 +74,7 @@ function Arrow() {
 }
 
 export function HeroSection() {
-  const { lang, t } = useTranslation();
+  const { routingLang, t } = useTranslation();
 
   return (
     <section className="grid gap-8 border-b border-[var(--border-subtle)] py-12 md:py-16 lg:grid-cols-[minmax(0,1fr)_18rem] lg:items-end">
@@ -85,7 +87,7 @@ export function HeroSection() {
           {t(editorialCopy.description)}
         </p>
         <div className="mt-7 flex flex-wrap gap-3">
-          <a href={toolPath(lang)} className="fc-button fc-button-primary">
+          <a href={toolPath(routingLang)} className="fc-button fc-button-primary">
             {t(editorialCopy.searchTools)}
             <Arrow />
           </a>
@@ -135,7 +137,7 @@ export function NoPostsMessage() {
 }
 
 export function PopularToolsSection() {
-  const { lang, t, translations } = useTranslation();
+  const { routingLang, t, translations } = useTranslation();
   const idx = translations.common.index;
   const tools = [
     { slug: 'json', icon: '{ }', name: idx.jsonFormatter },
@@ -143,7 +145,11 @@ export function PopularToolsSection() {
     { slug: 'color', icon: 'HEX', name: idx.colorConverter },
     { slug: 'image-resizer', icon: 'PX', name: idx.imageResizer },
     { slug: 'base64', icon: '64', name: idx.base64 },
-    { slug: 'password', icon: '***', name: idx.passwordGenerator },
+    {
+      slug: 'anonymous-chat',
+      icon: 'P2P',
+      name: { ko: '익명 채팅', en: 'Anonymous chat', ja: '匿名チャット' },
+    },
   ];
 
   return (
@@ -155,7 +161,7 @@ export function PopularToolsSection() {
             {t(editorialCopy.popularTools)}
           </h2>
         </div>
-        <a href={toolPath(lang)} className="fc-button fc-button-quiet px-2 text-sm">
+        <a href={toolPath(routingLang)} className="fc-button fc-button-quiet px-2 text-sm">
           {t(idx.viewAll)}
           <Arrow />
         </a>
@@ -174,7 +180,7 @@ export function PopularToolsSection() {
               ].join(' ')}
             >
               <a
-                href={toolPath(lang, tool.slug)}
+                href={toolPath(routingLang, tool.slug)}
                 className="flex min-h-14 items-center gap-3 px-4 py-3 text-[var(--text-primary)] transition-colors hover:bg-[var(--surface-soft)]"
               >
                 <span className="w-9 shrink-0 text-xs font-bold text-[var(--accent)]" aria-hidden="true">
