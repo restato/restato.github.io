@@ -1,102 +1,211 @@
 ---
-title: "AI Gateway 실시간 전사 가이드: streamTranscribe, PCM, 임시 토큰"
-description: "AI SDK의 streamTranscribe로 음성을 낮은 지연으로 전사하고, PCM 형식·임시 토큰·부분 자막·에이전트 연결을 안전하게 구성하는 방법을 설명합니다."
+title: "Streaming Transcription in Production: Audio, Tokens, and Voice-Agent Boundaries"
+description: "A production guide to Vercel AI Gateway streaming transcription: raw PCM, browser capture, ephemeral tokens, transcript state, latency, privacy, reliability, evaluation, and voice-agent architecture."
 date: 2026-07-23
-tags: ["Vercel", "AI Gateway", "AI SDK", "Speech to Text", "Voice Agent"]
+tags: ["Vercel", "AI Gateway", "AI SDK", "Speech to Text", "Voice Agent", "Production Architecture"]
 ---
 
-실시간 음성 입력을 붙일 때 가장 먼저 막히는 부분은 모델보다 전송 구조입니다. 녹음이 끝난 뒤 파일 전체를 업로드하면 구현은 쉽지만, 자막이나 음성 명령이 몇 초씩 늦어집니다. Vercel은 2026년 7월 22일 AI Gateway에 스트리밍 전사를 추가했고, AI SDK의 `streamTranscribe`를 사용하면 **오디오를 캡처하는 동안 전송하고 전사 델타를 즉시 받을 수 있게 됐습니다.**
+Streaming transcription looks simple in a demo: open a microphone, send bytes, and print words. Production begins where that example stops.
 
-다만 이 기능은 아직 beta이며 API 이름도 `experimental_streamTranscribe`입니다. 운영 환경에서는 세 가지를 먼저 고정해야 합니다.
+A browser may capture 48 kHz float audio while the model expects 24 kHz signed PCM. A network interruption can duplicate a phrase. An interim transcript can change after an agent has already acted on it. A long-lived API key can leak into a client bundle. A perfectly accurate final transcript can still feel unusable when the first words take three seconds to appear.
 
-1. 브라우저나 장치가 보내는 오디오 형식
-2. 장기 API 키를 클라이언트에 노출하지 않는 인증 구조
-3. 부분 전사와 최종 전사를 분리하는 상태 관리
+Vercel added streaming transcription to AI Gateway on July 22, 2026. The beta API in AI SDK accepts live audio and emits transcript updates as a model produces them. That closes an important gap between file transcription and realtime voice, but it does not remove the engineering boundaries around capture, transport, authentication, state, consent, and action safety.
 
-이 글에서는 공식 예제를 그대로 복사하는 데서 끝내지 않고, 실제 음성 입력 기능으로 연결할 때 필요한 경계를 정리합니다.
+**The reliable design is a pipeline, not a model call: capture and normalize audio, authenticate with short-lived credentials, stream with backpressure, separate provisional from committed text, and let agents act only on a final, policy-checked command.**
 
-## 기존 파일 전사와 무엇이 달라졌나
+This guide explains that pipeline and gives a staged route from a server-side proof of concept to an observable production service. Product details were checked on July 23, 2026; streaming transcription remains beta, so pin versions and recheck the linked documentation before release.
 
-기존 `transcribe()` 방식은 완성된 오디오 파일을 입력하고 전체 결과를 한 번에 받습니다. 회의 녹음이나 업로드된 음성 메모에는 적합하지만, 사용자가 말하는 동안 화면에 자막을 보여주거나 에이전트 명령을 미리 준비하기는 어렵습니다.
+## Choose the right voice architecture first
 
-스트리밍 전사는 입력과 출력이 모두 흐름으로 동작합니다.
+Three architectures are often grouped under “voice AI,” but they solve different jobs.
 
-| 구분 | 파일 전사 | 스트리밍 전사 |
-|---|---|---|
-| 입력 | 완성된 파일·Buffer·URL | `ReadableStream` 오디오 청크 |
-| 출력 | 완료된 전체 텍스트 | 전사 델타와 최종 텍스트 |
-| 적합한 용도 | 업로드 파일, 회의록 후처리 | 실시간 자막, 음성 검색, 에이전트 음성 입력 |
-| 구현 난이도 | 낮음 | 오디오 포맷·연결·상태 처리가 필요 |
-| 현재 상태 | 모델별 지원 | beta, streaming-capable 모델만 지원 |
+| Architecture | Input and output | Best fit | Main trade-off |
+| --- | --- | --- | --- |
+| File transcription | Complete audio file → complete text | Uploaded calls, meetings, voice notes, compliance archives | Simple and reproducible, but no live feedback |
+| Streaming transcription | Live audio chunks → interim and final text | Captions, dictation, voice search, text-agent input | Low perceived latency, but requires session and audio-state engineering |
+| Realtime voice | Continuous audio ↔ continuous multimodal session | Natural interruption, turn-taking, spoken assistants | Lowest conversational latency, but tighter coupling and more complex safety |
 
-중요한 점은 스트리밍 전사가 곧바로 양방향 음성 에이전트를 의미하지는 않는다는 것입니다. `streamTranscribe`는 음성을 텍스트로 바꿉니다. 에이전트는 여전히 텍스트를 입력받고, 음성으로 답해야 한다면 별도의 speech generation을 연결해야 합니다. 지연 시간이 매우 짧은 완전한 양방향 대화가 목표라면 realtime voice 모델이 더 적합할 수 있습니다.
+Streaming transcription is a good fit when the existing product already accepts text. It changes the input adapter, not the agent's reasoning or tool layer. Add speech generation if spoken output is useful. Move to a full realtime voice session only when interruption, barge-in, acoustic turn detection, and rapid back-and-forth are core requirements.
 
-## 최소 실행 예제
+This distinction prevents an expensive mistake: rebuilding a proven text agent around a realtime model when the product only needed a microphone button.
 
-Vercel의 출시 예제는 24kHz raw PCM 스트림을 `openai/gpt-realtime-whisper`에 보내고 `transcript-delta` 이벤트를 읽습니다.
+## What the beta API actually provides
+
+Vercel's launch example streams raw PCM to `openai/gpt-realtime-whisper` through AI Gateway:
 
 ```ts
 import { experimental_streamTranscribe as streamTranscribe } from "ai";
 
-export async function transcribePcm(
-  audioStream: ReadableStream<Uint8Array>,
-) {
-  const result = streamTranscribe({
-    model: "openai/gpt-realtime-whisper",
-    audio: audioStream,
-    inputAudioFormat: {
-      type: "audio/pcm",
-      rate: 24_000,
-    },
-  });
+const result = streamTranscribe({
+  model: "openai/gpt-realtime-whisper",
+  audio: audioStream, // ReadableStream<Uint8Array | string>
+  inputAudioFormat: {
+    type: "audio/pcm",
+    rate: 24_000,
+  },
+});
 
-  let partialText = "";
-
-  for await (const part of result.fullStream) {
-    if (part.type === "transcript-delta") {
-      partialText += part.delta;
-      process.stdout.write(part.delta);
-    }
+for await (const part of result.fullStream) {
+  if (part.type === "transcript-delta") {
+    process.stdout.write(part.delta);
   }
-
-  const finalText = await result.text;
-
-  return {
-    partialText,
-    finalText,
-  };
 }
 ```
 
-`partialText`는 사용자에게 빠르게 보여주기 위한 값입니다. 저장, 검색, 도구 실행처럼 되돌리기 어려운 작업에는 `finalText`를 사용해야 합니다. 부분 전사는 뒤 문맥에 따라 수정될 수 있기 때문입니다.
+The stream carries partial and final transcription events, while `result.text` resolves to the completed text. The same AI SDK interface can address other streaming-capable transcription models, such as `xai/grok-stt`, by changing the model. That portability is useful, but it is not behavioral equivalence. Providers can differ in supported formats, language quality, endpointing, event semantics, session limits, retention, and price.
 
-## 클라이언트에 AI Gateway 키를 넣지 않는다
-
-브라우저에서 WebSocket 전사를 직접 시작하려고 장기 AI Gateway 키를 전달하면 안 됩니다. 공식 Grok STT 예제는 서버에서 짧은 수명의 토큰을 발급한 뒤 클라이언트용 Gateway 인스턴스를 만드는 방식을 사용합니다.
+The `experimental_` prefix is an operational warning. Keep the SDK and gateway package versions pinned, place the provider behind an internal adapter, and include a contract test for event types and finalization. A beta API should not leak through every application component.
 
 ```ts
-// server/transcription-token.ts
+export type TranscriptEvent =
+  | { type: "partial"; text: string; sequence: number }
+  | { type: "final"; text: string; sequence: number }
+  | { type: "error"; code: string; retryable: boolean };
+
+export interface LiveTranscriber {
+  start(input: ReadableStream<Uint8Array>): AsyncIterable<TranscriptEvent>;
+  close(): Promise<void>;
+}
+```
+
+This small boundary lets the application survive an SDK rename, provider migration, or move from server-proxied to direct client streaming.
+
+## The reference data path
+
+Treat audio, transcript state, and agent actions as three separate trust zones.
+
+```text
+ microphone
+    │
+    ▼
+ capture → resample → mono → PCM16 → chunk queue
+    │                                  │
+    │                         backpressure / retry
+    ▼                                  ▼
+ browser or mobile client ─────── streaming endpoint
+    │                                  │
+    │                     ephemeral credential or server proxy
+    │                                  ▼
+    │                         transcription provider
+    │                                  │
+    ◀──── partial / final events ──────┘
+    │
+    ├─ partial text → temporary caption only
+    └─ final text   → validation → user confirmation → text agent
+                                                   │
+                                                   ▼
+                                             governed tools
+```
+
+The client owns capture and immediate presentation. A token broker owns short-lived access. The transcription service owns speech recognition. The existing text-agent boundary owns intent, permissions, approvals, and tools. Do not give the transcription session direct access to purchase, delete, deploy, or message actions.
+
+For most web products, there are two viable transports:
+
+- **Server proxy:** the client sends audio to an application endpoint, which calls AI Gateway. This centralizes credentials and policy and simplifies provider changes, but the application pays an extra network hop and must operate long-lived connections.
+- **Direct provider connection with an ephemeral token:** the server authenticates the user and mints a narrow, short-lived credential; the client then streams directly. This reduces relay load and latency, but browser-visible tokens, connection policy, and provider behavior need careful control.
+
+Start with a server proxy when traffic is modest or policy is strict. Use direct streaming only after the token broker, revocation window, origin controls, and abuse limits have been designed.
+
+## Audio correctness comes before model quality
+
+The launch example expects raw PCM with this contract:
+
+```text
+sample rate: 24,000 samples/second
+channels:    1 (mono)
+sample:      signed 16-bit little-endian
+container:   none (raw PCM)
+```
+
+Renaming a WebM, Opus, AAC, or WAV file to `.pcm` does not convert it. A container has headers; a codec compresses samples; raw PCM has neither. The receiver must know the exact rate, channel count, sample representation, and byte order.
+
+Browser capture is especially deceptive. `getUserMedia()` gives access to a stream, but the actual audio context may run at the hardware rate, commonly 44.1 or 48 kHz. `MediaRecorder` typically returns a compressed container. A robust client therefore needs one of three paths:
+
+1. capture PCM frames in an `AudioWorklet`, resample them, and encode PCM16;
+2. send a supported compressed stream when the selected model accepts it; or
+3. relay the browser format to a server-side decoder and resampler.
+
+An `AudioWorklet` keeps processing off the main UI thread. Its normalization step is conceptually:
+
+```ts
+function floatToPcm16(samples: Float32Array): Uint8Array {
+  const bytes = new Uint8Array(samples.length * 2);
+  const view = new DataView(bytes.buffer);
+
+  for (let i = 0; i < samples.length; i += 1) {
+    const clamped = Math.max(-1, Math.min(1, samples[i]));
+    const pcm = clamped < 0 ? clamped * 0x8000 : clamped * 0x7fff;
+    view.setInt16(i * 2, Math.round(pcm), true);
+  }
+
+  return bytes;
+}
+```
+
+This function encodes float samples; it does not resample them. A 48 kHz input still needs a real low-pass resampler before every other sample can become a valid 24 kHz stream. Naively dropping samples creates aliasing and damages recognition, especially around consonants and noisy speech.
+
+Validate the pipeline with known fixtures before involving a microphone:
+
+- a generated tone confirms duration, rate, and byte order;
+- a fixed clean-speech clip provides a reproducible transcript;
+- noisy, accented, code-switched, and far-field clips expose real product behavior;
+- silence and clipping fixtures verify voice activity and error handling.
+
+Record the input contract in each trace. “The model was inaccurate” is often “the client sent stereo 48 kHz bytes while declaring mono 24 kHz.”
+
+## Chunking, backpressure, and reconnects
+
+Smaller chunks can reduce time to the first transcript, but they increase framing overhead and scheduling pressure. Large chunks are efficient but make captions bursty. Do not choose a chunk size from a blog post; measure it across target devices and networks.
+
+The client queue needs a hard bound. If encoding produces bytes faster than the connection can send them, unlimited buffering increases memory and turns a short outage into minutes of stale audio. A production policy should define:
+
+- maximum queued audio duration;
+- whether to pause capture, drop oldest audio, or fail the session;
+- a warning threshold shown to the user;
+- maximum session duration;
+- idle timeout and silence behavior.
+
+Audio sessions also need sequence numbers and timestamps. A reconnect cannot safely “retry the request” without knowing which audio was accepted. At-least-once replay may duplicate text; at-most-once delivery may lose speech. A practical first version ends the current segment on disconnect, preserves its final committed text, starts a new segment, and tells the user that a short portion may need repeating. Seamless replay can come later if the provider exposes acknowledgements.
+
+Use an explicit state machine rather than scattered booleans:
+
+```text
+idle → requesting_permission → connecting → streaming
+                                           │   │
+                                           │   ├→ finalizing → completed
+                                           │   └→ reconnecting → streaming
+                                           └────→ failed
+```
+
+Every transition should have a timeout, a user-visible status, and one owner. Closing the tab, revoking microphone permission, switching input devices, locking a phone, or losing the network must all terminate or recover the session predictably.
+
+## Never ship a long-lived gateway key to the client
+
+A browser bundle, mobile application, or desktop renderer is not a secret store. If the client connects directly, mint a short-lived credential from an authenticated server endpoint. Vercel's Grok STT pattern uses `experimental_transcription.getToken`:
+
+```ts
+// Runs only on the trusted server.
 import { gateway } from "@ai-sdk/gateway";
 
 const modelId = "xai/grok-stt";
 
-export async function createTranscriptionToken() {
+export async function POST(request: Request) {
+  const user = await requireAuthenticatedUser(request);
+  await enforceVoiceQuota(user.id);
+
   const { token } = await gateway.experimental_transcription.getToken({
     model: modelId,
   });
 
-  return {
-    modelId,
-    token,
-  };
+  return Response.json({ modelId, token });
 }
 ```
 
-클라이언트나 제한된 실행 환경에서는 전달받은 토큰만 사용합니다.
+The constrained client uses only that token:
 
 ```ts
-import { experimental_streamTranscribe as streamTranscribe } from "ai";
 import { createGateway } from "@ai-sdk/gateway";
+import { experimental_streamTranscribe as streamTranscribe } from "ai";
 
 export function startTranscription(
   modelId: string,
@@ -108,157 +217,213 @@ export function startTranscription(
   return streamTranscribe({
     model: clientGateway.transcription(modelId),
     audio,
-    inputAudioFormat: {
-      type: "audio/pcm",
-      rate: 24_000,
-    },
+    inputAudioFormat: { type: "audio/pcm", rate: 24_000 },
   });
 }
 ```
 
-이 구조의 보안 경계는 명확합니다.
+The token endpoint needs more than authentication. Bind issuance to a user, tenant, allowed model, purpose, origin, and quota where the platform supports it. Apply bot controls and per-user concurrency. Log issuance metadata but never the token. Keep lifetime short, and do not let a token minted for transcription become a general model credential.
 
-- 장기 Gateway 자격 증명은 서버에만 보관합니다.
-- 토큰 발급 API에는 사용자 인증과 rate limit을 적용합니다.
-- 토큰은 요청한 모델과 기능에 필요한 범위로 제한합니다.
-- 오디오 원본 보관 여부와 보존 기간을 제품 정책으로 명시합니다.
+If a provider's ephemeral credential cannot express the required scope, proxy the session through the server. A slightly slower secure design is better than an unbounded credential in every browser.
 
-## PCM 형식을 먼저 맞춰야 한다
+## Interim text is UI state, not a command
 
-공식 예제의 입력은 **24kHz, 16-bit signed little-endian, mono raw PCM**입니다. 파일 확장자만 `.pcm`으로 바꾸거나 압축된 음성을 그대로 흘려보내면 정상 전사를 기대할 수 없습니다.
-
-```text
-샘플 레이트: 24,000Hz
-채널: mono
-샘플: signed 16-bit little-endian
-컨테이너: 없음(raw PCM)
-```
-
-브라우저 녹음 API나 모바일 SDK가 WebM, Opus, AAC 같은 압축 형식을 반환한다면 다음 중 하나를 선택해야 합니다.
-
-- 캡처 단계에서 모델이 지원하는 PCM으로 변환
-- 서버에서 디코딩·리샘플링 후 Gateway로 전달
-- 해당 입력 형식을 직접 지원하는 스트리밍 전사 모델 선택
-
-형식 변환은 CPU 사용량과 지연을 늘립니다. 제품을 만들기 전에 대상 브라우저·장치에서 실제 출력 형식을 수집하고, 전사 모델이 요구하는 형식과 비교하는 편이 안전합니다.
-
-## 부분 자막과 최종 자막을 분리한다
-
-UI에서 한 개의 문자열만 계속 이어 붙이면 중복 문장이나 확정되지 않은 단어가 저장될 수 있습니다. 상태를 최소 두 층으로 나누는 편이 좋습니다.
+Speech recognizers revise hypotheses as later sound arrives. The UI should maintain at least committed segments and a provisional tail:
 
 ```ts
 type TranscriptState = {
+  committed: string[];
   interim: string;
-  final: string;
+  lastSequence: number;
 };
 
-function appendDelta(
+function reduceTranscript(
   state: TranscriptState,
-  delta: string,
+  event: TranscriptEvent,
 ): TranscriptState {
-  return {
-    ...state,
-    interim: state.interim + delta,
-  };
-}
+  if (event.sequence <= state.lastSequence) return state;
 
-function finalizeTranscript(
-  state: TranscriptState,
-  text: string,
-): TranscriptState {
-  return {
-    interim: "",
-    final: text,
-  };
-}
-```
+  if (event.type === "partial") {
+    return { ...state, interim: event.text, lastSequence: event.sequence };
+  }
 
-권장 사용 방식은 다음과 같습니다.
-
-- `interim`: 화면 자막, 입력 중 표시, 검색어 미리보기
-- `final`: 메시지 전송, 데이터베이스 저장, 에이전트 실행
-- 원본 오디오: 필요한 경우에만 별도 동의 후 저장
-
-도구 호출 에이전트라면 부분 전사만으로 구매, 삭제, 배포 같은 작업을 실행하지 않는 것이 좋습니다. 최종 전사가 도착한 뒤 명령을 다시 분류하고, 쓰기 작업에는 승인 단계를 둡니다.
-
-## 음성 입력을 기존 텍스트 에이전트에 연결하기
-
-스트리밍 전사의 장점은 에이전트 구조를 바꾸지 않아도 된다는 점입니다. 음성을 텍스트로 정규화한 뒤 기존 에이전트 입력 경로로 전달합니다.
-
-```ts
-async function runVoiceCommand(
-  audio: ReadableStream<Uint8Array>,
-) {
-  const { finalText } = await transcribePcm(audio);
-
-  if (!finalText.trim()) {
+  if (event.type === "final") {
     return {
-      status: "empty" as const,
+      committed: [...state.committed, event.text],
+      interim: "",
+      lastSequence: event.sequence,
     };
   }
 
-  // 기존 텍스트 에이전트 호출부를 그대로 재사용합니다.
-  const response = await runTextAgent({
-    message: finalText,
-    source: "voice",
-  });
-
-  return {
-    status: "completed" as const,
-    transcript: finalText,
-    response,
-  };
+  return state;
 }
 ```
 
-프로덕션에서는 다음 정보를 함께 기록하면 장애를 찾기 쉽습니다.
+Render interim text differently so users know it may change. Persist only final segments. When the user stops recording, wait for finalization rather than submitting the last partial buffer.
 
-- 모델 ID와 실제 provider
-- 입력 오디오 형식과 샘플 레이트
-- 첫 전사 델타까지 걸린 시간
-- 최종 전사 완료 시간
-- 연결 종료·재시도 사유
-- 빈 전사 비율
-- 사용자가 수정한 최종 문장 비율
+For agent input, add another boundary:
 
-정확도만 측정하면 실시간 제품의 문제를 놓칠 수 있습니다. 첫 델타가 늦거나 연결이 자주 끊기면 최종 문장이 정확해도 사용 경험은 좋지 않습니다.
+```text
+final transcript
+    → empty/noise check
+    → language and policy validation
+    → editable confirmation for consequential intent
+    → ordinary text-agent request
+    → tool policy and approval
+```
 
-## 모델을 바꿀 때 확인할 것
+Voice makes confirmation more important, not less. Names, amounts, negation, addresses, and product variants are easy to mishear. Read-only search can run after finalization; purchases, deletion, external messages, and account changes should show the interpreted action and require explicit confirmation. The downstream tool still enforces authorization and idempotency.
 
-같은 `streamTranscribe` 코드를 사용해도 모든 전사 모델의 동작이 같지는 않습니다.
+## Privacy is part of the data path
 
-1. 스트리밍 지원 여부
-2. 입력 오디오 포맷과 샘플 레이트
-3. 언어 지원 범위
-4. 부분 결과의 안정성
-5. 비용 계산 기준
-6. 지역·보존·학습 정책
-7. 최대 세션 길이와 연결 제한
+Audio contains more than words. It may reveal identity, health, background conversations, location clues, and bystanders. A transcript can also contain credentials or regulated data. Design collection and retention before launch.
 
-Vercel은 모델 문자열을 바꾸면 `xai/grok-stt` 등 다른 streaming-capable 모델을 사용할 수 있다고 설명합니다. 그러나 모델 교체는 텍스트 모델 교체보다 입력 형식과 세션 동작의 영향을 많이 받습니다. 최소한 실제 마이크 환경, 잡음 환경, 짧은 명령, 긴 발화로 나눠 평가해야 합니다.
+Decide separately whether to retain:
 
-## 운영 체크리스트
+| Data | Default posture | Reason to retain |
+| --- | --- | --- |
+| Raw audio | Do not retain | Explicitly consented quality review or a regulated record requirement |
+| Interim transcript | Do not retain | Short-lived debugging in a tightly controlled environment |
+| Final transcript | Retain only for the product purpose | Conversation history, user-authored note, or required evidence |
+| Derived metrics | Prefer aggregated or minimized | Reliability, latency, and quality monitoring |
+| Trace payload | Redact or sample | Incident investigation and calibrated evaluation |
 
-- [ ] `experimental_streamTranscribe`가 beta라는 점을 반영해 버전을 고정했다.
-- [ ] 장기 API 키를 클라이언트 번들에 포함하지 않았다.
-- [ ] 오디오 형식과 샘플 레이트를 모델 요구 사항과 맞췄다.
-- [ ] 부분 전사와 최종 전사를 별도 상태로 관리한다.
-- [ ] 연결 종료·재접속·빈 전사 처리가 있다.
-- [ ] 쓰기 도구는 최종 전사와 사용자 승인 뒤 실행한다.
-- [ ] 오디오·전사 데이터의 보존 및 삭제 정책을 정했다.
-- [ ] 첫 델타 지연과 최종 완료 시간을 함께 관측한다.
-- [ ] 모델 변경 시 실제 음성 데이터로 회귀 테스트한다.
+Show a clear recording state, stop capture immediately when the user stops it, and define behavior when the page is backgrounded. Document provider processing region, retention, training use, sub-processors, and deletion. A “zero data retention” routing option can reduce supplier retention, but it does not erase copies in application logs, analytics, error trackers, or evaluation datasets.
 
-## 결론
+Keep audio access separate from agent memory. A spoken preference should not silently become a durable user profile. Memory writes need their own purpose, policy, consent, TTL, and deletion path.
 
-AI Gateway의 스트리밍 전사는 기존 텍스트 에이전트에 음성 입력을 붙이는 경로를 단순하게 만듭니다. 하지만 핵심은 함수 한 번을 호출하는 것이 아니라 **오디오 형식, 임시 인증, 부분·최종 상태의 경계를 명확히 두는 것**입니다.
+## Measure a latency budget, not one average
 
-먼저 24kHz PCM으로 작은 서버 측 예제를 통과시키고, 다음으로 짧은 수명의 클라이언트 토큰과 UI 상태를 붙이는 순서가 안전합니다. 완전한 양방향 음성 대화가 필요할 때만 realtime voice 구조로 확장하는 편이 좋습니다.
+End-to-end latency is a sum of stages:
 
-AI Gateway에서 지연 시간과 비용을 분리하는 방법은 [Service Tiers 운영 가이드](/blog/vercel-ai-gateway-service-tiers-guide/)에서, 에이전트 승인과 durable 실행 구조는 [AI SDK 7 프로덕션 에이전트 가이드](/blog/ai-sdk-7-production-agent-guide/)에서 이어서 볼 수 있습니다.
+```text
+capture window
++ client encoding and queueing
++ network to transcription endpoint
++ provider buffering and inference
++ event delivery and UI rendering
++ finalization
++ optional agent response
+```
 
-## 공식 자료
+Define at least these service indicators:
+
+- microphone-to-first-partial latency;
+- microphone-to-stable-text latency;
+- stop-to-final latency;
+- realtime factor, or processing time divided by audio duration;
+- disconnects and reconnects per session;
+- empty and truncated transcript rate;
+- user correction rate;
+- cost per completed audio minute and per accepted command.
+
+Use p50, p95, and p99 by device, browser, region, connection type, model, and audio duration. A global average hides a mobile browser that fails one in ten sessions.
+
+For voice search, time to first useful result matters more than time to a beautifully worded answer. The product can acknowledge a final query, begin deterministic retrieval, and stream results while the agent prepares explanation. Do not fill latency with verbose “working on it” narration.
+
+## Evaluate recognition in the product's language
+
+Word error rate is useful, but it treats every word similarly. A commerce voice command cares much more about “fifteen” versus “fifty,” “with nuts” versus “without nuts,” and the exact merchant or item name.
+
+Build an evaluation set that reflects:
+
+- supported languages, accents, dialects, and code-switching;
+- product names, people, addresses, acronyms, and numbers;
+- quiet, traffic, television, restaurant, and office noise;
+- built-in microphones, headsets, Bluetooth, and speakerphone;
+- short commands, long dictation, corrections, and hesitation;
+- safety-critical negation and exclusion phrases.
+
+Track conventional WER or character error rate alongside **slot accuracy** for amounts, names, dates, locations, and constraints. For an agent, run end-to-end tests that verify the final interpreted intent and proposed tool arguments. A transcription can have low WER and still choose the wrong cart quantity.
+
+Compare models with the same capture pipeline and frozen fixtures. Then canary with real traffic under consent. Changing model, prompt, endpointing, SDK, resampler, or client codec should trigger regression tests.
+
+## Reliability and failure policy
+
+A production voice feature needs an answer for each failure before it happens.
+
+| Failure | User experience | System behavior |
+| --- | --- | --- |
+| Microphone denied | Explain how to enable it and keep text input available | Do not repeatedly reprompt |
+| Unsupported capture path | Fall back to file upload or text | Record capability, not raw content |
+| Slow network | Show connection degradation | Bound the queue; pause or terminate cleanly |
+| Provider unavailable | Preserve committed text and offer retry/text | Circuit-break and fail over only to a contract-tested model |
+| Session limit reached | Finalize current segment and explain | Start a new session only with user intent |
+| Empty/noisy audio | Ask the user to repeat | Do not send an empty agent request |
+| Agent command uncertain | Show editable transcript and proposed action | Require confirmation; never guess a consequential slot |
+
+Fallback is not just switching model IDs. A second model may require a different format or produce different event behavior. Maintain a tested capability registry:
+
+```json
+{
+  "model": "openai/gpt-realtime-whisper",
+  "streaming": true,
+  "input": { "encoding": "pcm_s16le", "rate": 24000, "channels": 1 },
+  "languages": ["evaluated-product-language-set"],
+  "max_session_seconds": 1800,
+  "data_policy": "approved-policy-id",
+  "adapter_version": "3"
+}
+```
+
+Populate values from current provider contracts and internal tests rather than assumptions.
+
+## A four-stage implementation plan
+
+### Stage 1: prove the server contract
+
+Stream a fixed 24 kHz PCM fixture from a server process. Verify partial events, final text, abort behavior, errors, and session limits. Pin packages and wrap the beta API in an adapter.
+
+Exit when the same fixture produces an accepted transcript and all terminal states close resources.
+
+### Stage 2: add real capture
+
+Implement one supported browser and microphone path. Confirm actual sample rate, resample correctly, encode PCM16, bound the queue, and render interim versus final state. Keep text input as a fallback.
+
+Exit when device fixtures and real microphones meet the latency and slot-accuracy threshold.
+
+### Stage 3: secure and observe
+
+Add the authenticated token broker or server proxy, quotas, concurrency limits, consent, retention controls, trace redaction, and latency dashboards. Test disconnect, backgrounding, token expiry, and provider failure.
+
+Exit when abuse limits, deletion, and incident reconstruction have been exercised—not merely documented.
+
+### Stage 4: connect the agent safely
+
+Send only finalized text through the normal text-agent path. Keep read and write tools separate. Show the transcript and proposed effect for consequential actions, require confirmation, and make writes idempotent. Add end-to-end evals for numbers, negation, names, and corrections.
+
+Exit when a mis-transcription cannot directly create an irreversible effect.
+
+## Production checklist
+
+- [ ] The product chose file, streaming, or realtime voice based on interaction needs.
+- [ ] AI SDK and gateway versions are pinned behind an internal adapter.
+- [ ] The declared rate, channels, encoding, and byte order match actual audio bytes.
+- [ ] Resampling uses a proper filtered implementation.
+- [ ] Audio queues, sessions, silence, and reconnects have hard limits.
+- [ ] Long-lived provider credentials never enter a client bundle.
+- [ ] Token issuance is authenticated, scoped, rate-limited, and observable.
+- [ ] Interim text is visually distinct and never persisted or executed as final intent.
+- [ ] Raw audio, transcript, trace, and memory have separate retention policies.
+- [ ] Latency, correction, disconnect, truncation, slot accuracy, and cost are measured.
+- [ ] Model fallback is format- and event-contract tested.
+- [ ] Consequential agent actions require final text, policy validation, and confirmation.
+
+## The design rule that survives provider changes
+
+AI Gateway makes a live transcription model easier to reach, but the lasting system is the set of boundaries around it.
+
+Normalize audio before it crosses the model boundary. Use short-lived authority before it crosses the trust boundary. Treat partial text as display state before it crosses the application boundary. Require confirmation before interpreted speech crosses the action boundary. Observe each stage so a latency or accuracy problem has an owner.
+
+That architecture works whether the selected model is Whisper, Grok STT, or a future provider. It also lets a company add voice to an existing text agent without giving a probabilistic transcript more authority than it deserves.
+
+For model routing, cost, and provider controls, continue with [Enterprise LLM Strategy](/blog/enterprise-llm-model-selection-platform-strategy/). For governed tool execution, see [Enterprise Agent Platforms](/blog/enterprise-agent-platform-architecture-guide/).
+
+## Sources and further reading
 
 - [Vercel: AI Gateway now supports streaming transcription](https://vercel.com/changelog/ai-gateway-now-supports-streaming-transcription)
+- [Vercel AI Gateway documentation](https://vercel.com/docs/ai-gateway)
+- [Vercel AI Gateway streaming transcription models](https://vercel.com/ai-gateway/models?features=websockets&modality=audio%3Atranscription)
 - [Vercel AI Gateway: Grok STT](https://vercel.com/ai-gateway/models/grok-stt/about)
-- [Vercel AI Gateway 모델 목록](https://vercel.com/ai-gateway/models?features=websockets&modality=audio%3Atranscription)
+- [MDN: MediaDevices.getUserMedia](https://developer.mozilla.org/en-US/docs/Web/API/MediaDevices/getUserMedia)
+- [MDN: AudioWorklet](https://developer.mozilla.org/en-US/docs/Web/API/AudioWorklet)
