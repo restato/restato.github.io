@@ -1,37 +1,164 @@
 ---
-title: Astro MDX 프런트매터를 실제 스키마에 맞추는 방법
-description: 생성된 MDX를 실제 Astro 콘텐츠 컬렉션 스키마에 맞춰 게시 전에 검증합니다.
+title: "Prevent Astro MDX Frontmatter Drift with Build-Time Schema Checks"
+description: "A practical workflow for aligning generated MDX with an Astro content collection schema and catching metadata drift before publication."
 date: 2026-07-20
-tags:
-  - content-schema
-  - build
-knowledgeId: solutions/align-astro-mdx-frontmatter.md
-verifiedAt: 2026-07-20
+tags: ["Astro", "MDX", "Content Collections", "Engineering"]
 draft: false
 ---
 
-<span hidden data-knowledge-fingerprint="6956ba1d9f8d743e14c59a07f7e50ab92c6f0a102cd4b9057ac5e5383168a9fb"></span>
+A generated MDX file can be valid YAML, valid Markdown, and still be impossible to publish. The operational problem is schema drift: a generator emits metadata that no longer matches the content collection used by the production site.
 
-생성된 MDX를 실제 Astro 콘텐츠 컬렉션 스키마에 맞춰 게시 전에 검증합니다.
+**Treat the live content collection schema as an executable publication contract, then run generated MDX through the production build before opening a content PR.**
 
-## 문제와 원인
+This moves the check out of code review. A reviewer should not have to remember whether this repository uses `date` or `pubDate`, or whether `tags` is required. The repository already has an authoritative answer and an executable way to enforce it.
 
-콘텐츠 생성기와 실제 컬렉션 스키마가 서로 다른 게시 날짜 필드 이름을 사용했습니다.
+## Read the active collection before generating content
 
-## 해결 방법
+Astro content collection schemas describe the expected shape of each entry and validate entry data. MDX supports Markdown-style frontmatter, so generated metadata enters that validation path when the file is loaded as collection content.
 
-src/content/config.ts를 기준으로 date 필드를 생성하고 게시 전에 Astro 프로덕션 빌드를 실행합니다.
+The exact contract remains repository-specific. Restato currently pins Astro 5.17.2 and defines its legacy blog collection in [`src/content/config.ts`](https://github.com/restato/restato.github.io/blob/30ef3d89d7a0c95c99b49c0e61084cfb7b36afc3/src/content/config.ts). The fields used by a normal article are this subset of the live schema:
 
-## 적용할 수 있는 조건
+```ts
+const blog = defineCollection({
+  type: "content",
+  schema: z.object({
+    title: z.string(),
+    description: z.string(),
+    date: z.date(),
+    tags: z.array(z.string()).default([]),
+    image: z.string().optional(),
+    draft: z.boolean().default(false),
+  }),
+});
+```
 
-Astro 콘텐츠 컬렉션이 생성된 MDX 프런트매터를 거부하거나 여러 작성 도구가 같은 컬렉션을 사용할 때 적용합니다.
+The deployed contract requires `title`, `description`, and `date`. It accepts an optional `image`, while `tags` and `draft` have defaults. A generator may choose to write the defaulted fields explicitly, but it must use `date`, not `pubDate`.
 
-## 적용하면 안 되는 조건
+This is an Astro 5 target detail, not current Astro-wide guidance. Current Astro documentation defines build-time collections in `src/content.config.ts` and uses loaders. Do not replace a pinned repository's working layout with a current documentation example as part of a frontmatter fix. Treat a framework migration as separate work; Restato's [Astro 5-to-7.1 migration audit](/blog/astro-5-to-7-1-migration-audit/) covers that larger boundary.
 
-해당 필드를 읽는 모든 페이지와 컴포넌트를 확인하지 않은 상태에서는 운영 스키마 필드명을 바꾸지 않습니다.
+## Generate the smallest valid frontmatter
 
-## 검증
+Start with one known-good entry before adding optional metadata:
 
-공개 블로그 저장소에서 스키마 계약 테스트와 npm run build를 실행합니다.
+```mdx
+---
+title: "Schema Contract Fixture"
+description: "Temporary entry used to validate generated MDX."
+date: 2026-07-23
+tags: ["Astro", "MDX"]
+draft: false
+---
 
-생성된 지식 문서가 현재 콘텐츠 스키마로 프로덕션 빌드를 통과했습니다.
+This temporary entry should compile and produce a route.
+```
+
+The generator mapping should be explicit rather than a loose copy of another CMS model:
+
+```ts
+const frontmatter = {
+  title: source.title,
+  description: source.summary,
+  date: source.publishedAt,
+  tags: source.tags ?? [],
+  draft: source.status !== "published",
+};
+```
+
+That mapping is where field-name drift becomes visible. If the source calls the value `publishedAt`, the output adapter still writes the target's `date` field. The source model and publication contract do not need identical names; the adapter needs a deliberate mapping between them.
+
+Several failures can otherwise look similar from the generator's side:
+
+- A YAML parse failure occurs before the schema can validate the entry.
+- A missing required field violates the collection schema.
+- A wrong type, such as an invalid date or a scalar where `tags` expects an array, violates the schema.
+- Generator/schema field-name drift leaves the expected field absent even though the generator emitted a plausible alternative.
+- A schema rename can break downstream readers that still depend on the old field, even after newly generated entries pass validation.
+
+Astro's invalid-content-entry frontmatter reference shows the missing-field and wrong-type cases for legacy collections. That error is relevant to Restato's pinned Astro 5 setup, but the named error was deprecated when legacy collections were removed in Astro 6.
+
+## Turn one known-good entry into a contract check
+
+A useful contract test should exercise the same build command used for publication. Parsing YAML in isolation is too narrow: it does not prove that Astro loads the entry, applies the collection schema, compiles MDX, and generates the expected route.
+
+Save the following as a temporary `.mjs` file at the repository root and run it with Node. It creates a fixture without overwriting an existing file, runs the real production build, checks the generated route, and removes the source fixture in `finally`.
+
+```js
+import { execFileSync } from "node:child_process";
+import { existsSync, rmSync, writeFileSync } from "node:fs";
+import { join } from "node:path";
+
+const slug = "schema-contract-fixture";
+const fixture = join(process.cwd(), "src/content/blog", `${slug}.mdx`);
+const route = join(process.cwd(), "dist/blog", slug, "index.html");
+const source = `---
+title: "Schema Contract Fixture"
+description: "Temporary entry used to validate generated MDX."
+date: 2026-07-23
+tags: ["Astro", "MDX"]
+draft: false
+---
+
+This temporary entry should compile and produce a route.
+`;
+
+let fixtureCreated = false;
+
+try {
+  writeFileSync(fixture, source, { flag: "wx" });
+  fixtureCreated = true;
+  execFileSync("npm", ["run", "build"], { stdio: "inherit" });
+
+  if (!existsSync(route)) {
+    throw new Error(`Expected generated route: ${route}`);
+  }
+
+  console.log(`Verified ${route}`);
+} finally {
+  if (fixtureCreated) {
+    rmSync(fixture, { force: true });
+  }
+}
+```
+
+Verification boundary: this exact script was executed from an isolated Restato worktree. It completed the repository's production build, found `dist/blog/schema-contract-fixture/index.html`, and removed the temporary source entry. That result validates the target's pinned Astro 5 configuration, not every current or future Astro collection API.
+
+For a generator that already has tests, keep its unit tests for field mapping and add this repository-level check as the integration boundary. The [auto-generated developer blog workflow](/blog/building-auto-dev-blog-generator/) shows why content generation and publication validation are separate concerns.
+
+## Adapt the generator or migrate the schema
+
+The build tells you that the contracts disagree; it does not decide which contract should change.
+
+| Choice | Prefer it when | Required checks | Main risk |
+|---|---|---|---|
+| Adapt the generator | The deployed schema is intentional and other entries already follow it | Update field mapping, run generator tests, build a fixture, inspect the article diff | Another generator may retain the old mapping |
+| Migrate the schema | The content model is intentionally changing for the whole site | Audit every existing entry and every reader, define a data migration, update tests and routes, rebuild the full site | Pages, feeds, tags, or older entries may still depend on the old field |
+
+Engineering interpretation: adapt the generator by default. Migrate the schema only when the schema itself is the intended change and you have audited every existing entry and downstream reader. Astro does not prescribe this choice; it follows from limiting the blast radius of a content-generation fix.
+
+A schema migration can be correct, but it is not a shortcut around an adapter mismatch. Changing `date` because one generator emits `pubDate` transfers the work to every page, component, feed, and existing entry that uses `date`.
+
+## Use the production build as the pre-publication gate
+
+Run the repository's own commands from a clean worktree after generating or editing the article:
+
+```bash
+npm run build
+test -f dist/blog/align-astro-mdx-frontmatter-with-the-live-schema/index.html
+git diff --check
+```
+
+The first command applies collection validation, compiles the site, and runs Restato's sitemap step. The second proves that the stable article route was generated. The third catches whitespace errors before the diff moves into review.
+
+Also inspect `git status --short`. A fixture script should not leave a source entry behind, and a normal article update should not silently include schema, component, or workflow changes.
+
+## Recommendation
+
+Read the deployed collection schema before writing generator code. Map source fields to that contract explicitly, keep a minimal fixture, and run the real production build plus a route assertion before publication.
+
+When the build exposes drift, correct the generator first. Propose a schema migration only as a deliberate site-wide change after auditing existing content and every downstream reader. That separation keeps a small content adapter problem from becoming an accidental platform migration.
+
+## Official resources
+
+- [Astro content collections](https://docs.astro.build/en/guides/content-collections/)
+- [Astro invalid content entry frontmatter error](https://docs.astro.build/en/reference/errors/invalid-content-entry-frontmatter-error/)
+- [Astro MDX integration](https://docs.astro.build/en/guides/integrations-guide/mdx/)
