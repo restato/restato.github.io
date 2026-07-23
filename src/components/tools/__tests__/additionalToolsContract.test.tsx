@@ -49,6 +49,11 @@ describe('additional public tool UI contract', () => {
         control.classList.contains('fc-input')
         || control.classList.contains('fc-select')
         || control.classList.contains('fc-textarea')
+        || control.classList.contains('fc-check')
+        || control.classList.contains('fc-radio')
+        || control.classList.contains('fc-range')
+        || control.classList.contains('fc-color-input')
+        || control.classList.contains('fc-file-input')
       )) violations.push(`${control.tagName} missing shared control class`);
     });
     screen.queryAllByRole('button').filter((button) => !button.classList.contains('fc-tool-drop-zone')).forEach((button) => {
@@ -58,6 +63,17 @@ describe('additional public tool UI contract', () => {
     const firstAction = container.querySelector('.fc-tool-actions > .fc-button');
     if (firstAction && !firstAction.parentElement?.hasAttribute('data-selection')) {
       expect(firstAction).toHaveClass('fc-button-primary');
+    }
+  });
+
+  it('keeps Text Cleaner and SEO checkbox controls compact', () => {
+    for (const Component of [TextCleanerTool, SeoGeneratorTool]) {
+      const { unmount } = render(<Component />);
+      for (const checkbox of screen.getAllByRole('checkbox')) {
+        expect(checkbox).toHaveClass('fc-check');
+        expect(checkbox).not.toHaveClass('fc-input');
+      }
+      unmount();
     }
   });
 

@@ -44,7 +44,7 @@ describe('additional browser tools', () => {
   it('renders the audio workflow with shared field, action, and status classes', async () => {
     const { container } = render(createElement(AdditionalToolIsland, { slug: 'audio-trimmer', lang: 'en' }));
 
-    expect(await screen.findByLabelText('Choose audio file', {}, { timeout: 10_000 })).toHaveClass('fc-input');
+    expect(await screen.findByLabelText('Choose audio file', {}, { timeout: 10_000 })).toHaveClass('fc-file-input');
     expect(screen.getByRole('button', { name: 'Export trimmed WAV' })).toHaveClass('fc-button', 'fc-button-primary');
     expect(screen.getByRole('button', { name: 'Export trimmed WAV' }).closest('.fc-tool-actions')).not.toBeNull();
     expect(container.querySelector('.fc-tool-panel')).toBeInTheDocument();

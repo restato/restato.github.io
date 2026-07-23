@@ -8,6 +8,53 @@ import { ToolPanel } from '../ToolPanel';
 import { ToolResult } from '../ToolResult';
 
 describe('shared tool interface primitives', () => {
+  it.each([
+    ['text', 'fc-input'],
+    ['number', 'fc-input'],
+    ['date', 'fc-input'],
+    ['time', 'fc-input'],
+    ['checkbox', 'fc-check'],
+    ['radio', 'fc-radio'],
+    ['range', 'fc-range'],
+    ['color', 'fc-color-input'],
+    ['file', 'fc-file-input'],
+  ])('assigns the semantic shared class for %s inputs', (type, expectedClass) => {
+    render(
+      <ToolField id={`field-${type}`} label={`${type} field`}>
+        <input type={type} className="fc-input caller-class" />
+      </ToolField>,
+    );
+
+    const control = screen.getByLabelText(`${type} field`);
+    expect(control).toHaveClass(expectedClass, 'caller-class');
+    if (expectedClass !== 'fc-input') expect(control).not.toHaveClass('fc-input');
+  });
+
+  it('keeps compact checkbox labels keyboard and pointer accessible', () => {
+    render(
+      <ToolField id="compact-check" label="Compact option">
+        <input type="checkbox" />
+      </ToolField>,
+    );
+
+    const checkbox = screen.getByRole('checkbox', { name: 'Compact option' });
+    expect(checkbox).not.toBeChecked();
+    fireEvent.click(screen.getByText('Compact option'));
+    expect(checkbox).toBeChecked();
+  });
+
+  it('defines compact and type-specific input sizing in the shared stylesheet', () => {
+    const styles = readFileSync(resolve('src/styles/global.css'), 'utf8');
+    const compactRule = styles.match(/\.fc-check,\s*\n\s*\.fc-radio\s*\{([^}]*)\}/)?.[1] ?? '';
+
+    expect(compactRule).toContain('inline-size: 1.25rem');
+    expect(compactRule).not.toContain('width: 100%');
+    expect(compactRule).not.toContain('min-block-size: 44px');
+    expect(styles).toContain('.fc-range');
+    expect(styles).toContain('.fc-color-input');
+    expect(styles).toContain('.fc-file-input');
+  });
+
   it('links a field label, hint, and error to its control', () => {
     render(
       <ToolField id="source" label="Source" hint="Paste plain text." error="Source is required.">

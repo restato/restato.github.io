@@ -206,7 +206,8 @@
 
   .fc-input,
   .fc-select,
-  .fc-textarea {
+  .fc-textarea,
+  .fc-file-input {
     display: block;
     width: 100%;
     min-block-size: 44px;
@@ -217,6 +218,54 @@
     color: var(--text-primary);
   }
 
+  .fc-check,
+  .fc-radio {
+    inline-size: 1.25rem;
+    block-size: 1.25rem;
+    flex: 0 0 auto;
+    accent-color: var(--brand);
+  }
+
+  .fc-tool-field:has(> .fc-check),
+  .fc-tool-field:has(> .fc-radio) {
+    display: inline-grid;
+    grid-template-columns: auto 1fr;
+    align-items: center;
+    gap: 0.625rem;
+    min-block-size: 44px;
+  }
+
+  .fc-tool-field:has(> .fc-check) > .fc-label,
+  .fc-tool-field:has(> .fc-radio) > .fc-label {
+    grid-column: 2;
+    grid-row: 1;
+    margin: 0;
+    cursor: pointer;
+  }
+
+  .fc-check,
+  .fc-radio {
+    grid-column: 1;
+    grid-row: 1;
+  }
+
+  .fc-range {
+    display: block;
+    width: 100%;
+    min-block-size: 44px;
+    accent-color: var(--brand);
+  }
+
+  .fc-color-input {
+    display: block;
+    inline-size: 100%;
+    min-block-size: 44px;
+    padding: 0.25rem;
+    border: 1px solid var(--border-subtle);
+    border-radius: 0.625rem;
+    background: var(--surface-raised);
+  }
+
   .fc-textarea {
     resize: vertical;
   }
@@ -224,6 +273,11 @@
   .fc-input:disabled,
   .fc-select:disabled,
   .fc-textarea:disabled,
+  .fc-check:disabled,
+  .fc-radio:disabled,
+  .fc-range:disabled,
+  .fc-color-input:disabled,
+  .fc-file-input:disabled,
   .fc-button:disabled {
     cursor: not-allowed;
     opacity: 0.6;

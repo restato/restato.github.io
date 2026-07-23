@@ -121,7 +121,12 @@ describe('All Tools Smoke Tests', () => {
         }
         if (!(control?.classList.contains('fc-input')
           || control?.classList.contains('fc-select')
-          || control?.classList.contains('fc-textarea'))) {
+          || control?.classList.contains('fc-textarea')
+          || control?.classList.contains('fc-check')
+          || control?.classList.contains('fc-radio')
+          || control?.classList.contains('fc-range')
+          || control?.classList.contains('fc-color-input')
+          || control?.classList.contains('fc-file-input'))) {
           violations.push(`${control.tagName.toLowerCase()} missing shared control class`);
         }
       });

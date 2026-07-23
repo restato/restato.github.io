@@ -16,6 +16,7 @@ export interface ToolFieldProps {
 type ControlProps = {
   id?: string;
   className?: string;
+  type?: string;
   'aria-describedby'?: string;
   'aria-invalid'?: boolean;
 };
@@ -23,7 +24,35 @@ type ControlProps = {
 function controlClass(control: ReactElement<ControlProps>) {
   if (control.type === 'textarea') return 'fc-textarea';
   if (control.type === 'select') return 'fc-select';
+  if (control.type === 'input') {
+    switch (control.props.type) {
+      case 'checkbox': return 'fc-check';
+      case 'radio': return 'fc-radio';
+      case 'range': return 'fc-range';
+      case 'color': return 'fc-color-input';
+      case 'file': return 'fc-file-input';
+      default: return 'fc-input';
+    }
+  }
   return 'fc-input';
+}
+
+const sharedControlClasses = new Set([
+  'fc-input',
+  'fc-select',
+  'fc-textarea',
+  'fc-check',
+  'fc-radio',
+  'fc-range',
+  'fc-color-input',
+  'fc-file-input',
+]);
+
+function callerClasses(className = '') {
+  return className
+    .split(/\s+/)
+    .filter((classToken) => classToken && !sharedControlClasses.has(classToken))
+    .join(' ');
 }
 
 export function ToolField({ id, label, hint, error, children }: ToolFieldProps) {
@@ -32,7 +61,7 @@ export function ToolField({ id, label, hint, error, children }: ToolFieldProps) 
   const control = isValidElement<ControlProps>(children)
     ? cloneElement(children, {
         id,
-        className: `${controlClass(children)} ${children.props.className ?? ''}`.trim(),
+        className: `${controlClass(children)} ${callerClasses(children.props.className)}`.trim(),
         'aria-describedby': [
           children.props['aria-describedby'],
           hintId,
