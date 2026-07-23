@@ -1,5 +1,6 @@
 import { useState, useRef } from 'react';
 import { useTranslation } from '../../i18n/useTranslation';
+import { ToolActions } from './ui/ToolActions';
 import { ToolPanel } from './ui/ToolPanel';
 
 interface ExifData {
@@ -314,7 +315,7 @@ export default function ExifViewer() {
                 <img src={imageUrl} alt={imageName} className="w-full h-auto" />
               </div>
               <p className="text-sm text-[var(--color-text-muted)] mt-2 text-center truncate">{imageName}</p>
-              <button
+              <ToolActions primary={<button
                 onClick={() => {
                   setImageUrl(null);
                   setExifData(null);
@@ -323,7 +324,7 @@ export default function ExifViewer() {
                   border border-[var(--color-border)] rounded-lg transition-colors text-sm"
               >
                 {t({ ko: '다른 이미지 선택', en: 'Choose Another', ja: '別の画像を選択' })}
-              </button>
+              </button>} />
             </div>
 
             {/* EXIF Data */}

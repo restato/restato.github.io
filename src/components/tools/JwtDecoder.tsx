@@ -131,12 +131,12 @@ export default function JwtDecoder() {
               <span className="font-medium text-red-700 dark:text-red-300">
                 {t({ ko: '헤더', en: 'Header', ja: 'ヘッダー' })} (ALGORITHM & TOKEN TYPE)
               </span>
-              <button
+              <ToolActions primary={<button
                 onClick={() => copyToClipboard(JSON.stringify(decoded.header, null, 2), 'header')}
                 className="fc-button fc-button-secondary text-xs"
               >
                 {copiedPart === 'header' ? t({ ko: '복사됨!', en: 'Copied!', ja: 'コピーしました!' }) : t({ ko: '복사', en: 'Copy', ja: 'コピー' })}
-              </button>
+              </button>} />
             </div>
             <div className="p-4 bg-[var(--color-card)]">
               <table className="w-full text-sm">
@@ -158,12 +158,12 @@ export default function JwtDecoder() {
               <span className="font-medium text-purple-700 dark:text-purple-300">
                 {t({ ko: '페이로드', en: 'Payload', ja: 'ペイロード' })} (DATA)
               </span>
-              <button
+              <ToolActions primary={<button
                 onClick={() => copyToClipboard(JSON.stringify(decoded.payload, null, 2), 'payload')}
                 className="fc-button fc-button-secondary text-xs"
               >
                 {copiedPart === 'payload' ? t({ ko: '복사됨!', en: 'Copied!', ja: 'コピーしました!' }) : t({ ko: '복사', en: 'Copy', ja: 'コピー' })}
-              </button>
+              </button>} />
             </div>
             <div className="p-4 bg-[var(--color-card)]">
               <table className="w-full text-sm">
@@ -185,12 +185,12 @@ export default function JwtDecoder() {
               <span className="font-medium text-cyan-700 dark:text-cyan-300">
                 {t({ ko: '서명', en: 'Signature', ja: '署名' })} (VERIFY SIGNATURE)
               </span>
-              <button
+              <ToolActions primary={<button
                 onClick={() => copyToClipboard(decoded.signature, 'signature')}
                 className="fc-button fc-button-secondary text-xs"
               >
                 {copiedPart === 'signature' ? t({ ko: '복사됨!', en: 'Copied!', ja: 'コピーしました!' }) : t({ ko: '복사', en: 'Copy', ja: 'コピー' })}
-              </button>
+              </button>} />
             </div>
             <div className="p-4 bg-[var(--color-card)]">
               <code className="text-sm font-mono text-[var(--color-text)] break-all">

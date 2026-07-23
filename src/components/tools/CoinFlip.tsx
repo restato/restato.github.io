@@ -90,12 +90,12 @@ export default function CoinFlip() {
           <div className="p-4 rounded-lg bg-[var(--color-card)] border border-[var(--color-border)]">
             <div className="flex items-center justify-between mb-2">
               <h3 className="font-medium text-[var(--color-text)]">{t({ ko: '기록 (최근 20개)', en: 'History (latest 20)', ja: '履歴（最新20件）' })}</h3>
-              <button
+              <ToolActions primary={<button
                 onClick={reset}
                 className="text-sm text-red-500 hover:underline"
               >
                 {t({ ko: '초기화', en: 'Reset', ja: 'リセット' })}
-              </button>
+              </button>} />
             </div>
             <div className="flex flex-wrap gap-2">
               {history.map((h, i) => (

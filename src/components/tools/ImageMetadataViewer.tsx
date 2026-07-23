@@ -1,5 +1,6 @@
 import { useState, useRef } from 'react';
 import { useTranslation } from '../../i18n/useTranslation';
+import { ToolActions } from './ui/ToolActions';
 import { ToolPanel } from './ui/ToolPanel';
 
 interface ExifData {
@@ -490,7 +491,7 @@ export default function ImageMetadataViewer() {
               <p className="text-sm text-[var(--color-text-muted)] mt-2 text-center truncate">
                 {exifData.fileName}
               </p>
-              <button
+              <ToolActions primary={<button
                 onClick={() => {
                   setImageUrl(null);
                   setExifData(null);
@@ -499,14 +500,13 @@ export default function ImageMetadataViewer() {
                   border border-[var(--color-border)] rounded-lg transition-colors text-sm"
               >
                 {tr('다른 이미지 선택', 'Choose another image', '別の画像を選択')}
-              </button>
+              </button>} />
             </div>
 
             {/* Metadata */}
             <div className="md:w-2/3 space-y-4">
               {/* Tabs */}
-              <div className="flex gap-2 border-b border-[var(--color-border)] pb-2">
-                {[
+              <ToolActions selection className="flex gap-2 border-b border-[var(--color-border)] pb-2" primary={[
                   { id: 'basic', label: `📋 ${tr('기본', 'Basic', '基本')}` },
                   { id: 'camera', label: `📷 ${tr('카메라', 'Camera', 'カメラ')}` },
                   { id: 'gps', label: `📍 ${tr('위치', 'Location', '位置')}` },
@@ -514,6 +514,7 @@ export default function ImageMetadataViewer() {
                 ].map((tab) => (
                   <button
                     key={tab.id}
+                    aria-pressed={activeTab === tab.id}
                     onClick={() => setActiveTab(tab.id as any)}
                     className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors
                       ${activeTab === tab.id
@@ -523,8 +524,7 @@ export default function ImageMetadataViewer() {
                   >
                     {tab.label}
                   </button>
-                ))}
-              </div>
+                ))} />
 
               {/* Tab Content */}
               <div className="space-y-4">

@@ -5,7 +5,6 @@ export const secondaryButtonClass = 'fc-button fc-button-secondary';
 export const actionsClass = 'fc-tool-actions';
 export const resultClass = 'fc-tool-result';
 export const errorClass = 'fc-tool-result fc-tool-result-error';
-export const privacyClass = 'fc-tool-privacy';
 
 export async function copyText(value: string): Promise<void> {
   if (value) await navigator.clipboard.writeText(value);

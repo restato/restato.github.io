@@ -109,7 +109,7 @@ export default function DdayCalculator() {
         {/* Quick Date Buttons */}
         <ToolActions
           primary={quickDates.slice(0, 1).map((q) => (
-            <ToolActions primary={<button
+            <button
               key={q.label}
               onClick={() => {
                 setTargetDate(q.getDate());
@@ -120,7 +120,7 @@ export default function DdayCalculator() {
                 border border-[var(--color-border)] transition-colors"
             >
               {q.label}
-            </button>} />
+            </button>
           ))}
           secondary={quickDates.slice(1).map((q) => (
             <button key={q.label} onClick={() => { setTargetDate(q.getDate()); setEventName(q.label); }}>{q.label}</button>
@@ -166,13 +166,13 @@ export default function DdayCalculator() {
 
           {/* Save Button */}
           {eventName && (
-            <button
+            <ToolActions primary={<button
               onClick={saveDday}
               className="w-full py-3 bg-primary-500 hover:bg-primary-600 text-white rounded-lg
                 font-medium transition-colors"
             >
               {t({ ko: 'D-Day 저장하기', en: 'Save D-Day', ja: 'D-Dayを保存' })}
-            </button>
+            </button>} />
           )}
         </div>
       )}
