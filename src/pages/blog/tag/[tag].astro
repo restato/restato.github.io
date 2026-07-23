@@ -3,6 +3,7 @@ import MainLayout from '../../../layouts/MainLayout.astro';
 import BlogCard from '../../../components/BlogCard.astro';
 import PageShell from '../../../components/ui/PageShell.astro';
 import { getCollection } from 'astro:content';
+import { getBlogTagContent, inferBlogTagLanguage } from '../../../data/blog-tag-content';
 import { getBlogTagEntries, getBlogTagRouteEntries, toBlogTagSlug } from '../../../lib/blogTags';
 
 export async function getStaticPaths() {
@@ -30,6 +31,8 @@ export async function getStaticPaths() {
 
 const { tag, posts, legacyTagPaths = [] } = Astro.props;
 const legacyTagPathsJson = JSON.stringify(legacyTagPaths).replace(/</g, '\\u003c');
+const tagLanguage = inferBlogTagLanguage(tag);
+const tagContent = getBlogTagContent(tagLanguage, tag, posts.length);
 
 // Get all unique tags for the filter section
 const allPosts = await getCollection('blog', ({ data }) => !data.draft);
@@ -38,8 +41,8 @@ const allTagEntries = getBlogTagEntries(allPosts.flatMap(post => post.data.tags)
 
 <MainLayout
   title={`${tag} | Blog | Restato`}
-  description={`Posts tagged with "${tag}"`}
-  lang="en"
+  description={tagContent.metaDescription}
+  lang={tagLanguage}
 >
   <script
     slot="head"
@@ -60,19 +63,34 @@ const allTagEntries = getBlogTagEntries(allPosts.flatMap(post => post.data.tags)
           <span class="text-[var(--accent)]">#</span>{tag}
         </h1>
         <p class="fc-page-description">
-          {posts.length} post{posts.length !== 1 ? 's' : ''} tagged with "{tag}"
+          {tagContent.summary}
         </p>
       </header>
 
+      <section
+        class="fc-surface fc-surface-soft mb-10 p-5 sm:p-6"
+        aria-labelledby="tag-introduction-title"
+      >
+        <h2 id="tag-introduction-title" class="mb-3 text-xl">
+          {tagContent.introductionTitle}
+        </h2>
+        <p class="m-0 leading-7 text-[var(--text-muted)]">
+          {tagContent.introduction}
+        </p>
+      </section>
+
       {allTagEntries.length > 0 && (
-        <nav class="mb-10 border-b border-[var(--border-subtle)] pb-6" aria-label="Blog tags">
+        <nav
+          class="mb-10 border-b border-[var(--border-subtle)] pb-6"
+          aria-label={tagContent.tagsLabel}
+        >
           <div class="flex flex-wrap gap-2 items-center">
-            <span class="mr-1 text-sm font-bold text-[var(--text-muted)]">Tags</span>
+            <span class="mr-1 text-sm font-bold text-[var(--text-muted)]">{tagContent.tagsLabel}</span>
             <a
               href="/blog"
               class="fc-chip border border-transparent transition-colors hover:border-[var(--brand)] hover:text-[var(--brand)]"
             >
-              All
+              {tagContent.allLabel}
             </a>
             {allTagEntries.map(entry => (
               <a
@@ -106,14 +124,14 @@ const allTagEntries = getBlogTagEntries(allPosts.flatMap(post => post.data.tags)
         </div>
       ) : (
         <div class="fc-empty-state">
-          <h2>No posts found</h2>
-          <p>No posts are tagged with "{tag}" yet.</p>
+          <h2>{tagContent.noPostsTitle}</h2>
+          <p>{tagContent.noPostsDescription}</p>
         </div>
       )}
 
       {posts.length > 0 && (
         <p class="mt-8 text-center text-sm text-[var(--text-muted)]">
-          {posts.length} post{posts.length !== 1 ? 's' : ''} with tag "{tag}"
+          {tagContent.summary}
         </p>
       )}
   </PageShell>
