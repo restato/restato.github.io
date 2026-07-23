@@ -137,8 +137,7 @@ describe('dynamic game semantics', () => {
     expect(screen.getAllByRole('button', { name: /빈 구멍/ })).toHaveLength(8);
   });
 
-  it('preserves pre-game keyboard flags without sacrificing first-reveal safety', async () => {
-    const user = userEvent.setup();
+  it('preserves pre-game keyboard flags without sacrificing first-reveal safety', () => {
     const random = vi.spyOn(Math, 'random');
     let randomCall = 0;
     random.mockImplementation(() => {
@@ -153,26 +152,26 @@ describe('dynamic game semantics', () => {
 
     const flagMode = screen.getByRole('button', { name: '깃발 모드' });
     expect(flagMode).toHaveAttribute('aria-pressed', 'false');
-    await user.click(flagMode);
+    fireEvent.click(flagMode);
     expect(flagMode).toHaveAttribute('aria-pressed', 'true');
 
     const cells = screen.getAllByRole('button', { name: /행.*열/ });
     const flaggedCell = cells[0];
     random.mockClear();
-    await user.click(flaggedCell);
+    fireEvent.click(flaggedCell);
     expect(random).not.toHaveBeenCalled();
     expect(flaggedCell).toHaveAccessibleName(/깃발/);
 
-    await user.click(flaggedCell);
+    fireEvent.click(flaggedCell);
     expect(random).not.toHaveBeenCalled();
     expect(flaggedCell).toHaveAccessibleName(/숨김/);
-    await user.click(flaggedCell);
+    fireEvent.click(flaggedCell);
     expect(random).not.toHaveBeenCalled();
     expect(flaggedCell).toHaveAccessibleName(/깃발/);
 
-    await user.click(flagMode);
+    fireEvent.click(flagMode);
     const firstReveal = cells[10];
-    await user.click(firstReveal);
+    fireEvent.click(firstReveal);
 
     expect(random).toHaveBeenCalled();
     expect(flaggedCell).toHaveAccessibleName(/깃발/);
