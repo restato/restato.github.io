@@ -158,3 +158,48 @@ npm run build
 Result: exit 0; 1,269 pages built and split sitemap generation completed.
 
 The first browser run also observed React hydration mismatch messages on routes whose initial game state is randomized. This is the inherited random-hydration risk called out in the review; the accessibility/mobile migration did not add random initialization, so it was recorded without broadening this task.
+
+## Final bounded review fixes — 2026-07-23
+
+Commit `4cba5df` closes the remaining first-reveal and live-status gaps without changing routes, metadata, scoring, timers, or game rules.
+
+### TDD evidence
+
+```sh
+npm test -- --run src/components/games/__tests__/game-accessibility.test.tsx src/components/games/__tests__/game-theme-contract.test.ts
+```
+
+RED result: 4 expected failures and 17 passing assertions. The failures proved that pre-game flagging initialized mines, Reaction Test nested its live region inside the native button, per-answer feedback had no status, and six required terminal status owners were missing.
+
+GREEN result: 2 test files passed, 21 tests passed.
+
+### Changes
+
+- Minesweeper now stores pre-game flags on an empty board while `started` remains false. The first unflagged reveal initializes mines with the existing safe exclusion, reapplies preflags, and reveals the selected non-mine cell. Flag mode and right-click flagging share this pre-game-safe board state.
+- The rendered regression places, removes, and replaces a flag without calling randomness, then reveals a different first cell and verifies that it is safe and the flag remains.
+- Breakout, Dino Runner, Flappy Bird, and Snake expose assertive live status on terminal overlays.
+- Math Quiz and Color Match expose localized assertive per-answer feedback.
+- Reaction Test keeps the visual cue inside its button but exposes the live cue through a visually hidden sibling status region.
+- The AST contract explicitly enumerates the seven dynamic/terminal status owners and requires a native `type` attribute on every scoped button. The button-type audit passed without production changes.
+
+### Final verification
+
+```sh
+npm test -- --run src/components/games src/data/__tests__/games.test.ts src/data/__tests__/games-locales.test.ts
+```
+
+Result: 5 test files passed, 28 tests passed.
+
+```sh
+npm run check
+```
+
+Result: 383 files checked, 0 errors, 0 warnings, 81 existing hints.
+
+```sh
+npm run build
+```
+
+Result: exit 0; 1,269 pages built and split sitemap generation completed with 1,121 indexed URLs.
+
+No push, deploy, registry, content, ads, or protected-report changes were made. The unrelated pre-existing modification to `.superpowers/sdd/rollout-task-1-report.md` remains unstaged.
