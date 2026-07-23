@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { useTranslation } from '../../i18n/useTranslation';
 import { ToolActions } from './ui/ToolActions';
+import { ToolField } from './ui/ToolField';
 import { ToolPanel } from './ui/ToolPanel';
 
 type TimerMode = 'work' | 'shortBreak' | 'longBreak';
@@ -269,27 +270,28 @@ export default function PomodoroTimer() {
               { key: 'sessionsBeforeLongBreak', label: { ko: '긴 휴식까지', en: 'Sessions', ja: 'セッション数' }, suffix: t({ ko: '회', en: '', ja: '回' }) },
             ].map(({ key, label, suffix }) => (
               <div key={key} className="space-y-1">
-                <label className="text-xs text-[var(--color-text-muted)]">{t(label)}</label>
                 <div className="flex items-center gap-1">
-                  <input
-                    type="number"
-                    min="1"
-                    max="60"
-                    value={settings[key as keyof Settings]}
-                    onChange={(e) => {
-                      const parsedValue = Number(e.target.value);
-                      const value = Number.isFinite(parsedValue)
-                        ? Math.max(1, Math.min(60, parsedValue))
-                        : 1;
-                      const newSettings = { ...settings, [key]: value };
-                      setSettings(newSettings);
-                      if (!isRunning) {
-                        setTimeLeft(getDuration(mode));
-                      }
-                    }}
-                    className="w-16 px-2 py-1 text-center rounded border border-[var(--color-border)]
-                      bg-[var(--color-bg)] text-[var(--color-text)]"
-                  />
+                  <ToolField id={`pomodoro-${key}`} label={t(label)}>
+                    <input
+                      type="number"
+                      min="1"
+                      max="60"
+                      value={settings[key as keyof Settings]}
+                      onChange={(e) => {
+                        const parsedValue = Number(e.target.value);
+                        const value = Number.isFinite(parsedValue)
+                          ? Math.max(1, Math.min(60, parsedValue))
+                          : 1;
+                        const newSettings = { ...settings, [key]: value };
+                        setSettings(newSettings);
+                        if (!isRunning) {
+                          setTimeLeft(getDuration(mode));
+                        }
+                      }}
+                      className="w-16 px-2 py-1 text-center rounded border border-[var(--color-border)]
+                        bg-[var(--color-bg)] text-[var(--color-text)]"
+                    />
+                  </ToolField>
                   <span className="text-xs text-[var(--color-text-muted)]">{suffix}</span>
                 </div>
               </div>

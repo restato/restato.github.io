@@ -163,29 +163,39 @@ export default function DutchPayCalculator() {
       {showAdvanced && (
         <div className="space-y-4">
           <div className="space-y-3">
-            {people.map((person, index) => (
+            {people.map((person) => (
               <div
                 key={person.id}
                 className="flex items-center gap-3 p-3 rounded-lg bg-[var(--color-card)] border border-[var(--color-border)]"
               >
-                <input
-                  type="text"
-                  value={person.name}
-                  onChange={(e) => updatePerson(person.id, 'name', e.target.value)}
-                  className="flex-1 px-3 py-2 rounded-lg border border-[var(--color-border)]
-                    bg-[var(--color-bg)] text-[var(--color-text)] text-sm
-                    focus:outline-none focus:ring-2 focus:ring-primary-500"
-                />
-                <div className="relative w-32">
+                <ToolField
+                  id={`dutch-person-${person.id}-name`}
+                  label={t({ ko: `${person.name} 이름`, en: `${person.name} name`, ja: `${person.name} 名前` })}
+                >
                   <input
-                    type="number"
-                    value={person.paid || ''}
-                    onChange={(e) => updatePerson(person.id, 'paid', parseFloat(e.target.value) || 0)}
-                    placeholder="0"
-                    className="w-full px-3 py-2 pr-8 rounded-lg border border-[var(--color-border)]
+                    type="text"
+                    value={person.name}
+                    onChange={(e) => updatePerson(person.id, 'name', e.target.value)}
+                    className="flex-1 px-3 py-2 rounded-lg border border-[var(--color-border)]
                       bg-[var(--color-bg)] text-[var(--color-text)] text-sm
                       focus:outline-none focus:ring-2 focus:ring-primary-500"
                   />
+                </ToolField>
+                <div className="relative w-32">
+                  <ToolField
+                    id={`dutch-person-${person.id}-paid`}
+                    label={t({ ko: `${person.name} 결제 금액`, en: `${person.name} payment`, ja: `${person.name} 支払額` })}
+                  >
+                    <input
+                      type="number"
+                      value={person.paid || ''}
+                      onChange={(e) => updatePerson(person.id, 'paid', parseFloat(e.target.value) || 0)}
+                      placeholder="0"
+                      className="w-full px-3 py-2 pr-8 rounded-lg border border-[var(--color-border)]
+                        bg-[var(--color-bg)] text-[var(--color-text)] text-sm
+                        focus:outline-none focus:ring-2 focus:ring-primary-500"
+                    />
+                  </ToolField>
                   <span className="absolute right-2 top-1/2 -translate-y-1/2 text-xs text-[var(--color-text-muted)]">
                     {currency}
                   </span>

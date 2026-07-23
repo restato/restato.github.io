@@ -622,26 +622,25 @@ export default function LlmCostCalculator() {
                   secondary={<button onClick={() => deselectProviderModels(provider)}>{t(tc.deselect)}</button>}
                 />
               </div>
-              <div className="flex flex-wrap gap-2">
-                {MODEL_PRICES.filter(m => m.provider === provider).map((model) => (
-                  <label
+              <ToolActions
+                selection
+                className="flex flex-wrap gap-2"
+                primary={MODEL_PRICES.filter(m => m.provider === provider).map((model) => (
+                  <button
+                    type="button"
                     key={model.name}
+                    aria-pressed={selectedModels.has(model.name)}
+                    onClick={() => toggleModel(model.name)}
                     className={`flex items-center gap-2 px-3 py-1 rounded-lg text-sm cursor-pointer transition-colors
                       ${selectedModels.has(model.name)
                         ? 'bg-primary-500/10 text-primary-500 border border-primary-500/30'
                         : 'bg-[var(--color-bg)] text-[var(--color-text-muted)] border border-[var(--color-border)]'
                       }`}
                   >
-                    <input
-                      type="checkbox"
-                      checked={selectedModels.has(model.name)}
-                      onChange={() => toggleModel(model.name)}
-                      className="hidden"
-                    />
                     {model.displayName}
-                  </label>
+                  </button>
                 ))}
-              </div>
+              />
             </div>
           ))}
         </div>

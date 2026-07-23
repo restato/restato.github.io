@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { useTranslation } from '../../i18n/useTranslation';
 import { ToolActions } from './ui/ToolActions';
+import { ToolField } from './ui/ToolField';
 import { ToolPanel } from './ui/ToolPanel';
 
 type Mode = 'timer' | 'stopwatch';
@@ -143,7 +144,7 @@ export default function TimerStopwatch() {
             { key: 'minutes', label: tt.minutes, max: 59 },
             { key: 'seconds', label: tt.seconds, max: 59 },
           ].map(({ key, label, max }) => (
-            <div key={key} className="flex flex-col items-center gap-1">
+            <ToolField key={key} id={`timer-${key}`} label={t(label)}>
               <input
                 type="number"
                 min="0"
@@ -157,8 +158,7 @@ export default function TimerStopwatch() {
                   border border-[var(--color-border)] bg-[var(--color-card)]
                   text-[var(--color-text)] focus:outline-none focus:ring-2 focus:ring-primary-500"
               />
-              <span className="text-sm text-[var(--color-text-muted)]">{t(label)}</span>
-            </div>
+            </ToolField>
           ))}
         </div>
       )}
