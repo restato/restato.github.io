@@ -474,7 +474,11 @@ export default function AppStoreScreenshotResizer() {
                 >
                   <button
                     type="button"
-                    aria-label={`Select image ${idx + 1}`}
+                    aria-label={t({
+                      ko: `이미지 ${idx + 1} 선택`,
+                      en: `Select image ${idx + 1}`,
+                      ja: `画像 ${idx + 1} を選択`,
+                    })}
                     aria-pressed={idx === activeImageIndex}
                     className={`block overflow-hidden rounded-lg border-2 transition-colors
                       ${idx === activeImageIndex ? 'border-primary-500' : 'border-[var(--color-border)]'}`}
@@ -491,7 +495,15 @@ export default function AppStoreScreenshotResizer() {
                       </span>
                     )}
                   </button>
-                  <ToolActions className="absolute top-0 right-0" primary={<button type="button" onClick={() => removeImage(idx)} aria-label={`Remove image ${idx + 1}`}>×</button>} />
+                  <ToolActions className="absolute top-0 right-0" primary={<button
+                    type="button"
+                    onClick={() => removeImage(idx)}
+                    aria-label={t({
+                      ko: `이미지 ${idx + 1} 제거`,
+                      en: `Remove image ${idx + 1}`,
+                      ja: `画像 ${idx + 1} を削除`,
+                    })}
+                  >×</button>} />
                 </div>
               ))}
               {images.length < 10 && (

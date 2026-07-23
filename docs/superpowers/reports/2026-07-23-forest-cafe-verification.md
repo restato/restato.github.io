@@ -46,6 +46,7 @@ This matrix covers every required public page family, the remediated project sur
 | `npm run test:a11y` | PASS — 42/42 Playwright tests |
 | `npx playwright test tests/e2e/catalog.spec.ts tests/e2e/forest-cafe-visual.spec.ts --project=desktop --project=mobile-390` | PASS — 68/68 Playwright tests |
 | `npx playwright test tests/e2e/project-pages.spec.ts tests/e2e/localization-contract.spec.ts --project=desktop --project=mobile-390` | PASS — 28/28 Playwright tests |
+| `npx playwright test tests/e2e/interactive-contrast.spec.ts tests/e2e/tool-item-keyboard.spec.ts --project=desktop --project=mobile-390` | PASS — 8/8 Playwright tests |
 
 Bundle results:
 
@@ -80,7 +81,7 @@ The first visual run failed 19 of 26 tests. The failures exposed stale test assu
 - Enabling the WCAG 2.2 Axe tags exposed 12 px keyboard crop handles. They now meet the 24 px target-size requirement, and the interaction audit uses a deterministic 240 × 240 valid PNG so the eight handles exercise usable, non-overlapping crop geometry.
 - The first project-page contract run failed 8/8 checks against the legacy sources. Shared Forest Café page, surface, button, eyebrow, and semantic color primitives replaced gradients, glass effects, hover lifts, and one-off palette classes; the resulting static project contract passed all checks.
 - The first gallery dialog browser check exposed missing initial focus. The gallery openers are now native buttons and the named modal dialog sets initial focus, traps forward and reverse Tab, supports Escape and arrow navigation, and restores focus to its opener.
-- Localization browser RED checks reproduced three stale behaviors: an incorrectly derived article document language, skip-link text that did not follow client locale changes, and a canonical/JSON-LD trailing-slash mismatch. Metadata-first language inference, all 12 localized skip-link labels, the `languageChange` listener, and one reused canonical URL made all 14 dedicated browser cases pass.
+- Localization browser RED checks reproduced stale article-language and skip-link behavior, a canonical/JSON-LD trailing-slash mismatch, incomplete trust-family routing, and English-only project pages that still reacted to stored or dispatched locale changes. Metadata-first language inference, all 12 localized skip-link labels, one shared route-family predicate, explicit page locks, and one reused canonical URL made all 22 dedicated localization browser cases pass across desktop and mobile.
 - The missing-baseline run passed 26 existing cases and failed the 12 new route/project cases because 18 references were absent. After reviewing the intended pages, the update run and an unchanged normal run both passed 38/38.
 - A final combined run exposed that the gallery's external `picsum.photos` placeholders could load after one baseline had captured their empty surfaces. A first attempted stabilization substituted unrelated project images and therefore did not preserve the original content. The corrected contract now locks all six original `Sample n` alt strings, `Sample Image n` titles, and seeded media order. Exact 800 × 600 JPEG responses from `https://picsum.photos/seed/1..6/800/600` are vendored under `public/images/gallery/`, so the original content is preserved without a runtime network dependency.
 - Review found inconsistent vertical rhythm between project sections. Five static RED cases now require the shared `fc-section-flow` primitive, whose responsive `clamp(2rem, 5vw, 4rem)` grid gap and direct-child margin normalization are defined once in the Forest Café component layer. A computed browser contract verifies every direct-child gap is at least 32 px on all five pages at 390, 768, 1,024, and 1,440 px.
@@ -100,9 +101,14 @@ The browser suites verify:
 - dynamic file selection, JSON status announcement, focused downloads, and responsive disclosure interaction.
 - the gallery dialog's initial focus, bidirectional focus trap, Escape close, opener focus restoration, next/previous button round-trip, and ArrowRight/ArrowLeft round-trip;
 - project CTA/eyebrow live contrast in both themes and Jobworld connector overflow at 390, 768, 1,024, and 1,440 px;
-- article document-language locking, localized skip-link synchronization on `/` and `/404/`, and exact anonymous-chat canonical/JSON-LD agreement;
+- desktop and mobile language-control switching for `/about`, `/contact`, `/privacy`, `/terms`, and `/disclaimer`, including the resulting URL, document language, and localized page heading;
+- article document-language locking, localized skip-link synchronization on `/` and `/404/`, exact anonymous-chat canonical/JSON-LD agreement, and storage/event resistance for Quick Issue plus all five PasteDock English routes, including English skip-link and Open Graph locale metadata;
+- live AA contrast in both themes for Timer start/pause, Bingo, Ladder, Roulette history and all 16 participant palette variants, and App Store processing states;
+- separate native screenshot select/remove and D-Day load/delete controls operated with Space, Tab, and Enter, with screenshot action names verified in Korean, English, and Japanese;
 - a clock-controlled, visibly hydrated `client:idle` bookmark prompt that passes Axe, exposes a visible focused close button, dismisses by keyboard, and remains dismissed after reload;
 - fail-closed console and page-error collection across every accessibility interaction and every visual/theme test.
+
+The Roulette participant-chip appearance changed, but Roulette is not one of the 18 visual-baseline routes (the game-detail baseline uses Snake). The unchanged 68/68 visual run and 54/54 SHA-256 identity contract therefore required no baseline or evidence-image update.
 
 The original manual review covered 42 combinations: seven representative routes × three widths (390, 768, and 1,440 px) × light and dark themes.
 

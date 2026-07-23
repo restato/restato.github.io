@@ -17,19 +17,37 @@ test('screenshot thumbnails separate Space selection from Tab+Enter removal', as
     { name: 'third.jpg', mimeType: 'image/jpeg', buffer: image },
   ]);
 
-  const selectSecond = page.getByRole('button', { name: 'Select image 2' });
+  const selectSecond = page.getByRole('button', { name: '이미지 2 선택' });
   await expect(selectSecond).toBeVisible();
   await selectSecond.focus();
   await page.keyboard.press('Space');
   await expect(selectSecond).toHaveAttribute('aria-pressed', 'true');
 
   await page.keyboard.press('Tab');
-  const removeSecond = page.getByRole('button', { name: 'Remove image 2' });
+  const removeSecond = page.getByRole('button', { name: '이미지 2 제거' });
   await expect(removeSecond).toBeFocused();
   await page.keyboard.press('Enter');
-  await expect(page.getByRole('button', { name: /^Select image / })).toHaveCount(2);
-  await expect(page.getByRole('button', { name: 'Select image 2' })).toHaveAttribute('aria-pressed', 'true');
+  await expect(page.getByRole('button', { name: /^이미지 \d+ 선택$/ })).toHaveCount(2);
+  await expect(page.getByRole('button', { name: '이미지 2 선택' })).toHaveAttribute('aria-pressed', 'true');
   assertNoUnexpectedConsoleErrors(page);
+});
+
+test('screenshot thumbnail action names follow Korean, English, and Japanese routes', async ({ page }) => {
+  const image = readFileSync('public/images/gallery/seed-5-800x600.jpg');
+  for (const { path, select, remove } of [
+    { path: '/ko/tools/appstore-screenshot/', select: '이미지 1 선택', remove: '이미지 1 제거' },
+    { path: '/en/tools/appstore-screenshot/', select: 'Select image 1', remove: 'Remove image 1' },
+    { path: '/ja/tools/appstore-screenshot/', select: '画像 1 を選択', remove: '画像 1 を削除' },
+  ]) {
+    await page.goto(path, { waitUntil: 'domcontentloaded' });
+    await waitForHydration(page);
+    await page.locator('input[type="file"]').setInputFiles([
+      { name: 'first.jpg', mimeType: 'image/jpeg', buffer: image },
+      { name: 'second.jpg', mimeType: 'image/jpeg', buffer: image },
+    ]);
+    await expect(page.getByRole('button', { name: select })).toBeVisible();
+    await expect(page.getByRole('button', { name: remove })).toBeVisible();
+  }
 });
 
 test('saved D-Day separates Space loading from Tab+Enter deletion', async ({ page }) => {

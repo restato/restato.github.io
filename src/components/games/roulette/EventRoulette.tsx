@@ -275,9 +275,15 @@ export default function EventRoulette() {
                 {items.map(item => (
                   <span
                     key={item.id}
-                    className="px-2 py-1 text-xs text-white rounded-full"
-                    style={{ backgroundColor: item.color }}
+                    data-contrast-target="roulette-participant"
+                    className="inline-flex items-center gap-1.5 rounded-full border border-[var(--color-border)] bg-[var(--surface-soft)] px-2 py-1 text-xs font-medium text-[var(--color-text)]"
                   >
+                    <span
+                      aria-hidden="true"
+                      data-roulette-palette-dot
+                      className="h-2.5 w-2.5 rounded-full border border-[var(--color-border)]"
+                      style={{ backgroundColor: item.color }}
+                    />
                     {item.text}
                   </span>
                 ))}

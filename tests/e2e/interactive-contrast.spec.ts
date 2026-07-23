@@ -56,8 +56,16 @@ test('remediated interactive states retain AA contrast in both themes', async ({
     await expectAa(page.locator('[data-contrast-target="ladder-selected"]'));
 
     await openInTheme(page, '/ko/games/roulette/', theme);
-    await page.getByRole('textbox', { name: '참가자 입력' }).fill('하나\n둘');
+    const participantNames = Array.from({ length: 16 }, (_, index) => `참가자 ${index + 1}`);
+    await page.getByRole('textbox', { name: '참가자 입력' }).fill(participantNames.join('\n'));
     await page.getByRole('button', { name: '적용', exact: true }).click();
+    const participantChips = page.locator('[data-contrast-target="roulette-participant"]');
+    await expect(participantChips).toHaveCount(16);
+    for (const chip of await participantChips.all()) await expectAa(chip);
+    const paletteColors = await page.locator('[data-roulette-palette-dot]').evaluateAll((dots) =>
+      dots.map((dot) => getComputedStyle(dot).backgroundColor),
+    );
+    expect(new Set(paletteColors).size).toBe(16);
     await page.getByRole('button', { name: '🎲 추첨하기!' }).click();
     const historyRank = page.locator('[data-contrast-target="roulette-history-rank"]');
     await expect(historyRank).toBeVisible({ timeout: 8_000 });

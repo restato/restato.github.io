@@ -60,7 +60,12 @@ describe('merge-review interactive color contracts', () => {
   it('uses sibling native buttons for screenshot selection/removal and D-Day loading/deletion', () => {
     const screenshots = read('src/components/tools/AppStoreScreenshotResizer.tsx');
     const dday = read('src/components/tools/DdayCalculator.tsx');
-    expect(screenshots).toContain('aria-label={`Select image ${idx + 1}`}');
+    expect(screenshots).toContain("ko: `이미지 ${idx + 1} 선택`");
+    expect(screenshots).toContain("en: `Select image ${idx + 1}`");
+    expect(screenshots).toContain("ja: `画像 ${idx + 1} を選択`");
+    expect(screenshots).toContain("ko: `이미지 ${idx + 1} 제거`");
+    expect(screenshots).toContain("en: `Remove image ${idx + 1}`");
+    expect(screenshots).toContain("ja: `画像 ${idx + 1} を削除`");
     expect(screenshots).not.toContain('onClick={() => setActiveImageIndex(idx)}\n                >');
     expect(dday).toContain('aria-label={t({ ko: `${dday.name} 불러오기`');
     expect(dday).toMatch(/<button[\s\S]*?aria-label=\{t\(\{ ko: `\$\{dday\.name\} 불러오기`[\s\S]*?onClick=\{\(\) => loadDday/);
