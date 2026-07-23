@@ -23,6 +23,36 @@ describe('shared tool interface primitives', () => {
     expect(screen.getByText('Source is required.')).toHaveAttribute('id', 'source-error');
   });
 
+  it('merges caller descriptions and preserves caller invalid state without an error', () => {
+    render(
+      <ToolField id="source" label="Source" hint="Paste plain text.">
+        <input aria-describedby="external-description" aria-invalid="true" />
+      </ToolField>,
+    );
+
+    const control = screen.getByRole('textbox', { name: 'Source' });
+    expect(control).toHaveAttribute(
+      'aria-describedby',
+      'external-description source-hint',
+    );
+    expect(control).toHaveAttribute('aria-invalid', 'true');
+  });
+
+  it('forces invalid state when an error is present while retaining caller descriptions', () => {
+    render(
+      <ToolField id="source" label="Source" error="Source is required.">
+        <input aria-describedby="external-description" aria-invalid="false" />
+      </ToolField>,
+    );
+
+    const control = screen.getByRole('textbox', { name: 'Source' });
+    expect(control).toHaveAttribute(
+      'aria-describedby',
+      'external-description source-error',
+    );
+    expect(control).toHaveAttribute('aria-invalid', 'true');
+  });
+
   it('renders primary actions before secondary actions with shared disabled styling', () => {
     render(
       <ToolActions
@@ -37,6 +67,21 @@ describe('shared tool interface primitives', () => {
     expect(actions[0]).toBeDisabled();
     expect(actions[1]).toHaveClass('fc-button', 'fc-button-secondary');
     expect(screen.getByTestId('tool-actions')).toHaveClass('fc-tool-actions');
+  });
+
+  it('never leaves a primary action with the secondary variant class', () => {
+    render(
+      <ToolActions
+        primary={<button className="fc-button-secondary">Convert</button>}
+        secondary={<button className="fc-button-primary">Clear</button>}
+      />,
+    );
+
+    const [primary, secondary] = screen.getAllByRole('button');
+    expect(primary).toHaveClass('fc-button-primary');
+    expect(primary).not.toHaveClass('fc-button-secondary');
+    expect(secondary).toHaveClass('fc-button-secondary');
+    expect(secondary).not.toHaveClass('fc-button-primary');
   });
 
   it('announces non-error results politely and reports working progress', () => {
@@ -72,11 +117,13 @@ describe('shared tool interface primitives', () => {
     expect(onActivate).toHaveBeenCalledTimes(2);
   });
 
-  it('styles controls inside fragments without passing DOM props to the fragment', () => {
+  it('is a plain visual container and does not mutate nested controls', () => {
     const consoleError = vi.spyOn(console, 'error').mockImplementation(() => {});
     render(<ToolPanel><><button>Run</button></></ToolPanel>);
 
-    expect(screen.getByRole('button', { name: 'Run' })).toHaveClass('fc-button');
+    expect(screen.getByRole('button', { name: 'Run' })).not.toHaveClass('fc-button');
+    expect(screen.getByRole('button', { name: 'Run' }).closest('section')).toHaveClass('fc-tool-panel');
+    expect(screen.getByRole('button', { name: 'Run' }).closest('section')).not.toHaveClass('fc-surface');
     expect(consoleError).not.toHaveBeenCalled();
     consoleError.mockRestore();
   });
@@ -85,6 +132,7 @@ describe('shared tool interface primitives', () => {
 describe('tool detail route shell', () => {
   const legacyLayout = readFileSync(resolve('src/layouts/ToolLayout.astro'), 'utf8');
   const localizedRoute = readFileSync(resolve('src/pages/[lang]/tools/[slug].astro'), 'utf8');
+  const globalCss = readFileSync(resolve('src/styles/global.css'), 'utf8');
 
   it.each([
     ['legacy layout', legacyLayout],
@@ -119,6 +167,19 @@ describe('tool detail route shell', () => {
     expect(legacyLayout).toContain('<BookmarkPrompt client:idle');
     expect(legacyLayout).toContain("const STORAGE_KEY = 'restato_recent_tools'");
     expect(legacyLayout).toContain('window.location.replace(newPath)');
+  });
+
+  it('lays out the single raised workspace and restores instruction list markers', () => {
+    expect(globalCss).toMatch(/\.fc-tool-workspace\s*\{[^}]*display:\s*grid/s);
+    expect(globalCss).toMatch(
+      /\.fc-tool-instructions\s+:where\(ol,\s*ul\)\s*\{[^}]*padding-inline-start:/s,
+    );
+    expect(globalCss).toMatch(
+      /\.fc-tool-instructions\s+ol\s*\{[^}]*list-style:\s*decimal/s,
+    );
+    expect(globalCss).toMatch(
+      /\.fc-tool-instructions\s+ul\s*\{[^}]*list-style:\s*disc/s,
+    );
   });
 });
 

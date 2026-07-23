@@ -366,6 +366,7 @@
   }
 
   .fc-tool-workspace {
+    display: grid;
     gap: clamp(1.25rem, 3vw, 2rem);
   }
 
@@ -396,6 +397,15 @@
   .fc-tool-instructions :where(ol, ul) {
     display: grid;
     gap: 0.5rem;
+    padding-inline-start: 1.5rem;
+  }
+
+  .fc-tool-instructions ol {
+    list-style: decimal;
+  }
+
+  .fc-tool-instructions ul {
+    list-style: disc;
   }
 
   .fc-tool-instructions li {

@@ -29,13 +29,16 @@ function controlClass(control: ReactElement<ControlProps>) {
 export function ToolField({ id, label, hint, error, children }: ToolFieldProps) {
   const hintId = hint ? `${id}-hint` : undefined;
   const errorId = error ? `${id}-error` : undefined;
-  const describedBy = [hintId, errorId].filter(Boolean).join(' ') || undefined;
   const control = isValidElement<ControlProps>(children)
     ? cloneElement(children, {
         id,
         className: `${controlClass(children)} ${children.props.className ?? ''}`.trim(),
-        'aria-describedby': describedBy,
-        'aria-invalid': Boolean(error),
+        'aria-describedby': [
+          children.props['aria-describedby'],
+          hintId,
+          errorId,
+        ].filter(Boolean).join(' ') || undefined,
+        'aria-invalid': error ? true : children.props['aria-invalid'],
       })
     : children;
 
