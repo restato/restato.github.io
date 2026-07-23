@@ -113,13 +113,16 @@ const images = [
   const previousButton = dialog?.querySelector('[data-gallery-previous]');
   const nextButton = dialog?.querySelector('[data-gallery-next]');
   let currentIndex = 0;
+  let opener = null;
 
   document.querySelectorAll('[data-gallery-item]').forEach((element) => {
     element.addEventListener('click', () => {
+      opener = element;
       currentIndex = Number(element.getAttribute('data-index'));
       showImage(currentIndex);
       dialog?.removeAttribute('hidden');
       dialog?.classList.add('flex');
+      closeButton?.focus();
     });
   });
 
@@ -138,9 +141,26 @@ const images = [
 
   document.addEventListener('keydown', (event) => {
     if (dialog?.hasAttribute('hidden')) return;
-    if (event.key === 'Escape') closeDialog();
+    if (event.key === 'Escape') {
+      event.preventDefault();
+      closeDialog();
+    }
     if (event.key === 'ArrowLeft') previousButton?.click();
     if (event.key === 'ArrowRight') nextButton?.click();
+    if (event.key === 'Tab') {
+      const focusable = [...dialog.querySelectorAll(
+        'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])',
+      )].filter((element) => !element.hasAttribute('hidden'));
+      const first = focusable[0];
+      const last = focusable[focusable.length - 1];
+      if (event.shiftKey && document.activeElement === first) {
+        event.preventDefault();
+        last?.focus();
+      } else if (!event.shiftKey && document.activeElement === last) {
+        event.preventDefault();
+        first?.focus();
+      }
+    }
   });
 
   function showImage(index) {
@@ -150,7 +170,8 @@ const images = [
   }
 
   function closeDialog() {
-    dialog?.setAttribute('hidden', '');
     dialog?.classList.remove('flex');
+    dialog?.setAttribute('hidden', '');
+    opener?.focus();
   }
 </script>
