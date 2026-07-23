@@ -488,3 +488,170 @@ node scripts/check-bundles.mjs dist
 Status: passed — all guarded routes remain below their gzip budgets
 (`/ko/tools` 165.9/180 KB; text-counter 199.9/220 KB; JSON 199.9/400 KB;
 image-resizer 199.9/550 KB).
+
+---
+
+# Second re-review remediation (2026-07-23)
+
+## Outcome by reviewer finding
+
+- A1: Added registry-equality contract coverage for every standard and
+  additional public tool. Migrated the omitted image tools, all three
+  data-text tools, every PDF/media tool, and the remaining legacy tool
+  controls to real `ToolField`, `ToolActions`, and `ToolResult`/`ToolStatus`
+  primitives. Fixed the ImageConverter range/value sibling structure.
+- A2: Every visible production input/select/textarea under
+  `src/components/tools` is now statically nested in one `ToolField`; the
+  rendered registry matrix also checks accessible association and shared
+  control classes. Discount rate and the other reviewer-named controls have
+  real labels.
+- B3: `ToolActions` is forced to one ordered grid column below 480px,
+  including caller-supplied two-column/flex classes. Background remover and
+  App Store screenshot action rows use the primitive. DOM-order tests retain
+  the primary action first for command groups.
+- B4: `ToolActions selection` derives primary/secondary treatment from
+  `aria-pressed`. Unit, Regex, Percent, Discount, and analogous selectable
+  groups use it. Behavioral tests click non-first choices and verify the
+  selected option alone receives primary treatment.
+- C5: Anonymous chat now has breadcrumb markup and `BreadcrumbList`,
+  `WebApplication`, and FAQ JSON-LD; favorite/share controls; ad placement;
+  related tools; bookmark prompt; and recent-tool tracking, while preserving
+  the existing chat island/service. Its workspace has one privacy disclosure.
+- D6: Removed all component-owned privacy rows from data-text tools and
+  deleted the unused `privacyClass`; the route remains the single owner.
+- D7: Modern image converter, EXIF remover, and favicon generator clear stale
+  feedback on every new selection. Audio replacement clears prior file state,
+  feedback, and preview immediately; empty/failed replacements remain clear,
+  and the previous object URL is revoked.
+
+## TDD evidence
+
+Initial registry RED:
+
+```sh
+npm test -- --run src/components/tools/__tests__/allTools.test.tsx \
+  src/components/tools/__tests__/additionalToolsContract.test.tsx --reporter=dot
+```
+
+Status: failed as expected — initially 47 failures/94 passes (then 46/95
+after improving diagnostics), exposing omitted tools, raw controls, missing
+associations, and raw action groups.
+
+Shared selected/mobile RED:
+
+```sh
+npm test -- --run src/components/tools/ui/__tests__/tool-ui.test.tsx \
+  src/components/tools/ui/__tests__/tool-actions-css.test.ts --reporter=dot
+```
+
+Status: failed as expected — 2 failures/84 passes: pressed non-first choices
+still received secondary treatment, and mobile CSS did not override caller
+grid/flex layouts.
+
+Shared selected/mobile GREEN:
+
+```sh
+npm test -- --run src/components/tools/ui/__tests__/tool-ui.test.tsx \
+  src/components/tools/ui/__tests__/tool-actions-css.test.ts --reporter=dot
+```
+
+Status: passed — 2 files, 86 tests.
+
+Registry adoption GREEN:
+
+```sh
+npm test -- --run src/components/tools/__tests__/allTools.test.tsx \
+  src/components/tools/__tests__/additionalToolsContract.test.tsx \
+  src/components/tools/__tests__/selectedStateContract.test.tsx --reporter=dot
+```
+
+Status: passed — 3 files, 145 tests. The standard registry matrix covers all
+registry components, the additional matrix covers all 13 additional registry
+tools, and selected-state tests exercise Unit, Regex, Percent, and Discount.
+
+Anonymous-chat shell RED/GREEN:
+
+```sh
+npm test -- --run src/components/__tests__/Chat.test.tsx \
+  src/data/tools/__tests__/pageMetadata.test.ts --reporter=dot
+```
+
+Status: RED was 2 failures/36 passes for absent application/breadcrumb schema
+and public shell integrations. GREEN passed 2 files, 38 tests.
+
+Media reselection RED/GREEN:
+
+```sh
+npm test -- --run src/components/tools/media-calc/__tests__/tools.test.tsx \
+  --reporter=dot
+```
+
+Status: RED was 4 failures/14 passes for stale feedback/preview and no URL
+revocation. GREEN passed 1 file, 18 tests.
+
+## Exhaustive production audit and classifications
+
+TypeScript-AST scans were run across production TSX under
+`src/components/tools`:
+
+- Visible `input`, `select`, and `textarea` nodes outside `ToolField`: none.
+- Tool-workspace `button` nodes outside `ToolActions`: none.
+- Nested `ToolActions`: none.
+- The only raw buttons remaining are deliberately outside tool workspaces:
+  `BookmarkPrompt`, `FavoriteButton`, `ShareButton`, `ToolSearch`, and
+  `ToolsGrid`. These are page-shell/navigation/overlay controls rather than
+  tool actions, so applying tool-workspace ordering and mobile full-width
+  semantics would be incorrect.
+- Hidden controlled file inputs remain excluded from the rendered-field
+  selector because they are implementation details activated by an accessible
+  drop-zone/button, not independently public controls.
+- No data-text/PDF/media component renders `.fc-tool-privacy`.
+- Named image tools contain no decorative gradient, shadow, hover transform,
+  or backdrop-filter effects. Remaining spinner/progress transitions convey
+  active processing state.
+
+## Commits
+
+- `8f11ac4` — registry/additional primitive adoption and shared action contract
+- `f1f7fc5` — legacy registry control migration and selected-state behavior
+- `47543c7` — anonymous-chat full public tool shell
+- `802fb52` — media replacement state reset and URL cleanup
+- `ad423e4` — exhaustive conditional-control adoption
+- `1e7a2e7` — restore required system-language font fallbacks exposed by the
+  full-suite performance gate
+
+## Fresh final verification
+
+The first full run caught the pre-existing Tailwind font-stack gate (873/874
+tests); the required Korean/Japanese/system fallbacks were restored and the
+complete suite was rerun from scratch.
+
+```sh
+npm test -- --run --reporter=dot
+```
+
+Status: passed — 86 files, 874 tests.
+
+```sh
+npm run check
+```
+
+Status: passed — 376 files, 0 errors, 0 warnings, 89 hints.
+
+```sh
+npm run build
+```
+
+Status: passed — 1,269 pages built; redirects and four split sitemaps
+generated successfully.
+
+```sh
+npm run check:bundles
+```
+
+Status: passed (exit 0) after a fresh rebuild — `/ko/tools` 165.9/180 KB,
+text-counter 200.7/220 KB, JSON 200.7/400 KB, and image-resizer
+200.7/550 KB gzip.
+
+The protected `.superpowers/sdd/rollout-task-1-report.md` was never staged or
+modified by this task; its pre-existing working-tree change remains untouched.
