@@ -28,7 +28,7 @@ export const localizedProfilesCore: Record<'ko', Record<string, LocalizedProfile
     'llm-cost': { name: 'LLM 비용 계산기', input: '모델·입출력 토큰 수·통화', output: '모델별 예상 API 사용 비용' },
     gradient: { name: 'CSS 그라데이션 생성기', input: '색상·방향·색상 정지점', output: '그라데이션 미리보기와 CSS 코드' },
     'box-shadow': { name: 'CSS 박스 그림자 생성기', input: '위치·흐림·확산·색상 값', output: '그림자 미리보기와 CSS 코드' },
-    'image-resizer': { name: '이미지 크기 조절기', input: '이미지·자르기 영역·목표 크기', output: '크기가 조절된 이미지 파일' },
+    'image-resizer': { name: '이미지 크기 조절·압축 도구', input: '이미지·자르기·목표 크기·형식·품질', output: '크기 조절 또는 압축된 이미지 파일' },
     exif: { name: 'EXIF 정보 뷰어', input: 'EXIF 정보가 포함된 이미지', output: '카메라와 촬영 조건 메타데이터' },
     'background-remover': { name: '이미지 배경 제거기', input: '전경 피사체가 있는 이미지', output: '배경이 투명한 이미지' },
     'image-metadata': { name: '이미지 메타데이터 뷰어', input: '검사할 이미지 파일', output: '크기·형식·용량·색상 정보' },

@@ -545,19 +545,19 @@ export const toolsConfig: ToolConfig[] = [
     component: 'ImageResizer',
     seo: {
       ko: {
-        title: '이미지 리사이저 - 무료 이미지 크롭 & 프리셋 변환',
-        description: '무료 온라인 이미지 리사이저. 실시간 크롭, 해상도 조절, Slack/YouTube/iPhone 프리셋 변환을 한 번에 처리. 무설치, 무료.',
-        keywords: ['이미지 리사이즈', '이미지 크롭', '프리셋 리사이즈', '슬랙 이미지', '유튜브 썸네일', ...seoKeywords.ko],
+        title: '이미지 리사이저·압축기 - 무료 크롭, WebP 압축',
+        description: '무료 온라인 이미지 리사이저와 압축기. 실시간 크롭, 해상도, JPEG/WebP 품질과 결과 용량을 브라우저에서 조절합니다.',
+        keywords: ['이미지 리사이즈', '이미지 압축', '이미지 크롭', 'webp 압축', '사진 용량 줄이기', ...seoKeywords.ko],
       },
       en: {
-        title: 'Image Resizer - Free Crop & Preset Resize Tool',
-        description: 'Free online image resizer with live crop and preset sizes for Slack, YouTube thumbnails, iPhone App Store, and more.',
-        keywords: ['image resizer', 'image crop', 'preset resize', 'slack image', 'youtube thumbnail', ...seoKeywords.en],
+        title: 'Image Resizer & Compressor - Free WebP, JPEG Compression',
+        description: 'Resize, crop, and compress images locally. Adjust JPEG or WebP quality, preview output size, and download without uploading your file.',
+        keywords: ['image resizer', 'image compressor', 'compress image', 'webp compressor', 'reduce image size', ...seoKeywords.en],
       },
       ja: {
-        title: '画像リサイザー - 無料クロップ & プリセット変換',
-        description: '無料オンライン画像リサイザー。リアルタイムクロップ、解像度調整、Slack/YouTube/iPhoneプリセット変換に対応。',
-        keywords: ['画像リサイズ', '画像クロップ', 'プリセットリサイズ', 'slack画像', 'youtubeサムネイル', ...seoKeywords.ja],
+        title: '画像リサイズ・圧縮ツール - 無料WebP・JPEG圧縮',
+        description: '画像をブラウザ内でリサイズ、切り抜き、圧縮。JPEG・WebPの品質と出力容量を確認してダウンロードできます。',
+        keywords: ['画像リサイズ', '画像圧縮', '画像クロップ', 'webp圧縮', '画像容量削減', ...seoKeywords.ja],
       },
     },
   },

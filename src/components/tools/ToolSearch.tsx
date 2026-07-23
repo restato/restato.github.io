@@ -39,7 +39,7 @@ const defaultTools: SearchableTool[] = [
   { slug: 'gradient', title: 'CSS 그라데이션 생성기', description: 'CSS 그라데이션 시각적 생성', icon: '🌈', category: 'designer', keywords: ['css', 'gradient', '그라데이션', '그라디언트'] },
   { slug: 'box-shadow', title: 'CSS Box Shadow 생성기', description: 'CSS box-shadow 시각적 생성', icon: '🎭', category: 'designer', keywords: ['css', 'shadow', 'box-shadow', '그림자'] },
   // Photographer
-  { slug: 'image-resizer', title: '이미지 리사이저', description: '실시간 크롭 + 프리셋 리사이즈', icon: '📐', category: 'image', keywords: ['image', 'resize', 'compress', 'crop', 'preset', 'slack', 'iphone', 'thumbnail', '이미지', '리사이즈', '크롭', '프리셋', '썸네일'] },
+  { slug: 'image-resizer', title: '이미지 리사이저·압축기', description: '크롭, 프리셋, JPEG/WebP 품질 압축', icon: '📐', category: 'image', keywords: ['image', 'resize', 'compress', 'crop', 'webp', 'jpeg', 'quality', '이미지', '리사이즈', '압축', '용량 줄이기', '크롭'] },
   { slug: 'exif', title: 'EXIF 정보 뷰어', description: '사진 EXIF 메타데이터 확인', icon: '📷', category: 'image', keywords: ['exif', 'metadata', 'photo', '사진', '메타데이터'] },
   // Marketer
   { slug: 'utm', title: 'UTM 링크 생성기', description: '캠페인 추적용 UTM 링크 생성', icon: '📊', category: 'marketer', keywords: ['utm', 'campaign', 'tracking', '캠페인', '마케팅', '추적'] },
