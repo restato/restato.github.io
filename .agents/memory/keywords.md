@@ -11,6 +11,20 @@
 
 실제 검색량을 확인하지 않았다면 수치를 추정하지 말고 정성적으로만 기록합니다.
 
+## MCP 2026-07-28 migration
+- intent: tutorial | informational | comparison
+- related: stateless MCP, initialize removal, Mcp-Session-Id, server/discover, MRTR, input_required, subscriptions/listen, cacheScope, ttlMs, conformance test
+- existing-post: /blog/mcp-2026-07-28-stateless-migration-guide/
+- opportunity: 릴리스 요약보다 세션·handshake 의존성을 explicit handle과 request metadata로 옮기고, retry·idempotency·elicitation security·conformance CI를 함께 설계하는 검색 의도
+- notes: 2026-07-24 기준 release candidate와 draft specification을 사용했으며 최종 명세는 2026-07-28 공개 전에 다시 확인해야 함
+
+## GitHub Issues agent automation controls
+- intent: tutorial | informational
+- related: issue intents, confidence, approvals, rationale, has:suggestions, GitHub Agentic Workflows, safe-outputs, staged mode, calibration
+- existing-post: /blog/github-issues-agent-automation-controls-guide/
+- opportunity: confidence 기능 소개보다 approval이 security boundary가 아니라는 제한, read-only agent와 permissioned write job 분리, action별 자동화 임계값과 outcome 측정을 연결하는 검색 의도
+- notes: GitHub 2026-07-23 public preview와 공식 gh-aw 문서를 기준으로 작성했으며 검색량 수치는 확인하지 않음
+
 ## AI SDK streaming transcription
 - intent: tutorial | informational
 - related: streamTranscribe, experimental_streamTranscribe, AI Gateway, raw PCM, realtime whisper, Grok STT, voice agent, live caption
