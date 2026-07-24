@@ -1,7 +1,91 @@
 {
-  "updatedAt": "2026-07-23T09:07:00+09:00",
+  "updatedAt": "2026-07-24T09:13:00+09:00",
   "threshold": 85,
   "candidates": [
+    {
+      "id": "mcp-2026-07-28-stateless-migration-guide",
+      "title": "MCP 2026-07-28 마이그레이션 가이드",
+      "topic": "MCP stateless protocol과 conformance CI",
+      "score": 97,
+      "status": "published",
+      "action": "new-post",
+      "sourceType": "trend-watch",
+      "reason": "2026년 7월 23일 GitHub MCP Server가 7월 28일 예정된 차기 MCP 명세 지원을 발표했으며, 세션·initialize 제거, 요청별 capability, MRTR, cache metadata와 공식 conformance suite를 하나의 전환 절차로 제공할 수 있음",
+      "breakdown": {
+        "timeliness": 15,
+        "readerValue": 20,
+        "fit": 15,
+        "originality": 14,
+        "evergreen": 9,
+        "evidence": 15,
+        "contentGap": 9
+      },
+      "path": "/blog/mcp-2026-07-28-stateless-migration-guide/",
+      "commit": "85fb29ffe4d31d0380ecab7750a37c6fb97d2025",
+      "updatedAt": "2026-07-24"
+    },
+    {
+      "id": "github-issues-agent-automation-controls-guide",
+      "title": "GitHub Issues 에이전트 자동화 운영 가이드",
+      "topic": "Confidence, approvals, rationale와 safe outputs",
+      "score": 94,
+      "status": "published",
+      "action": "new-post",
+      "sourceType": "trend-watch",
+      "reason": "2026년 7월 23일 GitHub Issues에 action별 confidence·approval·rationale가 추가됐으며, 기능 설명을 넘어 read-only agent, safe-outputs, staged mode, action별 calibration과 suggestion queue 운영을 연결할 수 있음",
+      "breakdown": {
+        "timeliness": 15,
+        "readerValue": 19,
+        "fit": 15,
+        "originality": 13,
+        "evergreen": 8,
+        "evidence": 15,
+        "contentGap": 9
+      },
+      "path": "/blog/github-issues-agent-automation-controls-guide/",
+      "commit": "918c8270abcf923c80523355d7e51d3920c97fcd",
+      "updatedAt": "2026-07-24"
+    },
+    {
+      "id": "github-copilot-linear-agent-ga",
+      "title": "Copilot cloud agent for Linear 운영 가이드",
+      "topic": "Linear issue에서 Copilot coding agent 위임",
+      "score": 82,
+      "status": "hold",
+      "action": "digest",
+      "sourceType": "trend-watch",
+      "reason": "2026년 7월 23일 GA되며 모델·custom agent·base/working branch·session steering을 Linear에서 제어할 수 있게 됐지만 GitHub organization owner와 Linear workspace admin 권한이 필요하고, 실제 workspace 운영 데이터 없이 독립 실습을 재현하기 어려움",
+      "breakdown": {
+        "timeliness": 15,
+        "readerValue": 15,
+        "fit": 14,
+        "originality": 10,
+        "evergreen": 7,
+        "evidence": 14,
+        "contentGap": 7
+      },
+      "updatedAt": "2026-07-24"
+    },
+    {
+      "id": "vercel-mcp-deploy-code",
+      "title": "Vercel MCP 코드 배포",
+      "topic": "MCP client에서 git 없이 Vercel 배포",
+      "score": 83,
+      "status": "hold",
+      "action": "digest",
+      "sourceType": "trend-watch",
+      "reason": "2026년 7월 23일 Vercel MCP가 새 프로젝트와 기존 프로젝트에 파일을 직접 배포하는 기능을 추가했지만, 권한·파일 제한·dry-run·rollback에 대한 공개 운영 문서가 아직 충분하지 않아 단독 배포 가이드로는 검증 근거가 부족함",
+      "breakdown": {
+        "timeliness": 15,
+        "readerValue": 16,
+        "fit": 15,
+        "originality": 11,
+        "evergreen": 7,
+        "evidence": 11,
+        "contentGap": 8
+      },
+      "updatedAt": "2026-07-24"
+    },
     {
       "id": "ai-gateway-streaming-transcription-guide",
       "title": "AI Gateway 실시간 전사 가이드",
