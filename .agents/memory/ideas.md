@@ -13,6 +13,24 @@
 
 트렌드 조사에서 가치가 있지만 당장 발행하지 않는 주제를 저장합니다. 이미 발행한 주제도 빠른 중복 판단을 위해 남깁니다.
 
+## Claude Opus 5 API·Copilot 마이그레이션
+- status: published
+- source: Anthropic 모델 개요·마이그레이션·프롬프트·가격 공식 문서, GitHub 2026-07-24 Copilot 발표
+- why-now: thinking 기본 활성화, max_tokens 예산 변화, thinking 비활성화 effort 제한과 Copilot 점진 배포가 동시에 발생함
+- target-reader: Anthropic API, Claude Code와 GitHub Copilot에서 복합 코딩 에이전트를 운영하는 개발자
+- search-intent: Claude Opus 5 migration, adaptive thinking, effort, max_tokens, GitHub Copilot Opus 5
+- update-existing: false
+- notes: 98점. 2026-07-25 `/blog/claude-opus-5-migration-copilot-guide/`로 발행. 모델 소개보다 평가셋, 프롬프트 종료 조건, thinking-disabled artifact, 조직 정책과 비용 관측을 연결함
+
+## OpenAI API 조직·프로젝트 Spend Limits
+- status: published
+- source: OpenAI API 프로젝트 관리·Usage Dashboard·Project API·API key 공식 자료
+- why-now: 월간 지출 한도를 모니터링 전용 또는 hard enforcement로 설정해 요청을 실제로 차단할 수 있게 됨
+- target-reader: OpenAI API 비용과 장애 범위를 제품·환경별로 관리하는 플랫폼·MLOps 개발자
+- search-intent: OpenAI API hard spend limit, project budget, API cost control, budget exhaustion fallback
+- update-existing: false
+- notes: 92점. 2026-07-25 `/blog/openai-api-spend-limits-guide/`로 발행. 설정 UI보다 프로젝트 격리, 단계별 감속, rate limit과 예산 오류 분리, circuit breaker와 제한된 fallback을 설명함
+
 ## MCP 2026-07-28 Stateless 마이그레이션
 - status: published
 - source: GitHub 2026-07-23 GitHub MCP Server 발표, MCP 2026-07-28 release candidate·draft specification·conformance repository
