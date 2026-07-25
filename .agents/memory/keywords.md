@@ -11,6 +11,20 @@
 
 실제 검색량을 확인하지 않았다면 수치를 추정하지 말고 정성적으로만 기록합니다.
 
+## Claude Opus 5 migration
+- intent: tutorial | comparison | informational
+- related: claude-opus-5, Opus 4.8 migration, adaptive thinking, effort, max_tokens, thinking disabled, GitHub Copilot Opus 5, Claude Code
+- existing-post: /blog/claude-opus-5-migration-copilot-guide/
+- opportunity: 출시 소개보다 thinking 기본값이 기존 요청 비용·출력 상한에 주는 영향, effort 재평가, 과도한 self-check prompt 제거, tool artifact 회귀 테스트와 Copilot 조직 정책을 연결하는 검색 의도
+- notes: Anthropic의 2026-07-25 모델·마이그레이션·프롬프트·가격 문서와 GitHub 2026-07-24 발표를 기준으로 작성했으며 검색량 수치는 확인하지 않음
+
+## OpenAI API spend limits
+- intent: tutorial | informational
+- related: organization spend limit, project hard limit, soft budget, API cost control, budget exhaustion, circuit breaker, project API key, usage dashboard
+- existing-post: /blog/openai-api-spend-limits-guide/
+- opportunity: 콘솔 설정법보다 제품·환경별 프로젝트 격리, soft alert 단계의 모델 감속, rate limit과 budget exhaustion 분리, hard limit 이후 제한된 fallback을 설계하는 검색 의도
+- notes: OpenAI 공식 프로젝트 관리·Usage Dashboard·API key·API reference를 2026-07-25 확인했으며 공개 문서에서 고정 오류 코드를 보장하지 않아 실제 계정의 오류 형태를 검증하도록 안내함
+
 ## MCP 2026-07-28 migration
 - intent: tutorial | informational | comparison
 - related: stateless MCP, initialize removal, Mcp-Session-Id, server/discover, MRTR, input_required, subscriptions/listen, cacheScope, ttlMs, conformance test
