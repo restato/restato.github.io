@@ -15,6 +15,24 @@
 
 기존 `src/content/blog/`가 현재 발행 상태의 원본이며, 이 파일은 에이전트의 빠른 중복 판단용 인덱스입니다.
 
+## 2026-07-25 — Claude Opus 5 마이그레이션 가이드: 기본 Thinking, Effort, Copilot 적용
+- type: new
+- slug: /blog/claude-opus-5-migration-copilot-guide/
+- file: src/content/blog/claude-opus-5-migration-copilot-guide.mdx
+- topics: [Claude Opus 5, Anthropic API, Claude Code, GitHub Copilot, AI Agent]
+- sources: [https://platform.claude.com/docs/en/about-claude/models/overview, https://platform.claude.com/docs/en/about-claude/models/migration-guide, https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/prompting-claude-opus-5, https://platform.claude.com/docs/en/about-claude/pricing, https://github.blog/changelog/2026-07-24-claude-opus-5-is-now-available-in-github-copilot/]
+- commit: d043ed9d4fee889911a90beca634a53c1bf6e1fa
+- notes: 모델 출시 요약보다 thinking 기본 활성화, max_tokens 재산정, effort sweep, 프롬프트 종료 조건, thinking 비활성화 산출물과 Copilot 조직 정책을 하나의 점진적 전환 절차로 제공함
+
+## 2026-07-25 — OpenAI API 지출 한도 운영 가이드: 조직·프로젝트 Hard Limit 설계
+- type: new
+- slug: /blog/openai-api-spend-limits-guide/
+- file: src/content/blog/openai-api-spend-limits-guide.mdx
+- topics: [OpenAI API, Spend Limit, Hard Limit, Cost Control, MLOps]
+- sources: [https://help.openai.com/en/articles/9186755-managing-projects-in-the-api-platform, https://help.openai.com/en/articles/10478918-api-usage-dashboard, https://platform.openai.com/docs/api-reference/projects, https://help.openai.com/en/articles/5008148, https://platform.openai.com/docs/api-reference/introduction]
+- commit: cc016b0a5889f736f62e37fdc7a38c1920e1f477
+- notes: UI 설정 안내보다 조직·프로젝트 격리, soft alert와 hard enforcement, 단계별 모델 감속, rate limit과 예산 차단 재시도 분리, circuit breaker와 제한된 fallback을 운영 절차로 제공함
+
 ## 2026-07-24 — MCP 2026-07-28 마이그레이션 가이드: 세션 제거, Stateless 요청, Conformance CI
 - type: new
 - slug: /blog/mcp-2026-07-28-stateless-migration-guide/
