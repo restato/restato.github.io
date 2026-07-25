@@ -1,7 +1,51 @@
 {
-  "updatedAt": "2026-07-24T09:13:00+09:00",
+  "updatedAt": "2026-07-25T09:03:00+09:00",
   "threshold": 85,
   "candidates": [
+    {
+      "id": "claude-opus-5-migration-copilot-guide",
+      "title": "Claude Opus 5 마이그레이션 가이드",
+      "topic": "Claude Opus 5 API와 GitHub Copilot 전환",
+      "score": 98,
+      "status": "published",
+      "action": "new-post",
+      "sourceType": "trend-watch",
+      "reason": "2026년 7월 24일 Opus 5가 GitHub Copilot에 추가됐고 Anthropic 공식 마이그레이션 문서에서 thinking 기본 활성화, max_tokens 재조정, effort 제한과 프롬프트 변화가 확인돼 단순 출시 요약보다 재현 가능한 전환 가이드를 제공할 수 있음",
+      "breakdown": {
+        "timeliness": 15,
+        "readerValue": 20,
+        "fit": 15,
+        "originality": 14,
+        "evergreen": 10,
+        "evidence": 15,
+        "contentGap": 9
+      },
+      "path": "/blog/claude-opus-5-migration-copilot-guide/",
+      "commit": "d043ed9d4fee889911a90beca634a53c1bf6e1fa",
+      "updatedAt": "2026-07-25"
+    },
+    {
+      "id": "openai-api-spend-limits-guide",
+      "title": "OpenAI API 지출 한도 운영 가이드",
+      "topic": "조직·프로젝트 spend limit과 hard enforcement",
+      "score": 92,
+      "status": "published",
+      "action": "new-post",
+      "sourceType": "trend-watch",
+      "reason": "OpenAI가 조직과 프로젝트 수준에서 월간 지출 한도를 모니터링 전용 또는 hard limit으로 적용할 수 있게 했으며, 기존 자료가 UI 설명에 집중한 반면 프로젝트 격리, 단계별 감속, 재시도와 fallback 장애 대응을 연결하는 운영 공백이 큼",
+      "breakdown": {
+        "timeliness": 14,
+        "readerValue": 20,
+        "fit": 15,
+        "originality": 13,
+        "evergreen": 9,
+        "evidence": 13,
+        "contentGap": 8
+      },
+      "path": "/blog/openai-api-spend-limits-guide/",
+      "commit": "cc016b0a5889f736f62e37fdc7a38c1920e1f477",
+      "updatedAt": "2026-07-25"
+    },
     {
       "id": "mcp-2026-07-28-stateless-migration-guide",
       "title": "MCP 2026-07-28 마이그레이션 가이드",
@@ -10,16 +54,7 @@
       "status": "published",
       "action": "new-post",
       "sourceType": "trend-watch",
-      "reason": "2026년 7월 23일 GitHub MCP Server가 7월 28일 예정된 차기 MCP 명세 지원을 발표했으며, 세션·initialize 제거, 요청별 capability, MRTR, cache metadata와 공식 conformance suite를 하나의 전환 절차로 제공할 수 있음",
-      "breakdown": {
-        "timeliness": 15,
-        "readerValue": 20,
-        "fit": 15,
-        "originality": 14,
-        "evergreen": 9,
-        "evidence": 15,
-        "contentGap": 9
-      },
+      "reason": "세션·initialize 제거, 요청별 capability, MRTR, cache metadata와 공식 conformance suite를 하나의 전환 절차로 제공",
       "path": "/blog/mcp-2026-07-28-stateless-migration-guide/",
       "commit": "85fb29ffe4d31d0380ecab7750a37c6fb97d2025",
       "updatedAt": "2026-07-24"
@@ -32,16 +67,7 @@
       "status": "published",
       "action": "new-post",
       "sourceType": "trend-watch",
-      "reason": "2026년 7월 23일 GitHub Issues에 action별 confidence·approval·rationale가 추가됐으며, 기능 설명을 넘어 read-only agent, safe-outputs, staged mode, action별 calibration과 suggestion queue 운영을 연결할 수 있음",
-      "breakdown": {
-        "timeliness": 15,
-        "readerValue": 19,
-        "fit": 15,
-        "originality": 13,
-        "evergreen": 8,
-        "evidence": 15,
-        "contentGap": 9
-      },
+      "reason": "read-only agent, safe outputs, staged mode와 action별 confidence calibration을 연결한 운영 가이드",
       "path": "/blog/github-issues-agent-automation-controls-guide/",
       "commit": "918c8270abcf923c80523355d7e51d3920c97fcd",
       "updatedAt": "2026-07-24"
@@ -54,16 +80,7 @@
       "status": "hold",
       "action": "digest",
       "sourceType": "trend-watch",
-      "reason": "2026년 7월 23일 GA되며 모델·custom agent·base/working branch·session steering을 Linear에서 제어할 수 있게 됐지만 GitHub organization owner와 Linear workspace admin 권한이 필요하고, 실제 workspace 운영 데이터 없이 독립 실습을 재현하기 어려움",
-      "breakdown": {
-        "timeliness": 15,
-        "readerValue": 15,
-        "fit": 14,
-        "originality": 10,
-        "evergreen": 7,
-        "evidence": 14,
-        "contentGap": 7
-      },
+      "reason": "관리자 권한과 실제 workspace 데이터 없이 독립 실습을 재현하기 어려워 통합 운영 사례가 확보될 때까지 보류",
       "updatedAt": "2026-07-24"
     },
     {
@@ -74,16 +91,7 @@
       "status": "hold",
       "action": "digest",
       "sourceType": "trend-watch",
-      "reason": "2026년 7월 23일 Vercel MCP가 새 프로젝트와 기존 프로젝트에 파일을 직접 배포하는 기능을 추가했지만, 권한·파일 제한·dry-run·rollback에 대한 공개 운영 문서가 아직 충분하지 않아 단독 배포 가이드로는 검증 근거가 부족함",
-      "breakdown": {
-        "timeliness": 15,
-        "readerValue": 16,
-        "fit": 15,
-        "originality": 11,
-        "evergreen": 7,
-        "evidence": 11,
-        "contentGap": 8
-      },
+      "reason": "권한, 파일 제한, dry-run, rollback에 관한 공식 운영 자료가 충분하지 않아 보류",
       "updatedAt": "2026-07-24"
     },
     {
@@ -94,16 +102,7 @@
       "status": "published",
       "action": "new-post",
       "sourceType": "trend-watch",
-      "reason": "2026년 7월 22일 AI Gateway에 스트리밍 전사가 추가됐고, 공식 예제를 넘어 PCM 형식·짧은 수명의 클라이언트 토큰·부분/최종 전사 분리·에이전트 승인 경계를 하나의 구현 절차로 제공할 수 있음",
-      "breakdown": {
-        "timeliness": 15,
-        "readerValue": 19,
-        "fit": 15,
-        "originality": 13,
-        "evergreen": 8,
-        "evidence": 15,
-        "contentGap": 9
-      },
+      "reason": "PCM 형식, 임시 토큰, 부분·최종 전사와 에이전트 승인 경계를 하나의 구현 절차로 제공",
       "path": "/blog/ai-gateway-streaming-transcription-guide/",
       "commit": "47ab504724d4f43a9d1806a95605d9c5add7b210",
       "updatedAt": "2026-07-23"
@@ -116,16 +115,7 @@
       "status": "published",
       "action": "new-post",
       "sourceType": "trend-watch",
-      "reason": "2026년 7월 22일 eve가 도구·연결·skills·instructions·hooks를 npm 패키지처럼 배포하는 extension을 공개했으며, 공식 scaffold 설명에 더해 namespace·승인·secret·버전·통합 테스트의 운영 계약을 설명할 수 있음",
-      "breakdown": {
-        "timeliness": 15,
-        "readerValue": 18,
-        "fit": 15,
-        "originality": 13,
-        "evergreen": 8,
-        "evidence": 15,
-        "contentGap": 8
-      },
+      "reason": "namespace, 승인, secret, 버전과 통합 테스트를 에이전트 확장의 운영 계약으로 설명",
       "path": "/blog/eve-installable-agent-extensions-guide/",
       "commit": "ec869740a2d449e453f37ea586f68e0222a0c879",
       "updatedAt": "2026-07-23"
@@ -138,16 +128,7 @@
       "status": "published",
       "action": "new-post",
       "sourceType": "trend-watch",
-      "reason": "2026년 7월 21일 Gemini 3.6 Flash·3.5 Flash-Lite가 GA됐고, sampling parameter 폐기와 prefilled model turn 400 오류, Copilot·AI Gateway 전환을 하나의 실전 마이그레이션 절차로 설명할 수 있음",
-      "breakdown": {
-        "timeliness": 15,
-        "readerValue": 20,
-        "fit": 15,
-        "originality": 14,
-        "evergreen": 9,
-        "evidence": 15,
-        "contentGap": 9
-      },
+      "reason": "sampling parameter와 prefilled turn 호환성, thinking 설정과 플랫폼 전환을 하나의 절차로 제공",
       "path": "/blog/gemini-3-6-flash-migration-guide/",
       "commit": "3eac961c8dcd2e6df9c99a356f079cd788529195",
       "updatedAt": "2026-07-22"
@@ -160,16 +141,7 @@
       "status": "published",
       "action": "new-post",
       "sourceType": "trend-watch",
-      "reason": "2026년 7월 21일 AI Gateway가 service tier를 지원하기 시작했고, 공식 기능 설명을 넘어 requested tier와 실제 applied tier를 분리 기록하고 downgrade·비용을 운영하는 패턴을 제공할 수 있음",
-      "breakdown": {
-        "timeliness": 15,
-        "readerValue": 18,
-        "fit": 15,
-        "originality": 13,
-        "evergreen": 8,
-        "evidence": 15,
-        "contentGap": 8
-      },
+      "reason": "requested tier와 실제 applied tier, downgrade와 비용 집계를 운영 코드로 연결",
       "path": "/blog/vercel-ai-gateway-service-tiers-guide/",
       "commit": "4dd0d54660fcd45e5844947c28c9f01e16178fe7",
       "updatedAt": "2026-07-22"
@@ -182,16 +154,7 @@
       "status": "hold",
       "action": "digest",
       "sourceType": "trend-watch",
-      "reason": "2026년 7월 20일 workflow run state·queue·output의 home region 저장 기능이 발표됐지만 SDK beta 기능이며 현재 Restato에서 직접 구현·검증한 사례가 없어 단독 운영 가이드로는 근거가 부족함",
-      "breakdown": {
-        "timeliness": 13,
-        "readerValue": 14,
-        "fit": 13,
-        "originality": 12,
-        "evergreen": 7,
-        "evidence": 12,
-        "contentGap": 8
-      },
+      "reason": "beta 기능이며 직접 구현·검증 사례가 없어 보류",
       "updatedAt": "2026-07-22"
     },
     {
@@ -202,16 +165,7 @@
       "status": "published",
       "action": "new-post",
       "sourceType": "trend-watch",
-      "reason": "2026년 7월 16일 Astro 7.1이 공개됐고, 현재 Restato 저장소의 Astro 5·Node 20·레거시 Content Collections·post.slug·post.render() 사용을 공식 마이그레이션 가이드와 연결해 재현 가능한 업그레이드 감사표를 제공할 수 있음",
-      "breakdown": {
-        "timeliness": 14,
-        "readerValue": 20,
-        "fit": 15,
-        "originality": 14,
-        "evergreen": 9,
-        "evidence": 15,
-        "contentGap": 9
-      },
+      "reason": "실제 Restato 구성에서 Node, Content Layer, slug, render와 Tailwind 전환 순서를 점검",
       "path": "/blog/astro-5-to-7-1-migration-audit/",
       "commit": "2ef62dc83b147656d9cb6189abe1ba3e5b839578",
       "updatedAt": "2026-07-21"
@@ -224,16 +178,7 @@
       "status": "published",
       "action": "new-post",
       "sourceType": "trend-watch",
-      "reason": "2026년 7월 17일 Copilot code review가 head 브랜치 지침, REVIEW.md·CLAUDE.md, 전용 setup workflow, 독립 firewall과 runner를 지원하면서 팀 리뷰 정책을 코드로 검증하는 실전 구성이 가능해짐",
-      "breakdown": {
-        "timeliness": 14,
-        "readerValue": 18,
-        "fit": 15,
-        "originality": 12,
-        "evergreen": 8,
-        "evidence": 15,
-        "contentGap": 7
-      },
+      "reason": "저장소 지침, setup workflow, firewall과 runner 권한을 연결한 코드 리뷰 운영 가이드",
       "path": "/blog/github-copilot-code-review-customization-guide/",
       "commit": "290fef4566cb26d99db850ef102070203403c567",
       "updatedAt": "2026-07-21"
@@ -246,16 +191,7 @@
       "status": "hold",
       "action": "digest",
       "sourceType": "trend-watch",
-      "reason": "2026년 7월 22일 adoption phase별 merge throughput·merge velocity·LOC와 권장 행동을 보여주는 impact dashboard가 추가돼 기존 저장소별 지표보다 활용성이 높아졌지만 Enterprise 관리자·organization owner 전용이며 실제 조직 데이터 없이 독립 실습을 재현하기 어려움",
-      "breakdown": {
-        "timeliness": 15,
-        "readerValue": 14,
-        "fit": 12,
-        "originality": 9,
-        "evergreen": 8,
-        "evidence": 15,
-        "contentGap": 7
-      },
+      "reason": "Enterprise 관리자 권한과 실제 조직 데이터가 필요한 주제라 성과 측정 digest까지 보류",
       "updatedAt": "2026-07-23"
     },
     {
@@ -266,16 +202,7 @@
       "status": "published",
       "action": "new-post",
       "sourceType": "trend-watch",
-      "reason": "2026년 6월 25일 AI SDK 7 정식 발표를 기능 요약이 아니라 ToolLoopAgent·WorkflowAgent·HarnessAgent 선택, 승인, 중단 복구, 타임아웃과 관측성의 운영 기준으로 설명할 수 있음",
-      "breakdown": {
-        "timeliness": 13,
-        "readerValue": 20,
-        "fit": 15,
-        "originality": 13,
-        "evergreen": 9,
-        "evidence": 15,
-        "contentGap": 8
-      },
+      "reason": "ToolLoopAgent·WorkflowAgent·HarnessAgent 선택과 승인, 복구, 관측성의 운영 기준을 제공",
       "path": "/blog/ai-sdk-7-production-agent-guide/",
       "commit": "d65fb623f80f4fe69dc969c0fcc2fc8bbda861bf",
       "updatedAt": "2026-07-20"
@@ -288,16 +215,7 @@
       "status": "published",
       "action": "new-post",
       "sourceType": "user-request",
-      "reason": "사용자가 직접 요청한 주제이며, 출시 요약을 넘어 모델 선택·장문 요율·캐싱·마이그레이션을 실제 API 기준으로 설명할 수 있음",
-      "breakdown": {
-        "timeliness": 15,
-        "readerValue": 20,
-        "fit": 15,
-        "originality": 13,
-        "evergreen": 9,
-        "evidence": 15,
-        "contentGap": 8
-      },
+      "reason": "모델 라우팅, 장문 요율, 캐싱과 평가 기반 마이그레이션을 실제 API 기준으로 설명",
       "path": "/blog/gpt-5-6-sol-terra-luna-api-guide/",
       "commit": "cd48aa8353d3584c1f0a16061f4d393d6117fbbf",
       "updatedAt": "2026-07-19"
@@ -310,16 +228,7 @@
       "status": "published",
       "action": "new-post",
       "sourceType": "project",
-      "reason": "기존 자동 블로그 생성 글과 달리 정책·memory·역할별 스킬·Gap Finder·점수·후보 대시보드를 실제 저장소 파일과 코드로 설명할 수 있음",
-      "breakdown": {
-        "timeliness": 12,
-        "readerValue": 18,
-        "fit": 15,
-        "originality": 14,
-        "evergreen": 8,
-        "evidence": 15,
-        "contentGap": 6
-      },
+      "reason": "정책, memory, 역할별 스킬, 후보 상태와 발행 중단 조건을 실제 저장소로 설명",
       "path": "/blog/github-content-os-agent-skills-workflow/",
       "commit": "99a04abacba4fc3e59c9467c952baf0b3e4fc7a2",
       "updatedAt": "2026-07-20"
@@ -332,16 +241,7 @@
       "status": "rejected",
       "action": "skip",
       "sourceType": "trend-watch",
-      "reason": "2026년 7월 15일 공식 변경이지만 독립 개발 글로 제공할 코드·마이그레이션·운영 판단이 부족해 짧은 릴리스 정보 이상의 콘텐츠 공백을 만들기 어려움",
-      "breakdown": {
-        "timeliness": 15,
-        "readerValue": 8,
-        "fit": 9,
-        "originality": 5,
-        "evergreen": 5,
-        "evidence": 15,
-        "contentGap": 4
-      },
+      "reason": "독립 개발 글로 제공할 코드·마이그레이션·운영 판단이 부족해 제외",
       "updatedAt": "2026-07-20"
     },
     {
@@ -352,16 +252,7 @@
       "status": "rejected",
       "action": "skip",
       "sourceType": "trend-watch",
-      "reason": "2026년 7월 13일 공식 업데이트지만 iOS UI 개선 중심으로 개발 워크플로를 바꾸는 독립 실습이나 장기 검색 가치를 제공하기 어려움",
-      "breakdown": {
-        "timeliness": 14,
-        "readerValue": 8,
-        "fit": 11,
-        "originality": 6,
-        "evergreen": 5,
-        "evidence": 15,
-        "contentGap": 5
-      },
+      "reason": "UI 개선 중심으로 독립 실습과 장기 검색 가치가 부족해 제외",
       "updatedAt": "2026-07-20"
     }
   ]
