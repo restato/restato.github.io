@@ -1,7 +1,73 @@
 {
-  "updatedAt": "2026-07-25T09:03:00+09:00",
+  "updatedAt": "2026-07-26T09:03:00+09:00",
   "threshold": 85,
   "candidates": [
+    {
+      "id": "vercel-workflow-30-minute-step-duration-guide",
+      "title": "Vercel Workflow 30분 Step 운영 가이드",
+      "topic": "Workflow extended function duration과 장기 실행 운영",
+      "score": 95,
+      "status": "published",
+      "action": "new-post",
+      "sourceType": "trend-watch",
+      "reason": "2026년 7월 24일 Pro·Enterprise Workflow step의 상한이 800초에서 1,800초로 늘어났으며, 공식 발표가 설정법에 집중한 반면 긴 step의 분리 기준, idempotency, 재시도, 취소, 비용과 관측성을 연결하는 운영 공백이 큼",
+      "breakdown": {
+        "timeliness": 15,
+        "readerValue": 20,
+        "fit": 15,
+        "originality": 13,
+        "evergreen": 9,
+        "evidence": 15,
+        "contentGap": 8
+      },
+      "path": "/blog/vercel-workflow-30-minute-step-duration-guide/",
+      "commit": "d34d92c7d74cc6aa0bc018a31d6293278c0f30c8",
+      "updatedAt": "2026-07-26"
+    },
+    {
+      "id": "vercel-blob-waf-security-guide",
+      "title": "Vercel Blob WAF 운영 가이드",
+      "topic": "Blob WAF와 Public·Private Blob 보안 경계",
+      "score": 93,
+      "status": "published",
+      "action": "new-post",
+      "sourceType": "trend-watch",
+      "reason": "2026년 7월 24일 Blob WAF beta가 공개됐고, 기능 소개보다 WAF와 인증의 차이, challenge의 server-side 제약, 모든 보호 store가 공유하는 rule set과 단계적 rollout을 설명하는 실무 공백이 확인됨",
+      "breakdown": {
+        "timeliness": 15,
+        "readerValue": 19,
+        "fit": 13,
+        "originality": 14,
+        "evergreen": 9,
+        "evidence": 15,
+        "contentGap": 8
+      },
+      "path": "/blog/vercel-blob-waf-security-guide/",
+      "commit": "3911fa70228644fc4732b9b8971b188df2d52dd4",
+      "updatedAt": "2026-07-26"
+    },
+    {
+      "id": "github-tools-eve-extension-update",
+      "title": "GitHub Tools eve extension 운영 예제",
+      "topic": "Vercel Connect 기반 GitHub tools extension",
+      "score": 84,
+      "status": "hold",
+      "action": "update-existing",
+      "sourceType": "trend-watch",
+      "reason": "short-lived scoped token, code-review preset과 입력 기반 approval은 유용하지만 기존 eve extension 글과 검색 의도가 같아 독립 글보다 실제 적용 검증 후 기존 글 업데이트가 적절함",
+      "updatedAt": "2026-07-26"
+    },
+    {
+      "id": "claude-opus-5-ai-gateway-availability",
+      "title": "Claude Opus 5 AI Gateway 지원",
+      "topic": "Claude Opus 5의 Vercel AI Gateway 제공",
+      "score": 78,
+      "status": "hold",
+      "action": "update-existing",
+      "sourceType": "trend-watch",
+      "reason": "BYOK, 자동 failover와 여러 API 형식 지원은 확인됐지만 모델 마이그레이션 글이 이미 있고 제공 채널 추가만으로는 독립적인 실전 검색 의도가 부족함",
+      "updatedAt": "2026-07-26"
+    },
     {
       "id": "claude-opus-5-migration-copilot-guide",
       "title": "Claude Opus 5 마이그레이션 가이드",
