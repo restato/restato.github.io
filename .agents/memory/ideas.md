@@ -13,6 +13,42 @@
 
 트렌드 조사에서 가치가 있지만 당장 발행하지 않는 주제를 저장합니다. 이미 발행한 주제도 빠른 중복 판단을 위해 남깁니다.
 
+## Vercel Workflow 30분 Step 운영
+- status: published
+- source: Vercel 2026-07-24 Workflow extended duration 발표, Function duration·WorkflowAgent·cancellation·pricing 공식 문서
+- why-now: Pro·Enterprise Workflow step 상한이 800초에서 1,800초로 늘었고 긴 AI·문서 처리 작업의 재시도와 비용 경계가 달라짐
+- target-reader: Vercel Workflow와 AI SDK WorkflowAgent로 장기 작업을 운영하는 TypeScript 개발자
+- search-intent: Vercel Workflow 30 minutes, extended max duration, Workflow step retry, idempotency, cancellation
+- update-existing: false
+- notes: 95점. 2026-07-26 `/blog/vercel-workflow-30-minute-step-duration-guide/`로 발행. 설정법보다 step 분리, idempotency, retry budget, 취소, 비용과 관측성을 연결함
+
+## Vercel Blob WAF와 Private Blob 보안 경계
+- status: published
+- source: Vercel 2026-07-24 Blob WAF beta 발표와 WAF·Blob security·public/private storage 공식 문서
+- why-now: 공개 Blob에 deny·challenge·rate limit을 적용할 수 있게 됐지만 WAF를 사용자 인증으로 오해할 위험과 shared rule set 제약이 있음
+- target-reader: Vercel Blob으로 공개 asset과 사용자 파일을 운영하는 웹 개발자
+- search-intent: Vercel Blob WAF, Blob rate limit, prevent hotlink, Private Blob authentication, shared firewall rules
+- update-existing: false
+- notes: 93점. 2026-07-26 `/blog/vercel-blob-waf-security-guide/`로 발행. Log-first rollout, challenge의 server-side 제약, public/private 경계와 route 인증을 설명함
+
+## GitHub Tools eve extension 운영 예제
+- status: hold
+- source: Vercel 2026-07-23 GitHub tools eve extension 발표
+- why-now: Vercel Connect의 short-lived scoped token, preset별 tool scope와 입력 기반 approval 예제가 공개됨
+- target-reader: eve agent에서 GitHub code review·issue triage 도구를 운영하는 개발자
+- search-intent: github tools eve extension, Vercel Connect GitHub, eve code review preset, tool approval
+- update-existing: /blog/eve-installable-agent-extensions-guide/
+- notes: 84점. 기존 eve extension 글과 검색 의도가 같아 독립 글은 보류. 실제 connector 적용이나 권한 테스트를 확보하면 기존 글에 공식 예제로 추가
+
+## Claude Opus 5 AI Gateway 지원
+- status: hold
+- source: Vercel 2026-07-24 AI Gateway 발표
+- why-now: Claude Opus 5가 BYOK, 자동 failover와 여러 API 형식으로 AI Gateway에 추가됨
+- target-reader: Anthropic 모델을 Vercel AI Gateway에서 운영하는 개발자
+- search-intent: Claude Opus 5 Vercel AI Gateway, BYOK, provider failover
+- update-existing: /blog/claude-opus-5-migration-copilot-guide/
+- notes: 78점. 제공 채널 추가만으로는 독립적인 운영 공백이 작아 보류. 실제 provider routing·비용·fallback 검증을 확보하면 기존 글 업데이트
+
 ## Claude Opus 5 API·Copilot 마이그레이션
 - status: published
 - source: Anthropic 모델 개요·마이그레이션·프롬프트·가격 공식 문서, GitHub 2026-07-24 Copilot 발표
