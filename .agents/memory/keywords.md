@@ -11,6 +11,20 @@
 
 실제 검색량을 확인하지 않았다면 수치를 추정하지 말고 정성적으로만 기록합니다.
 
+## Vercel Workflow extended duration
+- intent: tutorial | informational | comparison
+- related: Vercel Workflow 30 minutes, extended max duration, Workflow step, retry, maxRetries, idempotency key, AbortSignal, Fluid compute
+- existing-post: /blog/vercel-workflow-30-minute-step-duration-guide/
+- opportunity: 환경 변수 설정법보다 워크플로 전체 수명과 step 실행 시간의 차이, 30분짜리 원자적 작업의 분리 기준, 재시도·중복 쓰기·취소·timeout budget과 실제 비용을 연결하는 검색 의도
+- notes: Vercel의 2026-07-24 Workflow 발표와 Function duration, WorkflowAgent, cancellation, usage·pricing 공식 자료를 기준으로 작성했으며 기능은 beta이고 검색량 수치는 확인하지 않음
+
+## Vercel Blob WAF
+- intent: tutorial | informational | comparison
+- related: Vercel WAF for Blob, Blob rate limit, Blob challenge, prevent hotlink, public Blob, Private Blob, shared ruleset
+- existing-post: /blog/vercel-blob-waf-security-guide/
+- opportunity: WAF 설정 화면보다 public object traffic policy와 private data authorization의 차이, server-side challenge 실패, 모든 보호 store의 shared rule set, Log-first rollout과 path별 rate limit을 설명하는 검색 의도
+- notes: Vercel의 2026-07-24 beta 발표와 WAF·Blob public/private/security 공식 문서를 기준으로 작성했으며 검색량 수치는 확인하지 않음
+
 ## Claude Opus 5 migration
 - intent: tutorial | comparison | informational
 - related: claude-opus-5, Opus 4.8 migration, adaptive thinking, effort, max_tokens, thinking disabled, GitHub Copilot Opus 5, Claude Code
