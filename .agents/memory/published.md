@@ -15,6 +15,24 @@
 
 기존 `src/content/blog/`가 현재 발행 상태의 원본이며, 이 파일은 에이전트의 빠른 중복 판단용 인덱스입니다.
 
+## 2026-07-26 — Vercel Workflow 30분 Step 운영 가이드: 실행 시간, 재시도, 비용 경계
+- type: new
+- slug: /blog/vercel-workflow-30-minute-step-duration-guide/
+- file: src/content/blog/vercel-workflow-30-minute-step-duration-guide.mdx
+- topics: [Vercel Workflow, Extended Function Duration, Retry, Idempotency, AI Agent]
+- sources: [https://vercel.com/changelog/workflow-steps-now-support-extended-function-durations, https://vercel.com/changelog/vercel-functions-can-now-run-up-to-30-minutes, https://vercel.com/docs/functions/configuring-functions/duration, https://vercel.com/kb/guide/what-is-workflowagent, https://vercel.com/changelog/workflow-sdk-now-supports-inflight-cancellation, https://vercel.com/docs/functions/usage-and-pricing]
+- commit: d34d92c7d74cc6aa0bc018a31d6293278c0f30c8
+- notes: 30분 설정 소개보다 워크플로 수명과 step 실행 시간의 차이, 작업 분리 기준, stepId 기반 idempotency, 오류별 재시도, 취소, timeout budget, 비용과 관측성을 하나의 운영 절차로 제공함
+
+## 2026-07-26 — Vercel Blob WAF 운영 가이드: 공개 파일 차단, Rate Limit, Private Blob 경계
+- type: new
+- slug: /blog/vercel-blob-waf-security-guide/
+- file: src/content/blog/vercel-blob-waf-security-guide.mdx
+- topics: [Vercel Blob, Vercel WAF, Security, Rate Limit, Private Blob]
+- sources: [https://vercel.com/changelog/vercel-waf-for-blob-is-now-in-beta, https://vercel.com/docs/vercel-firewall/vercel-waf/custom-rules, https://vercel.com/docs/vercel-blob, https://vercel.com/docs/vercel-blob/public-storage, https://vercel.com/docs/vercel-blob/private-storage, https://vercel.com/docs/vercel-blob/security]
+- commit: 3911fa70228644fc4732b9b8971b188df2d52dd4
+- notes: WAF를 인증으로 오해하지 않도록 public traffic policy와 private data access를 분리하고, challenge의 server-side 제약, shared rule set, log-first rollout, path별 rate limit과 private route 인증을 설명함
+
 ## 2026-07-25 — Claude Opus 5 마이그레이션 가이드: 기본 Thinking, Effort, Copilot 적용
 - type: new
 - slug: /blog/claude-opus-5-migration-copilot-guide/
