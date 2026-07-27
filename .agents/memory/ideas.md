@@ -1,221 +1,253 @@
 # 콘텐츠 아이디어 백로그
 
-```md
-## 아이디어 제목
-- status: new | researching | ready | hold | rejected | published
-- source:
-- why-now:
-- target-reader:
-- search-intent:
-- update-existing:
-- notes:
-```
+후보의 현재 상태와 발행·보류 이유를 기록합니다. 상세 점수는 `src/data/contentCandidates.json`이 최종 기준입니다.
 
-트렌드 조사에서 가치가 있지만 당장 발행하지 않는 주제를 저장합니다. 이미 발행한 주제도 빠른 중복 판단을 위해 남깁니다.
-
-## Vercel Workflow 30분 Step 운영
+## Vercel Sandbox 대시보드 운영 가이드
 - status: published
-- source: Vercel 2026-07-24 Workflow extended duration 발표, Function duration·WorkflowAgent·cancellation·pricing 공식 문서
-- why-now: Pro·Enterprise Workflow step 상한이 800초에서 1,800초로 늘었고 긴 AI·문서 처리 작업의 재시도와 비용 경계가 달라짐
-- target-reader: Vercel Workflow와 AI SDK WorkflowAgent로 장기 작업을 운영하는 TypeScript 개발자
-- search-intent: Vercel Workflow 30 minutes, extended max duration, Workflow step retry, idempotency, cancellation
+- score: 94
+- source: trend-watch
+- topic: 브라우저 터미널·포트·스냅샷을 이용한 Sandbox 장애 조사
+- action: new-post
+- path: /blog/vercel-sandbox-dashboard-incident-response-guide/
 - update-existing: false
-- notes: 95점. 2026-07-26 `/blog/vercel-workflow-30-minute-step-duration-guide/`로 발행. 설정법보다 step 분리, idempotency, retry budget, 취소, 비용과 관측성을 연결함
+- notes: 2026년 7월 23일 실행 중인 Sandbox의 터미널·파일·포트·lifecycle을 대시보드에서 관리할 수 있게 됐으며, 공식 소개와 기존 검색 결과가 기능 나열에 집중한 반면 증거 보존, 포트 노출, persistence, 중지 경쟁 상태와 안전한 복구를 연결하는 운영 공백이 큼
 
-## Vercel Blob WAF와 Private Blob 보안 경계
+## Vercel Flags 롤아웃 감사 가이드
 - status: published
-- source: Vercel 2026-07-24 Blob WAF beta 발표와 WAF·Blob security·public/private storage 공식 문서
-- why-now: 공개 Blob에 deny·challenge·rate limit을 적용할 수 있게 됐지만 WAF를 사용자 인증으로 오해할 위험과 shared rule set 제약이 있음
-- target-reader: Vercel Blob으로 공개 asset과 사용자 파일을 운영하는 웹 개발자
-- search-intent: Vercel Blob WAF, Blob rate limit, prevent hotlink, Private Blob authentication, shared firewall rules
+- score: 91
+- source: trend-watch
+- topic: 평가 메트릭과 CLI version diff를 이용한 feature flag 검증
+- action: new-post
+- path: /blog/vercel-flags-rollout-audit-guide/
 - update-existing: false
-- notes: 93점. 2026-07-26 `/blog/vercel-blob-waf-security-guide/`로 발행. Log-first rollout, challenge의 server-side 제약, public/private 경계와 route 인증을 설명함
+- notes: 2026년 7월 23일 평가 메트릭과 CLI revision·semantic diff가 함께 공개됐고, 기존 자료가 두 기능을 따로 설명하는 반면 변경 이력, 실제 variant·fallback, rollback과 제품 지표를 하나의 감사 절차로 연결하는 콘텐츠 공백이 확인됨
+
+## Vercel Workflow 30분 Step 운영 가이드
+- status: published
+- score: 95
+- source: trend-watch
+- topic: Workflow extended function duration과 장기 실행 운영
+- action: new-post
+- path: /blog/vercel-workflow-30-minute-step-duration-guide/
+- update-existing: false
+- notes: 2026년 7월 24일 Pro·Enterprise Workflow step의 상한이 800초에서 1,800초로 늘어났으며, 공식 발표가 설정법에 집중한 반면 긴 step의 분리 기준, idempotency, 재시도, 취소, 비용과 관측성을 연결하는 운영 공백이 큼
+
+## Vercel Blob WAF 운영 가이드
+- status: published
+- score: 93
+- source: trend-watch
+- topic: Blob WAF와 Public·Private Blob 보안 경계
+- action: new-post
+- path: /blog/vercel-blob-waf-security-guide/
+- update-existing: false
+- notes: 2026년 7월 24일 Blob WAF beta가 공개됐고, 기능 소개보다 WAF와 인증의 차이, challenge의 server-side 제약, 모든 보호 store가 공유하는 rule set과 단계적 rollout을 설명하는 실무 공백이 확인됨
 
 ## GitHub Tools eve extension 운영 예제
 - status: hold
-- source: Vercel 2026-07-23 GitHub tools eve extension 발표
-- why-now: Vercel Connect의 short-lived scoped token, preset별 tool scope와 입력 기반 approval 예제가 공개됨
-- target-reader: eve agent에서 GitHub code review·issue triage 도구를 운영하는 개발자
-- search-intent: github tools eve extension, Vercel Connect GitHub, eve code review preset, tool approval
-- update-existing: /blog/eve-installable-agent-extensions-guide/
-- notes: 84점. 기존 eve extension 글과 검색 의도가 같아 독립 글은 보류. 실제 connector 적용이나 권한 테스트를 확보하면 기존 글에 공식 예제로 추가
+- score: 84
+- source: trend-watch
+- topic: Vercel Connect 기반 GitHub tools extension
+- action: update-existing
+- path:
+- update-existing: true
+- notes: short-lived scoped token, code-review preset과 입력 기반 approval은 유용하지만 기존 eve extension 글과 검색 의도가 같아 독립 글보다 실제 적용 검증 후 기존 글 업데이트가 적절함
 
 ## Claude Opus 5 AI Gateway 지원
 - status: hold
-- source: Vercel 2026-07-24 AI Gateway 발표
-- why-now: Claude Opus 5가 BYOK, 자동 failover와 여러 API 형식으로 AI Gateway에 추가됨
-- target-reader: Anthropic 모델을 Vercel AI Gateway에서 운영하는 개발자
-- search-intent: Claude Opus 5 Vercel AI Gateway, BYOK, provider failover
-- update-existing: /blog/claude-opus-5-migration-copilot-guide/
-- notes: 78점. 제공 채널 추가만으로는 독립적인 운영 공백이 작아 보류. 실제 provider routing·비용·fallback 검증을 확보하면 기존 글 업데이트
+- score: 78
+- source: trend-watch
+- topic: Claude Opus 5의 Vercel AI Gateway 제공
+- action: update-existing
+- path:
+- update-existing: true
+- notes: BYOK, 자동 failover와 여러 API 형식 지원은 확인됐지만 모델 마이그레이션 글이 이미 있고 제공 채널 추가만으로는 독립적인 실전 검색 의도가 부족함
 
-## Claude Opus 5 API·Copilot 마이그레이션
+## Claude Opus 5 마이그레이션 가이드
 - status: published
-- source: Anthropic 모델 개요·마이그레이션·프롬프트·가격 공식 문서, GitHub 2026-07-24 Copilot 발표
-- why-now: thinking 기본 활성화, max_tokens 예산 변화, thinking 비활성화 effort 제한과 Copilot 점진 배포가 동시에 발생함
-- target-reader: Anthropic API, Claude Code와 GitHub Copilot에서 복합 코딩 에이전트를 운영하는 개발자
-- search-intent: Claude Opus 5 migration, adaptive thinking, effort, max_tokens, GitHub Copilot Opus 5
+- score: 98
+- source: trend-watch
+- topic: Claude Opus 5 API와 GitHub Copilot 전환
+- action: new-post
+- path: /blog/claude-opus-5-migration-copilot-guide/
 - update-existing: false
-- notes: 98점. 2026-07-25 `/blog/claude-opus-5-migration-copilot-guide/`로 발행. 모델 소개보다 평가셋, 프롬프트 종료 조건, thinking-disabled artifact, 조직 정책과 비용 관측을 연결함
+- notes: 2026년 7월 24일 Opus 5가 GitHub Copilot에 추가됐고 Anthropic 공식 마이그레이션 문서에서 thinking 기본 활성화, max_tokens 재조정, effort 제한과 프롬프트 변화가 확인돼 단순 출시 요약보다 재현 가능한 전환 가이드를 제공할 수 있음
 
-## OpenAI API 조직·프로젝트 Spend Limits
+## OpenAI API 지출 한도 운영 가이드
 - status: published
-- source: OpenAI API 프로젝트 관리·Usage Dashboard·Project API·API key 공식 자료
-- why-now: 월간 지출 한도를 모니터링 전용 또는 hard enforcement로 설정해 요청을 실제로 차단할 수 있게 됨
-- target-reader: OpenAI API 비용과 장애 범위를 제품·환경별로 관리하는 플랫폼·MLOps 개발자
-- search-intent: OpenAI API hard spend limit, project budget, API cost control, budget exhaustion fallback
+- score: 92
+- source: trend-watch
+- topic: 조직·프로젝트 spend limit과 hard enforcement
+- action: new-post
+- path: /blog/openai-api-spend-limits-guide/
 - update-existing: false
-- notes: 92점. 2026-07-25 `/blog/openai-api-spend-limits-guide/`로 발행. 설정 UI보다 프로젝트 격리, 단계별 감속, rate limit과 예산 오류 분리, circuit breaker와 제한된 fallback을 설명함
+- notes: OpenAI가 조직과 프로젝트 수준에서 월간 지출 한도를 모니터링 전용 또는 hard limit으로 적용할 수 있게 했으며, 기존 자료가 UI 설명에 집중한 반면 프로젝트 격리, 단계별 감속, 재시도와 fallback 장애 대응을 연결하는 운영 공백이 큼
 
-## MCP 2026-07-28 Stateless 마이그레이션
+## MCP 2026-07-28 마이그레이션 가이드
 - status: published
-- source: GitHub 2026-07-23 GitHub MCP Server 발표, MCP 2026-07-28 release candidate·draft specification·conformance repository
-- why-now: 세션과 initialize 제거, 요청별 capability 협상, MRTR, cache metadata, resumability 제거와 공식 conformance test가 한 번에 도입됨
-- target-reader: 직접 MCP 서버·클라이언트·Streamable HTTP transport를 운영하는 개발자
-- search-intent: MCP 2026-07-28 migration, stateless MCP, server/discover, MRTR, MCP conformance test
+- score: 97
+- source: trend-watch
+- topic: MCP stateless protocol과 conformance CI
+- action: new-post
+- path: /blog/mcp-2026-07-28-stateless-migration-guide/
 - update-existing: false
-- notes: 97점. 2026-07-24 `/blog/mcp-2026-07-28-stateless-migration-guide/`로 발행. 최종 명세 전 release candidate임을 명시하고 migration checklist와 CI 예제를 제공함
+- notes: 세션·initialize 제거, 요청별 capability, MRTR, cache metadata와 공식 conformance suite를 하나의 전환 절차로 제공
 
-## GitHub Issues 에이전트 자동화 통제
+## GitHub Issues 에이전트 자동화 운영 가이드
 - status: published
-- source: GitHub 2026-07-23 Issues agent automation controls 발표, GitHub Agentic Workflows safe outputs·staged mode·safe rollout 공식 문서
-- why-now: action별 confidence, approvals, rationale와 `has:suggestions` 검토 흐름이 public preview로 추가됨
-- target-reader: GitHub Issues triage와 metadata enrichment를 AI agent로 자동화하려는 저장소 관리자
-- search-intent: GitHub Issues agent automation, issue intents, confidence approvals rationale, safe outputs, staged mode
+- score: 94
+- source: trend-watch
+- topic: Confidence, approvals, rationale와 safe outputs
+- action: new-post
+- path: /blog/github-issues-agent-automation-controls-guide/
 - update-existing: false
-- notes: 94점. 2026-07-24 `/blog/github-issues-agent-automation-controls-guide/`로 발행. approvals를 security boundary로 오해하지 않도록 권한 분리와 action별 calibration을 중심으로 설명함
+- notes: read-only agent, safe outputs, staged mode와 action별 confidence calibration을 연결한 운영 가이드
 
-## Copilot cloud agent for Linear
+## Copilot cloud agent for Linear 운영 가이드
 - status: hold
-- source: GitHub 2026-07-23 GA 발표와 Linear integration 공식 문서
-- why-now: Linear issue에서 모델·custom agent·base/working branch를 선택하고 comment로 session을 steering할 수 있게 됨
-- target-reader: Linear와 GitHub를 함께 사용하는 개발 팀
-- search-intent: GitHub Copilot Linear, Copilot coding agent Linear, custom agent branch guidance
+- score: 82
+- source: trend-watch
+- topic: Linear issue에서 Copilot coding agent 위임
+- action: digest
+- path:
 - update-existing: false
-- notes: 82점. organization owner와 Linear workspace admin 권한이 필요하며 실제 workspace 데이터 없이 독립 실습을 재현하기 어려워 integration digest까지 보류
+- notes: 관리자 권한과 실제 workspace 데이터 없이 독립 실습을 재현하기 어려워 통합 운영 사례가 확보될 때까지 보류
 
 ## Vercel MCP 코드 배포
 - status: hold
-- source: Vercel 2026-07-23 changelog
-- why-now: 지원 MCP client에서 git repository나 CLI 없이 파일을 새 프로젝트 또는 기존 프로젝트에 배포할 수 있게 됨
-- target-reader: AI assistant에서 Vercel 배포를 수행하려는 개발자
-- search-intent: Vercel MCP deploy code, deploy files without git, AI agent Vercel deployment
+- score: 83
+- source: trend-watch
+- topic: MCP client에서 git 없이 Vercel 배포
+- action: digest
+- path:
 - update-existing: false
-- notes: 83점. 공개 자료에 권한 범위, 파일 제한, dry-run, rollback과 실패 복구가 충분히 설명되지 않아 추가 문서나 재현 가능한 테스트가 나올 때까지 보류
+- notes: 권한, 파일 제한, dry-run, rollback에 관한 공식 운영 자료가 충분하지 않아 보류
 
-## AI Gateway 스트리밍 전사
+## AI Gateway 실시간 전사 가이드
 - status: published
-- source: Vercel 2026-07-22 AI Gateway streaming transcription 발표
-- why-now: live audio stream과 transcript delta를 주고받는 beta 기능으로 확장됨
-- target-reader: AI SDK로 실시간 자막·음성 입력·text agent를 만드는 TypeScript 개발자
-- search-intent: AI SDK streamTranscribe, realtime transcription PCM, voice agent token
+- score: 94
+- source: trend-watch
+- topic: AI SDK streamTranscribe와 음성 에이전트 입력
+- action: new-post
+- path: /blog/ai-gateway-streaming-transcription-guide/
 - update-existing: false
-- notes: 94점. `/blog/ai-gateway-streaming-transcription-guide/`로 발행
+- notes: PCM 형식, 임시 토큰, 부분·최종 전사와 에이전트 승인 경계를 하나의 구현 절차로 제공
 
-## eve installable agent extensions
+## eve 에이전트 확장 패키지 만들기
 - status: published
-- source: Vercel 2026-07-22 eve extensions 발표
-- why-now: tools, connections, skills, instructions, hooks를 설치·버전 관리 가능한 패키지로 묶을 수 있게 됨
-- target-reader: 여러 에이전트에서 능력과 정책을 재사용하려는 TypeScript 개발자
-- search-intent: eve extension, defineExtension, agent skills package
+- score: 92
+- source: trend-watch
+- topic: tools·skills·hooks를 installable extension으로 배포
+- action: new-post
+- path: /blog/eve-installable-agent-extensions-guide/
 - update-existing: false
-- notes: 92점. `/blog/eve-installable-agent-extensions-guide/`로 발행
+- notes: namespace, 승인, secret, 버전과 통합 테스트를 에이전트 확장의 운영 계약으로 설명
 
-## GitHub Copilot 영향 대시보드와 저장소 지표
-- status: hold
-- source: GitHub 2026-07-22 impact dashboard, 2026-07-17 repository metrics API
-- why-now: adoption phase별 merge throughput·velocity·LOC와 권장 행동이 추가됨
-- target-reader: Copilot Business·Enterprise 도입 성과를 측정하는 관리자
-- search-intent: GitHub Copilot impact dashboard, repository usage metrics
-- update-existing: false
-- notes: 80점. 관리자 권한과 실제 조직 데이터가 필요한 주제라 성과 측정 digest까지 보류
-
-## Gemini 3.6 Flash API 마이그레이션
+## Gemini 3.6 Flash 마이그레이션 가이드
 - status: published
-- source: Google Gemini 공식 문서, GitHub·Vercel 2026-07-21 발표
-- why-now: 신규 모델 GA와 sampling parameter·prefilled turn 호환성 변화가 발생함
-- target-reader: Gemini API·Copilot·AI Gateway 사용자
-- search-intent: Gemini 3.6 Flash migration
+- score: 97
+- source: trend-watch
+- topic: Gemini 3.6 Flash API 마이그레이션
+- action: new-post
+- path: /blog/gemini-3-6-flash-migration-guide/
 - update-existing: false
-- notes: 97점. `/blog/gemini-3-6-flash-migration-guide/`로 발행
+- notes: sampling parameter와 prefilled turn 호환성, thinking 설정과 플랫폼 전환을 하나의 절차로 제공
 
-## Vercel AI Gateway Service Tiers
+## Vercel AI Gateway Service Tiers 운영 가이드
 - status: published
-- source: Vercel 2026-07-21 changelog와 공식 문서
-- why-now: default·priority·flex 처리 티어와 실제 적용 티어 기반 과금이 추가됨
-- target-reader: AI workload의 비용과 지연을 분리하려는 개발자
-- search-intent: AI Gateway service tier, priority flex
+- score: 92
+- source: trend-watch
+- topic: AI Gateway priority·flex 라우팅
+- action: new-post
+- path: /blog/vercel-ai-gateway-service-tiers-guide/
 - update-existing: false
-- notes: 92점. `/blog/vercel-ai-gateway-service-tiers-guide/`로 발행
+- notes: requested tier와 실제 applied tier, downgrade와 비용 집계를 운영 코드로 연결
 
 ## Vercel Workflows 지역별 run state
 - status: hold
-- source: Vercel 2026-07-20 regional workflow run state 발표
-- why-now: run state, queue, output을 프로젝트 home region에 유지할 수 있게 됨
-- target-reader: 데이터 위치와 장기 실행 상태를 관리하는 Workflow SDK 사용자
-- search-intent: Vercel Workflows region, home region state
+- score: 79
+- source: trend-watch
+- topic: Vercel Workflows 지역 실행 상태
+- action: digest
+- path:
 - update-existing: false
-- notes: 79점. beta이며 실제 운영 사례가 없어 digest까지 보류
+- notes: beta 기능이며 직접 구현·검증 사례가 없어 보류
 
-## Astro 5에서 7.1로 올리기 전 점검
+## Astro 5에서 7.1로 올리기 전 점검할 것
 - status: published
-- source: Astro 7.1·7.0 발표와 v6·v7 upgrade guide, Restato 실제 저장소
-- why-now: Restato가 Astro 5와 제거 예정 API를 사용 중임
-- target-reader: Astro 기반 MDX·GitHub Pages 운영자
-- search-intent: Astro 5 to 7 migration
+- score: 96
+- source: trend-watch
+- topic: Astro 7.1과 GitHub Pages 마이그레이션
+- action: new-post
+- path: /blog/astro-5-to-7-1-migration-audit/
 - update-existing: false
-- notes: 96점. `/blog/astro-5-to-7-1-migration-audit/`로 발행
+- notes: 실제 Restato 구성에서 Node, Content Layer, slug, render와 Tailwind 전환 순서를 점검
 
-## GitHub Copilot 코드 리뷰 커스터마이징
+## GitHub Copilot 코드 리뷰를 저장소 규칙에 맞추는 방법
 - status: published
-- source: GitHub 2026-07-17 공식 발표와 code review·firewall 문서
-- why-now: REVIEW.md, head branch instructions, setup workflow와 독립 firewall 지원이 추가됨
-- target-reader: Copilot code review를 팀 규칙에 맞추는 관리자
-- search-intent: Copilot code review instructions
+- score: 89
+- source: trend-watch
+- topic: GitHub Copilot code review 운영
+- action: new-post
+- path: /blog/github-copilot-code-review-customization-guide/
 - update-existing: false
-- notes: 89점. `/blog/github-copilot-code-review-customization-guide/`로 발행
+- notes: 저장소 지침, setup workflow, firewall과 runner 권한을 연결한 코드 리뷰 운영 가이드
 
-## AI SDK 7 프로덕션 에이전트
+## GitHub Copilot 영향 대시보드와 저장소별 사용량 지표
+- status: hold
+- score: 80
+- source: trend-watch
+- topic: Copilot usage metrics와 AI adoption phase
+- action: digest
+- path:
+- update-existing: false
+- notes: Enterprise 관리자 권한과 실제 조직 데이터가 필요한 주제라 성과 측정 digest까지 보류
+
+## AI SDK 7 프로덕션 에이전트 가이드
 - status: published
-- source: Vercel 2026-06-25 AI SDK 7 발표와 공식 문서
-- why-now: WorkflowAgent, HarnessAgent, 승인·durable 실행 계층이 추가됨
-- target-reader: TypeScript로 production agent를 만드는 개발자
-- search-intent: AI SDK 7 WorkflowAgent HarnessAgent
+- score: 93
+- source: trend-watch
+- topic: Vercel AI SDK와 프로덕션 에이전트
+- action: new-post
+- path: /blog/ai-sdk-7-production-agent-guide/
 - update-existing: false
-- notes: 93점. `/blog/ai-sdk-7-production-agent-guide/`로 발행
-
-## Restato Content OS 구축기
-- status: published
-- source: 실제 `.agents/`와 Content OS dashboard 구현
-- why-now: 정책·memory·skills·scoring·gap finder가 저장소에 구현됨
-- target-reader: GitHub 기반 콘텐츠 자동화를 만드는 개발자
-- search-intent: Content OS, AI blog automation, SKILL.md
-- update-existing: false
-- notes: 88점. `/blog/github-content-os-agent-skills-workflow/`로 발행
-
-## ChatGPT 커스텀 지침 5,000자 확대
-- status: rejected
-- source: OpenAI 2026-07-15 공식 릴리스 노트
-- why-now: custom instructions 제한 확대
-- target-reader: ChatGPT 사용자
-- search-intent: custom instructions 5000
-- update-existing: false
-- notes: 61점. 코드·마이그레이션·운영 판단이 부족해 제외
-
-## Codex iOS 인라인 시각화와 작업 제어
-- status: rejected
-- source: OpenAI 2026-07-13 공식 릴리스 노트
-- why-now: 모바일 작업 제어 개선
-- target-reader: iOS Codex 사용자
-- search-intent: Codex iOS visualization
-- update-existing: false
-- notes: 64점. UI 개선 중심으로 독립 실습과 장기 검색 가치가 부족해 제외
+- notes: ToolLoopAgent·WorkflowAgent·HarnessAgent 선택과 승인, 복구, 관측성의 운영 기준을 제공
 
 ## GPT-5.6 Sol·Terra·Luna 선택 가이드
 - status: published
-- source: OpenAI 2026-07-09 발표와 공식 API 모델 문서
-- why-now: 세 모델 계층과 장문·캐시 가격 규칙 도입
-- target-reader: OpenAI API로 AI 기능을 운영하는 개발자
-- search-intent: GPT-5.6 model comparison, pricing, migration
+- score: 95
+- source: user-request
+- topic: OpenAI API와 GPT-5.6
+- action: new-post
+- path: /blog/gpt-5-6-sol-terra-luna-api-guide/
 - update-existing: false
-- notes: 95점. `/blog/gpt-5-6-sol-terra-luna-api-guide/`로 발행
+- notes: 모델 라우팅, 장문 요율, 캐싱과 평가 기반 마이그레이션을 실제 API 기준으로 설명
+
+## GitHub를 기억으로 쓰는 Content OS 구축기
+- status: published
+- score: 88
+- source: project
+- topic: AI 콘텐츠 자동화
+- action: new-post
+- path: /blog/github-content-os-agent-skills-workflow/
+- update-existing: false
+- notes: 정책, memory, 역할별 스킬, 후보 상태와 발행 중단 조건을 실제 저장소로 설명
+
+## ChatGPT 커스텀 지침 5,000자 확대
+- status: rejected
+- score: 61
+- source: trend-watch
+- topic: OpenAI와 ChatGPT
+- action: skip
+- path:
+- update-existing: false
+- notes: 독립 개발 글로 제공할 코드·마이그레이션·운영 판단이 부족해 제외
+
+## Codex iOS 인라인 시각화와 작업 제어 업데이트
+- status: rejected
+- score: 64
+- source: trend-watch
+- topic: Codex
+- action: skip
+- path:
+- update-existing: false
+- notes: UI 개선 중심으로 독립 실습과 장기 검색 가치가 부족해 제외
