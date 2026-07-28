@@ -1,0 +1,199 @@
+---
+title: "GitHub Copilot 앱과 Cloud Agent를 하나의 정책으로 관리하는 방법"
+description: "Copilot 앱 접근 정책과 managed-settings.json을 구분해 앱, CLI, VS Code와 Cloud Agent의 플러그인·마켓플레이스·승인 정책을 일관되게 운영하는 방법을 설명합니다."
+date: 2026-07-28
+verifiedAt: 2026-07-28
+tags: ["GitHub Copilot", "AI Agent", "Governance", "Enterprise", "Developer Tools"]
+---
+
+GitHub는 2026년 7월 27일 Copilot 앱의 접근 정책을 Copilot CLI에서 분리하고, enterprise managed settings를 Copilot 앱과 Cloud Agent까지 확대했습니다. 이제 관리자는 **누가 앱에 접근하는지**와 **허용된 사용자가 어떤 확장과 설정을 사용할 수 있는지**를 서로 다른 계층에서 관리해야 합니다.
+
+핵심은 세 가지입니다.
+
+- Copilot app policy는 클라이언트 접근 여부를 결정합니다.
+- `managed-settings.json`은 플러그인, 마켓플레이스와 모델 기본값 같은 공통 동작을 관리합니다.
+- Cloud Agent의 실제 repository 권한은 Actions, firewall, MCP와 review 설정으로 별도 제한합니다.
+
+## Copilot 앱 접근 정책부터 확인합니다
+
+새 Copilot 앱 정책의 기본값은 `Enabled everywhere`입니다. 기존에 Copilot CLI를 허용했는지와 관계없이 앱 정책을 독립적으로 검토해야 합니다.
+
+Enterprise 또는 organization 설정에서 다음 경로로 이동합니다.
+
+1. `AI Controls`를 엽니다.
+2. `Copilot Clients`로 이동합니다.
+3. `Copilot app` 정책을 선택합니다.
+4. `Enabled everywhere`, `Disabled everywhere`, `Let organizations decide` 중 하나를 선택합니다.
+
+| 선택 | 적합한 상황 |
+| --- | --- |
+| Enabled everywhere | 앱의 workspace, PR 흐름과 지원 범위를 검토한 뒤 전체 허용 |
+| Disabled everywhere | 아직 운영·감사 절차가 준비되지 않음 |
+| Let organizations decide | enterprise 최소 기준 아래 조직별 rollout을 허용 |
+
+접근 허용과 중앙 설정 강화를 같은 날 전체 적용하면 장애 원인을 구분하기 어렵습니다. 테스트 조직에서 먼저 검증한 뒤 범위를 확대하는 편이 안전합니다.
+
+## `managed-settings.json`은 동작 정책입니다
+
+Enterprise managed settings는 앱 사용 허가를 대신하지 않습니다. 지원되는 Copilot client가 사용할 plugin과 marketplace, 기본 모델 선택과 승인 관련 동작을 중앙에서 정의합니다.
+
+Server-managed 방식에서는 enterprise의 `.github-private` 저장소에 다음 파일을 둡니다.
+
+```text
+.github-private/
+└── copilot/
+    └── managed-settings.json
+```
+
+보수적인 시작 설정은 다음과 같습니다.
+
+```json
+{
+  "model": "auto",
+  "permissions": {
+    "disableBypassPermissionsMode": "disable"
+  },
+  "strictKnownMarketplaces": []
+}
+```
+
+`strictKnownMarketplaces`가 빈 배열이면 marketplace를 모두 제한합니다. 실제 도입 전에는 검증한 marketplace만 명시적으로 추가해야 합니다. 넓게 허용한 뒤 일부만 차단하는 방식은 새 확장이 추가될 때 검토되지 않은 항목이 노출될 수 있습니다.
+
+## 설정 우선순위를 문서화합니다
+
+GitHub 공식 reference의 우선순위는 다음과 같습니다.
+
+1. MDM-managed settings
+2. Server-managed settings
+3. File-based settings
+4. User-level settings
+
+상위 설정이 하위 설정보다 우선합니다. 다만 reference에 없는 모든 Copilot 설정까지 중앙에서 강제할 수 있다고 가정하면 안 됩니다.
+
+권장 운영 방식은 다음과 같습니다.
+
+- Enterprise 공통 정책은 server-managed 설정에 둡니다.
+- 장치 정책과 연결된 필수 값은 MDM으로 배포합니다.
+- File-based 설정은 server-managed 방식을 쓰기 어려운 환경에 제한합니다.
+- 같은 key를 여러 배포 방식에서 중복 관리하지 않습니다.
+
+## Client별 적용 범위를 구분합니다
+
+Copilot 앱과 Cloud Agent가 managed settings를 읽게 됐지만 모든 설정이 모든 client에서 같은 의미로 적용되지는 않습니다.
+
+| 통제 항목 | 앱·CLI·VS Code | Cloud Agent |
+| --- | --- | --- |
+| Plugin 허용·차단 | 적용 | 적용 |
+| Marketplace 제한 | 적용 | 적용 |
+| 기본 모델 설정 | 지원 client에서 적용 | 작업별 동작을 별도 확인 |
+| Interactive approval 설정 | interactive client에서 적용 | 같은 방식으로 적용된다고 가정하지 않음 |
+
+Cloud Agent는 repository 안에서 Actions, network와 tool을 사용합니다. 따라서 중앙 client 설정만으로 충분하지 않습니다. 다음 통제를 유지해야 합니다.
+
+- branch protection과 required review
+- Actions workflow 실행 승인
+- network firewall과 허용 domain
+- MCP server 및 secret 범위
+- repository별 agent 설정
+- 생성 코드에 대한 security·code review
+
+이 구조는 [Agent Governance control plane](/blog/agent-governance-control-plane/)에서 설명한 것처럼 접근, 정책 결정과 실제 실행 권한을 분리하는 방식입니다.
+
+## Plugin은 source와 권한을 함께 검토합니다
+
+Plugin governance에서는 네 요소를 함께 관리해야 합니다.
+
+1. **Source**: 신뢰할 GitHub repository, Git URL, npm package 또는 directory
+2. **Version**: branch 대신 tag나 commit SHA로 고정할지
+3. **Distribution**: 필수 plugin인지 선택 plugin인지
+4. **Authority**: plugin tool이 접근하는 데이터와 write action
+
+중앙 설정에서 plugin을 허용해도 사용자가 private source에 접근할 수 없다면 설치는 실패합니다. 반대로 source 접근 권한만 있고 marketplace 제한이 느슨하면 검토되지 않은 plugin을 추가할 수 있습니다.
+
+Plugin 활성화는 업무 권한 승인과도 다릅니다. Tool credential, repository permission과 사람이 확인해야 하는 작업은 별도 계층에서 제한해야 합니다.
+
+## 정책 변경은 Pull Request로 관리합니다
+
+`managed-settings.json`을 Git에 두면 정책 변경을 코드처럼 검토할 수 있습니다.
+
+```text
+.github-private/CODEOWNERS
+copilot/managed-settings.json @security-team @developer-platform
+```
+
+정책 변경 PR에는 다음 내용을 남깁니다.
+
+- 변경 이유와 대상 client
+- 새로 허용하거나 제한하는 plugin·marketplace
+- 영향받는 조직과 rollout 범위
+- 검증 방법
+- 이전 설정으로 되돌리는 방법
+
+간단한 CI 검사로 조직의 필수 설정이 빠지는 것도 막을 수 있습니다.
+
+```js
+import { readFile } from 'node:fs/promises';
+
+const settings = JSON.parse(
+  await readFile('copilot/managed-settings.json', 'utf8'),
+);
+
+if (settings.permissions?.disableBypassPermissionsMode !== 'disable') {
+  throw new Error('Required approval policy is missing');
+}
+
+if (!Array.isArray(settings.strictKnownMarketplaces)) {
+  throw new Error('Marketplace policy must be explicit');
+}
+```
+
+이 검사는 전체 GitHub schema를 대신하지 않습니다. 조직에서 반드시 유지해야 하는 값이 실수로 삭제되는 것을 막는 최소 검증입니다.
+
+## 적용 결과를 확인합니다
+
+Server-managed 설정은 일반적으로 약 한 시간 안에 반영되며 client 재시작이나 재로그인 후 더 빨리 적용될 수 있습니다. Cloud Agent는 다음 task assignment부터 변경된 설정을 관찰합니다.
+
+정책을 커밋한 뒤 다음을 검증합니다.
+
+1. 허용한 plugin이 지원 client에 표시됩니다.
+2. 제한한 marketplace를 사용할 수 없습니다.
+3. 앱, CLI와 VS Code에서 필수 승인 정책이 유지됩니다.
+4. Cloud Agent에 허용하지 않은 plugin이 노출되지 않습니다.
+5. 적용된 client version과 검증 시각을 기록합니다.
+
+오래된 client는 새 정책을 지원하지 않을 수 있습니다. 설정 파일뿐 아니라 client version inventory와 update 정책도 함께 관리해야 합니다.
+
+## 권장 rollout 순서
+
+1. Copilot 앱 접근 정책의 현재 값을 확인합니다.
+2. `.github-private/copilot/managed-settings.json`을 version control에 둡니다.
+3. marketplace 제한과 공통 기본값을 적용합니다.
+4. 테스트 조직과 최신 client에서 결과를 검증합니다.
+5. Plugin source 접근 권한과 tool credential을 점검합니다.
+6. Copilot 앱 허용 범위를 단계적으로 확대합니다.
+7. Cloud Agent의 repository 통제를 별도로 검토합니다.
+8. 설치 실패와 작업 실패를 관측합니다.
+9. 이전 설정으로 되돌리는 절차를 시험합니다.
+
+## 운영 체크리스트
+
+- [ ] Copilot 앱 정책의 기본값을 확인했습니다.
+- [ ] 앱 접근과 client 동작 설정을 분리했습니다.
+- [ ] `managed-settings.json`을 Pull Request로 관리합니다.
+- [ ] MDM, server, file과 user 설정의 우선순위를 문서화했습니다.
+- [ ] Marketplace는 명시적 허용 방식으로 제한합니다.
+- [ ] Plugin source와 tool credential을 함께 검토합니다.
+- [ ] Cloud Agent의 repository 권한을 별도로 관리합니다.
+- [ ] 지원 client version과 실제 적용 결과를 확인합니다.
+
+Copilot client가 늘어날수록 설정 파일 하나보다 중요한 것은 **정책 경계를 분명히 하는 것**입니다. 접근은 Copilot app policy에서, 공통 client 동작은 enterprise managed settings에서, 실제 repository 권한은 agent와 Actions 설정에서 관리하세요.
+
+## 공식 자료
+
+- [Manage GitHub Copilot app access with a dedicated policy](https://github.blog/changelog/2026-07-27-manage-github-copilot-app-access-with-a-dedicated-policy/)
+- [Enterprise managed settings in the GitHub Copilot app and Copilot cloud agent](https://github.blog/changelog/2026-07-27-enterprise-managed-settings-now-apply-to-the-github-copilot-app/)
+- [Enterprise managed settings reference](https://docs.github.com/en/copilot/reference/enterprise-managed-settings-reference)
+- [Configuring enterprise-managed settings](https://docs.github.com/en/enterprise-cloud@latest/copilot/how-tos/administer-copilot/manage-for-enterprise/manage-agents/configure-enterprise-managed-settings)
+- [About enterprise-managed plugin standards](https://docs.github.com/en/copilot/concepts/agents/about-enterprise-plugin-standards)
+
+함께 읽기: [GitHub Copilot 코드 리뷰 운영 가이드](/blog/github-copilot-code-review-customization-guide/) · [GitHub Issues 에이전트 자동화 운영 가이드](/blog/github-issues-agent-automation-controls-guide/)
