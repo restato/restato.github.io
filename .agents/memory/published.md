@@ -2,6 +2,20 @@
 
 이 파일은 중복 판단을 위한 간결한 발행 인덱스입니다. 상세 근거와 공식 출처는 각 글의 `공식 자료` 섹션과 Git history를 확인합니다.
 
+## 2026-07-28 — GitHub Models 종료 전 마이그레이션 가이드
+- type: new
+- slug: /blog/github-models-retirement-migration-guide/
+- score: 96
+- commit: 987525b727f9e40c62c9b5f0ef0d6125d232ca75
+- notes: 2026년 7월 30일 playground, catalog, inference API와 BYOK가 모두 종료되며, 종료 공지보다 의존성 탐색, provider adapter, 기능 회귀 테스트, 단계적 전환과 legacy 권한 제거를 연결한 실전 마이그레이션 공백이 큼
+
+## 2026-07-28 — GitHub Copilot 앱과 Cloud Agent 정책 관리 가이드
+- type: new
+- slug: /blog/github-copilot-managed-settings-governance-guide/
+- score: 94
+- commit: 106222ce92f8f95e002a22fdac00111389d0a834
+- notes: 2026년 7월 27일 Copilot 앱 접근 정책이 CLI에서 분리되고 managed settings가 앱과 Cloud Agent까지 확대되어, 접근 정책·공통 client 설정·repository 실행 권한을 구분한 운영 절차를 제공
+
 ## 2026-07-27 — Vercel Sandbox 대시보드 운영 가이드
 - type: new
 - slug: /blog/vercel-sandbox-dashboard-incident-response-guide/
