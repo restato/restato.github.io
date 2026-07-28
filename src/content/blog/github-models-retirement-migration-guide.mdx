@@ -1,0 +1,257 @@
+---
+title: "GitHub Models 종료 전 마이그레이션 가이드: 7월 30일까지 API와 BYOK 옮기기"
+description: "2026년 7월 30일 종료되는 GitHub Models의 inference API, 모델 카탈로그와 BYOK 의존성을 찾아 Microsoft Foundry 또는 다른 모델 제공자로 안전하게 전환하는 절차를 설명합니다."
+date: 2026-07-28
+verifiedAt: 2026-07-28
+tags: ["GitHub", "AI API", "Microsoft Foundry", "Migration", "LLM"]
+---
+
+GitHub Models는 **2026년 7월 30일에 완전히 종료**됩니다. Playground만 사라지는 것이 아닙니다. 모델 카탈로그, inference API와 BYOK까지 모두 중단됩니다. 지금 필요한 일은 새 모델을 고르는 것이 아니라, 코드와 운영 환경에 숨어 있는 GitHub Models 의존성을 찾아 이틀 안에 제거하는 것입니다.
+
+핵심 판단은 간단합니다.
+
+- GitHub 안에서 코딩 에이전트를 쓰려는 목적이라면 GitHub Copilot을 검토합니다.
+- 애플리케이션이 직접 모델을 호출한다면 Microsoft Foundry나 별도의 모델 제공자로 옮깁니다.
+- 어떤 대안을 선택하든 endpoint와 model ID를 코드 곳곳에서 직접 사용하지 않도록 얇은 provider adapter를 먼저 만듭니다.
+
+## 정확히 무엇이 종료되나요
+
+GitHub의 공식 공지에 따르면 7월 30일 이후에는 기존 고객도 다음 기능을 사용할 수 없습니다.
+
+| 종료 대상 | 애플리케이션에 미치는 영향 |
+| --- | --- |
+| Playground | 수동 프롬프트 테스트와 비교 작업 중단 |
+| Model catalog | 런타임에서 카탈로그를 조회하는 기능 중단 |
+| Inference API | `models.github.ai`를 향한 요청 실패 |
+| BYOK | GitHub Models를 경유하는 외부 제공자 호출 중단 |
+
+7월 16일과 23일에는 종료 준비를 위한 brownout도 진행됐습니다. 일시적인 장애가 아니라 명시된 서비스 종료이므로 재시도로 해결할 문제가 아닙니다.
+
+## 1단계: 저장소와 배포 환경에서 의존성을 찾습니다
+
+먼저 코드, workflow와 문서에서 GitHub Models 흔적을 찾습니다.
+
+```bash
+rg -n \
+  'models\.github\.ai|models: read|github-models|openai/gpt-4\.1|marketplace/models' \
+  . \
+  --glob '!node_modules' \
+  --glob '!dist'
+```
+
+다음 항목도 별도로 확인합니다.
+
+- GitHub Actions secret과 environment variable
+- GitHub App 또는 fine-grained PAT의 `models: read` 권한
+- `catalog/models` 응답을 캐시하는 배치 작업
+- model ID가 설정 파일이 아닌 코드에 직접 박혀 있는 부분
+- 장애 시 GitHub Models로 전환하는 fallback
+- 테스트 fixture와 문서의 예제 endpoint
+
+기존 호출은 대략 다음 형태입니다.
+
+```bash
+curl -L \
+  -X POST \
+  -H "Authorization: Bearer $GITHUB_TOKEN" \
+  -H "Content-Type: application/json" \
+  -H "X-GitHub-Api-Version: 2026-03-10" \
+  https://models.github.ai/inference/chat/completions \
+  -d '{
+    "model": "openai/gpt-4.1",
+    "messages": [{"role": "user", "content": "Summarize this pull request"}]
+  }'
+```
+
+이 endpoint, 토큰 권한과 `publisher/model_name` 형식의 model ID가 모두 마이그레이션 대상입니다.
+
+## 2단계: 사용 목적을 두 갈래로 나눕니다
+
+GitHub Models를 사용했다고 해서 대안이 항상 같은 것은 아닙니다.
+
+### GitHub 작업을 자동화하려는 경우
+
+Pull request 작성, 코드 리뷰, issue 처리처럼 GitHub가 작업의 중심이면 Copilot 계열 기능이 더 자연스러울 수 있습니다. 이 경우 애플리케이션이 직접 inference API를 호출하는 구조를 유지할 필요가 없는지 먼저 검토합니다.
+
+다만 Copilot은 범용 inference API의 일대일 대체제가 아닙니다. 제품의 사용자 요청을 처리하거나 내부 데이터 파이프라인에서 모델 응답을 생성한다면 별도의 모델 API가 필요합니다.
+
+### 제품이나 백엔드에서 모델을 직접 호출하는 경우
+
+GitHub는 대안으로 Microsoft Foundry를 안내합니다. Foundry는 모델을 먼저 **deployment**로 만들고, 요청에서는 원본 모델명이 아니라 deployment name을 사용합니다. OpenAI 호환 v1 endpoint를 사용할 수 있지만 모델별 기능과 지역 지원은 배포 전에 확인해야 합니다.
+
+특히 새 마이그레이션에서 deprecated된 Azure AI Inference beta SDK를 채택하면 안 됩니다. Microsoft는 안정적인 OpenAI SDK와 OpenAI v1 API로 옮길 것을 안내하고 있습니다.
+
+## 3단계: provider adapter부터 만듭니다
+
+급한 전환일수록 endpoint 문자열만 바꾸고 싶어집니다. 그러나 GitHub Models와 새 제공자는 인증, model ID, 오류 형식과 지원 기능이 다릅니다. 호출부에서 차이를 흡수하면 다음 마이그레이션도 다시 전면 수정해야 합니다.
+
+```ts
+export type ChatMessage = {
+  role: 'system' | 'user' | 'assistant';
+  content: string;
+};
+
+export type ChatRequest = {
+  messages: ChatMessage[];
+  temperature?: number;
+  maxOutputTokens?: number;
+};
+
+export type ChatResult = {
+  text: string;
+  provider: string;
+  model: string;
+  requestId?: string;
+};
+
+export interface ModelProvider {
+  chat(request: ChatRequest): Promise<ChatResult>;
+}
+```
+
+Foundry를 사용한다면 OpenAI SDK를 adapter 내부에만 둡니다.
+
+```ts
+import OpenAI from 'openai';
+
+export class FoundryProvider implements ModelProvider {
+  private readonly client: OpenAI;
+
+  constructor(
+    private readonly deployment: string,
+    endpoint: string,
+    apiKey: string,
+  ) {
+    this.client = new OpenAI({
+      apiKey,
+      baseURL: `${endpoint.replace(/\/$/, '')}/openai/v1/`,
+    });
+  }
+
+  async chat(request: ChatRequest): Promise<ChatResult> {
+    const response = await this.client.chat.completions.create({
+      model: this.deployment,
+      messages: request.messages,
+      temperature: request.temperature,
+      max_tokens: request.maxOutputTokens,
+    });
+
+    const text = response.choices[0]?.message?.content;
+    if (!text) {
+      throw new Error('Foundry returned an empty completion');
+    }
+
+    return {
+      text,
+      provider: 'microsoft-foundry',
+      model: this.deployment,
+      requestId: response._request_id,
+    };
+  }
+}
+```
+
+`endpoint`와 deployment name은 실제 Foundry 리소스에서 확인한 값을 사용해야 합니다. 모델 이름과 deployment name이 같다고 가정하면 안 됩니다.
+
+## 4단계: 기능 호환성을 표로 확인합니다
+
+모델 이름이 비슷해도 API 동작이 같다는 보장은 없습니다. 현재 사용하는 기능을 먼저 목록으로 만듭니다.
+
+| 검증 항목 | 확인할 내용 |
+| --- | --- |
+| Streaming | chunk 형식, 종료 이벤트, 연결 중단 처리 |
+| Tool calling | tool schema, 병렬 호출, 인자 JSON 오류 |
+| Structured output | JSON schema 지원과 validation 실패 방식 |
+| Vision·audio | 입력 형식, 크기 제한, 지원 지역 |
+| Embeddings | 차원, 거리 함수와 기존 index 호환성 |
+| Safety | 차단 응답과 오류 응답의 구분 |
+| Rate limit | 상태 코드, retry header와 burst 제한 |
+| Usage | 입력·출력 토큰과 비용 집계 필드 |
+
+GitHub Models 카탈로그에서 보던 capability를 새 제공자의 deployment에 그대로 투영하지 마세요. 최소한 production 요청을 대표하는 평가셋으로 다시 확인해야 합니다.
+
+```ts
+const cases = [
+  { id: 'short-summary', input: 'Summarize this change in three sentences.' },
+  { id: 'json-output', input: 'Return {"risk":"low|medium|high"} only.' },
+  { id: 'long-context', input: loadLargeFixture() },
+];
+
+for (const testCase of cases) {
+  const startedAt = performance.now();
+  try {
+    const result = await provider.chat({
+      messages: [{ role: 'user', content: testCase.input }],
+    });
+
+    console.log({
+      id: testCase.id,
+      ok: true,
+      latencyMs: Math.round(performance.now() - startedAt),
+      outputLength: result.text.length,
+      provider: result.provider,
+      model: result.model,
+    });
+  } catch (error) {
+    console.error({ id: testCase.id, ok: false, error });
+  }
+}
+```
+
+## 5단계: shadow traffic 뒤에 전환합니다
+
+7월 30일까지 시간이 짧더라도 바로 100% 전환하는 것은 위험합니다.
+
+1. 새 provider를 production credential과 분리된 환경에 연결합니다.
+2. 개인정보와 secret을 제거한 대표 요청을 두 provider에 동시에 보냅니다.
+3. 응답 품질, 구조 준수율, latency, 오류율과 비용을 비교합니다.
+4. 읽기 전용 또는 내부 사용자 요청부터 새 provider로 보냅니다.
+5. 비율을 점진적으로 늘립니다.
+6. GitHub Models fallback은 7월 30일 이전에 제거합니다.
+
+종료된 서비스를 fallback으로 남기면 장애 시 복구 경로가 아니라 추가 오류만 만듭니다.
+
+```ts
+const provider = process.env.MODEL_PROVIDER === 'foundry'
+  ? createFoundryProvider()
+  : createLegacyGitHubModelsProvider();
+```
+
+이런 switch를 사용했다면 전환 후 legacy branch와 관련 secret을 삭제해야 합니다. feature flag만 끄고 오래 남겨 두면 몇 달 뒤 다시 활성화될 가능성이 있습니다.
+
+## 6단계: 토큰과 권한을 정리합니다
+
+전환이 완료되면 다음 정리까지 해야 마이그레이션이 끝납니다.
+
+- GitHub App과 PAT에서 `models: read` 제거
+- `GITHUB_MODELS_TOKEN` 같은 secret 삭제
+- BYOK용 provider key와 GitHub 연동 제거
+- GitHub Models endpoint allowlist 삭제
+- 비용·오류 대시보드를 새 provider 기준으로 변경
+- runbook과 온콜 문서의 fallback 절차 수정
+- 종료 후 `models.github.ai` 호출이 없는지 로그 검색
+
+권한 정리는 기능 전환과 같은 배포에 묶지 않는 편이 안전합니다. 먼저 새 provider가 안정적으로 동작하는지 확인하고, 이후 별도 변경으로 legacy 권한을 제거하면 rollback과 보안 변경을 구분할 수 있습니다.
+
+## 마감 전 체크리스트
+
+- [ ] 코드와 workflow에서 `models.github.ai`를 모두 찾았습니다.
+- [ ] 모델 카탈로그 조회와 BYOK 경유 호출을 확인했습니다.
+- [ ] GitHub-native 작업과 제품 inference를 분리했습니다.
+- [ ] provider adapter를 만들어 endpoint 차이를 격리했습니다.
+- [ ] streaming, tools, JSON, embeddings와 오류 동작을 다시 평가했습니다.
+- [ ] shadow traffic과 점진적 rollout을 수행했습니다.
+- [ ] 종료된 GitHub Models를 fallback에서 제거했습니다.
+- [ ] `models: read` 권한과 legacy secret을 정리할 계획이 있습니다.
+
+GitHub Models 종료는 단순한 endpoint 변경이 아닙니다. 인증 경계, model ID, capability와 운영 지표가 함께 바뀝니다. **7월 30일 전에 호출 경로를 옮기고, 그 직후 legacy 권한과 secret을 제거하는 두 단계 배포**가 가장 안전합니다.
+
+## 공식 자료
+
+- [GitHub Models is being fully retired on July 30, 2026](https://github.blog/changelog/2026-07-01-github-models-is-being-fully-retired-on-july-30-2026/)
+- [GitHub Models inference REST API](https://docs.github.com/en/rest/models/inference)
+- [GitHub Models catalog REST API](https://docs.github.com/en/rest/models/catalog)
+- [Microsoft Foundry model endpoints](https://learn.microsoft.com/en-us/azure/foundry/foundry-models/concepts/endpoints)
+- [Microsoft Foundry OpenAI v1 REST reference](https://learn.microsoft.com/en-us/rest/api/microsoft-foundry/azureopenai/responses)
+
+함께 읽기: [AI SDK 7 프로덕션 에이전트 가이드](/blog/ai-sdk-7-production-agent-guide/) · [GPT-5.6 모델 선택 가이드](/blog/gpt-5-6-sol-terra-luna-api-guide/)
