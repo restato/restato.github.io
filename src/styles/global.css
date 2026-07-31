@@ -30,6 +30,7 @@
     --brand: #19553C;
     --brand-hover: #236B4C;
     --brand-soft: #9CC4AD;
+    --on-brand: #F7F8F7;
     --accent: var(--brand);
     --focus: #2C7655;
     --code-comment: #A7B0A8;
@@ -54,6 +55,7 @@
     --brand: #70A889;
     --brand-hover: #89B99D;
     --brand-soft: #1D3D2F;
+    --on-brand: #111713;
     --accent: var(--brand);
     --focus: #8DC0A1;
   }
@@ -197,7 +199,7 @@
 
   .fc-button-primary {
     background: var(--brand);
-    color: var(--surface-raised);
+    color: var(--on-brand);
   }
 
   .fc-button-primary:hover {
@@ -776,7 +778,7 @@
 
   .btn-primary {
     background: var(--brand);
-    color: var(--surface-raised);
+    color: var(--on-brand);
   }
 
   .btn-primary:hover {

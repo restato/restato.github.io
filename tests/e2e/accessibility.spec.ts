@@ -71,6 +71,46 @@ async function setTheme(page: Page, theme: 'light' | 'dark') {
   }
 }
 
+async function renderedContrastRatio(page: Page, selector: string) {
+  return page.locator(selector).evaluate((element) => {
+    const parseColor = (color: string) => {
+      const channels = color.match(/[\d.]+/g)?.map(Number) ?? [];
+      return {
+        red: channels[0] ?? 0,
+        green: channels[1] ?? 0,
+        blue: channels[2] ?? 0,
+        alpha: channels[3] ?? 1,
+      };
+    };
+    const luminance = ({ red, green, blue }: ReturnType<typeof parseColor>) => {
+      const channels = [red, green, blue].map((channel) => {
+        const normalized = channel / 255;
+        return normalized <= 0.04045
+          ? normalized / 12.92
+          : ((normalized + 0.055) / 1.055) ** 2.4;
+      });
+      return (0.2126 * channels[0]) + (0.7152 * channels[1]) + (0.0722 * channels[2]);
+    };
+    const foreground = parseColor(getComputedStyle(element).color);
+    const contrastSurface = element.closest('[data-project-feature], [data-blog-tag-link]') ?? element;
+    const background = parseColor(getComputedStyle(contrastSurface).backgroundColor);
+    const compositedForeground = foreground.alpha === 1
+      ? foreground
+      : {
+          red: (foreground.red * foreground.alpha) + (background.red * (1 - foreground.alpha)),
+          green: (foreground.green * foreground.alpha) + (background.green * (1 - foreground.alpha)),
+          blue: (foreground.blue * foreground.alpha) + (background.blue * (1 - foreground.alpha)),
+          alpha: 1,
+        };
+    const foregroundLuminance = luminance(compositedForeground);
+    const backgroundLuminance = luminance(background);
+    return (
+      (Math.max(foregroundLuminance, backgroundLuminance) + 0.05)
+      / (Math.min(foregroundLuminance, backgroundLuminance) + 0.05)
+    );
+  });
+}
+
 async function assertDocumentStructure(page: Page, route: ModernRestatoRoute) {
   await expect(page.locator('h1')).toHaveCount(1);
   await expect(page.locator('main#main-content[tabindex="-1"]')).toHaveCount(1);
@@ -103,6 +143,24 @@ for (const route of modernRestatoRoutes) {
     }
   });
 }
+
+test('home project copy and selected blog tag retain AA on-brand contrast in both themes', async ({ page }) => {
+  for (const theme of ['light', 'dark'] as const) {
+    await page.goto('/', { waitUntil: 'networkidle' });
+    await setTheme(page, theme);
+    await expect(page.locator('[data-project-feature]')).toBeVisible();
+    await expect(page.locator('[data-project-description]')).toBeVisible();
+    expect(await renderedContrastRatio(page, '[data-project-feature]')).toBeGreaterThanOrEqual(4.5);
+    expect(await renderedContrastRatio(page, '[data-project-description]')).toBeGreaterThanOrEqual(4.5);
+
+    await page.goto('/blog/tag/claude-code/', { waitUntil: 'networkidle' });
+    await setTheme(page, theme);
+    const selectedTag = page.locator('[data-blog-tag-link][aria-current="page"]');
+    await expect(selectedTag).toBeVisible();
+    expect(await renderedContrastRatio(page, '[data-blog-tag-link][aria-current="page"]'))
+      .toBeGreaterThanOrEqual(4.5);
+  }
+});
 
 test('github-dark Shiki comments retain WCAG AA contrast in both site themes', async ({ page }) => {
   const articleRoute = modernRestatoRoutes.find(({ family }) => family === 'blog-article');

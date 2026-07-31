@@ -6,6 +6,7 @@ interface Props {
   label: string;
   showMoreLabel: string;
   showLessLabel: string;
+  formatCountLabel: (count: number) => string;
   currentSlug?: string;
   includeAllLink?: boolean;
   allLabel?: string;
@@ -16,6 +17,7 @@ const {
   label,
   showMoreLabel,
   showLessLabel,
+  formatCountLabel,
   currentSlug,
   includeAllLink = false,
   allLabel,
@@ -30,7 +32,7 @@ const overflowId = `blog-tag-overflow-${crypto.randomUUID()}`;
         data-blog-tag-link
         href="/blog"
         aria-current={!currentSlug ? 'page' : undefined}
-        class="fc-chip border border-transparent transition-colors hover:border-[var(--brand)] hover:text-[var(--brand)]"
+        class="fc-chip gap-1.5 border border-transparent transition-colors hover:border-[var(--brand)] hover:text-[var(--brand)]"
       >{allLabel}</a>
     )}
     {entries.slice(0, 10).map(entry => (
@@ -39,13 +41,13 @@ const overflowId = `blog-tag-overflow-${crypto.randomUUID()}`;
         href={`/blog/tag/${entry.slug}`}
         aria-current={entry.slug === currentSlug ? 'page' : undefined}
         class:list={[
-          'fc-chip border transition-colors',
+          'fc-chip gap-1.5 border transition-colors',
           entry.slug === currentSlug
-            ? 'border-[var(--brand)] bg-[var(--brand)] text-white'
+            ? 'border-[var(--brand)] bg-[var(--brand)] text-[var(--on-brand)]'
             : 'border-transparent hover:border-[var(--brand)] hover:text-[var(--brand)]',
         ]}
       >
-        <span>{entry.label}</span><span aria-label={`${entry.count} posts`}>{entry.count}</span>
+        <span>{entry.label}</span><span aria-label={formatCountLabel(entry.count)}>{entry.count}</span>
       </a>
     ))}
     {entries.length > 10 && (
@@ -56,13 +58,13 @@ const overflowId = `blog-tag-overflow-${crypto.randomUUID()}`;
             href={`/blog/tag/${entry.slug}`}
             aria-current={entry.slug === currentSlug ? 'page' : undefined}
             class:list={[
-              'fc-chip border transition-colors',
+              'fc-chip gap-1.5 border transition-colors',
               entry.slug === currentSlug
-                ? 'border-[var(--brand)] bg-[var(--brand)] text-white'
+                ? 'border-[var(--brand)] bg-[var(--brand)] text-[var(--on-brand)]'
                 : 'border-transparent hover:border-[var(--brand)] hover:text-[var(--brand)]',
             ]}
           >
-            <span>{entry.label}</span><span aria-label={`${entry.count} posts`}>{entry.count}</span>
+            <span>{entry.label}</span><span aria-label={formatCountLabel(entry.count)}>{entry.count}</span>
           </a>
         ))}
       </span>
@@ -81,19 +83,7 @@ const overflowId = `blog-tag-overflow-${crypto.randomUUID()}`;
 </nav>
 
 <script>
-  document.querySelectorAll<HTMLElement>('[data-blog-tag-nav]').forEach(nav => {
-    const button = nav.querySelector<HTMLButtonElement>('.blog-tag-toggle');
-    const overflow = nav.querySelector<HTMLElement>('[data-blog-tag-overflow]');
+  import { initializeBlogTagNav } from './blogTagNavDisclosure';
 
-    if (!button || !overflow) return;
-
-    button.addEventListener('click', () => {
-      const isExpanded = button.getAttribute('aria-expanded') === 'true';
-      overflow.hidden = isExpanded;
-      button.setAttribute('aria-expanded', String(!isExpanded));
-      button.textContent = isExpanded
-        ? button.dataset.showMoreLabel ?? ''
-        : button.dataset.showLessLabel ?? '';
-    });
-  });
+  initializeBlogTagNav();
 </script>

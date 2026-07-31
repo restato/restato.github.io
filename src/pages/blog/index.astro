@@ -5,6 +5,7 @@ import BlogTagNav from '../../components/BlogTagNav.astro';
 import PageShell from '../../components/ui/PageShell.astro';
 import { getCollection } from 'astro:content';
 import { getRankedBlogTagEntries } from '../../lib/blogTags';
+import { getBlogTagContent } from '../../data/blog-tag-content';
 
 const posts = (await getCollection('blog', ({ data }) => !data.draft))
   .sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf());
@@ -12,6 +13,7 @@ const posts = (await getCollection('blog', ({ data }) => !data.draft))
 const rankedTags = getRankedBlogTagEntries(
   posts.map(post => post.data.tags),
 );
+const tagNavContent = getBlogTagContent('en', '', 0);
 ---
 
 <MainLayout title="Blog | Restato" description="Development logs, learnings, and thoughts." lang="en">
@@ -30,6 +32,7 @@ const rankedTags = getRankedBlogTagEntries(
         label="Blog tags"
         showMoreLabel="Show more"
         showLessLabel="Show less"
+        formatCountLabel={tagNavContent.formatTagCount}
       />
     )}
 

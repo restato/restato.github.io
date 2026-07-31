@@ -4,62 +4,64 @@ import { cleanup } from '@testing-library/react';
 
 // Cleanup after each test
 afterEach(() => {
-  cleanup();
+  if (typeof document !== 'undefined') cleanup();
 });
 
-// Mock window.matchMedia
-Object.defineProperty(window, 'matchMedia', {
-  writable: true,
-  value: vi.fn().mockImplementation((query) => ({
-    matches: false,
-    media: query,
-    onchange: null,
-    addListener: vi.fn(), // deprecated
-    removeListener: vi.fn(), // deprecated
-    addEventListener: vi.fn(),
-    removeEventListener: vi.fn(),
-    dispatchEvent: vi.fn(),
-  })),
-});
+if (typeof window !== 'undefined') {
+  // Mock window.matchMedia
+  Object.defineProperty(window, 'matchMedia', {
+    writable: true,
+    value: vi.fn().mockImplementation((query) => ({
+      matches: false,
+      media: query,
+      onchange: null,
+      addListener: vi.fn(), // deprecated
+      removeListener: vi.fn(), // deprecated
+      addEventListener: vi.fn(),
+      removeEventListener: vi.fn(),
+      dispatchEvent: vi.fn(),
+    })),
+  });
 
 // Mock navigator.clipboard
-Object.defineProperty(navigator, 'clipboard', {
-  configurable: true,
-  value: {
-    writeText: vi.fn(() => Promise.resolve()),
-    readText: vi.fn(() => Promise.resolve('')),
-  },
-  writable: true,
-});
+  Object.defineProperty(navigator, 'clipboard', {
+    configurable: true,
+    value: {
+      writeText: vi.fn(() => Promise.resolve()),
+      readText: vi.fn(() => Promise.resolve('')),
+    },
+    writable: true,
+  });
 
 // Mock localStorage
-const localStorageMock = (() => {
-  let store: Record<string, string> = {};
+  const localStorageMock = (() => {
+    let store: Record<string, string> = {};
 
-  return {
-    getItem: (key: string) => store[key] || null,
-    setItem: (key: string, value: string) => {
-      store[key] = value.toString();
-    },
-    removeItem: (key: string) => {
-      delete store[key];
-    },
-    clear: () => {
-      store = {};
-    },
-  };
-})();
+    return {
+      getItem: (key: string) => store[key] || null,
+      setItem: (key: string, value: string) => {
+        store[key] = value.toString();
+      },
+      removeItem: (key: string) => {
+        delete store[key];
+      },
+      clear: () => {
+        store = {};
+      },
+    };
+  })();
 
-Object.defineProperty(window, 'localStorage', {
-  value: localStorageMock,
-});
+  Object.defineProperty(window, 'localStorage', {
+    value: localStorageMock,
+  });
 
-window.history.replaceState({}, '', '/ko/tools/test');
+  window.history.replaceState({}, '', '/ko/tools/test');
 
-Object.defineProperty(HTMLCanvasElement.prototype, 'getContext', {
-  configurable: true,
-  value: vi.fn(() => ({ clearRect: vi.fn(), drawImage: vi.fn(), fillRect: vi.fn() })),
-});
+  Object.defineProperty(HTMLCanvasElement.prototype, 'getContext', {
+    configurable: true,
+    value: vi.fn(() => ({ clearRect: vi.fn(), drawImage: vi.fn(), fillRect: vi.fn() })),
+  });
 
-Object.defineProperty(URL, 'createObjectURL', { configurable: true, value: vi.fn(() => 'blob:test') });
-Object.defineProperty(URL, 'revokeObjectURL', { configurable: true, value: vi.fn() });
+  Object.defineProperty(URL, 'createObjectURL', { configurable: true, value: vi.fn(() => 'blob:test') });
+  Object.defineProperty(URL, 'revokeObjectURL', { configurable: true, value: vi.fn() });
+}

@@ -29,6 +29,7 @@ describe('Modern Restato design system', () => {
         '--brand': '#19553C',
         '--brand-hover': '#236B4C',
         '--brand-soft': '#9CC4AD',
+        '--on-brand': '#F7F8F7',
         '--focus': '#2C7655',
       },
       '.dark': {
@@ -41,6 +42,7 @@ describe('Modern Restato design system', () => {
         '--brand': '#70A889',
         '--brand-hover': '#89B99D',
         '--brand-soft': '#1D3D2F',
+        '--on-brand': '#111713',
         '--focus': '#8DC0A1',
       },
     };
@@ -53,6 +55,25 @@ describe('Modern Restato design system', () => {
 
     expect(css).toMatch(/:root\s*\{[^}]*--accent:\s*var\(--brand\);/s);
     expect(css).toMatch(/\.dark\s*\{[^}]*--accent:\s*var\(--brand\);/s);
+  });
+
+  it('uses the AA on-brand foreground for normal-sized copy and controls', () => {
+    const relativeLuminance = (hex: string) => {
+      const channels = hex.match(/[a-f\d]{2}/gi)!.map(channel => parseInt(channel, 16) / 255);
+      const [red, green, blue] = channels.map(channel => (
+        channel <= 0.04045 ? channel / 12.92 : ((channel + 0.055) / 1.055) ** 2.4
+      ));
+      return (0.2126 * red) + (0.7152 * green) + (0.0722 * blue);
+    };
+    const contrast = (foreground: string, background: string) => {
+      const [lighter, darker] = [relativeLuminance(foreground), relativeLuminance(background)]
+        .sort((left, right) => right - left);
+      return (lighter + 0.05) / (darker + 0.05);
+    };
+
+    expect(contrast('#F7F8F7', '#19553C')).toBeGreaterThanOrEqual(4.5);
+    expect(contrast('#111713', '#70A889')).toBeGreaterThanOrEqual(4.5);
+    expect(css).toMatch(/\.fc-button-primary\s*\{[^}]*color:\s*var\(--on-brand\);/s);
   });
 
   it('retokenizes Tailwind color utilities and prose code surfaces', () => {

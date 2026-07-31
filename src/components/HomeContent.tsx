@@ -222,12 +222,12 @@ export function ProjectsSection() {
       <div className="grid gap-3 sm:grid-cols-[minmax(0,1.6fr)_minmax(16rem,0.8fr)]">
         <a
           href="/projects/games"
-          className="block rounded-lg bg-[var(--brand)] p-6 text-white transition-colors hover:bg-[var(--brand-hover)]"
+          className="block rounded-lg bg-[var(--brand)] p-6 text-[var(--on-brand)] transition-colors hover:bg-[var(--brand-hover)]"
           data-project-feature
         >
           <span className="text-xs font-bold uppercase tracking-[0.08em] opacity-80">PLAY</span>
           <strong className="mt-8 block text-2xl leading-tight">{t(idx.gameCenter)}</strong>
-          <span className="mt-2 block text-sm text-white/80">{t(idx.sixFreeGames)}</span>
+          <span className="mt-2 block text-sm" data-project-description>{t(idx.sixFreeGames)}</span>
           <span className="mt-6 block" aria-hidden="true"><Arrow /></span>
         </a>
 

@@ -11,6 +11,7 @@ export interface BlogTagContent {
   allLabel: string;
   showMoreLabel: string;
   showLessLabel: string;
+  formatTagCount: (count: number) => string;
   noPostsTitle: string;
   noPostsDescription: string;
 }
@@ -37,6 +38,7 @@ export const blogTagContentByLanguage: Record<Language, BlogTagContentFactory> =
     allLabel: '전체',
     showMoreLabel: '더보기',
     showLessLabel: '접기',
+    formatTagCount: value => `${value}개 글`,
     noPostsTitle: '아직 글이 없습니다',
     noPostsDescription: `"${tag}" 태그로 분류된 글이 게시되면 이 페이지에서 바로 확인할 수 있습니다.`,
   }),
@@ -49,6 +51,7 @@ export const blogTagContentByLanguage: Record<Language, BlogTagContentFactory> =
     allLabel: 'All',
     showMoreLabel: 'Show more',
     showLessLabel: 'Show less',
+    formatTagCount: value => `${value} post${value === 1 ? '' : 's'}`,
     noPostsTitle: 'No posts found',
     noPostsDescription: `New articles tagged with "${tag}" will appear on this page when they are published.`,
   }),
@@ -61,6 +64,7 @@ export const blogTagContentByLanguage: Record<Language, BlogTagContentFactory> =
     allLabel: 'すべて',
     showMoreLabel: 'もっと見る',
     showLessLabel: '閉じる',
+    formatTagCount: value => `記事${value}件`,
     noPostsTitle: '記事はまだありません',
     noPostsDescription: `「${tag}」タグの記事が公開されると、このページに表示されます。`,
   }),
@@ -73,6 +77,7 @@ export const blogTagContentByLanguage: Record<Language, BlogTagContentFactory> =
     allLabel: '全部',
     showMoreLabel: '显示更多',
     showLessLabel: '收起',
+    formatTagCount: value => `${value} 篇文章`,
     noPostsTitle: '暂时没有文章',
     noPostsDescription: `标记为“${tag}”的新文章发布后，会显示在这个页面中。`,
   }),
@@ -85,6 +90,7 @@ export const blogTagContentByLanguage: Record<Language, BlogTagContentFactory> =
     allLabel: '全部',
     showMoreLabel: '顯示更多',
     showLessLabel: '收合',
+    formatTagCount: value => `${value} 篇文章`,
     noPostsTitle: '目前沒有文章',
     noPostsDescription: `標記為「${tag}」的新文章發布後，會顯示在這個頁面。`,
   }),
@@ -97,6 +103,7 @@ export const blogTagContentByLanguage: Record<Language, BlogTagContentFactory> =
     allLabel: 'Todas',
     showMoreLabel: 'Mostrar más',
     showLessLabel: 'Mostrar menos',
+    formatTagCount: value => `${value} artículo${value === 1 ? '' : 's'}`,
     noPostsTitle: 'Todavía no hay artículos',
     noPostsDescription: `Los nuevos artículos con la etiqueta «${tag}» aparecerán aquí cuando se publiquen.`,
   }),
@@ -109,6 +116,7 @@ export const blogTagContentByLanguage: Record<Language, BlogTagContentFactory> =
     allLabel: 'Todas',
     showMoreLabel: 'Mostrar mais',
     showLessLabel: 'Mostrar menos',
+    formatTagCount: value => `${value} artigo${value === 1 ? '' : 's'}`,
     noPostsTitle: 'Ainda não há artigos',
     noPostsDescription: `Novos artigos com a etiqueta “${tag}” serão apresentados aqui quando forem publicados.`,
   }),
@@ -121,6 +129,7 @@ export const blogTagContentByLanguage: Record<Language, BlogTagContentFactory> =
     allLabel: 'Alle',
     showMoreLabel: 'Mehr anzeigen',
     showLessLabel: 'Weniger anzeigen',
+    formatTagCount: value => value === 1 ? '1 Beitrag' : `${value} Beiträge`,
     noPostsTitle: 'Noch keine Beiträge',
     noPostsDescription: `Neue Beiträge mit dem Tag „${tag}“ erscheinen nach ihrer Veröffentlichung auf dieser Seite.`,
   }),
@@ -133,6 +142,7 @@ export const blogTagContentByLanguage: Record<Language, BlogTagContentFactory> =
     allLabel: 'Tous',
     showMoreLabel: 'Afficher plus',
     showLessLabel: 'Afficher moins',
+    formatTagCount: value => `${value} article${value === 1 ? '' : 's'}`,
     noPostsTitle: 'Aucun article pour le moment',
     noPostsDescription: `Les nouveaux articles associés au tag « ${tag} » apparaîtront ici après leur publication.`,
   }),
@@ -145,6 +155,7 @@ export const blogTagContentByLanguage: Record<Language, BlogTagContentFactory> =
     allLabel: 'Tutti',
     showMoreLabel: 'Mostra altro',
     showLessLabel: 'Mostra meno',
+    formatTagCount: value => `${value} articol${value === 1 ? 'o' : 'i'}`,
     noPostsTitle: 'Non ci sono ancora articoli',
     noPostsDescription: `I nuovi articoli con il tag “${tag}” compariranno qui dopo la pubblicazione.`,
   }),
@@ -157,6 +168,7 @@ export const blogTagContentByLanguage: Record<Language, BlogTagContentFactory> =
     allLabel: 'Semua',
     showMoreLabel: 'Tampilkan lebih banyak',
     showLessLabel: 'Tampilkan lebih sedikit',
+    formatTagCount: value => `${value} artikel`,
     noPostsTitle: 'Belum ada artikel',
     noPostsDescription: `Artikel baru dengan tag “${tag}” akan muncul di halaman ini setelah diterbitkan.`,
   }),
@@ -169,6 +181,7 @@ export const blogTagContentByLanguage: Record<Language, BlogTagContentFactory> =
     allLabel: 'सभी',
     showMoreLabel: 'और दिखाएँ',
     showLessLabel: 'कम दिखाएँ',
+    formatTagCount: value => `${value} लेख`,
     noPostsTitle: 'अभी कोई लेख नहीं है',
     noPostsDescription: `“${tag}” टैग वाले नए लेख प्रकाशित होने पर इस पेज पर दिखाई देंगे।`,
   }),

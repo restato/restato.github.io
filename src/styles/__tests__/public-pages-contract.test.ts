@@ -158,6 +158,42 @@ describe('Modern Restato public page contract', () => {
     }
   });
 
+  it('keeps LLM Wiki surrounding chrome inside the Modern Restato contract', () => {
+    const llmWikiCss = read('src/styles/llm-wiki.css');
+    const ruleFor = (selector: string) => {
+      const escapedSelector = selector.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+      return llmWikiCss.match(new RegExp(`${escapedSelector}\\s*\\{([^}]*)\\}`))?.[1] ?? '';
+    };
+
+    expect(llmWikiCss).not.toMatch(/(?:linear|radial|conic)-gradient\(/);
+    expect(llmWikiCss).not.toMatch(/font-family:\s*[^;]*(?:Georgia|Times New Roman|\bserif\b)/i);
+    expect(llmWikiCss).not.toMatch(/@keyframes\b/);
+    expect(llmWikiCss).not.toMatch(/(?:^|[;{]\s*)animation\s*:/m);
+
+    for (const selector of [
+      '.llmw-topbar',
+      '.llmw-hero-instrument',
+      '.llmw-presentation-controls',
+      '.llmw-adoption-card',
+      '.llmw-footer-mark',
+    ]) {
+      const rule = ruleFor(selector);
+      expect.soft(rule, `${selector} semantic surface`).toMatch(
+        /background:\s*var\(--(?:surface-raised|surface-soft|llmw-panel-solid)\)/,
+      );
+      expect.soft(rule, `${selector} 6-10px geometry`).toMatch(
+        /border-radius:\s*(?:0\.375|0\.5|0\.625)rem/,
+      );
+    }
+
+    expect(ruleFor('.llmw-brand > span:first-child')).toMatch(/border-radius:\s*0\.375rem/);
+    expect(ruleFor('.llmw-footer-mark')).not.toMatch(/border-radius:\s*50%/);
+    expect(ruleFor('.llmw-primary-link,\n.llmw-adoption-actions a:first-child'))
+      .toMatch(/color:\s*var\(--on-brand\)\s*!important/);
+    expect(ruleFor('.llmw-presentation-controls > button[aria-pressed]'))
+      .toMatch(/color:\s*var\(--on-brand\)/);
+  });
+
   it('keeps Korean discovery headers localized', () => {
     expect(read('src/pages/articles/index.astro')).not.toContain('Discovery desk');
     expect(read('src/pages/jobs/index.astro')).not.toContain('Career board');

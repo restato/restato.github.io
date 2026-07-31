@@ -34,13 +34,34 @@ describe('blog tag URLs', () => {
     ]);
   });
 
-  it('counts tags case-insensitively without changing the first display label', () => {
+  it('counts tags case-insensitively and selects a natural canonical display label', () => {
     expect(getRankedBlogTagEntries([
-      ['OpenAI', 'openai'],
-      ['OPENAI'],
+      ['OPENAI', 'openai'],
+      ['OpenAI'],
     ])).toEqual([
       { label: 'OpenAI', slug: 'openai', count: 2 },
     ]);
+  });
+
+  it('derives identical ranked navigation for blog-index and tag-page input order', () => {
+    const blogIndexPostTags = [
+      ['claude-code', 'ai'],
+      ['Claude Code', 'AI'],
+      ['Astro'],
+    ];
+    const tagPagePostTags = [
+      ['Astro'],
+      ['Claude Code', 'AI'],
+      ['claude-code', 'ai'],
+    ];
+    const expected = [
+      { label: 'AI', slug: 'ai', count: 2 },
+      { label: 'Claude Code', slug: 'claude-code', count: 2 },
+      { label: 'Astro', slug: 'astro', count: 1 },
+    ];
+
+    expect(getRankedBlogTagEntries(blogIndexPostTags)).toEqual(expected);
+    expect(getRankedBlogTagEntries(tagPagePostTags)).toEqual(expected);
   });
 
   it('keeps every distinct legacy raw tag path as a redirect without duplicate or self routes', () => {

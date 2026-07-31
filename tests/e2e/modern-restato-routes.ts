@@ -6,7 +6,9 @@ export const modernRestatoRequiredFamilies = [
   'game-catalog',
   'game-detail',
   'blog-index',
+  'blog-tag',
   'blog-article',
+  'llm-wiki',
   'policy',
   'dashboard',
   'chat',
@@ -34,6 +36,13 @@ export interface ModernRestatoRoute {
  * direction-safe layout without inventing a public locale or route.
  */
 export const modernRestatoRoutes: readonly ModernRestatoRoute[] = [
+  {
+    id: 'home-root',
+    name: 'Root home composition',
+    family: 'home',
+    path: '/',
+    locale: 'ko',
+  },
   {
     id: 'home-ko',
     name: 'Korean home',
@@ -92,6 +101,13 @@ export const modernRestatoRoutes: readonly ModernRestatoRoute[] = [
     locale: 'en',
   },
   {
+    id: 'blog-tag-selected',
+    name: 'Selected blog tag',
+    family: 'blog-tag',
+    path: '/blog/tag/claude-code/',
+    locale: 'en',
+  },
+  {
     id: 'blog-article-en',
     name: 'English blog article',
     family: 'blog-article',
@@ -104,6 +120,13 @@ export const modernRestatoRoutes: readonly ModernRestatoRoute[] = [
     family: 'policy',
     path: '/ko/privacy/',
     locale: 'ko',
+  },
+  {
+    id: 'llm-wiki',
+    name: 'LLM Wiki field guide',
+    family: 'llm-wiki',
+    path: '/llm-wiki/',
+    locale: 'en',
   },
   {
     id: 'dashboard-ko',

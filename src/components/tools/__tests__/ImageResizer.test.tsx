@@ -61,6 +61,7 @@ const uploadImage = async () => {
 
   await waitFor(() => {
     expect(mockToDataURL).toHaveBeenCalled();
+    expect(screen.getByAltText('Resized')).toBeInTheDocument();
   });
 };
 

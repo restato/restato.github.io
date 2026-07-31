@@ -1,9 +1,8 @@
-import { configDefaults, defineConfig } from 'vitest/config';
-import react from '@vitejs/plugin-react';
+import { getViteConfig } from 'astro/config';
+import { configDefaults } from 'vitest/config';
 import path from 'path';
 
-export default defineConfig({
-  plugins: [react()],
+export default getViteConfig({
   test: {
     globals: true,
     environment: 'jsdom',
