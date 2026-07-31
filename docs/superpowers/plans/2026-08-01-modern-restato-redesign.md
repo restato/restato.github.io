@@ -217,7 +217,8 @@ Change the suite name to `Modern Restato design system`. Replace D2Coding-global
 expect(config).toContain("'-apple-system'");
 expect(config).toContain("'BlinkMacSystemFont'");
 expect(css).toMatch(/body\s*\{[^}]*font-size:\s*1rem;[^}]*line-height:\s*1\.7;/s);
-expect(css).toMatch(/\.fc-input[\s\S]*font-family:\s*'D2Coding'/);
+expect(css).toMatch(/\.fc-mono[\s\S]*font-family:\s*'D2Coding'/);
+expect(css).not.toMatch(/\.fc-input[^}]*font-family:\s*'D2Coding'/s);
 ```
 
 Assert every approved token exactly, plus geometry contracts:
@@ -265,15 +266,12 @@ Update `global.css` so shared primitives use:
 .fc-tool-privacy,
 .fc-tool-drop-zone,
 .card { border-radius: 0.5rem; }
-.fc-input,
-.fc-select,
-.fc-textarea,
-.fc-file-input,
+.fc-mono,
 .fc-prose code,
 .fc-prose pre { font-family: 'D2Coding', SFMono-Regular, Menlo, Consolas, monospace; }
 ```
 
-Retain 44px minimum targets, focus outlines, logical-direction CSS, `prefers-reduced-motion`, and the no-decorative-gradient/no-layout-shift contract.
+Apply `.fc-mono` only to fields whose contents are actually code or machine data (for example JSON, hashes, encoded values, and generated code). Ordinary text, number, date, file, and select controls inherit the Apple system stack. Retain 44px minimum targets, focus outlines, logical-direction CSS, `prefers-reduced-motion`, and the no-decorative-gradient/no-layout-shift contract.
 
 - [ ] **Step 5: Run focused tests and commit**
 
