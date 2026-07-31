@@ -47,6 +47,15 @@ describe('localized blog tag landing content', () => {
     expect(new Set(introductions)).toHaveLength(supportedLanguages.length);
   });
 
+  it.each<Language>(supportedLanguages)(
+    'provides non-empty disclosure labels for %s',
+    language => {
+      const content = getBlogTagContent(language, 'topic', 2);
+      expect(content.showMoreLabel).not.toHaveLength(0);
+      expect(content.showLessLabel).not.toHaveLength(0);
+    },
+  );
+
   it.each(['명언', '생각', '영감'])(
     'adds substantive Korean discovery context for the thin %s tag page',
     tag => {

@@ -1,10 +1,11 @@
 ---
 import MainLayout from '../../../layouts/MainLayout.astro';
 import BlogCard from '../../../components/BlogCard.astro';
+import BlogTagNav from '../../../components/BlogTagNav.astro';
 import PageShell from '../../../components/ui/PageShell.astro';
 import { getCollection } from 'astro:content';
 import { getBlogTagContent, selectBlogTagLanguage } from '../../../data/blog-tag-content';
-import { getBlogTagEntries, getBlogTagRouteEntries, toBlogTagSlug } from '../../../lib/blogTags';
+import { getBlogTagRouteEntries, getRankedBlogTagEntries, toBlogTagSlug } from '../../../lib/blogTags';
 
 export async function getStaticPaths() {
   const posts = await getCollection('blog', ({ data }) => !data.draft);
@@ -36,7 +37,9 @@ const tagContent = getBlogTagContent(tagLanguage, tag, posts.length);
 
 // Get all unique tags for the filter section
 const allPosts = await getCollection('blog', ({ data }) => !data.draft);
-const allTagEntries = getBlogTagEntries(allPosts.flatMap(post => post.data.tags));
+const rankedTags = getRankedBlogTagEntries(
+  allPosts.map(post => post.data.tags),
+);
 ---
 
 <MainLayout
@@ -80,34 +83,16 @@ const allTagEntries = getBlogTagEntries(allPosts.flatMap(post => post.data.tags)
         </p>
       </section>
 
-      {allTagEntries.length > 0 && (
-        <nav
-          class="mb-10 border-b border-[var(--border-subtle)] pb-6"
-          aria-label={tagContent.tagsLabel}
-        >
-          <div class="flex flex-wrap gap-2 items-center">
-            <span class="mr-1 text-sm font-bold text-[var(--text-muted)]">{tagContent.tagsLabel}</span>
-            <a
-              href="/blog"
-              class="fc-chip border border-transparent transition-colors hover:border-[var(--brand)] hover:text-[var(--brand)]"
-            >
-              {tagContent.allLabel}
-            </a>
-            {allTagEntries.map(entry => (
-              <a
-                href={`/blog/tag/${entry.slug}`}
-                class:list={[
-                  "fc-chip border transition-colors",
-                  entry.label === tag
-                    ? "border-[var(--brand)] bg-[var(--brand)] text-white"
-                    : "border-transparent hover:border-[var(--brand)] hover:text-[var(--brand)]"
-                ]}
-              >
-                {entry.label}
-              </a>
-            ))}
-          </div>
-        </nav>
+      {rankedTags.length > 0 && (
+        <BlogTagNav
+          entries={rankedTags}
+          label={tagContent.tagsLabel}
+          showMoreLabel={tagContent.showMoreLabel}
+          showLessLabel={tagContent.showLessLabel}
+          currentSlug={toBlogTagSlug(tag)}
+          includeAllLink={true}
+          allLabel={tagContent.allLabel}
+        />
       )}
 
       {posts.length > 0 ? (

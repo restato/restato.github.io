@@ -3,6 +3,10 @@ export interface BlogTagEntry {
   slug: string;
 }
 
+export interface BlogTagCountEntry extends BlogTagEntry {
+  count: number;
+}
+
 export interface BlogTagRouteEntry {
   kind: 'canonical' | 'redirect';
   filesystemSegment: string;
@@ -35,6 +39,30 @@ export function getBlogTagEntries(tags: string[]): BlogTagEntry[] {
   }
 
   return [...entries.values()].sort((a, b) => a.label.localeCompare(b.label));
+}
+
+export function getRankedBlogTagEntries(
+  postTags: readonly string[][],
+): BlogTagCountEntry[] {
+  const entries = new Map<string, BlogTagCountEntry>();
+
+  for (const tags of postTags) {
+    const seenInPost = new Set<string>();
+    for (const tag of tags) {
+      const slug = toBlogTagSlug(tag);
+      if (seenInPost.has(slug)) continue;
+      seenInPost.add(slug);
+
+      const existing = entries.get(slug);
+      if (existing) existing.count += 1;
+      else entries.set(slug, { label: tag, slug, count: 1 });
+    }
+  }
+
+  return [...entries.values()].sort((a, b) => (
+    b.count - a.count
+    || a.label.localeCompare(b.label, 'en', { sensitivity: 'base' })
+  ));
 }
 
 export function getBlogTagRouteEntries(tags: string[]): BlogTagRouteEntry[] {
