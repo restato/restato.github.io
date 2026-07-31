@@ -1,0 +1,22 @@
+{
+  "source": "public/favicon.svg",
+  "sourceGeometrySha256": "25d91434d623eb22fd80b7abbd5aa7707018e6abffb30e0cbb41efdc867f24d9",
+  "generator": "macOS sips native-size SVG rasterization",
+  "outputs": {
+    "public/apple-touch-icon.png": {
+      "width": 180,
+      "height": 180,
+      "sha256": "c77a1200da0d223c142c708212c891809da9192d149a53c24fbc7ad162592733"
+    },
+    "public/icon-192x192.png": {
+      "width": 192,
+      "height": 192,
+      "sha256": "080742058d3f14649e7108f4974e14556d9ecc41437b5d87e382acd79baf2e96"
+    },
+    "public/icon-512x512.png": {
+      "width": 512,
+      "height": 512,
+      "sha256": "9f0dcb20b9e70082a040863dda7c83c36659d6d88c56c5f43ca548adc45bb56d"
+    }
+  }
+}

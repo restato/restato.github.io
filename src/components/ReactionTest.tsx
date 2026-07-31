@@ -67,7 +67,7 @@ export default function ReactionTest() {
 
   const getRank = (time: number) => {
     if (time < 150) return { rank: 'S', label: '신급!', color: 'text-yellow-400', emoji: '⚡' };
-    if (time < 200) return { rank: 'A', label: '매우 빠름', color: 'text-green-400', emoji: '🚀' };
+    if (time < 200) return { rank: 'A', label: '매우 빠름', color: 'text-green-400', emoji: '⚡' };
     if (time < 250) return { rank: 'B', label: '빠름', color: 'text-blue-400', emoji: '💨' };
     if (time < 300) return { rank: 'C', label: '보통', color: 'text-[var(--accent)]', emoji: '👍' };
     if (time < 400) return { rank: 'D', label: '느림', color: 'text-orange-400', emoji: '🐢' };

@@ -1,10 +1,11 @@
 ---
 import MainLayout from '../../../layouts/MainLayout.astro';
 import BlogCard from '../../../components/BlogCard.astro';
+import BlogTagNav from '../../../components/BlogTagNav.astro';
 import PageShell from '../../../components/ui/PageShell.astro';
 import { getCollection } from 'astro:content';
 import { getBlogTagContent, selectBlogTagLanguage } from '../../../data/blog-tag-content';
-import { getBlogTagEntries, getBlogTagRouteEntries, toBlogTagSlug } from '../../../lib/blogTags';
+import { getBlogTagRouteEntries, getRankedBlogTagEntries, toBlogTagSlug } from '../../../lib/blogTags';
 
 export async function getStaticPaths() {
   const posts = await getCollection('blog', ({ data }) => !data.draft);
@@ -36,7 +37,9 @@ const tagContent = getBlogTagContent(tagLanguage, tag, posts.length);
 
 // Get all unique tags for the filter section
 const allPosts = await getCollection('blog', ({ data }) => !data.draft);
-const allTagEntries = getBlogTagEntries(allPosts.flatMap(post => post.data.tags));
+const rankedTags = getRankedBlogTagEntries(
+  allPosts.map(post => post.data.tags),
+);
 ---
 
 <MainLayout
@@ -53,7 +56,7 @@ const allTagEntries = getBlogTagEntries(allPosts.flatMap(post => post.data.tags)
     set:html={legacyTagPathsJson}
   />
   <PageShell size="content">
-      <header class="fc-page-header">
+      <header class="fc-page-header max-w-2xl">
         <a href="/blog" class="fc-button fc-button-quiet w-fit px-2 text-sm">
           <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7" />
@@ -61,7 +64,7 @@ const allTagEntries = getBlogTagEntries(allPosts.flatMap(post => post.data.tags)
           Blog
         </a>
         <h1>
-          <span class="text-[var(--accent)]">#</span>{tag}
+          <span class="text-[var(--brand)]">#</span>{tag}
         </h1>
         <p class="fc-page-description">
           {tagContent.summary}
@@ -80,38 +83,21 @@ const allTagEntries = getBlogTagEntries(allPosts.flatMap(post => post.data.tags)
         </p>
       </section>
 
-      {allTagEntries.length > 0 && (
-        <nav
-          class="mb-10 border-b border-[var(--border-subtle)] pb-6"
-          aria-label={tagContent.tagsLabel}
-        >
-          <div class="flex flex-wrap gap-2 items-center">
-            <span class="mr-1 text-sm font-bold text-[var(--text-muted)]">{tagContent.tagsLabel}</span>
-            <a
-              href="/blog"
-              class="fc-chip border border-transparent transition-colors hover:border-[var(--brand)] hover:text-[var(--brand)]"
-            >
-              {tagContent.allLabel}
-            </a>
-            {allTagEntries.map(entry => (
-              <a
-                href={`/blog/tag/${entry.slug}`}
-                class:list={[
-                  "fc-chip border transition-colors",
-                  entry.label === tag
-                    ? "border-[var(--brand)] bg-[var(--brand)] text-white"
-                    : "border-transparent hover:border-[var(--brand)] hover:text-[var(--brand)]"
-                ]}
-              >
-                {entry.label}
-              </a>
-            ))}
-          </div>
-        </nav>
+      {rankedTags.length > 0 && (
+        <BlogTagNav
+          entries={rankedTags}
+          label={tagContent.tagsLabel}
+          showMoreLabel={tagContent.showMoreLabel}
+          showLessLabel={tagContent.showLessLabel}
+          formatCountLabel={tagContent.formatTagCount}
+          currentSlug={toBlogTagSlug(tag)}
+          includeAllLink={true}
+          allLabel={tagContent.allLabel}
+        />
       )}
 
       {posts.length > 0 ? (
-        <div class="grid gap-6 md:grid-cols-2">
+        <div class="grid gap-5 md:grid-cols-2">
           {posts.map((post) => (
             <BlogCard
               title={post.data.title}
@@ -131,7 +117,7 @@ const allTagEntries = getBlogTagEntries(allPosts.flatMap(post => post.data.tags)
       )}
 
       {posts.length > 0 && (
-        <p class="mt-8 text-center text-sm text-[var(--text-muted)]">
+        <p class="mt-8 border-t border-[var(--border-subtle)] pt-5 text-sm text-[var(--text-muted)]">
           {tagContent.summary}
         </p>
       )}

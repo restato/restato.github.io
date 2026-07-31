@@ -21,16 +21,19 @@
 @layer base {
   :root {
     color-scheme: light;
-    --surface-page: #f4efe5;
-    --surface-raised: #fffaf0;
-    --surface-soft: #ebe4d7;
-    --text-primary: #203027;
-    --text-muted: #5e6960;
-    --border-subtle: #d9d1c4;
-    --brand: #174a35;
-    --brand-hover: #236345;
-    --accent: #935832;
-    --focus: #2f7658;
+    --surface-page: #F7F8F7;
+    --surface-raised: #FFFFFF;
+    --surface-soft: #EDF3EF;
+    --text-primary: #15241D;
+    --text-muted: #657169;
+    --border-subtle: #DCE3DF;
+    --brand: #19553C;
+    --brand-hover: #236B4C;
+    --brand-soft: #9CC4AD;
+    --on-brand: #F7F8F7;
+    --accent: var(--brand);
+    --focus: #2C7655;
+    --code-comment: #A7B0A8;
 
     /* Legacy aliases retained while component styles migrate to semantic tokens. */
     --color-bg: var(--surface-page);
@@ -43,16 +46,18 @@
 
   .dark {
     color-scheme: dark;
-    --surface-page: #111814;
-    --surface-raised: #18221c;
-    --surface-soft: #202c25;
-    --text-primary: #edf2ea;
-    --text-muted: #a7b0a8;
-    --border-subtle: #344139;
-    --brand: #6fa989;
-    --brand-hover: #8ab99d;
-    --accent: #cf936a;
-    --focus: #8ab99d;
+    --surface-page: #111713;
+    --surface-raised: #19211D;
+    --surface-soft: #24342B;
+    --text-primary: #F0F4F1;
+    --text-muted: #9CA8A1;
+    --border-subtle: #303A34;
+    --brand: #70A889;
+    --brand-hover: #89B99D;
+    --brand-soft: #1D3D2F;
+    --on-brand: #111713;
+    --accent: var(--brand);
+    --focus: #8DC0A1;
   }
 
   html {
@@ -148,7 +153,7 @@
 
   .fc-surface {
     border: 1px solid var(--border-subtle);
-    border-radius: 1rem;
+    border-radius: 0.5rem;
     background: var(--surface-raised);
   }
 
@@ -174,7 +179,7 @@
     gap: 0.75rem;
     padding: clamp(1.5rem, 4vw, 3rem);
     border: 1px dashed var(--border-subtle);
-    border-radius: 1rem;
+    border-radius: 0.5rem;
     background: var(--surface-soft);
   }
 
@@ -186,7 +191,7 @@
     gap: 0.5rem;
     padding-inline: 1rem;
     border: 1px solid transparent;
-    border-radius: 0.625rem;
+    border-radius: 0.375rem;
     font-weight: 700;
     line-height: 1;
     transition: background-color 150ms ease, border-color 150ms ease, color 150ms ease;
@@ -194,7 +199,7 @@
 
   .fc-button-primary {
     background: var(--brand);
-    color: var(--surface-raised);
+    color: var(--on-brand);
   }
 
   .fc-button-primary:hover {
@@ -229,6 +234,12 @@
     border-color: var(--brand);
   }
 
+  .fc-mono,
+  .fc-prose code,
+  .fc-prose pre {
+    font-family: 'D2Coding', SFMono-Regular, Menlo, Consolas, monospace;
+  }
+
   .fc-input,
   .fc-select,
   .fc-textarea,
@@ -238,7 +249,7 @@
     min-block-size: 44px;
     padding: 0.625rem 0.75rem;
     border: 1px solid var(--border-subtle);
-    border-radius: 0.625rem;
+    border-radius: 0.375rem;
     background: var(--surface-raised);
     color: var(--text-primary);
   }
@@ -287,7 +298,7 @@
     min-block-size: 44px;
     padding: 0.25rem;
     border: 1px solid var(--border-subtle);
-    border-radius: 0.625rem;
+    border-radius: 0.375rem;
     background: var(--surface-raised);
   }
 
@@ -340,7 +351,7 @@
     place-items: center;
     padding: clamp(1.25rem, 4vw, 2rem);
     border: 2px dashed var(--border-subtle);
-    border-radius: 1rem;
+    border-radius: 0.5rem;
     background: var(--surface-soft);
     color: var(--text-primary);
     cursor: pointer;
@@ -360,7 +371,7 @@
   .fc-tool-result {
     padding: 1rem;
     border: 1px solid var(--border-subtle);
-    border-radius: 0.75rem;
+    border-radius: 0.5rem;
     background: var(--surface-soft);
     color: var(--text-primary);
   }
@@ -456,7 +467,7 @@
     align-items: flex-start;
     margin: 0;
     padding: 0.875rem 1rem;
-    border-radius: 0.75rem;
+    border-radius: 0.5rem;
     background: var(--surface-soft);
     color: var(--text-muted);
     font-size: 0.875rem;
@@ -522,7 +533,7 @@
     min-block-size: 2rem;
     align-items: center;
     padding-inline: 0.625rem;
-    border-radius: 9999px;
+    border-radius: 0.5rem;
     background: var(--surface-soft);
     color: var(--text-primary);
     font-size: 0.875rem;
@@ -582,10 +593,10 @@
   .fc-prose pre {
     overflow-x: auto;
     padding: 1.25rem;
-    border: 1px solid #4a372d;
-    border-radius: 0.75rem;
-    background: #241b16;
-    color: #f4efe5;
+    border: 1px solid var(--border-subtle);
+    border-radius: 0.5rem;
+    background: var(--surface-soft);
+    color: var(--text-primary);
   }
 
   .fc-prose pre code {
@@ -595,7 +606,7 @@
   .fc-prose blockquote {
     padding: 1rem 1.25rem;
     border-inline-start: 0.25rem solid var(--accent);
-    border-radius: 0 0.75rem 0.75rem 0;
+    border-radius: 0 0.5rem 0.5rem 0;
     background: var(--surface-soft);
     color: var(--text-muted);
   }
@@ -627,15 +638,15 @@
   }
 
   .prose pre {
-    @apply bg-[#1e1e2e] rounded-xl p-5 overflow-x-auto border border-[var(--color-border)];
+    @apply bg-[var(--surface-soft)] rounded-lg p-5 overflow-x-auto border border-[var(--color-border)];
   }
 
   .prose code {
-    @apply bg-primary-500/10 text-primary-600 dark:text-primary-400 px-2 py-0.5 rounded-[0.625rem] text-sm font-medium;
+    @apply bg-primary-500/10 text-primary-600 dark:text-primary-400 px-2 py-0.5 rounded-md text-sm font-medium;
   }
 
   .prose pre code {
-    @apply bg-transparent p-0 text-[#cdd6f4];
+    @apply bg-transparent p-0 text-[var(--text-primary)];
   }
 
   .prose h1, .prose h2, .prose h3, .prose h4 {
@@ -657,13 +668,13 @@
   }
 
   .prose img {
-    @apply rounded-xl ring-1 ring-[var(--color-border)];
+    @apply rounded-lg ring-1 ring-[var(--color-border)];
   }
 
   .prose blockquote {
     @apply border-s-4 border-primary-500 ps-6 py-1 my-6 bg-primary-500/5
            text-[var(--color-text-muted)];
-    border-radius: 0.75rem;
+    border-radius: 0.5rem;
   }
 
   .prose blockquote p {
@@ -695,7 +706,7 @@
   }
 
   /*
-   * Blog articles carry both the legacy typography class and Forest Café prose.
+   * Blog articles carry both the legacy typography class and editorial prose.
    * These combined selectors keep the editorial treatment ahead of equal-
    * specificity legacy declarations without resorting to !important.
    */
@@ -728,10 +739,10 @@
   .prose.fc-prose pre {
     overflow-x: auto;
     padding: 1.25rem;
-    border: 1px solid #4a372d;
-    border-radius: 0.75rem;
-    background: #241b16;
-    color: #f4efe5;
+    border: 1px solid var(--border-subtle);
+    border-radius: 0.5rem;
+    background: var(--surface-soft);
+    color: var(--text-primary);
   }
 
   .prose.fc-prose pre code {
@@ -741,32 +752,37 @@
   }
 
   /*
-   * Shiki's github-dark comment token is injected inline at 3.04:1.
-   * Keep the override scoped to that generated token and code theme.
+   * Shiki's github-dark comment token is injected inline below AA contrast.
+   * Keep the semantic override scoped to that generated token and code theme.
    */
   .prose.fc-prose .astro-code.github-dark span[style*='color:#6A737D'] {
-    color: #a7b0a8 !important;
+    color: var(--code-comment) !important;
   }
 
   .prose.fc-prose blockquote {
     padding: 1rem 1.25rem;
     border-inline-start: 0.25rem solid var(--accent);
-    border-radius: 0 0.75rem 0.75rem 0;
+    border-radius: 0 0.5rem 0.5rem 0;
     background-color: var(--surface-soft);
     color: var(--text-muted);
   }
 
   .card {
     @apply bg-[var(--color-card)] border border-[var(--color-border)] p-6;
-    border-radius: 0.75rem;
+    border-radius: 0.5rem;
   }
 
   .btn {
-    @apply px-5 py-2.5 rounded-xl font-medium inline-flex items-center justify-center gap-2;
+    @apply px-5 py-2.5 rounded-md font-medium inline-flex items-center justify-center gap-2;
   }
 
   .btn-primary {
-    @apply bg-primary-600 text-white hover:bg-primary-700;
+    background: var(--brand);
+    color: var(--on-brand);
+  }
+
+  .btn-primary:hover {
+    background: var(--brand-hover);
   }
 
   .btn-outline {
@@ -828,7 +844,7 @@
 
 ::-webkit-scrollbar-thumb {
   background: var(--border-subtle);
-  border-radius: 9999px;
+  border-radius: 0.5rem;
 }
 
 ::-webkit-scrollbar-thumb:hover {

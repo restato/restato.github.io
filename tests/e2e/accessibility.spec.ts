@@ -5,7 +5,7 @@ import {
   assertNoHorizontalOverflow,
   assertNoUnexpectedConsoleErrors,
 } from './fixtures';
-import { forestCafeRoutes, type ForestCafeRoute } from './forest-cafe-routes';
+import { modernRestatoRoutes, type ModernRestatoRoute } from './modern-restato-routes';
 
 const validPng = Buffer.from(
   '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',
@@ -23,7 +23,7 @@ async function assertNoSeriousOrCriticalAxeViolations(page: Page) {
   expect(blockingViolations, JSON.stringify(blockingViolations, null, 2)).toEqual([]);
 }
 
-async function installRouteState(page: Page, route: ForestCafeRoute) {
+async function installRouteState(page: Page, route: ModernRestatoRoute) {
   await page.route(/^https:\/\/api\.frankfurter\.dev\/v1\//, async (requestRoute) => {
     await requestRoute.fulfill({
       contentType: 'application/json',
@@ -71,7 +71,47 @@ async function setTheme(page: Page, theme: 'light' | 'dark') {
   }
 }
 
-async function assertDocumentStructure(page: Page, route: ForestCafeRoute) {
+async function renderedContrastRatio(page: Page, selector: string) {
+  return page.locator(selector).evaluate((element) => {
+    const parseColor = (color: string) => {
+      const channels = color.match(/[\d.]+/g)?.map(Number) ?? [];
+      return {
+        red: channels[0] ?? 0,
+        green: channels[1] ?? 0,
+        blue: channels[2] ?? 0,
+        alpha: channels[3] ?? 1,
+      };
+    };
+    const luminance = ({ red, green, blue }: ReturnType<typeof parseColor>) => {
+      const channels = [red, green, blue].map((channel) => {
+        const normalized = channel / 255;
+        return normalized <= 0.04045
+          ? normalized / 12.92
+          : ((normalized + 0.055) / 1.055) ** 2.4;
+      });
+      return (0.2126 * channels[0]) + (0.7152 * channels[1]) + (0.0722 * channels[2]);
+    };
+    const foreground = parseColor(getComputedStyle(element).color);
+    const contrastSurface = element.closest('[data-project-feature], [data-blog-tag-link]') ?? element;
+    const background = parseColor(getComputedStyle(contrastSurface).backgroundColor);
+    const compositedForeground = foreground.alpha === 1
+      ? foreground
+      : {
+          red: (foreground.red * foreground.alpha) + (background.red * (1 - foreground.alpha)),
+          green: (foreground.green * foreground.alpha) + (background.green * (1 - foreground.alpha)),
+          blue: (foreground.blue * foreground.alpha) + (background.blue * (1 - foreground.alpha)),
+          alpha: 1,
+        };
+    const foregroundLuminance = luminance(compositedForeground);
+    const backgroundLuminance = luminance(background);
+    return (
+      (Math.max(foregroundLuminance, backgroundLuminance) + 0.05)
+      / (Math.min(foregroundLuminance, backgroundLuminance) + 0.05)
+    );
+  });
+}
+
+async function assertDocumentStructure(page: Page, route: ModernRestatoRoute) {
   await expect(page.locator('h1')).toHaveCount(1);
   await expect(page.locator('main#main-content[tabindex="-1"]')).toHaveCount(1);
   await expect(page.getByRole('banner')).toHaveCount(1);
@@ -82,7 +122,7 @@ async function assertDocumentStructure(page: Page, route: ForestCafeRoute) {
   }
 }
 
-for (const route of forestCafeRoutes) {
+for (const route of modernRestatoRoutes) {
   test(`${route.name} has valid landmarks and no serious axe violations in both themes`, async ({ page }) => {
     await installRouteState(page, route);
     assertNoUnexpectedConsoleErrors(page);
@@ -103,6 +143,67 @@ for (const route of forestCafeRoutes) {
     }
   });
 }
+
+test('home project copy and selected blog tag retain AA on-brand contrast in both themes', async ({ page }) => {
+  for (const theme of ['light', 'dark'] as const) {
+    await page.goto('/', { waitUntil: 'networkidle' });
+    await setTheme(page, theme);
+    await expect(page.locator('[data-project-feature]')).toBeVisible();
+    await expect(page.locator('[data-project-description]')).toBeVisible();
+    expect(await renderedContrastRatio(page, '[data-project-feature]')).toBeGreaterThanOrEqual(4.5);
+    expect(await renderedContrastRatio(page, '[data-project-description]')).toBeGreaterThanOrEqual(4.5);
+
+    await page.goto('/blog/tag/claude-code/', { waitUntil: 'networkidle' });
+    await setTheme(page, theme);
+    const selectedTag = page.locator('[data-blog-tag-link][aria-current="page"]');
+    await expect(selectedTag).toBeVisible();
+    expect(await renderedContrastRatio(page, '[data-blog-tag-link][aria-current="page"]'))
+      .toBeGreaterThanOrEqual(4.5);
+  }
+});
+
+test('github-dark Shiki comments retain WCAG AA contrast in both site themes', async ({ page }) => {
+  const articleRoute = modernRestatoRoutes.find(({ family }) => family === 'blog-article');
+  expect(articleRoute).toBeDefined();
+
+  await page.goto(articleRoute!.path, { waitUntil: 'networkidle' });
+
+  const commentTokens = page.locator(
+    ".fc-prose pre.astro-code.github-dark span[style*='color:#6A737D']",
+  );
+  expect(await commentTokens.count()).toBeGreaterThan(0);
+
+  for (const theme of ['light', 'dark'] as const) {
+    await setTheme(page, theme);
+    const contrastRatios = await commentTokens.evaluateAll((tokens) => {
+      const relativeLuminance = (color: string) => {
+        const channels = color.match(/[\d.]+/g)?.slice(0, 3).map(Number) ?? [];
+        if (channels.length !== 3) return Number.NaN;
+        const [red, green, blue] = channels.map((channel) => {
+          const value = channel / 255;
+          return value <= 0.04045
+            ? value / 12.92
+            : ((value + 0.055) / 1.055) ** 2.4;
+        });
+        return (0.2126 * red) + (0.7152 * green) + (0.0722 * blue);
+      };
+
+      return tokens.map((token) => {
+        const foreground = relativeLuminance(getComputedStyle(token).color);
+        const codeBlock = token.closest('pre');
+        const background = relativeLuminance(getComputedStyle(codeBlock!).backgroundColor);
+        const lighter = Math.max(foreground, background);
+        const darker = Math.min(foreground, background);
+        return (lighter + 0.05) / (darker + 0.05);
+      });
+    });
+
+    expect(
+      Math.min(...contrastRatios),
+      `${theme} theme comment contrast ratios: ${contrastRatios.join(', ')}`,
+    ).toBeGreaterThanOrEqual(4.5);
+  }
+});
 
 test('keyboard navigation operates the responsive disclosure when no dialog is present', async ({ page }, testInfo) => {
   assertNoUnexpectedConsoleErrors(page);

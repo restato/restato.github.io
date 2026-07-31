@@ -1,0 +1,89 @@
+---
+import type { BlogTagCountEntry } from '../lib/blogTags';
+
+interface Props {
+  entries: BlogTagCountEntry[];
+  label: string;
+  showMoreLabel: string;
+  showLessLabel: string;
+  formatCountLabel: (count: number) => string;
+  currentSlug?: string;
+  includeAllLink?: boolean;
+  allLabel?: string;
+}
+
+const {
+  entries,
+  label,
+  showMoreLabel,
+  showLessLabel,
+  formatCountLabel,
+  currentSlug,
+  includeAllLink = false,
+  allLabel,
+} = Astro.props;
+const overflowId = `blog-tag-overflow-${crypto.randomUUID()}`;
+---
+
+<nav class="blog-tag-nav mb-10 border-b border-[var(--border-subtle)] pb-6" aria-label={label} data-blog-tag-nav>
+  <div class="blog-tag-list flex flex-wrap items-center gap-2">
+    {includeAllLink && allLabel && (
+      <a
+        data-blog-tag-link
+        href="/blog"
+        aria-current={!currentSlug ? 'page' : undefined}
+        class="fc-chip gap-1.5 border border-transparent transition-colors hover:border-[var(--brand)] hover:text-[var(--brand)]"
+      >{allLabel}</a>
+    )}
+    {entries.slice(0, 10).map(entry => (
+      <a
+        data-blog-tag-link
+        href={`/blog/tag/${entry.slug}`}
+        aria-current={entry.slug === currentSlug ? 'page' : undefined}
+        class:list={[
+          'fc-chip gap-1.5 border transition-colors',
+          entry.slug === currentSlug
+            ? 'border-[var(--brand)] bg-[var(--brand)] text-[var(--on-brand)]'
+            : 'border-transparent hover:border-[var(--brand)] hover:text-[var(--brand)]',
+        ]}
+      >
+        <span>{entry.label}</span><span aria-label={formatCountLabel(entry.count)}>{entry.count}</span>
+      </a>
+    ))}
+    {entries.length > 10 && (
+      <span id={overflowId} data-blog-tag-overflow hidden>
+        {entries.slice(10).map(entry => (
+          <a
+            data-blog-tag-link
+            href={`/blog/tag/${entry.slug}`}
+            aria-current={entry.slug === currentSlug ? 'page' : undefined}
+            class:list={[
+              'fc-chip gap-1.5 border transition-colors',
+              entry.slug === currentSlug
+                ? 'border-[var(--brand)] bg-[var(--brand)] text-[var(--on-brand)]'
+                : 'border-transparent hover:border-[var(--brand)] hover:text-[var(--brand)]',
+            ]}
+          >
+            <span>{entry.label}</span><span aria-label={formatCountLabel(entry.count)}>{entry.count}</span>
+          </a>
+        ))}
+      </span>
+    )}
+    {entries.length > 10 && (
+      <button
+        type="button"
+        class="fc-button fc-button-quiet blog-tag-toggle"
+        aria-expanded="false"
+        aria-controls={overflowId}
+        data-show-more-label={showMoreLabel}
+        data-show-less-label={showLessLabel}
+      >{showMoreLabel}</button>
+    )}
+  </div>
+</nav>
+
+<script>
+  import { initializeBlogTagNav } from './blogTagNavDisclosure';
+
+  initializeBlogTagNav();
+</script>

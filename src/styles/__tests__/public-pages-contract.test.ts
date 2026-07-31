@@ -72,7 +72,7 @@ const pageChromeComponents = [
 const oldPresentationClass =
   /\b(?:gradient-text|gradient-bg|bg-gradient-[\w-]+|backdrop-blur[\w-]*|hover:-?translate-[xy]?-[\w./[\]-]+|hover:shadow[\w-]*|group-hover:scale-[\w-]+)\b/;
 
-describe('Forest Café public page contract', () => {
+describe('Modern Restato public page contract', () => {
   beforeAll(async () => {
     const from = 'src/styles/global.css';
     compiledGlobalCss = (
@@ -120,7 +120,7 @@ describe('Forest Café public page contract', () => {
     }
   });
 
-  it('keeps Forest Café editorial rules winning in the compiled prose cascade', () => {
+  it('keeps Modern Restato editorial rules winning in the compiled prose cascade', () => {
     const document = new JSDOM(`
       <style>${compiledGlobalCss}</style>
       <main class="fc-prose prose prose-lg dark:prose-invert">
@@ -135,14 +135,14 @@ describe('Forest Café public page contract', () => {
     );
 
     expect.soft(style('main').maxInlineSize, 'reading measure').toBe('68ch');
-    expect.soft(style('#editorial-link').color, 'Forest Café link color').toBe('var(--brand)');
-    expect.soft(style('#editorial-link').textUnderlineOffset, 'Forest Café link underline').toBe('0.18em');
-    expect.soft(style('#inline-code').color, 'cinnamon inline code').toBe('var(--accent)');
+    expect.soft(style('#editorial-link').color, 'brand link color').toBe('var(--brand)');
+    expect.soft(style('#editorial-link').textUnderlineOffset, 'brand link underline').toBe('0.18em');
+    expect.soft(style('#inline-code').color, 'semantic inline code').toBe('var(--accent)');
     expect.soft(style('#inline-code').padding, 'compact inline code').toBe('0.12rem 0.35rem');
-    expect.soft(style('#code-block').backgroundColor, 'espresso code block').toBe('rgb(36, 27, 22)');
-    expect.soft(style('#block-code').color, 'code block inherits espresso text').toBe('inherit');
+    expect.soft(style('#code-block').background, 'semantic code surface').toBe('var(--surface-soft)');
+    expect.soft(style('#block-code').color, 'code block inherits semantic text').toBe('inherit');
     expect.soft(style('#editorial-quote').backgroundColor, 'soft blockquote surface').toBe('var(--surface-soft)');
-    expect.soft(style('#editorial-quote').padding, 'Forest Café blockquote spacing').toBe('1rem 1.25rem');
+    expect.soft(style('#editorial-quote').padding, 'blockquote spacing').toBe('1rem 1.25rem');
   });
 
   it('keeps legacy gradients, glass, and hover-lift out of page chrome', () => {
@@ -156,6 +156,42 @@ describe('Forest Café public page contract', () => {
       const rule = llmWikiCss.match(new RegExp(`${escapedSelector}\\s*\\{([^}]*)\\}`))?.[1] ?? '';
       expect.soft(rule, `${selector} outer UI`).not.toMatch(/(?:linear|radial|conic)-gradient\(/);
     }
+  });
+
+  it('keeps LLM Wiki surrounding chrome inside the Modern Restato contract', () => {
+    const llmWikiCss = read('src/styles/llm-wiki.css');
+    const ruleFor = (selector: string) => {
+      const escapedSelector = selector.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+      return llmWikiCss.match(new RegExp(`${escapedSelector}\\s*\\{([^}]*)\\}`))?.[1] ?? '';
+    };
+
+    expect(llmWikiCss).not.toMatch(/(?:linear|radial|conic)-gradient\(/);
+    expect(llmWikiCss).not.toMatch(/font-family:\s*[^;]*(?:Georgia|Times New Roman|\bserif\b)/i);
+    expect(llmWikiCss).not.toMatch(/@keyframes\b/);
+    expect(llmWikiCss).not.toMatch(/(?:^|[;{]\s*)animation\s*:/m);
+
+    for (const selector of [
+      '.llmw-topbar',
+      '.llmw-hero-instrument',
+      '.llmw-presentation-controls',
+      '.llmw-adoption-card',
+      '.llmw-footer-mark',
+    ]) {
+      const rule = ruleFor(selector);
+      expect.soft(rule, `${selector} semantic surface`).toMatch(
+        /background:\s*var\(--(?:surface-raised|surface-soft|llmw-panel-solid)\)/,
+      );
+      expect.soft(rule, `${selector} 6-10px geometry`).toMatch(
+        /border-radius:\s*(?:0\.375|0\.5|0\.625)rem/,
+      );
+    }
+
+    expect(ruleFor('.llmw-brand > span:first-child')).toMatch(/border-radius:\s*0\.375rem/);
+    expect(ruleFor('.llmw-footer-mark')).not.toMatch(/border-radius:\s*50%/);
+    expect(ruleFor('.llmw-primary-link,\n.llmw-adoption-actions a:first-child'))
+      .toMatch(/color:\s*var\(--on-brand\)\s*!important/);
+    expect(ruleFor('.llmw-presentation-controls > button[aria-pressed]'))
+      .toMatch(/color:\s*var\(--on-brand\)/);
   });
 
   it('keeps Korean discovery headers localized', () => {

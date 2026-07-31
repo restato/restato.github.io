@@ -33,7 +33,7 @@ describe('merge-review locale contracts', () => {
       expect(read(page)).toMatch(/<MainLayout[^>]*lang="en"[^>]*lockLanguage=\{true\}/);
     }
 
-    const matrix = read('tests/e2e/forest-cafe-routes.ts');
+    const matrix = read('tests/e2e/modern-restato-routes.ts');
     expect(matrix).toMatch(/id: 'project-quick-issue',[\s\S]*?locale: 'en'/);
   });
 

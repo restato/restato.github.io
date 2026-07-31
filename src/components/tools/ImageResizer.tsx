@@ -529,9 +529,13 @@ export default function ImageResizer({ lang: initialLang }: { lang?: Language } 
 
           {/* Quick Presets */}
           {resizeMode === 'custom' && (
-            <ToolActions className="flex flex-wrap gap-2" primary={SCALE_PRESETS.map(({ label, factor }) => (
+            <ToolActions selection className="flex flex-wrap gap-2" primary={SCALE_PRESETS.map(({ label, factor }) => (
                 <button
                   key={label}
+                  aria-pressed={
+                    settings.width === Math.round(original.width * factor)
+                    && settings.height === Math.round(original.height * factor)
+                  }
                   onClick={() => {
                     setSettings((prev) => ({
                       ...prev,
@@ -539,8 +543,7 @@ export default function ImageResizer({ lang: initialLang }: { lang?: Language } 
                       height: Math.round(original.height * factor),
                     }));
                   }}
-                  className="px-3 py-1 text-sm bg-[var(--color-card)] hover:bg-[var(--color-card-hover)]
-                  border border-[var(--color-border)] rounded transition-colors"
+                  className="px-3 py-1 text-sm transition-colors"
                 >
                   {label}
                 </button>

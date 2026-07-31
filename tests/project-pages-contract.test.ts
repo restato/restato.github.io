@@ -41,7 +41,7 @@ function contrastRatio(first: string, second: string) {
   return (lighter + 0.05) / (darker + 0.05);
 }
 
-describe('Forest Café project page contract', () => {
+describe('Modern Restato project page contract', () => {
   it.each(projectFiles)('%s uses shared primitives without legacy effects', (file) => {
     const source = projectSources[file];
 
@@ -56,7 +56,7 @@ describe('Forest Café project page contract', () => {
     expect(projectSources[file]).toMatch(/class="fc-page fc-content fc-section-flow"/);
   });
 
-  it('defines one responsive Forest Café section-flow primitive', () => {
+  it('defines one responsive Modern Restato section-flow primitive', () => {
     expect(globalStyles).toMatch(/\.fc-section-flow\s*{[\s\S]*?display:\s*grid;[\s\S]*?gap:\s*clamp\(/);
     expect(globalStyles).toMatch(/\.fc-section-flow\s*>\s*:where\([\s\S]*?margin-block:\s*0;/);
   });
@@ -99,7 +99,7 @@ describe('Forest Café project page contract', () => {
     expect(processGrid).toContain('overflow-hidden');
   });
 
-  it('uses Forest Café contrast-bearing classes for the identified text pairs', () => {
+  it('uses Modern Restato contrast-bearing classes for the identified text pairs', () => {
     const localPrice = projectSources['local-price-extractor.astro'];
     const roomfit = projectSources['roomfit-3d.astro'];
 
@@ -110,10 +110,10 @@ describe('Forest Café project page contract', () => {
 
   it('keeps the project CTA and eyebrow token pairs at WCAG AA contrast', () => {
     const pairs = [
-      ['#fffaf0', '#174a35'], // light primary button
-      ['#18221c', '#6fa989'], // dark primary button
-      ['#935832', '#f4efe5'], // light eyebrow
-      ['#cf936a', '#111814'], // dark eyebrow
+      ['#FFFFFF', '#19553C'], // light primary button
+      ['#19211D', '#70A889'], // dark primary button
+      ['#19553C', '#F7F8F7'], // light eyebrow
+      ['#70A889', '#111713'], // dark eyebrow
     ] as const;
 
     for (const [foreground, background] of pairs) {

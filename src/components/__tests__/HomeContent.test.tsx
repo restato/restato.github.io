@@ -28,14 +28,16 @@ function renderHome(language: Language) {
   );
 }
 
-describe('Forest Café home content', () => {
+describe('Modern Restato home content', () => {
   beforeEach(() => localStorage.clear());
 
   it('uses one concise page heading and meaningful section headings', () => {
     renderHome('en');
 
     expect(screen.getAllByRole('heading', { level: 1 })).toHaveLength(1);
-    expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent('Small web tasks, quietly solved.');
+    expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent(
+      'Small web tasks, faster and simpler.',
+    );
     expect(screen.getByRole('heading', { level: 2, name: 'Popular tools' })).toBeInTheDocument();
     expect(screen.getByRole('heading', { level: 2, name: 'Recent notes' })).toBeInTheDocument();
     expect(screen.getByRole('heading', { level: 2, name: 'Projects & play' })).toBeInTheDocument();
@@ -46,23 +48,23 @@ describe('Forest Café home content', () => {
 
     expect(container.querySelector('a.fc-button-primary'))
       .toHaveAttribute('href', `/${language}/tools/`);
-    expect(container.querySelector(`a[href="/${language}/tools/json/"]`))
-      .toBeInTheDocument();
-    expect(container.querySelector(`a[href="/${language}/anonymous-chat/"]`))
-      .toBeInTheDocument();
+    for (const slug of ['json', 'qr-code', 'text-counter', 'color']) {
+      expect(container.querySelector(`a[href="/${language}/tools/${slug}/"]`))
+        .toBeInTheDocument();
+    }
   });
 
-  it('uses quiet shared surfaces without legacy floating effects', () => {
+  it('uses the approved four-tool grid and deep-green project feature', () => {
     const { container } = renderHome('en');
 
-    expect(container.querySelectorAll('.fc-surface').length).toBeGreaterThan(0);
-    expect(container.innerHTML).not.toMatch(
-      /\bgradient-|\bbackdrop-blur|\bhover:-translate|\bhover:scale|\bshadow-(?:lg|xl|2xl)\b/,
-    );
+    expect(container.querySelector('[data-home-tool-grid]')).toHaveClass('lg:grid-cols-4');
+    expect(container.querySelectorAll('[data-home-tool-card]')).toHaveLength(4);
+    expect(container.querySelector('[data-project-feature]')).toBeInTheDocument();
+    expect(container.innerHTML).not.toMatch(/D2Coding|rounded-full|gradient-|shadow-(?:lg|xl|2xl)/);
   });
 });
 
-describe('Forest Café not-found content', () => {
+describe('Modern Restato not-found content', () => {
   beforeEach(() => localStorage.clear());
 
   it.each(supportedLanguages)('preserves the selected %s locale in return and tool links', language => {

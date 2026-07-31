@@ -211,7 +211,7 @@ describe('tool detail route shell', () => {
   it.each([
     ['legacy layout', legacyLayout],
     ['localized route', localizedRoute],
-  ])('shares Forest Café shell landmarks in the %s', (_name, source) => {
+  ])('shares Modern Restato shell landmarks in the %s', (_name, source) => {
     expect(source).toContain('fc-tool-shell');
     expect(source).toContain('fc-tool-breadcrumb');
     expect(source).toContain('fc-tool-header');

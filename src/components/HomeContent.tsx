@@ -8,19 +8,14 @@ const editorialCopy = {
     ja: 'RESTATO · 小さなウェブ作業室',
   },
   title: {
-    ko: '작은 웹 작업을 가볍게 끝내세요.',
-    en: 'Small web tasks, quietly solved.',
-    ja: '小さなウェブ作業を、軽やかに。',
+    ko: '작은 웹 작업을 더 빠르고 간단하게.',
+    en: 'Small web tasks, faster and simpler.',
+    ja: '小さなウェブ作業を、もっと速く、シンプルに。',
   },
   description: {
     ko: '계산, 변환, 개발 작업에 필요한 도구와 직접 만들며 배운 기록을 한곳에 모았습니다.',
     en: 'Practical tools for calculations, conversions, and development, alongside notes from making them.',
     ja: '計算、変換、開発に役立つ道具と、ものづくりから得た記録を一か所にまとめました。',
-  },
-  annotation: {
-    ko: '큰일 사이의 작은 일을 위한 도구.',
-    en: 'For the small jobs between bigger ones.',
-    ja: '大きな仕事の合間にある、小さな作業のために。',
   },
   searchTools: {
     ko: '도구 검색',
@@ -77,10 +72,10 @@ export function HeroSection() {
   const { routingLang, t } = useTranslation();
 
   return (
-    <section className="grid gap-8 border-b border-[var(--border-subtle)] py-12 md:py-16 lg:grid-cols-[minmax(0,1fr)_18rem] lg:items-end">
-      <div className="max-w-3xl">
+    <section className="border-b border-[var(--border-subtle)] py-12 md:py-20">
+      <div className="max-w-4xl">
         <p className="fc-eyebrow mb-3">{t(editorialCopy.eyebrow)}</p>
-        <h1 className="m-0 text-4xl font-bold leading-tight text-[var(--text-primary)] md:text-5xl">
+        <h1 className="m-0 max-w-3xl text-4xl font-bold leading-[1.08] tracking-[-0.025em] text-[var(--text-primary)] md:text-6xl">
           {t(editorialCopy.title)}
         </h1>
         <p className="mt-5 max-w-2xl text-lg text-[var(--text-muted)]">
@@ -96,10 +91,6 @@ export function HeroSection() {
           </a>
         </div>
       </div>
-
-      <p className="m-0 border-l-2 border-[var(--accent)] pl-4 text-sm text-[var(--accent)]">
-        {t(editorialCopy.annotation)}
-      </p>
     </section>
   );
 }
@@ -140,15 +131,29 @@ export function PopularToolsSection() {
   const { routingLang, t, translations } = useTranslation();
   const idx = translations.common.index;
   const tools = [
-    { slug: 'json', icon: '{ }', name: idx.jsonFormatter },
-    { slug: 'qr-code', icon: 'QR', name: idx.qrCode },
-    { slug: 'color', icon: 'HEX', name: idx.colorConverter },
-    { slug: 'image-resizer', icon: 'PX', name: idx.imageResizer },
-    { slug: 'base64', icon: '64', name: idx.base64 },
     {
-      slug: 'anonymous-chat',
-      icon: 'P2P',
-      name: { ko: '익명 채팅', en: 'Anonymous chat', ja: '匿名チャット' },
+      slug: 'json',
+      icon: '{ }',
+      name: idx.jsonFormatter,
+      description: translations.tools.json.description,
+    },
+    {
+      slug: 'qr-code',
+      icon: 'QR',
+      name: idx.qrCode,
+      description: translations.tools.qrCode.description,
+    },
+    {
+      slug: 'text-counter',
+      icon: 'Aa',
+      name: translations.tools.textCounter.title,
+      description: translations.tools.textCounter.description,
+    },
+    {
+      slug: 'color',
+      icon: 'HEX',
+      name: idx.colorConverter,
+      description: translations.tools.color.description,
     },
   ];
 
@@ -167,32 +172,31 @@ export function PopularToolsSection() {
         </a>
       </div>
 
-      <div className="fc-surface overflow-hidden">
-        <ul className="m-0 grid list-none p-0 sm:grid-cols-2">
-          {tools.map((tool, index) => (
-            <li
-              key={tool.slug}
-              className={[
-                'border-[var(--border-subtle)]',
-                index > 0 ? 'border-t' : '',
-                index === 1 ? 'sm:border-t-0' : '',
-                index % 2 === 1 ? 'sm:border-l' : '',
-              ].join(' ')}
+      <ul
+        className="m-0 grid list-none gap-3 p-0 sm:grid-cols-2 lg:grid-cols-4"
+        data-home-tool-grid
+      >
+        {tools.map(tool => (
+          <li key={tool.slug} data-home-tool-card>
+            <a
+              href={toolPath(routingLang, tool.slug)}
+              className="fc-surface flex h-full min-h-36 flex-col p-4 text-[var(--text-primary)] transition-colors hover:border-[var(--brand)]"
             >
-              <a
-                href={toolPath(routingLang, tool.slug)}
-                className="flex min-h-14 items-center gap-3 px-4 py-3 text-[var(--text-primary)] transition-colors hover:bg-[var(--surface-soft)]"
+              <span
+                className="flex h-[34px] w-[34px] shrink-0 items-center justify-center rounded-md bg-[var(--surface-soft)] text-[11px] font-bold text-[var(--brand)]"
+                aria-hidden="true"
               >
-                <span className="w-9 shrink-0 text-xs font-bold text-[var(--accent)]" aria-hidden="true">
-                  {tool.icon}
-                </span>
-                <span className="font-bold">{t(tool.name)}</span>
-                <span className="ml-auto text-[var(--text-muted)]"><Arrow /></span>
-              </a>
-            </li>
-          ))}
-        </ul>
-      </div>
+                {tool.icon}
+              </span>
+              <span className="mt-5 font-bold leading-snug">{t(tool.name)}</span>
+              <span className="mt-1 line-clamp-1 text-sm text-[var(--text-muted)]">
+                {t(tool.description)}
+              </span>
+              <span className="mt-auto pt-4 text-[var(--brand)]"><Arrow /></span>
+            </a>
+          </li>
+        ))}
+      </ul>
     </section>
   );
 }
@@ -200,21 +204,6 @@ export function PopularToolsSection() {
 export function ProjectsSection() {
   const { t, translations } = useTranslation();
   const idx = translations.common.index;
-  const projects = [
-    {
-      href: '/projects/games',
-      label: idx.gameCenter,
-      description: idx.sixFreeGames,
-      marker: 'PLAY',
-    },
-    {
-      href: '/projects/roulette',
-      label: idx.roulette,
-      description: idx.rouletteDesc,
-      marker: 'SPIN',
-    },
-  ];
-
   return (
     <section aria-labelledby="projects-heading">
       <div className="mb-5 flex items-end justify-between gap-4">
@@ -230,26 +219,28 @@ export function ProjectsSection() {
         </a>
       </div>
 
-      <div className="fc-surface overflow-hidden">
-        <ul className="m-0 list-none divide-y divide-[var(--border-subtle)] p-0">
-          {projects.map(project => (
-            <li key={project.href}>
-              <a
-                href={project.href}
-                className="flex items-center gap-4 px-4 py-4 transition-colors hover:bg-[var(--surface-soft)]"
-              >
-                <span className="w-10 shrink-0 text-xs font-bold text-[var(--accent)]" aria-hidden="true">
-                  {project.marker}
-                </span>
-                <span>
-                  <strong className="block text-[var(--text-primary)]">{t(project.label)}</strong>
-                  <span className="text-sm text-[var(--text-muted)]">{t(project.description)}</span>
-                </span>
-                <span className="ml-auto text-[var(--text-muted)]"><Arrow /></span>
-              </a>
-            </li>
-          ))}
-        </ul>
+      <div className="grid gap-3 sm:grid-cols-[minmax(0,1.6fr)_minmax(16rem,0.8fr)]">
+        <a
+          href="/projects/games"
+          className="block rounded-lg bg-[var(--brand)] p-6 text-[var(--on-brand)] transition-colors hover:bg-[var(--brand-hover)]"
+          data-project-feature
+        >
+          <span className="text-xs font-bold uppercase tracking-[0.08em] opacity-80">PLAY</span>
+          <strong className="mt-8 block text-2xl leading-tight">{t(idx.gameCenter)}</strong>
+          <span className="mt-2 block text-sm" data-project-description>{t(idx.sixFreeGames)}</span>
+          <span className="mt-6 block" aria-hidden="true"><Arrow /></span>
+        </a>
+
+        <a
+          href="/projects/roulette"
+          className="fc-surface flex items-center gap-4 px-4 py-4 transition-colors hover:border-[var(--brand)]"
+        >
+          <span>
+            <strong className="block text-[var(--text-primary)]">{t(idx.roulette)}</strong>
+            <span className="text-sm text-[var(--text-muted)]">{t(idx.rouletteDesc)}</span>
+          </span>
+          <span className="ml-auto text-[var(--brand)]"><Arrow /></span>
+        </a>
       </div>
     </section>
   );

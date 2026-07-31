@@ -13,6 +13,11 @@ export function getStaticPaths() {
 
 const { lang } = Astro.params as { lang: Language };
 const copy = landingContent[lang];
+const modernHeading: Partial<Record<Language, string>> = {
+  ko: '작은 웹 작업을 더 빠르고 간단하게.',
+  en: 'Small web tasks, faster and simpler.',
+  ja: '小さなウェブ作業を、もっと速く、シンプルに。',
+};
 const alternateUrls = getAlternateUrls(`/${lang}/`, 'https://restato.github.io');
 const tools = getPublishedTools();
 
@@ -49,19 +54,19 @@ const getDisplayContent = (tool: ToolDefinition) =>
   alternateUrls={alternateUrls}
 >
   <div class="fc-page fc-content">
-    <header class="grid gap-8 border-b border-[var(--border-subtle)] py-8 md:py-12 lg:grid-cols-[minmax(0,1fr)_18rem] lg:items-end">
-      <div class="max-w-3xl">
+    <header class="border-b border-[var(--border-subtle)] py-10 md:py-16">
+      <div class="max-w-4xl">
         <p class="fc-eyebrow mb-3">RESTATO · WEB TOOLS</p>
-        <h1 class="m-0 text-4xl font-bold leading-tight text-[var(--text-primary)] md:text-5xl">{copy.heading}</h1>
+        <h1 class="m-0 max-w-3xl text-4xl font-bold leading-[1.08] tracking-[-0.025em] text-[var(--text-primary)] md:text-6xl">
+          {modernHeading[lang] ?? copy.heading}
+        </h1>
         <p class="mt-5 max-w-2xl text-lg text-[var(--text-muted)]">{copy.intro}</p>
         <a class="fc-button fc-button-primary mt-7" href={`/${lang}/tools/`}>
           {copy.allTools}
           <span aria-hidden="true">→</span>
         </a>
+        <p class="mt-4 text-sm text-[var(--text-muted)]">{copy.localPrivacy}</p>
       </div>
-      <p class="m-0 border-l-2 border-[var(--accent)] pl-4 text-sm text-[var(--accent)]">
-        {copy.localPrivacy}
-      </p>
     </header>
 
     <section class="py-10" aria-labelledby="tool-clusters-heading">
