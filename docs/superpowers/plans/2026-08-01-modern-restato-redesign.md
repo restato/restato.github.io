@@ -37,7 +37,7 @@
 
 **Interfaces:**
 - Produces: `BlogTagCountEntry extends BlogTagEntry { count: number }`.
-- Produces: `getRankedBlogTagEntries(postTags: readonly string[][], locale?: string): BlogTagCountEntry[]`; each canonical tag is counted at most once per post.
+- Produces: `getRankedBlogTagEntries(postTags: readonly string[][]): BlogTagCountEntry[]`; each canonical tag is counted at most once per post and equal counts use English collation for a stable Latin-first sequence across locales.
 - Produces: `BlogTagNav.astro` props `{ entries, label, showMoreLabel, showLessLabel, currentSlug?, includeAllLink?, allLabel? }`.
 - Preserves: `getBlogTagEntries`, `getBlogTagRouteEntries`, `toBlogTagSlug`, and all canonical/legacy tag URL behavior.
 
@@ -49,7 +49,6 @@ Add focused assertions to `src/lib/__tests__/blogTags.test.ts`:
 it('ranks canonical tags by post count and breaks ties by localized label', () => {
   expect(getRankedBlogTagEntries(
     [['Astro', 'AI'], ['astro', '도구'], ['AI', 'Blog']],
-    'ko',
   )).toEqual([
     { label: 'AI', slug: 'ai', count: 2 },
     { label: 'Astro', slug: 'astro', count: 2 },
@@ -85,7 +84,6 @@ export interface BlogTagCountEntry extends BlogTagEntry {
 
 export function getRankedBlogTagEntries(
   postTags: readonly string[][],
-  locale = 'en',
 ): BlogTagCountEntry[] {
   const entries = new Map<string, BlogTagCountEntry>();
 
@@ -103,7 +101,7 @@ export function getRankedBlogTagEntries(
   }
 
   return [...entries.values()].sort((a, b) =>
-    b.count - a.count || a.label.localeCompare(b.label, locale, { sensitivity: 'base' })
+    b.count - a.count || a.label.localeCompare(b.label, 'en', { sensitivity: 'base' })
   );
 }
 ```
@@ -121,7 +119,7 @@ expect(source).toContain('data-blog-tag-overflow');
 expect(source).toContain('data-show-more-label={showMoreLabel}');
 expect(source).toContain('data-show-less-label={showLessLabel}');
 expect(source).toContain('{entry.count}');
-expect(source).toContain('if (entries.length > 10)');
+expect(source).toContain('entries.length > 10');
 ```
 
 Extend `src/data/__tests__/blog-tag-content.test.ts` to assert every supported language returns non-empty `showMoreLabel` and `showLessLabel` values.
@@ -178,11 +176,10 @@ On `/blog/`, derive entries with:
 ```ts
 const rankedTags = getRankedBlogTagEntries(
   posts.map(post => post.data.tags),
-  'en',
 );
 ```
 
-On `/blog/tag/[tag]/`, use `allPosts.map(post => post.data.tags)` and `tagLanguage` as the locale.
+On `/blog/tag/[tag]/`, use `allPosts.map(post => post.data.tags)`. Ranking stays identical across locales.
 
 Render `BlogTagNav` on `/blog/` and every `/blog/tag/[tag]/` route. On tag pages pass `currentSlug={toBlogTagSlug(tag)}`, `includeAllLink={true}`, and localized labels; do not modify tag route generation or canonical URLs.
 

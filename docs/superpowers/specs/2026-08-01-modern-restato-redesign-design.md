@@ -117,7 +117,7 @@ The tag list at the top of the blog must be compact and deterministic.
 
 - Count published posts for every tag in the current locale/content collection.
 - Sort tags by descending published-post count.
-- Break equal-count ties by locale-aware tag name in ascending order.
+- Break equal-count ties with English collation in ascending order for a stable Latin-first sequence across every locale.
 - Show only the first 10 tags on initial render.
 - Display each tag's post count next to its name.
 - When more than 10 tags exist, show a localized `더보기` control after the visible list.
