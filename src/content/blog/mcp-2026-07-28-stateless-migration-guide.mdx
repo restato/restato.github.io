@@ -1,0 +1,370 @@
+---
+title: "MCP 2026-07-28 마이그레이션 가이드: 세션 제거, Stateless 요청, Conformance CI"
+description: "MCP 2026-07-28 릴리스 후보의 핵심 변경을 서버·클라이언트 운영 관점에서 정리합니다. initialize 제거, server/discover, MRTR, subscriptions/listen, 캐시 메타데이터와 conformance CI 전환 절차를 다룹니다."
+date: 2026-07-24
+verifiedAt: 2026-07-24
+tags: ["MCP", "Model Context Protocol", "AI Agent", "GitHub", "Protocol", "Migration", "Conformance Test"]
+---
+
+MCP 서버를 운영하고 있다면 2026년 7월 28일 예정인 다음 명세를 단순한 버전 업데이트로 보면 안 됩니다. 이번 릴리스 후보는 `initialize`와 프로토콜 세션을 제거하고, 요청마다 버전과 capability를 전달하는 stateless 구조로 바꿉니다.
+
+GitHub MCP Server는 7월 23일 새 명세를 미리 지원한다고 발표했습니다. 공식 Tier 1 SDK도 하위 호환성을 유지한 beta 지원을 제공하고 있어 기존 사용자가 당장 서비스를 중단할 필요는 없습니다. 하지만 직접 MCP 서버나 클라이언트를 구현했다면 저장소 구조, 스트리밍, 재시도, 인증과 테스트 방식은 미리 점검해야 합니다.
+
+**핵심 판단은 간단합니다. SDK만 쓰는 애플리케이션은 버전을 고정하고 호환성 테스트부터 추가하면 됩니다. 프로토콜 수명주기나 Streamable HTTP를 직접 다루는 구현은 명세 전환 작업이 필요합니다.**
+
+> 이 글은 2026년 7월 24일 공개된 릴리스 후보와 draft 명세를 기준으로 작성했습니다. 7월 28일 최종 명세에서 세부 필드나 SDK API가 달라질 수 있으므로 배포 전에 최종 문서를 다시 확인하세요.
+
+## 무엇이 달라지는가
+
+| 영역 | 이전 방식 | 2026-07-28 릴리스 후보 | 운영 영향 |
+| --- | --- | --- | --- |
+| 연결 수명주기 | `initialize` 후 `notifications/initialized` | handshake 제거 | 요청마다 독립적으로 검증해야 함 |
+| 세션 | `Mcp-Session-Id`와 연결별 상태 | 프로토콜 세션 제거 | 상태는 명시적인 handle로 전달 |
+| 버전 협상 | 초기화 시 한 번 협상 | 요청별 `_meta`와 `server/discover` | 중간 프록시와 병렬 연결이 쉬워짐 |
+| 서버→클라이언트 입력 요청 | 연결 안에서 server-initiated request | Multi Round-Trip Request | 원 요청을 입력과 함께 다시 전송 |
+| 목록 변경 알림 | HTTP GET, subscribe/unsubscribe | `subscriptions/listen` | 별도 POST response stream 운영 |
+| 긴 작업 | core의 experimental tasks | 공식 Tasks extension | 확장 capability 협상 필요 |
+| 재연결 | SSE event ID로 재개 가능 | resumability 제거 | 끊긴 요청은 새 request ID로 재실행 |
+| 검증 | SDK별 테스트 중심 | 공식 conformance suite | CI에서 명세 호환성을 검증 가능 |
+
+가장 큰 변화는 “서버가 상태를 가지면 안 된다”가 아닙니다. **프로토콜이 연결 세션을 암묵적으로 제공하지 않는다**는 뜻입니다. 장기 작업, 사용자별 실행 상태, OAuth 진행 상태가 필요하면 서버가 직접 handle을 발급하고 일반 tool argument나 extension handle로 전달해야 합니다.
+
+## 1. `initialize`를 요청별 메타데이터로 바꾸기
+
+새 명세에서 각 요청은 protocol version과 client capability를 자체적으로 전달합니다. 아래 예시는 프로토콜 구조를 설명하기 위한 축약형입니다.
+
+```json
+{
+  "jsonrpc": "2.0",
+  "id": "req-42",
+  "method": "tools/call",
+  "params": {
+    "name": "deploy_preview",
+    "arguments": {
+      "project": "docs"
+    },
+    "_meta": {
+      "io.modelcontextprotocol/protocolVersion": "2026-07-28",
+      "io.modelcontextprotocol/clientCapabilities": {
+        "elicitation": {
+          "form": {},
+          "url": {}
+        }
+      },
+      "io.modelcontextprotocol/clientInfo": {
+        "name": "restato-agent",
+        "version": "1.4.0"
+      }
+    }
+  }
+}
+```
+
+서버 응답도 identity와 `resultType`을 명시합니다.
+
+```json
+{
+  "jsonrpc": "2.0",
+  "id": "req-42",
+  "result": {
+    "resultType": "complete",
+    "content": [
+      {
+        "type": "text",
+        "text": "Preview deployment created"
+      }
+    ],
+    "_meta": {
+      "io.modelcontextprotocol/serverInfo": {
+        "name": "restato-deploy-server",
+        "version": "2.0.0"
+      }
+    }
+  }
+}
+```
+
+직접 transport를 구현했다면 다음을 확인하세요.
+
+- 초기화 결과를 전역 변수나 Redis에 저장하는 코드를 제거했는가
+- 모든 요청에서 protocol version과 capability를 검증하는가
+- 지원하지 않는 버전에 `UnsupportedProtocolVersionError`를 반환하는가
+- 오래된 서버가 `resultType`을 생략하면 클라이언트가 `complete`로 처리하는가
+- 클라이언트와 서버 identity가 로그와 trace에 남는가
+
+공식 SDK를 사용한다면 이 필드를 직접 구성하기보다 SDK beta 버전의 호환 계층을 사용해야 합니다. 프로토콜 JSON을 애플리케이션 코드 곳곳에서 직접 만들면 최종 명세 변경에 취약해집니다.
+
+## 2. 연결 상태를 명시적인 handle로 옮기기
+
+이전 구현은 `Mcp-Session-Id`를 키로 작업 상태를 저장하기 쉬웠습니다.
+
+```text
+Mcp-Session-Id
+  └─ user
+  └─ current repository
+  └─ pending approval
+  └─ long-running job
+```
+
+새 구조에서는 상태의 소유권을 애플리케이션이 명확히 정의해야 합니다.
+
+```text
+request
+  ├─ auth subject
+  ├─ explicit operation handle
+  ├─ idempotency key
+  └─ tool arguments
+         └─ server-side durable state
+```
+
+예를 들어 긴 배포 작업은 첫 호출에서 handle을 반환하고, 이후 호출에서 handle을 다시 받습니다.
+
+```json
+{
+  "name": "start_deployment",
+  "arguments": {
+    "repository": "restato/restato.github.io",
+    "idempotencyKey": "deploy-20260724-001"
+  }
+}
+```
+
+```json
+{
+  "resultType": "complete",
+  "structuredContent": {
+    "deploymentHandle": "dep_01K123...",
+    "status": "queued"
+  }
+}
+```
+
+이 방식은 수평 확장에 유리하지만 handle을 인증 토큰처럼 다뤄야 합니다.
+
+- handle은 충분히 예측 불가능해야 합니다.
+- 요청 주체가 해당 handle을 조회할 권한이 있는지 매번 확인해야 합니다.
+- 중복 호출을 막기 위해 idempotency key를 별도로 둡니다.
+- 완료된 handle은 만료시키고 감사 로그는 별도 보관합니다.
+
+Stateless protocol은 stateless application을 의미하지 않습니다. 상태를 숨겨진 연결 정보에서 명시적인 도메인 모델로 옮기는 변화입니다.
+
+## 3. `server/discover`로 버전을 먼저 확인하기
+
+새 서버는 `server/discover`를 구현해 지원하는 protocol version, capability와 identity를 알려야 합니다. 클라이언트는 첫 tool call 전에 이를 호출해 최적 버전을 선택할 수 있습니다.
+
+호환 기간에는 다음 순서가 안전합니다.
+
+```text
+1. server/discover 시도
+2. 성공하면 공통 지원 버전 선택
+3. 메서드를 찾을 수 없으면 기존 initialize 방식으로 fallback
+4. 선택된 경로를 telemetry에 기록
+5. fallback 비율이 충분히 낮아진 뒤 legacy 경로 제거
+```
+
+STDIO와 remote HTTP를 동시에 지원한다면 transport별 호환성도 따로 측정하세요. “새 SDK에서 동작한다”와 “기존 클라이언트가 계속 연결된다”는 다른 검증입니다.
+
+## 4. Elicitation을 Multi Round-Trip Request로 바꾸기
+
+서버가 사용자 입력을 더 필요로 할 때 연결 안에서 별도 요청을 밀어 넣는 대신, `input_required` 결과를 반환합니다. 클라이언트는 사용자 응답을 받은 뒤 원래 요청을 다시 보냅니다.
+
+```json
+{
+  "resultType": "input_required",
+  "inputRequests": [
+    {
+      "method": "elicitation/create",
+      "params": {
+        "mode": "form",
+        "message": "배포 환경을 선택하세요",
+        "requestedSchema": {
+          "type": "object",
+          "properties": {
+            "environment": {
+              "type": "string",
+              "enum": ["preview", "production"]
+            }
+          },
+          "required": ["environment"]
+        }
+      }
+    }
+  ]
+}
+```
+
+입력이 준비되면 같은 업무 요청을 새 request ID로 재전송하고 `inputResponses`를 포함합니다. 서버는 `requestState`나 자체 operation handle로 이전 단계와 연결합니다.
+
+보안 규칙도 분명합니다.
+
+- form mode로 비밀번호, API key, access token, 결제 자격증명을 요구하면 안 됩니다.
+- 민감한 인증이나 결제는 URL mode를 사용합니다.
+- 클라이언트는 요청한 서버와 이동할 도메인을 사용자에게 보여줘야 합니다.
+- 사용자는 수정, 거절, 취소할 수 있어야 합니다.
+
+Elicitation은 편리한 입력 폼이 아니라 사용자의 데이터 통제권을 유지하기 위한 프로토콜 경계입니다.
+
+## 5. 목록 캐시와 변경 알림을 함께 설계하기
+
+`tools/list`, `prompts/list`, `resources/list` 등의 결과에는 `ttlMs`와 `cacheScope`가 요구됩니다. 도구 목록은 결정적인 순서로 반환하는 것이 권장됩니다.
+
+```json
+{
+  "resultType": "complete",
+  "tools": [],
+  "ttlMs": 300000,
+  "cacheScope": "private"
+}
+```
+
+캐시 전략은 다음 세 요소를 함께 사용합니다.
+
+1. `ttlMs`: 다음 재검증까지의 freshness hint
+2. `cacheScope`: shared cache 가능 여부
+3. `subscriptions/listen`: 목록이 바뀌었을 때 조기 무효화
+
+사용자 권한에 따라 도구 목록이 달라진다면 `private`을 사용하세요. 동일한 서버라도 인증 주체별로 결과가 다르면 public cache는 권한 정보 누출로 이어질 수 있습니다.
+
+## 6. 끊긴 요청은 복구가 아니라 재실행으로 다루기
+
+새 Streamable HTTP에서는 SSE event ID와 `Last-Event-ID` 기반 재개가 제거됩니다. 응답 stream이 끊기면 in-flight 요청을 잃고 새 request ID로 다시 요청해야 합니다.
+
+따라서 부작용이 있는 도구에는 idempotency가 필수입니다.
+
+```ts
+interface DeployInput {
+  repository: string;
+  ref: string;
+  idempotencyKey: string;
+}
+
+async function deploy(input: DeployInput) {
+  const previous = await deploymentStore.findByKey(input.idempotencyKey);
+  if (previous) return previous;
+
+  return deploymentStore.createAndStart(input);
+}
+```
+
+클라이언트는 모든 실패를 자동 재시도하면 안 됩니다.
+
+| 작업 | 자동 재시도 | 조건 |
+| --- | --- | --- |
+| 목록 조회 | 가능 | backoff와 timeout 적용 |
+| 읽기 전용 검색 | 가능 | 동일 결과를 허용할 때 |
+| 파일 수정 | 제한적 | idempotency key와 상태 확인 필요 |
+| 배포·결제·삭제 | 기본 금지 | 사용자 확인 또는 operation status 조회 후 판단 |
+
+## 7. 공식 conformance suite를 CI에 넣기
+
+이번 전환에서 가장 실용적인 변화는 공식 conformance test입니다. 직접 만든 서버가 draft lifecycle을 따르는지 명령 하나로 확인할 수 있습니다.
+
+서버 전체 draft suite를 실행합니다.
+
+```bash
+npx @modelcontextprotocol/conformance \
+  server \
+  --url http://localhost:3000/mcp \
+  --suite draft \
+  --verbose
+```
+
+클라이언트는 draft protocol version을 명시할 수 있습니다.
+
+```bash
+npx @modelcontextprotocol/conformance \
+  client \
+  --command "node ./dist/client.js" \
+  --suite draft \
+  --spec-version 2026-07-28
+```
+
+GitHub Actions에서는 공식 composite action을 사용할 수 있습니다.
+
+```yaml
+name: MCP conformance
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+jobs:
+  server-conformance:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: npm ci
+      - run: |
+          npm run start:mcp -- --port 3001 &
+          timeout 20 bash -c 'until curl -fsS http://localhost:3001/mcp; do sleep 0.5; done'
+      - uses: modelcontextprotocol/conformance@v0.1.11
+        with:
+          mode: server
+          url: http://localhost:3001/mcp
+          suite: draft
+          verbose: true
+```
+
+기존 실패를 baseline으로 관리할 수 있지만 scenario 전체를 무시하지 마세요. 공식 도구는 개별 check ID를 baseline으로 지정할 수 있습니다. 수정된 check가 계속 baseline에 남아 있으면 CI가 실패하므로 오래된 예외도 발견할 수 있습니다.
+
+## 8. deprecated 기능을 신규 코드에 추가하지 않기
+
+릴리스 후보는 Roots, Sampling, Logging, Dynamic Client Registration과 기존 HTTP+SSE transport를 deprecated로 분류합니다. 즉시 제거되는 것은 아니며 최소 deprecation window가 있지만 새 구현은 다른 경로를 선택해야 합니다.
+
+| Deprecated 기능 | 권장 전환 |
+| --- | --- |
+| Roots | tool argument, resource URI, server configuration으로 파일 범위 전달 |
+| Sampling | LLM provider API를 애플리케이션에서 직접 호출 |
+| Logging | STDIO는 `stderr`, 원격 환경은 OpenTelemetry 사용 |
+| Dynamic Client Registration | Client ID Metadata Documents 검토 |
+| HTTP+SSE | Streamable HTTP로 이동 |
+
+특히 Sampling을 사용해 MCP 서버가 임의의 모델 호출을 클라이언트에 위임하고 있다면 아키텍처 경계를 다시 봐야 합니다. 모델 비용, 데이터 전송, 사용 정책과 감사 로그의 소유자를 명확히 한 뒤 provider integration을 배치해야 합니다.
+
+## 권장 마이그레이션 순서
+
+### 애플리케이션 개발자
+
+1. 사용 중인 MCP SDK와 transport 버전을 고정합니다.
+2. SDK의 2026-07-28 호환 beta와 변경 로그를 확인합니다.
+3. 구형 서버와 신형 서버를 모두 대상으로 contract test를 추가합니다.
+4. fallback 경로와 선택된 protocol version을 telemetry에 기록합니다.
+5. 최종 명세 공개 후 canary 환경에서 먼저 올립니다.
+
+### MCP 서버 개발자
+
+1. `initialize`와 session ID에 의존하는 코드를 목록화합니다.
+2. 도메인 상태를 명시적 handle과 idempotency key로 이동합니다.
+3. `server/discover`와 요청별 `_meta` 검증을 추가합니다.
+4. 모든 결과에 `resultType`을 추가합니다.
+5. server-initiated request를 MRTR로 전환합니다.
+6. 목록 결과에 cache metadata를 추가하고 deterministic ordering을 보장합니다.
+7. Streamable HTTP 재시도 정책을 검토합니다.
+8. draft conformance suite를 CI에 추가합니다.
+
+### MCP 클라이언트 개발자
+
+1. `server/discover` 후 버전을 선택하고 legacy fallback을 유지합니다.
+2. 요청마다 capability와 identity를 보냅니다.
+3. `input_required` 결과를 UI와 재요청 흐름에 연결합니다.
+4. 끊긴 요청을 새 request ID로 재시도하되 부작용 도구를 구분합니다.
+5. URL elicitation의 도메인 표시와 사용자 동의를 구현합니다.
+
+## 결론
+
+이번 MCP 릴리스의 목적은 연결을 없애는 것이 아니라 **연결에 숨어 있던 상태와 capability를 요청 단위의 명시적인 계약으로 바꾸는 것**입니다. 서버는 수평 확장이 쉬워지고, 클라이언트는 병렬 handshake와 명확한 버전 협상을 얻습니다. 대신 구현자는 상태 handle, idempotency, 사용자 입력, 재시도와 인증을 더 분명하게 설계해야 합니다.
+
+최종 명세를 기다리며 아무것도 하지 않는 것보다, 지금 conformance suite를 CI에 넣고 session 의존성을 목록화하는 편이 안전합니다. 7월 28일에는 SDK를 무작정 올리는 대신 그 테스트 결과를 기준으로 전환하세요.
+
+## 공식 자료
+
+- [GitHub MCP Server supports the next MCP specification](https://github.blog/changelog/2026-07-23-github-mcp-server-supports-the-next-mcp-specification/)
+- [MCP 2026-07-28 release candidate](https://blog.modelcontextprotocol.io/posts/2026-07-28-release-candidate/)
+- [MCP draft key changes](https://modelcontextprotocol.io/specification/draft/changelog)
+- [MCP draft specification](https://modelcontextprotocol.io/specification/draft)
+- [MCP deprecated features registry](https://modelcontextprotocol.io/specification/draft/deprecated)
+- [MCP conformance test framework](https://github.com/modelcontextprotocol/conformance)

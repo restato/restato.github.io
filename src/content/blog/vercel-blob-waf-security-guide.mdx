@@ -1,0 +1,306 @@
+---
+title: "Vercel Blob WAF 운영 가이드: 공개 파일 차단, Rate Limit, Private Blob 경계"
+description: "Vercel Blob에 WAF를 적용해 scraper·hotlink·과도한 다운로드를 막고, 공개 Blob과 Private Blob의 인증 경계를 올바르게 나누는 방법을 설명합니다."
+date: 2026-07-26
+verifiedAt: 2026-07-26
+tags: ["Vercel", "Security", "WAF", "Blob Storage", "Web Development"]
+---
+
+Vercel Blob에 WAF를 붙일 수 있게 됐지만, 이를 파일 접근 권한 기능으로 이해하면 안 됩니다. WAF는 공개 Blob으로 들어오는 비정상 트래픽을 edge에서 차단하거나 제한하는 도구입니다. **민감한 파일을 사용자별로 보호해야 한다면 여전히 Private Blob과 애플리케이션 인증이 필요합니다.**
+
+Vercel은 2026년 7월 24일 Blob store에 Vercel WAF 규칙을 적용하는 beta 기능을 발표했습니다. 기존 blob URL이나 `@vercel/blob` 코드를 변경하지 않고 deny, challenge, rate limit, redirect와 log 규칙을 사용할 수 있습니다.
+
+이 글에서는 단순한 dashboard 설정 대신 다음 운영 경계를 정리합니다.
+
+- WAF가 막을 수 있는 공격과 막을 수 없는 접근
+- public Blob과 private Blob을 선택하는 기준
+- scraper, hotlink와 대용량 다운로드에 맞는 규칙 설계
+- browser challenge가 server-to-server 요청을 깨뜨리는 이유
+- 모든 보호 store가 한 rule set을 공유할 때 생기는 제약
+
+## 먼저 WAF와 인증을 구분합니다
+
+Public Blob store의 파일은 URL을 아는 누구나 읽을 수 있습니다. WAF를 활성화해도 이 기본 접근 모델이 바뀌는 것은 아닙니다. 요청의 IP, 국가, 경로와 속도를 평가해 차단할 수는 있지만, 애플리케이션의 사용자와 파일 소유권을 자동으로 연결하지는 않습니다.
+
+| 요구사항 | 권장 방식 |
+|---|---|
+| 공개 이미지의 scraper와 hotlink 완화 | Public Blob + WAF |
+| 대용량 공개 파일의 과도한 반복 다운로드 제한 | Public Blob + WAF rate limit |
+| 특정 국가나 네트워크에서 공개 파일 차단 | Public Blob + WAF deny |
+| 로그인한 사용자만 파일 열람 | Private Blob + route handler 인증 |
+| 사용자 A가 사용자 B의 파일을 읽지 못하게 함 | Private Blob + 애플리케이션 권한 검사 |
+| 계약서, 송장, 개인 정보 저장 | Private Blob |
+
+Private Blob은 모든 읽기와 쓰기에 인증을 요구합니다. Vercel 공식 문서도 민감한 문서와 사용자 콘텐츠에는 private store를 사용하고, route handler에서 `get()` 호출과 가까운 위치에서 직접 인증을 검사하도록 권장합니다.
+
+즉, 다음과 같은 규칙을 기억하면 됩니다.
+
+> WAF는 공개 리소스의 트래픽 정책이고, Private Blob은 데이터 접근 정책입니다.
+
+## Blob WAF가 요청을 처리하는 방식
+
+Vercel Blob은 이미 CDN을 통해 제공됩니다. WAF 보호는 새로운 proxy route를 만드는 방식이 아니라 store를 Firewall에 연결하는 방식입니다. 규칙은 byte가 전송되기 전에 edge에서 평가됩니다.
+
+Vercel이 안내한 주요 action은 다음과 같습니다.
+
+| Action | 결과 | 적합한 상황 |
+|---|---|---|
+| Deny | `403`을 반환하고 요청 종료 | 차단 IP, 국가, 명백한 abusive path |
+| Challenge | browser challenge를 통과해야 접근 | 사람 브라우저만 허용하고 싶은 공개 다운로드 |
+| Rate limit | 한도 초과 시 `429` | 반복 다운로드, scraper, hotlink 완화 |
+| Log | 차단 없이 관측 | 새 규칙을 적용하기 전 영향 확인 |
+| Redirect | 다른 위치로 이동 | 폐기된 asset 경로나 안내 페이지 전환 |
+
+Deny가 edge에서 요청을 종료하면 Blob data가 전송되지 않으므로 해당 요청의 data transfer도 발생하지 않는다고 Vercel은 설명합니다.
+
+OWASP Core Ruleset은 Blob traffic에는 지원되지 않습니다. SQL injection이나 dynamic application 공격을 검사하는 규칙은 정적 object delivery와 목적이 다르기 때문입니다.
+
+## 설정은 store를 공유 프로젝트에 연결합니다
+
+Beta 기준 설정 절차는 dashboard에서 수행합니다.
+
+1. Vercel dashboard에서 Blob store를 엽니다.
+2. **Settings**로 이동합니다.
+3. **Protect your store**를 선택합니다.
+4. 표준 Vercel Firewall rule builder에서 규칙을 작성합니다.
+
+Vercel은 보호 store를 팀의 공유 `vercel-blob-default-project`에 연결합니다. 중요한 제약은 **보호된 모든 Blob store가 하나의 rule set을 공유한다는 점**입니다. 현재는 store마다 별도의 규칙을 만들 수 없습니다.
+
+이 제약 때문에 경로 naming이 보안 운영에 직접 영향을 줍니다.
+
+```text
+public-images/...
+public-downloads/...
+release-artifacts/...
+marketing-video/...
+```
+
+여러 store의 path가 비슷하면 한 store에 적용하려던 rule이 다른 store에도 영향을 줄 수 있습니다. 보호를 활성화하기 전에 모든 store의 pathname 규칙을 먼저 조사하세요.
+
+## 처음에는 Log 규칙으로 시작합니다
+
+바로 deny나 challenge를 적용하면 정상 사용자, 검색 엔진, social preview bot과 server-side rendering 요청까지 막을 수 있습니다. 먼저 Log action으로 실제 traffic 분포를 확인하는 편이 안전합니다.
+
+관찰할 항목은 다음과 같습니다.
+
+- 요청 path와 파일 확장자
+- IP와 국가
+- user agent
+- 요청 빈도와 burst 크기
+- cache hit와 miss 비율
+- data transfer가 큰 파일
+- 정상적인 bot과 abusive scraper의 차이
+
+최소 하루 이상의 대표 traffic을 본 뒤 deny와 rate limit으로 전환하세요. 이벤트성 트래픽이 있다면 평일 평균만 기준으로 한도를 정하면 안 됩니다.
+
+## Rate Limit은 파일 크기와 사용자 행동을 함께 봅니다
+
+모든 Blob 요청에 같은 rate limit을 적용하면 작은 thumbnail과 2GB 다운로드를 동일하게 취급하게 됩니다. path나 파일 유형별로 규칙을 분리하는 편이 좋습니다.
+
+예시 정책:
+
+```text
+/assets/thumbnails/*
+- 비교적 높은 요청 한도
+- browser page가 한 화면에서 여러 파일을 요청할 수 있음
+
+/downloads/releases/*
+- IP별 낮은 요청 한도
+- 한 번의 요청이 큰 data transfer를 만들 수 있음
+
+/media/previews/*
+- 중간 수준의 한도
+- range request와 player 재연결을 고려
+```
+
+Rate limit을 지나치게 낮게 설정하면 회사 NAT, 학교, 이동통신망처럼 많은 사용자가 하나의 공인 IP를 공유하는 환경에서 정상 요청이 함께 차단될 수 있습니다.
+
+다음 지표를 기준으로 한도를 조정하세요.
+
+- IP별 정상 사용자 수
+- 브라우저 한 페이지의 최대 동시 요청 수
+- 미디어 player의 range request 수
+- retry와 resume 동작
+- CDN cache miss가 만드는 실제 origin·transfer 비용
+
+## Challenge는 browser traffic에만 사용합니다
+
+Challenge action은 표준 browser challenge를 제공합니다. 사람이 브라우저에서 파일을 열 때는 유용할 수 있지만, server-side `@vercel/blob` 요청이나 script download는 challenge를 풀 수 없습니다.
+
+Vercel은 beta 안내에서 challenge rule에 일치한 server-side 요청은 차단된다고 명시합니다. 따라서 다음 경로에는 challenge를 사용하지 않는 편이 안전합니다.
+
+- 서버가 직접 fetch하는 공개 Blob
+- build process가 가져오는 asset
+- webhook consumer가 읽는 파일
+- CLI와 SDK가 다운로드하는 release artifact
+- image optimization pipeline의 source URL
+
+이런 traffic에는 deny allowlist, rate limit 또는 log를 사용하세요. challenge는 사람이 직접 탐색하는 browser download path로 제한하는 편이 좋습니다.
+
+## WAF로 hotlink를 완전히 인증할 수는 없습니다
+
+다른 사이트가 공개 Blob URL을 `<img>`나 `<video>`에 넣어 traffic을 소비하는 hotlink 문제는 referrer, path, IP와 rate를 이용해 완화할 수 있습니다. 하지만 header는 누락되거나 위조될 수 있으므로 이를 강한 사용자 인증으로 보면 안 됩니다.
+
+공개 콘텐츠의 비용을 줄이는 목적이라면 다음을 조합할 수 있습니다.
+
+1. asset path별 rate limit
+2. 알려진 abusive IP와 ASN 차단
+3. 비정상 국가 traffic 제한
+4. 요청량 급증 alert
+5. 파일명을 immutable하게 관리하고 불필요한 URL 폐기
+
+파일이 유료 사용자에게만 제공되어야 한다면 hotlink 방지 규칙을 복잡하게 만들기보다 Private Blob으로 옮기는 것이 맞습니다.
+
+## 민감한 파일은 Private Blob으로 분리합니다
+
+Vercel Blob store의 public·private access mode는 store를 만든 뒤 변경할 수 없습니다. 처음부터 데이터 종류별로 store를 나누는 편이 좋습니다.
+
+```text
+public-assets
+- 제품 이미지
+- 공개 영상
+- 문서 예시
+- WAF 적용 가능
+
+private-user-files
+- 사용자 업로드
+- 송장과 계약서
+- 내부 보고서
+- route handler에서 사용자 권한 확인
+```
+
+Private Blob을 전달할 때는 route handler에서 인증을 확인한 뒤 `get()`으로 파일을 읽어 응답합니다.
+
+```ts
+import { get } from '@vercel/blob';
+import { NextResponse } from 'next/server';
+
+export async function GET(request: Request) {
+  const user = await requireUser(request);
+  const pathname = new URL(request.url).searchParams.get('pathname');
+
+  if (!pathname) {
+    return new Response('Missing pathname', { status: 400 });
+  }
+
+  await assertCanReadBlob(user.id, pathname);
+
+  const result = await get(pathname, {
+    access: 'private',
+    ifNoneMatch: request.headers.get('if-none-match') ?? undefined,
+  });
+
+  if (!result) {
+    return new Response('Not found', { status: 404 });
+  }
+
+  if (result.statusCode === 304) {
+    return new Response(null, {
+      status: 304,
+      headers: {
+        ETag: result.blob.etag,
+        'Cache-Control': 'private, no-cache',
+      },
+    });
+  }
+
+  return new NextResponse(result.stream, {
+    headers: {
+      'Content-Type': result.blob.contentType,
+      'X-Content-Type-Options': 'nosniff',
+      ETag: result.blob.etag,
+      'Cache-Control': 'private, no-cache',
+    },
+  });
+}
+```
+
+인증을 middleware에만 의존하지 말고 실제 `get()` 호출 옆에서 검사하세요. 잘못된 CDN cache 설정으로 사용자별 private response가 공유되지 않도록 `s-maxage`도 주의해야 합니다.
+
+## 하나의 rule set을 운영하는 방법
+
+모든 보호 store가 rule set을 공유하므로 변경 절차가 필요합니다.
+
+### 1. 규칙 owner를 정합니다
+
+Blob store를 사용하는 프로젝트가 여러 개라면 누가 shared Firewall을 변경할 수 있는지 정하세요. 팀 member가 아무 규칙이나 즉시 변경하면 서로 다른 서비스가 영향을 받을 수 있습니다.
+
+### 2. path inventory를 관리합니다
+
+```yaml
+stores:
+  marketing-assets:
+    prefixes:
+      - /images/
+      - /videos/
+  product-downloads:
+    prefixes:
+      - /releases/
+      - /docs/
+```
+
+실제 WAF 설정 문법이 아니라 운영 inventory 예시입니다. rule 변경 전에 영향을 받는 store와 path를 확인하는 데 사용합니다.
+
+### 3. Log → 제한적 적용 → 확대 순서로 배포합니다
+
+- 새 조건은 먼저 Log로 관찰
+- 특정 path와 좁은 traffic에 deny·rate limit 적용
+- `403`·`429` 비율과 정상 사용자 오류 확인
+- 문제가 없으면 범위를 확대
+
+Vercel WAF 규칙은 적용 즉시 edge에 반영되므로 code redeploy는 필요하지 않습니다. 즉시 반영되는 만큼 변경 리뷰와 rollback 절차가 더 중요합니다.
+
+## 관측해야 할 지표
+
+WAF를 켰다는 사실만으로 비용과 보안 효과를 판단할 수 없습니다.
+
+- path별 요청 수
+- `403`, `429`, challenge 성공·실패
+- 차단 전후 Blob data transfer
+- cache miss와 simple operation 변화
+- 상위 IP·국가·user agent
+- 정상 download completion rate
+- 고객 문의와 broken asset 비율
+
+Rate limit 이후 전체 요청은 줄었지만 정상 download가 반복 실패한다면 좋은 규칙이 아닙니다. 차단 수보다 **정상 사용자 성공률과 transfer 감소량**을 함께 봐야 합니다.
+
+## beta에서 확인할 제약
+
+2026년 7월 26일 기준 다음 제약이 있습니다.
+
+- 기능은 beta입니다.
+- 설정은 dashboard에서만 가능합니다.
+- 보호 store별 rule scope가 없고 shared rule set을 사용합니다.
+- challenge는 browser가 필요합니다.
+- OWASP Core Ruleset은 지원되지 않습니다.
+- WAF는 public Blob을 private resource로 바꾸지 않습니다.
+
+자동화나 Infrastructure as Code가 필요하다면 dashboard-only 제한이 해제되기 전까지 rule 변경을 운영 절차로 관리해야 합니다.
+
+## 배포 전 체크리스트
+
+- [ ] 파일이 public이어야 하는지 먼저 검토했습니다.
+- [ ] 민감한 파일은 Private Blob으로 분리했습니다.
+- [ ] 모든 보호 store의 path prefix를 inventory로 만들었습니다.
+- [ ] 새 규칙을 Log action으로 먼저 관찰했습니다.
+- [ ] rate limit이 NAT와 range request를 고려합니다.
+- [ ] challenge를 server-side 요청 path에 적용하지 않았습니다.
+- [ ] `403`·`429`과 정상 download 성공률을 함께 관측합니다.
+- [ ] shared rule set 변경 권한과 review 절차가 있습니다.
+- [ ] beta 제약과 검증 날짜를 기록했습니다.
+- [ ] rollback 가능한 이전 규칙 구성을 보관했습니다.
+
+## 결론
+
+Vercel Blob WAF는 공개 파일을 그대로 유지하면서 scraper, abusive download와 hotlink 비용을 줄이는 데 유용합니다. 하지만 WAF를 인증 대체재로 사용하면 안 됩니다.
+
+공개 asset에는 Log, deny와 rate limit을 단계적으로 적용하고, 사람이 직접 여는 경로에만 challenge를 사용하세요. 사용자별 권한이 필요한 파일은 Private Blob으로 분리하고 route handler에서 직접 인증해야 합니다. 마지막으로 모든 보호 store가 하나의 rule set을 공유한다는 beta 제약을 고려해 path naming과 변경 리뷰를 먼저 설계하세요.
+
+## 공식 자료
+
+- [Vercel WAF for Blob is now in beta](https://vercel.com/changelog/vercel-waf-for-blob-is-now-in-beta)
+- [Vercel WAF Custom Rules](https://vercel.com/docs/vercel-firewall/vercel-waf/custom-rules)
+- [Vercel Blob overview](https://vercel.com/docs/vercel-blob)
+- [Public Blob storage](https://vercel.com/docs/vercel-blob/public-storage)
+- [Private Blob storage](https://vercel.com/docs/vercel-blob/private-storage)
+- [Vercel Blob security](https://vercel.com/docs/vercel-blob/security)

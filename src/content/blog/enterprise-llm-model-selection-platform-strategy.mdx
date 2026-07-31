@@ -1,0 +1,412 @@
+---
+title: "Enterprise LLM Strategy: Choose Models by Workload, Cost, and Control"
+description: "A July 2026 guide to commercial and open LLMs, model size, context, GPUs, leaderboards, routing, evaluation, cost optimization, governance, and enterprise platform design."
+date: 2026-07-23
+tags: ["LLM", "Enterprise AI", "Open Models", "AI Platform", "AI Governance", "Cost Optimization"]
+---
+
+The question "Which LLM should our company use?" sounds as if it should end with one model name. It rarely does.
+
+A model that is excellent at repository-scale coding can be wasteful for classifying support tickets. A cheap open-weight model can become expensive when it occupies GPUs at low utilization. A million-token context window can improve one document workflow and quietly multiply the cost and latency of another. A model that passes a public benchmark can still fail on a company's terminology, permissions, tools, and error tolerance.
+
+**The durable enterprise decision is not a winning model. It is a managed model portfolio: the least expensive model that meets an accepted outcome and risk threshold for each workload, with a measured path to a stronger model when it does not.**
+
+This guide turns that principle into a selection method, a July 2026 market map, a practical GPU model, a platform architecture, and a governance roadmap. Model availability and prices change quickly, so current facts were checked on July 23, 2026. Treat the named models as a dated snapshot and the decision system as the part to keep.
+
+## Start with work, not a leaderboard
+
+The useful unit of model selection is a workload with an owner and an acceptance test.
+
+"Customer service" is too broad. The same service may contain intent classification, policy retrieval, answer drafting, sentiment detection, conversation summarization, refund execution, and quality review. Those tasks have different consequences and need not use the same model.
+
+Before comparing providers, write a workload card:
+
+| Field | Question to answer |
+| --- | --- |
+| Outcome | What useful result replaces or improves the current baseline? |
+| Failure cost | Is an error merely annoying, or can it create financial, legal, safety, or customer harm? |
+| Verification | Can rules, tests, source citations, a second system, or a person check the result? |
+| Input and output | Which modalities, languages, document types, and structured formats are required? |
+| Context | How much information is actually relevant, not merely available? |
+| Action | Does the model advise, draft, or change an external system? |
+| Service level | What are the time-to-first-token, completion latency, throughput, and availability targets? |
+| Data boundary | What classification, region, retention, and supplier terms apply? |
+| Economics | What is the maximum cost per accepted outcome? |
+
+The last phrase matters. Cost per token is an input metric. **Cost per accepted outcome** includes retries, human correction, failed tool calls, escalation, and downstream mistakes. A model that costs half as much per token but requires twice as many retries is not cheaper.
+
+### What model differences change in practice
+
+Model quality is not one dimension. Differences usually surface in six ways:
+
+1. **Judgment under ambiguity.** Stronger models make better assumptions and recover from incomplete instructions. This matters in research, planning, and professional work.
+2. **Tool and agent reliability.** The gap widens when a task requires ten correct choices in sequence. A small per-step advantage compounds across a long agent run.
+3. **Instruction and schema adherence.** Smaller models can be excellent at narrow extraction, but may fail more often when policies conflict or schemas become nested.
+4. **Domain and language coverage.** An aggregate English score can hide weak Korean terminology, product names, or specialist reasoning.
+5. **Multimodal fidelity.** Models differ in charts, screenshots, scanned documents, audio, and video even when their text scores look similar.
+6. **Speed and verbosity.** A reasoning model may reach a better answer while producing more hidden or visible tokens and taking longer. For an interactive product, that difference is part of quality.
+
+Parameter count helps estimate deployment cost for an open model. It does not predict all six outcomes. Training data, architecture, active parameters in a mixture-of-experts model, post-training, tool harness, quantization, and inference settings all matter.
+
+## The July 2026 commercial model map
+
+The table below is deliberately selective. It describes representative production lanes rather than every SKU. Prices are direct API list prices per million text tokens, before batch, cache, regional, long-context, or committed-use adjustments. Always check the linked model page before procurement or release.
+
+| Provider and lane | Representative model | Context / max output | List input / output | A sensible starting use |
+| --- | --- | ---: | ---: | --- |
+| OpenAI frontier | GPT-5.6 Sol | 1.05M / 128K | $5 / $30 | Difficult coding, research, and high-value multi-step agents |
+| OpenAI balanced | GPT-5.6 Terra | 1.05M / 128K | $2.50 / $15 | General enterprise applications and tool-using workflows |
+| OpenAI volume | GPT-5.6 Luna | 1.05M / 128K | $1 / $6 | High-volume extraction, transformation, routing, and simple generation |
+| Anthropic frontier | Claude Fable 5 | 1M / 128K | $10 / $50 | Long-running, high-complexity agents where its measured gain pays for itself |
+| Anthropic balanced | Claude Sonnet 5 | 1M / 128K | $3 / $15 list price | Coding, knowledge work, and agents with a speed-quality balance |
+| Anthropic fast | Claude Haiku 4.5 | 200K / 64K | $1 / $5 | Responsive, high-volume tasks and sub-agent work |
+| Google workhorse | Gemini 3.6 Flash | 1,048,576 / 65,536 | $1.50 / $7.50 | Multimodal applications, coding, documents, and grounded workflows |
+| Google deep reasoning | Gemini 3.1 Pro Preview | 1M / 64K | $2 / $12 below 200K input | Complex multimodal reasoning when preview lifecycle risk is acceptable |
+| xAI frontier/agent | Grok 4.5 | 500K | $2 / $6 at shorter context | Coding and agents that benefit from web, X, and code tools |
+
+Sources: [OpenAI's model catalog](https://developers.openai.com/api/docs/models), [Anthropic's model overview](https://platform.claude.com/docs/en/about-claude/models/overview), [Google's Gemini model catalog](https://ai.google.dev/gemini-api/docs/models), and [xAI pricing](https://docs.x.ai/developers/pricing).
+
+This is not a ranking. It is a menu of starting hypotheses.
+
+- **OpenAI** offers a clean Sol–Terra–Luna ladder under one tool-capable family. It is useful when a company wants to route within a consistent API and graduate difficult work upward. Restato's [GPT-5.6 selection guide](/blog/gpt-5-6-sol-terra-luna-api-guide/) covers that family in detail.
+- **Anthropic** remains a strong candidate for coding, long-context knowledge work, and agents. The highest capability tier can have different operating conditions: [Anthropic says Fable 5 traffic requires 30-day retention](https://www.anthropic.com/news/claude-fable-5-mythos-5) for safety, including third-party deployments. A model upgrade can therefore be a data-governance change, not just a quality change.
+- **Google** is attractive for natively multimodal work and integration with search, Maps, code execution, and the Google Cloud data stack. Production teams should distinguish stable IDs from preview, experimental, and `latest` aliases. Google's documentation says `latest` can be hot-swapped and previews have shorter deprecation paths.
+- **xAI** adds a competitive tool-enabled option, but its retirement policy is a useful warning for every provider: endpoint redirects can change the model and bill without an application-code change. Pin versions and monitor supplier notices.
+
+AWS Bedrock, Azure AI Foundry, Google Vertex AI, and other managed catalogs can reduce integration and procurement friction and provide access to multiple families. They do not make models interchangeable. Region coverage, features, version timing, quota, logging, pricing, and contractual terms can differ from a provider's direct API.
+
+### A default four-lane portfolio
+
+Most companies can begin with four lanes rather than approving dozens of models:
+
+| Lane | Purpose | Typical candidates | Promotion rule |
+| --- | --- | --- | --- |
+| Fast lane | Cheap, short, high-volume work | Luna, Haiku, Flash-Lite, small open models | Move up when acceptance or schema reliability misses its threshold |
+| Default lane | Most product and employee workflows | Terra, Sonnet, Gemini Flash, comparable managed models | Keep here while it meets quality, latency, and risk targets |
+| Frontier lane | The hard tail and costly failures | Sol, Fable, Opus, Pro-class models | Use only when measured outcome gain exceeds added cost and latency |
+| Private/open lane | Restricted data, offline use, stable volume, customization | Qwen, Gemma, Llama, Mistral, DeepSeek checkpoints where terms fit | Admit by checkpoint, license, eval, security, and serving profile |
+
+Add specialized models for embeddings, reranking, speech, vision, moderation, and document parsing. A general LLM is often the wrong and expensive substitute for these components.
+
+## Open weights are a deployment option, not a synonym for free
+
+"Open model" can mean open source, open weights, source-available, or simply downloadable. These are not equivalent. The exact checkpoint license determines whether a company may modify, redistribute, host for customers, or use the model above a revenue threshold.
+
+Representative current options include:
+
+| Family | Example size and architecture | Native context | Where to obtain it | Enterprise note |
+| --- | --- | ---: | --- | --- |
+| Qwen 3.6 | 35B total, 3B active MoE | 262K; documented extension to about 1M | [Hugging Face model card](https://huggingface.co/Qwen/Qwen3.6-35B-A3B), ModelScope | Apache 2.0 for this checkpoint; strong coding and multimodal candidate; evaluate Korean and company-specific tasks |
+| Gemma 4 | E2B, E4B, 12B, 26B-A4B MoE, 31B | 128K or 256K by size | [Google on Hugging Face](https://huggingface.co/google), Kaggle, Ollama | Apache 2.0; broad size range makes it useful from local to server deployments |
+| DeepSeek V3 | 671B total, 37B active MoE | 128K in the published repository | [DeepSeek V3 repository](https://github.com/deepseek-ai/DeepSeek-V3), Hugging Face | Very large total weights despite sparse activation; do not assume a newer hosted DeepSeek API model has released weights |
+| Mistral open families | Dense and MoE checkpoints across sizes | Varies by checkpoint | [Mistral models](https://docs.mistral.ai/getting-started/models/models_overview/), Hugging Face | Mistral says most are Apache 2.0, while some use a modified MIT license with commercial conditions |
+| Meta Llama | Small through very large dense and multimodal families | Varies by checkpoint | [Meta Llama downloads](https://www.llama.com/llama-downloads/), Hugging Face | Large ecosystem, but a community license is not Apache; review attribution and use restrictions |
+
+The Qwen example also explains why model size needs two numbers. Its 35B weights must be stored, but roughly 3B parameters are active for each token. Mixture-of-experts can reduce compute per token without making the full checkpoint occupy only 3B worth of memory.
+
+For quick local testing, Ollama, LM Studio, `llama.cpp`, MLX, or Transformers may be sufficient. For production throughput, common choices include vLLM, SGLang, TensorRT-LLM, Hugging Face Text Generation Inference, and managed inference endpoints. Download provenance, model revision, tokenizer, chat template, quantization recipe, and serving image should all be pinned. "Qwen 35B" is not a reproducible deployment identity.
+
+### Commercial API versus open-weight deployment
+
+| Decision | Commercial API tends to win when… | Open-weight deployment tends to win when… |
+| --- | --- | --- |
+| Capability | Frontier quality and new tools matter now | A smaller model already clears the workload threshold |
+| Demand | Traffic is uncertain or bursty | Load is sustained, predictable, and high enough to keep hardware busy |
+| Operations | The team wants minimal serving work | The company can operate GPU capacity, upgrades, security, and on-call support |
+| Data | Contractual controls and a suitable region are enough | Offline, sovereign, air-gapped, or stricter processing control is required |
+| Customization | Prompting, retrieval, and managed fine-tuning are sufficient | Deep tuning, distillation, adapters, or runtime changes create real advantage |
+| Portability | Speed to market matters most | Supplier concentration and endpoint control justify the added complexity |
+
+The answer can be hybrid. A private model may process sensitive high-volume documents, a balanced API may handle ordinary dialogue, and a frontier model may receive a redacted difficult case. That architecture is useful only when routing rules and fallback behavior are explicit.
+
+## Model size, precision, context, and GPU memory
+
+For an open model with `P` parameters, base weight memory is approximately:
+
+```text
+weight memory = parameter count × bytes per parameter
+
+BF16 or FP16 ≈ 2 bytes
+INT8         ≈ 1 byte
+INT4         ≈ 0.5 byte, plus quantization metadata
+```
+
+That gives a first-pass estimate:
+
+| Dense-equivalent weights | BF16 | INT8 | INT4 base weights |
+| ---: | ---: | ---: | ---: |
+| 8B | 16 GB | 8 GB | 4 GB |
+| 12B | 24 GB | 12 GB | 6 GB |
+| 27B | 54 GB | 27 GB | 13.5 GB |
+| 35B | 70 GB | 35 GB | 17.5 GB |
+| 70B | 140 GB | 70 GB | 35 GB |
+| 120B | 240 GB | 120 GB | 60 GB |
+
+These are not purchase recommendations. The runtime needs additional memory for CUDA graphs, workspaces, fragmentation, vision encoders, and—most importantly—KV cache. The KV cache grows with concurrent sequences and context length. A quantized 35B model may fit on a 24 GB card for a short single-user test and fail immediately when production concurrency or a 128K context is enabled.
+
+Useful planning bands are:
+
+- **8–16 GB:** small 2B–12B quantized models, local experiments, narrow extraction, low concurrency.
+- **24–32 GB:** practical development for 7B–14B and some larger INT4 models; production capacity still depends heavily on context and batching.
+- **48 GB:** more room for 27B–35B quantized deployments and useful throughput, but not an unlimited long-context server.
+- **80–141 GB:** larger models, BF16 for medium models, larger KV caches, or higher concurrency; multi-GPU remains common.
+- **Multi-GPU nodes:** 70B dense, 100B-plus, and large MoE models at meaningful throughput.
+
+The right sizing process uses a load test with the exact checkpoint, quantization, serving engine, prompt distribution, output distribution, and concurrency. Measure time to first token, inter-token latency, accepted requests per second, peak memory, and tail latency. Average tokens per second can hide a bad user experience.
+
+Restato's [GPU memory and serving guide](/blog/openllm-gpu-memory-training-serving-guide/) explains the formulas in more detail, while the [vLLM compatibility guide](/blog/nvidia-vllm-openllm-compatibility-guide-qwen35-glm-deepseek-gemma/) covers current serving considerations.
+
+### A million-token window is a limit, not a target
+
+Long context is valuable for codebases, legal records, multimedia, and cross-document reasoning. It does not remove the need for retrieval and information design.
+
+Sending everything on every request creates four problems:
+
+1. Input cost and latency rise even when most tokens are irrelevant.
+2. KV cache reduces concurrency or requires more GPUs.
+3. Important evidence can become harder to locate in a noisy prompt.
+4. Data that did not need to cross the model boundary now does.
+
+A better pipeline retrieves by identity and purpose, reranks, compacts stable facts, preserves citations, and sends only evidence needed for the decision. Prefix caching helps repeated context, but only when prompts are designed for stable shared prefixes and the provider's cache semantics are understood. Some providers also charge higher rates beyond long-input thresholds.
+
+## Which leaderboards are worth watching
+
+No public leaderboard measures a company's accepted outcome. Several are useful for creating a shortlist if their measurement is understood.
+
+| Resource | What it is good for | What it does not prove |
+| --- | --- | --- |
+| [Arena](https://arena.ai/leaderboard) | Anonymous human preference, broad user prompts, confidence intervals, modality-specific views | Business correctness, deterministic tool completion, data terms, or cost efficiency; style can affect preference |
+| [Artificial Analysis](https://artificialanalysis.ai/leaderboards/models) | A cross-provider view of capability, output speed, latency, and price; methodology is published | Its English text weighting is not your workload mix or risk appetite |
+| [LiveBench](https://livebench.ai/) | Frequently refreshed objective questions across reasoning, coding, language, and data analysis | Production integrations, long agent runs, company knowledge, or human preference |
+| [Hugging Face leaderboards](https://huggingface.co/docs/leaderboards/main/index) | Reproducible and community-specific evaluation of open checkpoints | A universal current ranking; the original Open LLM Leaderboard has ended |
+| [SWE-bench](https://www.swebench.com/) | Repository issue resolution under a specified agent scaffold | General coding quality; model, harness, tools, budget, and run count all affect the score |
+| [MTEB](https://huggingface.co/spaces/mteb/leaderboard) | Embedding and retrieval models by language and task | Generative answer or agent quality |
+
+Read the methodology and confidence interval before the rank. Compare results obtained with the same harness and budget. Vendor model cards are valuable technical sources, but their benchmark tables are not neutral league tables.
+
+A practical monitoring rhythm is:
+
+- **Weekly:** provider release, pricing, deprecation, quota, safety, and incident notices; Arena and Artificial Analysis for shortlist changes.
+- **Monthly:** rerun a small shadow evaluation on promising candidates and review latency, cost, failures, and user escalations.
+- **Quarterly:** challenge the approved portfolio, supplier concentration, contracts, GPU utilization, and open-model economics.
+- **Before every production change:** run the full regression set against the exact model, prompt, retrieval, tool, and policy versions.
+
+The internal evaluation set is the asset that makes this rhythm useful. Build it from real, permission-cleared examples; include common work, the difficult tail, policy boundaries, adversarial inputs, Korean and other required languages, long documents, tool errors, and cases where refusal is correct. Keep a holdout set and refresh it from production failures.
+
+## Route by risk and evidence, not by brand loyalty
+
+A production router should consider more than prompt length:
+
+```text
+request
+  │
+  ├─ registered workload and data class
+  ├─ required modality, tools, region, and context
+  ├─ failure consequence and verification strength
+  ├─ latency and cost budget
+  └─ current provider health and capacity
+          │
+          ▼
+  eligible model set → cheapest model that clears the eval threshold
+          │
+          ├─ accepted result → record outcome and cost
+          └─ low confidence / failed check → repair, escalate, or hand off
+```
+
+Do not let an unconstrained LLM pick any provider and send it arbitrary data. Policy should first produce an eligible set. A learned or model-based router can then choose within that set.
+
+Examples:
+
+| Service task | Starting lane | Why | Required check |
+| --- | --- | --- | --- |
+| Ticket intent and entity extraction | Fast or small open | Narrow schema, high volume, easy to validate | JSON schema, field rules, labeled accuracy |
+| Internal policy answer | Default | Retrieval and synthesis matter more than frontier reasoning | Source entitlement, citation support, abstention |
+| Customer reply draft | Default | Tone and context matter; a person or policy engine can review | Grounding, policy, PII, brand style |
+| Refund execution agent | Default planner plus deterministic action service | Consequence comes from the action, not eloquence | Eligibility rules, amount limit, approval, idempotency |
+| Complex code change | Frontier or coding-specialized model | Long horizon and repository reasoning amplify small quality gaps | Tests, static analysis, security scan, code review |
+| Batch document extraction | Small open or fast API | Stable volume and measurable fields favor optimization | Field-level precision/recall and exception queue |
+| Board or legal analysis | Frontier with expert review | Ambiguity and error cost are high | Sources, counterarguments, named accountable reviewer |
+
+Agents strengthen the case for routing. A capable planner can delegate bounded classification or transformation to cheaper sub-models. The model is only one component: permissions, tools, state, verification, and stop conditions determine whether the overall agent is trustworthy. See the [enterprise agent platform architecture](/blog/enterprise-agent-platform-architecture-guide/) for the broader runtime.
+
+## The enterprise model platform
+
+A company does not need to train a frontier model to own its AI strategy. It should own the control plane that makes models replaceable and outcomes measurable.
+
+```text
+applications and agents
+          │
+ identity + registered use case + cost center
+          │
+ model gateway and policy enforcement
+   ├─ routing and fallback
+   ├─ provider and self-hosted adapters
+   ├─ prompt/context cache
+   ├─ redaction and data-boundary checks
+   └─ quota, rate, and spend controls
+          │
+ commercial APIs ─ managed catalogs ─ private inference
+          │
+ traces + outcomes + latency + token and GPU cost
+          │
+ evaluation, registry, release evidence, and chargeback
+```
+
+The minimum platform has nine products:
+
+1. **Model catalog and registry.** Record exact IDs, owners, provider or checkpoint, license, approved regions and data classes, context, tools, pricing, limits, retirement date, risk tier, and evaluation status.
+2. **Gateway and adapters.** Give applications a stable interface while preserving provider-specific capabilities. A lowest-common-denominator API can erase the features that justified a model.
+3. **Policy-aware routing.** Filter by data, jurisdiction, use, and action risk before optimizing quality, latency, or cost.
+4. **Evaluation service.** Version datasets, graders, human review, thresholds, and results with the full application configuration.
+5. **Prompt and context management.** Version instructions, retrieval, templates, schemas, cache strategy, and source provenance.
+6. **Observability and FinOps.** Join request, outcome, user, workload, model, tokens, cache, tools, latency, retry, and cost. For self-hosting, add queue depth, utilization, memory, energy, and accepted throughput.
+7. **Release and change controls.** Pin versions, run shadow traffic, canary changes, compare failure modes, and support fast rollback.
+8. **Capacity and resilience.** Manage quotas, provisioned throughput, provider incidents, regional capacity, and tested fallbacks. A fallback that returns a different schema or refuses differently is not ready.
+9. **Evidence and incident records.** Preserve enough information to reproduce material decisions without turning sensitive prompts into an uncontrolled log archive.
+
+This platform is where governance becomes executable. Restato's [enterprise AI governance roadmap](/blog/enterprise-ai-governance-operating-model-roadmap/) describes the operating model and decision rights around it.
+
+## Cost optimization without lowering the outcome bar
+
+Token discounts are useful, but the largest savings usually come from system design.
+
+For APIs, model the full request:
+
+```text
+API cost = uncached input
+         + cache writes and reads
+         + output and reasoning tokens
+         + tool, search, storage, and retrieval charges
+         + retries and failed work
+         + priority or provisioned capacity
+```
+
+For private inference:
+
+```text
+self-hosted TCO = GPU lease or depreciation
+                + idle and peak capacity
+                + power, network, and storage
+                + serving and platform engineering
+                + security, upgrades, support, and on-call
+                + evaluation and migration work
+```
+
+Optimize in this order:
+
+1. **Remove unnecessary model calls.** Rules, search, SQL, and existing software should do deterministic work.
+2. **Shorten and structure context.** Retrieve and rerank; do not attach a data lake to every prompt.
+3. **Use the smallest passing model.** Route the hard tail upward instead of making the frontier tier the default.
+4. **Cap output and reasoning effort.** Long answers and excessive thinking can dominate cost and latency.
+5. **Cache stable prefixes and results.** Design for the provider's cache boundary, privacy rules, and invalidation needs.
+6. **Batch asynchronous work.** OpenAI, Anthropic, Google, and managed platforms offer batch economics for delay-tolerant jobs.
+7. **Improve acceptance.** Better retrieval, tools, schemas, and verification can save more than a cheaper model.
+8. **Raise GPU utilization carefully.** Continuous batching, quantization, prefix caching, speculative decoding, autoscaling, and right-sized context improve serving economics.
+9. **Negotiate the workload, not just the discount.** Capacity, regions, retention, support, deprecation, and incident terms can matter more than headline tokens.
+
+Track at least cost per request, cost per accepted outcome, p50/p95 latency, cache-hit rate, retry and escalation rate, output length, quality by workload, and supplier concentration. A central total bill without workload attribution cannot be optimized responsibly.
+
+### When self-hosting crosses over
+
+There is no universal token break-even. Run an experiment using the expected request distribution and realistic utilization. Self-hosting becomes plausible when several conditions align:
+
+- a suitable open checkpoint clears the same acceptance threshold;
+- traffic is stable enough to use provisioned GPUs well;
+- data control, offline operation, latency, or customization has material value;
+- the team can support the service through upgrades and incidents;
+- license and supply-chain review are complete;
+- a commercial API remains available for overflow or the difficult tail, if permitted.
+
+Do not compare an API's variable price with a fully utilized theoretical GPU. Compare the API bill with an operated service at actual average and peak utilization.
+
+## Governance for a changing model portfolio
+
+Every approved model or checkpoint should have a short enterprise model card:
+
+- exact version, endpoint or artifact hash, provider, hosting path, and owner;
+- permitted workloads, users, regions, data classes, and autonomy levels;
+- license, usage restrictions, attribution, and redistribution conditions;
+- retention, training-use, residency, subprocessors, and deletion terms;
+- context, modalities, tools, limits, known failure modes, and safety behavior;
+- evaluation results and acceptance thresholds by workload;
+- unit price or serving cost, quota, capacity, and support level;
+- fallback, rollback, deprecation, review date, and incident contacts.
+
+Procurement should cover model-specific change risk: notice of price and model changes, version pinning, capacity, service levels, security incidents, output ownership, intellectual-property protection, audit rights, export controls, termination, and data export. The temporary [2026 suspension and redeployment of Anthropic's Fable 5](https://www.anthropic.com/news/redeploying-fable-5) illustrates that geopolitical and safety constraints can become runtime dependencies. A provider's technical availability page is part of enterprise architecture.
+
+Changes that require re-evaluation include:
+
+- a new model or moving alias;
+- a prompt, reasoning level, temperature, or output limit change;
+- a new retrieval source, embedding, reranker, or context policy;
+- a quantization, runtime, GPU, or serving-image change;
+- new tools, permissions, user groups, languages, or regions;
+- a provider safety, retention, license, or retirement change.
+
+The fallback model must be evaluated too. Fail-open is especially dangerous for agents: a cheaper fallback may misunderstand a tool schema or skip a refusal that the primary model enforced.
+
+## What public enterprise cases actually teach
+
+Supplier case studies are selected success stories, not controlled comparisons. Their architecture lessons are still useful.
+
+- **Morgan Stanley** built internal knowledge retrieval and meeting debrief workflows with OpenAI models, but the repeatable asset was its evaluation practice: domain experts scored summarization, retrieval, translation, and real meeting cases, with daily regression testing and human review. The lesson is to scale an eval system, not a prompt demo. [OpenAI case study](https://openai.com/index/morgan-stanley/)
+- **GitLab** formed a model evaluation team and evaluates new vendors and model versions across different DevSecOps tasks. Its published approach explicitly chooses the right model for each use case rather than assuming one model serves the full software lifecycle. [Anthropic case study](https://www.anthropic.com/customers/gitlab)
+- **TELUS** combined Gemini-based agents with BigQuery, privacy controls, shared customer context, and human agent support across a large contact-center workload. Whatever model is chosen, data integration, privacy processing, operational feedback, and action design create the service. [Google Cloud case study](https://cloud.google.com/customers/telus-gemini-enterprise-cx)
+- **Forethought** used managed serverless inference and multi-model endpoints to reduce serving cost for customer-service ML workloads. The broader lesson is that utilization and hosting mode can outweigh a model's nominal size. [AWS case study](https://aws.amazon.com/solutions/case-studies/forethought-technologies-case-study/)
+
+These examples point to the same pattern: successful companies accumulate evaluation data, workflow integration, controls, and operating knowledge. The provider model is important, but it is not the whole product.
+
+## A 90-day enterprise plan
+
+### Days 0–30: measure before standardizing
+
+- inventory current model APIs, employee tools, embedded SaaS AI, open checkpoints, and GPU endpoints;
+- select five to ten representative workloads with owners, baselines, risks, and cost ceilings;
+- create the first evaluation set from real examples and production failure modes;
+- approve one fast, one default, and one frontier commercial candidate;
+- establish temporary rules for sensitive data, model downloads, licenses, and unregistered endpoints;
+- capture tokens, latency, cost center, model version, and accepted outcome through one gateway.
+
+**Exit when:** the company can explain what models it uses, for which work, under which terms, at what quality and cost.
+
+### Days 31–60: create the portfolio
+
+- run candidates with the same prompts, tools, context, and scoring method;
+- set acceptance thresholds per workload, including abstention and refusal cases;
+- introduce policy-aware routing and a measured escalation path;
+- test one open model where privacy, predictable volume, or customization could justify it;
+- pin versions, implement shadow tests and canaries, and test provider failure;
+- establish model cards and a cross-functional approval path for new models.
+
+**Exit when:** production selection is evidence-based and a model can be replaced without an emergency rewrite.
+
+### Days 61–90: optimize and govern change
+
+- report cost per accepted outcome and quality by workload, not only total tokens;
+- optimize context, cache, output, batch, and reasoning settings before negotiating capacity;
+- load-test private inference using real context and concurrency distributions;
+- set provider concentration limits and retirement playbooks;
+- connect evaluations, model cards, releases, incidents, and spend to the AI inventory;
+- schedule monthly portfolio challenges and quarterly contract and capacity reviews.
+
+**Exit when:** a new model release triggers a repeatable comparison rather than a company-wide debate.
+
+## What the company should own for the long term
+
+Model weights will keep changing. The durable assets are:
+
+- workload definitions and accepted-outcome metrics;
+- permission-cleared evaluation and regression datasets;
+- domain data, terminology, ontology, retrieval, and source provenance;
+- tool and action contracts with deterministic verification;
+- routing rules, policy decisions, and fallback behavior;
+- model-independent telemetry and cost attribution;
+- provider adapters and versioned deployment artifacts;
+- fine-tuning, preference, and synthetic-data pipelines with clear provenance;
+- incident knowledge and evidence of what fails in the real workflow.
+
+A company may later fine-tune, distill, or train specialized models. It should do so because the measured workload advantage exceeds the lifecycle cost—not because owning weights sounds strategically complete.
+
+The practical end state is intentionally unglamorous: a small approved portfolio, a fast path for ordinary work, an expensive escape hatch for the hard tail, a private lane where it earns its keep, and a platform that can prove why each request went where it did.
+
+That is how an enterprise follows a fast-moving model market without letting the market redesign its architecture every month.

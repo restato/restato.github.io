@@ -1,0 +1,373 @@
+---
+title: "GitHub Issues 에이전트 자동화 운영 가이드: Confidence, Approvals, Safe Outputs"
+description: "GitHub Issues의 에이전트 자동화 통제 기능을 실제 운영에 적용하는 방법을 설명합니다. confidence 임계값, approvals, rationale, safe-outputs, staged rollout과 성과 측정 기준을 다룹니다."
+date: 2026-07-24
+verifiedAt: 2026-07-24
+tags: ["GitHub", "GitHub Issues", "Copilot", "Agentic Workflows", "AI Agent", "Automation", "Human in the Loop", "Security"]
+---
+
+이슈 분류 에이전트가 잘못된 라벨을 붙이는 일은 되돌리기 쉽습니다. 하지만 담당자를 잘못 배정하거나 이슈를 닫으면 팀의 업무 흐름이 바뀝니다. 모든 판단을 사람이 검토하면 자동화 효과가 사라지고, 모든 판단을 바로 적용하면 작은 모델 오류가 운영 사고가 됩니다.
+
+GitHub는 2026년 7월 23일 GitHub Issues에 에이전트 자동화 통제 기능을 public preview로 공개했습니다. 지원되는 변경마다 **confidence**, **rationale**, **approval 상태**를 기록하고, 저장소 관리자가 어떤 신뢰도부터 자동 적용할지 정할 수 있습니다.
+
+**가장 안전한 운영 방식은 confidence를 보안 경계로 믿는 것이 아닙니다. 에이전트는 읽기 전용으로 두고, 허용된 변경만 `safe-outputs`가 검증하도록 만든 뒤, staged mode와 실제 결과 데이터를 이용해 자동 적용 범위를 조금씩 넓혀야 합니다.**
+
+> 이 기능은 public preview입니다. 이 글은 2026년 7월 24일 GitHub 공식 발표와 GitHub Agentic Workflows 문서를 기준으로 작성했습니다. 설정 이름과 지원 범위는 정식 출시 전에 바뀔 수 있습니다.
+
+## 세 가지 기능을 구분해야 합니다
+
+| 기능 | 역할 | 해결하는 문제 | 해결하지 못하는 문제 |
+| --- | --- | --- | --- |
+| Confidence | action별 high·medium·low 신뢰도 | 사람이 검토할 후보를 줄임 | 모델의 자기평가가 정확하다는 보장 |
+| Approvals | 변경을 즉시 적용하지 않고 suggestion으로 대기 | 사람의 확인이 필요한 판단을 보류 | 쓰기 권한을 가진 agent의 직접 변경 차단 |
+| Rationale | 적용·제안한 이유 기록 | 감사와 오류 분석 | 근거가 사실이라는 자동 검증 |
+
+GitHub의 기본 흐름은 high-confidence 변경을 자동 적용하고 medium·low를 제안으로 보류하는 방식입니다. 관리자는 자동화 수준을 조정할 수 있고, `has:suggestions` 검색으로 검토 대기 이슈를 찾을 수 있습니다.
+
+여기서 중요한 제한이 있습니다. **Approval은 workflow convenience이지 server-side security boundary가 아닙니다.** 쓰기 권한을 직접 가진 에이전트는 suggestion을 거치지 않고 이슈를 수정할 수 있습니다. 보안 경계는 에이전트의 권한 분리와 별도의 검증된 write job에서 만들어야 합니다.
+
+## 권장 아키텍처
+
+```text
+GitHub issue event
+       │
+       ▼
+read-only agent
+  - issue와 저장소 문맥 조회
+  - action, confidence, rationale 생성
+       │
+       ▼
+structured safe-output request
+       │
+       ├─ schema validation
+       ├─ allowlist / blocklist
+       ├─ max operation count
+       ├─ target restriction
+       └─ threat detection
+       │
+       ▼
+permission-controlled write job
+       │
+       ├─ auto apply
+       └─ suggestion for review
+       │
+       ▼
+outcome measurement
+```
+
+GitHub Agentic Workflows의 `safe-outputs`는 agent 실행과 write operation을 분리합니다. 에이전트는 읽기 전용 token으로 판단하고 구조화된 action을 요청합니다. 실제 GitHub API 변경은 허용 범위와 횟수를 검사하는 별도 job이 수행합니다.
+
+이 구조에는 두 개의 독립적인 문이 있습니다.
+
+1. **할 수 있는가:** `safe-outputs`의 allowlist와 권한이 결정합니다.
+2. **지금 자동으로 해야 하는가:** confidence 임계값과 approval 정책이 결정합니다.
+
+둘을 섞으면 안 됩니다. 높은 confidence라고 금지된 라벨을 붙일 수 있어서는 안 되고, suggestion이라고 민감한 쓰기 권한을 agent runtime에 직접 줘서도 안 됩니다.
+
+## 1. 처음에는 staged mode로 실행하기
+
+새 workflow를 바로 production issue에 쓰게 하지 마세요. `staged: true`를 켜면 agent 분석과 safe-output 검증은 그대로 실행하지만 실제 GitHub API write는 건너뛰고 Actions summary에 preview를 남깁니다.
+
+```yaml
+---
+on:
+  issues:
+    types: [opened, edited, reopened]
+
+permissions:
+  contents: read
+  issues: read
+
+safe-outputs:
+  staged: true
+
+  add-labels:
+    allowed:
+      - bug
+      - feature
+      - documentation
+      - needs-info
+    blocked:
+      - "~*"
+      - "*[bot]"
+    max: 2
+    target: triggering
+    issue-intents: true
+
+  set-issue-type:
+    allowed: [Bug, Feature, Task]
+    max: 1
+    target: triggering
+    issue-intents: true
+
+  set-issue-field:
+    allowed-fields: [Priority]
+    max: 1
+    target: triggering
+    issue-intents: true
+---
+
+# Issue triage
+
+Classify the triggering issue using only the allowed outputs.
+For every requested action:
+
+- provide a high, medium, or low confidence value;
+- give a concise rationale based on visible issue evidence;
+- do not infer customer impact or urgency when the issue does not state it;
+- request no action when evidence is insufficient.
+```
+
+`issue-intents: true`는 지원되는 safe output에 confidence와 rationale을 요구합니다. 2026년 7월 기준 지원 대상은 issue type, issue field, labels, close, agent assignment와 user assignment입니다.
+
+workflow를 수정한 뒤에는 lock file을 직접 편집하지 말고 사용하는 `gh-aw` 버전으로 다시 compile하세요.
+
+```bash
+gh aw compile
+```
+
+처음 50~100개의 실제 이슈에서 preview를 수집해 사람이 정답을 표시합니다. 이 단계에서 보는 것은 “문장이 그럴듯한가”가 아니라 action별 오류입니다.
+
+```text
+label/bug:
+  correct: 41
+  wrong: 3
+  missed: 6
+
+close-issue:
+  correct: 2
+  wrong: 2
+  missed: 0
+```
+
+위 결과라면 `bug` 라벨은 자동 적용 후보지만 close는 suggestion으로도 신중해야 합니다.
+
+## 2. Action별로 자동화 수준을 다르게 두기
+
+하나의 global confidence threshold만으로 운영하면 위험도가 다른 action을 같은 기준으로 취급하게 됩니다.
+
+| Action | 기본 권장 정책 | 이유 |
+| --- | --- | --- |
+| 정보성 라벨 추가 | high 자동 적용, 나머지 suggestion | 쉽게 되돌릴 수 있고 영향이 작음 |
+| Priority·Iteration field | high도 초기에는 suggestion | 업무 순서와 계획에 영향 |
+| Issue type 설정 | high 자동 적용 가능 | 조직의 reporting 구조에 영향하므로 표본 검증 필요 |
+| 사용자 배정 | suggestion | 알림과 책임 소유권이 바뀜 |
+| Coding agent 배정 | suggestion | 비용과 코드 변경 작업이 시작될 수 있음 |
+| 이슈 닫기 | suggestion 또는 사람 전용 | 고객 요청과 작업 기록을 숨길 수 있음 |
+
+GitHub UI의 confidence 정책과 별개로 workflow prompt에도 행동 경계를 명시하세요.
+
+```text
+High confidence:
+- the issue contains explicit, direct evidence for the action;
+- no contradictory evidence is present;
+- the action matches one allowed category exactly.
+
+Medium confidence:
+- the likely action is clear but one relevant fact is missing;
+- two allowed categories are plausible.
+
+Low confidence:
+- the action depends on inference about intent, priority, ownership, or impact.
+
+When uncertain, return no action rather than increasing confidence.
+```
+
+모델에게 “항상 하나를 선택하라”고 요구하면 confidence가 품질 지표가 아니라 강제 분류의 장식이 됩니다. `no action`을 정상 결과로 인정해야 합니다.
+
+## 3. Allowlist를 confidence보다 먼저 적용하기
+
+라벨이 수백 개 있는 공개 저장소에서 agent가 모든 라벨을 선택하게 하면 prompt injection이나 오분류의 blast radius가 커집니다.
+
+```yaml
+safe-outputs:
+  add-labels:
+    allowed:
+      - area/*
+      - team-*
+      - bug
+      - feature
+      - documentation
+    blocked:
+      - "~*"
+      - "*[bot]"
+    max: 2
+    target: triggering
+    issue-intents: true
+```
+
+`blocked` pattern은 `allowed`보다 먼저 평가됩니다. 운영이나 workflow trigger에 사용하는 라벨을 blocklist에 넣으면, 넓은 glob을 허용하더라도 agent가 자동화 제어 라벨을 조작하는 것을 막을 수 있습니다.
+
+추가로 다음 제약을 사용하세요.
+
+- `target: triggering`: 이벤트를 발생시킨 이슈만 수정
+- `max`: 한 run에서 가능한 action 수 제한
+- `allowed-fields`: 수정 가능한 project field 제한
+- `allowed`: issue type과 label allowlist
+- `required-labels`: 사람이 자동화 대상이라고 표시한 이슈만 허용
+- `required-title-prefix`: 별도 bot queue처럼 운영할 때 target 제한
+
+`target: "*"`와 cross-repository write는 초기 triage에 필요하지 않습니다. 범위를 넓혀야 한다면 먼저 staged 또는 별도 테스트 저장소에서 검증하세요.
+
+## 4. Rationale을 짧은 설명이 아니라 감사 데이터로 저장하기
+
+좋은 rationale은 agent의 생각을 길게 노출하는 문장이 아닙니다. 이후 사람이 판단을 재현할 수 있는 관찰 가능한 근거입니다.
+
+나쁜 예:
+
+```text
+이 이슈는 버그처럼 보여서 bug 라벨을 선택했습니다.
+```
+
+좋은 예:
+
+```text
+재현 단계와 expected/actual behavior가 있고, v3.4.1에서 저장 후 500 오류가 반복된다고 보고되어 bug로 분류했습니다.
+```
+
+rationale을 평가할 때 다음을 확인합니다.
+
+- 이슈 본문에 실제로 있는 사실만 참조하는가
+- priority나 severity를 추측하지 않는가
+- action과 직접 관계없는 장황한 설명이 없는가
+- 사람이 disagreement reason을 기록할 수 있는가
+
+별도 분석용 저장소나 warehouse를 사용한다면 아래 수준의 이벤트를 남기면 충분합니다.
+
+```ts
+interface IssueIntentAuditEvent {
+  repository: string;
+  issueNumber: number;
+  action: "add-label" | "set-type" | "set-field" | "assign" | "close";
+  proposedValue: string;
+  confidence: "high" | "medium" | "low";
+  rationale: string;
+  disposition: "auto-applied" | "accepted" | "declined" | "expired";
+  workflowVersion: string;
+  model?: string;
+  createdAt: string;
+}
+```
+
+민감한 이슈 본문 전체를 분석 데이터에 복제하지 마세요. issue reference, action과 결과만 저장하고 필요한 경우 권한이 적용되는 원본으로 돌아가는 편이 안전합니다.
+
+## 5. Confidence를 calibration 데이터로 검증하기
+
+모델이 high라고 출력한 비율은 성능이 아닙니다. 다음 지표를 action별로 계산하세요.
+
+```text
+precision(high, add-labels)
+= accepted high-confidence label actions
+  / all high-confidence label actions
+
+suggestion acceptance rate
+= accepted suggestions / reviewed suggestions
+
+false auto-apply rate
+= corrected or reverted auto-applied actions
+  / all auto-applied actions
+
+review queue age
+= time from suggestion to accept/decline
+```
+
+예를 들어 high-confidence label precision이 99%여도 close precision이 85%라면 같은 threshold를 쓸 이유가 없습니다. action별 표본 수와 비용을 고려해 정책을 분리합니다.
+
+또한 결과는 workflow version, prompt version과 model version별로 나눠 보세요. prompt를 바꾸거나 모델을 교체한 뒤 과거 calibration을 그대로 믿으면 안 됩니다.
+
+GitHub의 outcome 데이터처럼 workflow의 자기평가보다 실제 저장소 상태를 기준으로 보는 것이 좋습니다.
+
+- 자동 라벨이 사람이 제거되었는가
+- suggestion이 수락되었는가
+- 닫힌 이슈가 다시 열렸는가
+- 잘못된 담당자가 해제되었는가
+- 자동화 후 최초 응답 시간이 줄었는가
+
+## 6. Suggestion queue를 운영 업무로 만들기
+
+제안 기능을 켜기만 하면 검토되지 않은 suggestion이 쌓일 수 있습니다.
+
+GitHub issue search에서 다음을 사용합니다.
+
+```text
+repo:OWNER/REPO is:issue is:open has:suggestions
+```
+
+운영 규칙을 정하세요.
+
+- medium suggestion은 2영업일 안에 검토
+- low suggestion은 학습 데이터로만 사용하고 자동 적용하지 않음
+- 일정 기간이 지난 suggestion은 만료 또는 재평가
+- decline 시 가능한 경우 짧은 correction category 기록
+- 주간마다 가장 많이 거절된 action·label 확인
+
+검토량이 너무 많다면 threshold를 낮추는 것이 아니라 자동화 범위를 좁혀야 할 수 있습니다. 불분명한 이슈에 `needs-info` 하나만 제안하도록 바꾸는 편이 모든 metadata를 추측하게 하는 것보다 낫습니다.
+
+## 7. 단계별 rollout
+
+### 단계 0: Report only
+
+agent가 summary와 추천만 Actions artifact 또는 comment 없는 report로 남깁니다. 분류 기준부터 합의합니다.
+
+### 단계 1: Global staged mode
+
+모든 safe output을 preview합니다. allowlist, target, max와 prompt가 예상대로 동작하는지 확인합니다.
+
+### 단계 2: Suggestion only
+
+labels, type, field를 suggestion으로 보냅니다. `has:suggestions` queue의 acceptance rate와 review latency를 측정합니다.
+
+### 단계 3: 저위험 high-confidence action 자동 적용
+
+충분히 검증된 정보성 labels만 자동 적용합니다. field, assignment, close는 계속 제안으로 둡니다.
+
+### 단계 4: Action별 확대
+
+사람이 되돌리는 비율과 outcome이 목표 범위 안에 있을 때만 type이나 field를 추가합니다.
+
+### 단계 5: 지속적 calibration
+
+새 label, prompt, model, workflow version이 들어오면 이전 단계로 일부 되돌아가 shadow 또는 staged 평가를 수행합니다.
+
+staged mode는 “무엇을 하려는가”를 확인합니다. 실제 write path의 권한, concurrency, deduplication까지 검증해야 하면 별도 테스트 저장소에서 shadow evaluation을 수행해야 합니다.
+
+## Copilot cloud agent automations를 쓸 때
+
+GitHub의 Copilot cloud agent automation은 별도 업데이트 없이 새 confidence와 rationale을 지원합니다. 저장소의 Agents 탭에 있는 Automations 화면에서 생성할 수 있습니다.
+
+하지만 같은 원칙은 유지됩니다.
+
+- 처음부터 close와 assignment까지 허용하지 않습니다.
+- automation prompt에 high·medium·low의 기준을 구체적으로 씁니다.
+- repository admin의 automation level을 보수적으로 설정합니다.
+- suggestion acceptance와 수정·되돌리기 비율을 확인합니다.
+- approval UI를 보안 경계로 간주하지 않습니다.
+
+REST나 GraphQL API로 자체 agent를 연결하더라도 confidence와 rationale을 보내는 것만으로 안전해지지 않습니다. 실제 token permission과 write path를 분리해야 합니다.
+
+## 발행 전 체크리스트
+
+- [ ] agent runtime은 기본적으로 read-only인가
+- [ ] 모든 write action이 명시적인 safe output인가
+- [ ] action별 allowlist, max와 target이 설정됐는가
+- [ ] `issue-intents: true`를 지원 action에 적용했는가
+- [ ] staged mode에서 실제 이슈 표본을 검토했는가
+- [ ] close와 assignment를 labels보다 보수적으로 운영하는가
+- [ ] high confidence의 실제 precision을 action별로 측정하는가
+- [ ] rationale이 이슈에 존재하는 근거를 가리키는가
+- [ ] `has:suggestions` 검토 책임과 SLA가 정해졌는가
+- [ ] workflow·prompt·model version별 결과를 구분하는가
+
+## 결론
+
+GitHub Issues의 새 기능은 agent 자동화에 필요한 사람 검토 경험과 audit trail을 크게 개선합니다. 그러나 confidence는 권한이 아니고, approval은 보안 경계가 아닙니다.
+
+먼저 `safe-outputs`로 가능한 행동을 제한하세요. 다음으로 staged mode에서 판단 품질을 측정하고, labels처럼 되돌리기 쉬운 action부터 high-confidence 자동 적용을 허용하세요. 마지막으로 suggestion의 수락률과 실제 되돌리기 비율을 기준으로 범위를 넓히면 됩니다.
+
+## 공식 자료
+
+- [Agent automation controls in GitHub Issues](https://github.blog/changelog/2026-07-23-agent-automation-controls-in-github-issues-in-public-preview/)
+- [GitHub Agentic Workflows safe outputs](https://github.github.com/gh-aw/reference/safe-outputs/)
+- [GitHub Agentic Workflows staged mode](https://github.github.com/gh-aw/reference/staged-mode/)
+- [Safe rollout guide](https://github.github.com/gh-aw/guides/organization-practices/safe-rollout/)
+- [GitHub Agentic Workflows permissions](https://github.github.com/gh-aw/reference/permissions/)

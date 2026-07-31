@@ -36,14 +36,21 @@ export function TranslationProvider({
   );
 }
 
-export function useTranslation() {
-  const initialLanguage = useContext(InitialLanguageContext);
+export function useTranslation(explicitLanguage?: Language) {
+  const contextLanguage = useContext(InitialLanguageContext);
+  const initialLanguage = explicitLanguage ?? contextLanguage;
   const [routingLang, setRoutingLang] = useState<Language>(() => initialLanguage ?? defaultLang);
   const [lang, setLang] = useState<ExistingUiLanguage>(() =>
     getExistingUiLanguage(initialLanguage ?? defaultLang)
   );
 
   useEffect(() => {
+    if (initialLanguage) {
+      setRoutingLang(initialLanguage);
+      setLang(getExistingUiLanguage(initialLanguage));
+      return;
+    }
+
     // Set initial language
     const currentLanguage = getLanguage();
     setRoutingLang(currentLanguage);
@@ -59,7 +66,7 @@ export function useTranslation() {
     return () => {
       window.removeEventListener('languageChange', handleLanguageChange as EventListener);
     };
-  }, []);
+  }, [initialLanguage]);
 
   const t = useCallback(<T extends Partial<Record<Language, string>> & { ko: string }>(
     translationObj: T

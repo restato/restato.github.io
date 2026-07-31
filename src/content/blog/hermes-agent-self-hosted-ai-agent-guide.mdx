@@ -1,0 +1,229 @@
+---
+title: "Hermes Agent: A Self-Hosted AI Agent That Learns Your Workflow"
+description: "A practical guide to Nous Research's Hermes Agent: models, memory, skills, messaging, cron, subagents, Docker isolation, and a safe rollout path."
+date: 2026-07-20
+tags: ["Hermes Agent", "Nous Research", "AI Agent", "Self-Hosted AI", "Agent Security"]
+---
+
+Hermes Agent is easy to misread. The name sounds like a model, and the screenshots look like another coding assistant. Neither description quite fits.
+
+[Hermes Agent](https://github.com/NousResearch/hermes-agent) is an open-source agent runtime built by Nous Research. You bring the model. Hermes supplies the tool loop, durable memory, searchable conversation history, reusable skills, messaging gateway, scheduler, subagents, and execution environments. It can write code, but its larger idea is continuity: the same agent can remember a convention from Monday, answer from Slack on Tuesday, and run a scheduled job on a server on Wednesday.
+
+That makes it closer to a small personal agent operating system than an IDE copilot.
+
+I tested the current release while researching this guide. The local installation reported Hermes Agent v0.18.2, the gateway was running as a macOS launchd service, and terminal execution was configured for Docker. That setup exposed both the appeal and the part that deserves the most attention: a persistent agent becomes useful when it can act without you watching, which is exactly when isolation matters.
+
+This article reflects the project and official documentation checked on July 20, 2026.
+
+## Hermes Agent is not Hermes 4
+
+Start with the naming trap.
+
+Hermes Agent is software that runs an agent loop. Hermes 4 is a Nous Research model family. The agent can connect to many providers and model families through Nous Portal, OpenAI Codex, Anthropic, OpenRouter, Gemini, local endpoints, and other supported backends. You select or configure them with `hermes model`.
+
+The counterintuitive bit is in the project's own [Nous Portal documentation](https://hermes-agent.nousresearch.com/docs/integrations/nous-portal): it does not currently recommend Hermes 4 for Hermes Agent. Hermes 4 is tuned for chat and reasoning, while the agent needs reliable, rapid tool calling. The shared name does not make the two the default pairing.
+
+This distinction also prevents a bad comparison. Asking whether Hermes Agent is smarter than Codex or Claude Code mixes the harness with the model. Hermes can use Codex or Claude-backed routes. Its contribution is the machinery around the model.
+
+## The five layers
+
+A useful way to understand Hermes is to separate five layers.
+
+| Layer | Hermes component | The question it answers |
+| --- | --- | --- |
+| Intelligence | Model and provider | Which model should reason and call tools? |
+| Action | Agent loop and toolsets | What can the model search, read, edit, run, or delegate? |
+| Continuity | Memory, sessions, skills, profiles | What should survive the current conversation? |
+| Presence | CLI, desktop, gateway, messaging, cron | Where and when can the agent receive work? |
+| Containment | Local, Docker, SSH, Singularity, Modal, Daytona | Where do agent-controlled commands and files live? |
+
+Imagine a weekly repository audit requested from Slack. The gateway authenticates the sender and finds the conversation. A model plans the audit. Tools clone or inspect the repository in the selected terminal backend. Subagents can review independent areas. A skill supplies the house procedure. Cron determines the schedule and returns the report to Slack. Memory may keep a small, durable preference such as the expected report format.
+
+Calling that whole stack "the model" hides most of the engineering.
+
+## What "self-improving" means here
+
+The project describes Hermes as self-improving. That phrase invites more magic than the implementation needs.
+
+Hermes does not normally retrain model weights on your conversations. It improves its working context and procedures through three practical mechanisms.
+
+### Small, curated memory
+
+The built-in [persistent memory](https://hermes-agent.nousresearch.com/docs/user-guide/features/memory/) has two files under `~/.hermes/memories/`:
+
+| File | Purpose | Current limit |
+| --- | --- | --- |
+| `MEMORY.md` | Environment facts, project conventions, lessons, completed work | 2,200 characters |
+| `USER.md` | User identity, preferences, communication style | 1,375 characters |
+
+Those limits are a feature. Everything stored there is injected into future sessions, so an unlimited memory file would become an expensive junk drawer. Hermes must consolidate or remove entries when the file is full.
+
+The snapshot is loaded at session start and stays frozen for that session. A memory written now affects the next session, not the system prompt already in flight. That preserves prompt caching and gives the behavior a reasonably clear boundary.
+
+### Searchable session history
+
+Details that do not deserve permanent prompt space can stay in the session database. Hermes stores conversations in SQLite and uses FTS5 search to retrieve old messages on demand. Its documentation contrasts the two systems well: memory is a small set of facts that should always be present; session search is for "what did we discuss last week?"
+
+This is a saner design than pouring every old conversation into every new prompt.
+
+### Skills as procedural memory
+
+[Skills](https://hermes-agent.nousresearch.com/docs/user-guide/features/skills/) are `SKILL.md` instruction packages loaded only when relevant. The descriptions stay cheap; the full procedure enters context when the task calls for it.
+
+Hermes can install skills, edit them, and create them through `/learn`. Point `/learn` at an SDK directory, a documentation URL, pasted notes, or the workflow you just completed, and the agent can turn the source into a reusable procedure. This is the most concrete version of "gets better with use." It is not a mysterious intelligence gain. It is documentation becoming executable operating knowledge.
+
+There is still a review problem. A learned skill can preserve a bad workaround as efficiently as a good one. Treat skill changes like code changes: inspect the diff, test the procedure, and remove credentials or machine-specific accidents before reuse.
+
+## It can live beyond the terminal
+
+Hermes has CLI and desktop surfaces, but the [messaging gateway](https://hermes-agent.nousresearch.com/docs/user-guide/messaging) changes the product's shape. One background process can connect configured platforms such as Telegram, Discord, Slack, WhatsApp, Signal, email, Teams, and others. It keeps per-chat sessions, handles delivery, and runs the scheduler.
+
+This is useful for work that should not depend on an open laptop terminal:
+
+- Ask for a repository status check from a phone.
+- Send a voice memo that becomes a task.
+- Deliver a nightly report to a private channel.
+- Keep one agent session continuous across CLI and messaging.
+
+It also creates a larger input surface. A bot in a channel can receive untrusted text, files, links, and tool results. Sender authorization and DM pairing matter, but they do not turn hostile content into trusted instructions.
+
+### Cron is durable; a running subagent is not
+
+Hermes [cron jobs](https://hermes-agent.nousresearch.com/docs/user-guide/features/cron) are stored under the active profile. The gateway checks due work every 60 seconds, starts a fresh agent session, optionally injects skills, records execution state, and delivers the result. The execution ledger distinguishes completed, failed, and unknown attempts rather than pretending an interrupted job certainly did or did not run.
+
+[Subagents](https://hermes-agent.nousresearch.com/docs/user-guide/features/delegation) solve a different problem. They get isolated conversations and terminal sessions, with three concurrent children by default. Only their final summaries enter the parent context. They are good for parallel review or research that would flood one conversation.
+
+They are not a durable job queue. If the owning process disappears while children are still working, Hermes cannot resume that execution with certainty. Use cron or a supervised background process for work that must survive a restart.
+
+## Model choice stays separate
+
+Hermes supports a long list of providers, but the interface boils down to two commands:
+
+```bash
+# Add a provider, authenticate, or set the global default
+hermes model
+
+# Switch among providers and models already configured in this session
+/model
+```
+
+The distinction matters. `/model` cannot complete a new OAuth flow or collect a missing API key.
+
+The current [model configuration guide](https://hermes-agent.nousresearch.com/docs/user-guide/configuring-models) also separates the main model from auxiliary slots. The main model runs the conversational tool loop. Smaller side jobs such as context compression, vision, approval scoring, page summarization, and skill search can use other models. That lets operators save money without downgrading the reasoning used for the main task.
+
+Do not start by optimizing every slot. Pick one reliable tool-calling model, complete a real task, inspect usage, and split auxiliary work only when the data gives you a reason.
+
+For a focused comparison of current Codex and Claude Code model, effort, and speed controls, see Restato's [Codex vs Claude Code guide](/blog/codex-vs-claude-code-model-speed-effort-guide/).
+
+## Where Hermes fits beside coding agents
+
+Codex and Claude Code are strongest when the center of gravity is a codebase and a human-reviewed development session. Hermes can do that work, but its architecture pays for a broader use case.
+
+| Need | Better starting point |
+| --- | --- |
+| Focused repository implementation and review | Codex or Claude Code |
+| Persistent assistant across days and channels | Hermes Agent |
+| Scheduled reports and messaging delivery | Hermes Agent gateway and cron |
+| IDE autocomplete with almost no operations burden | A dedicated editor assistant |
+| Model-provider portability and self-hosted endpoints | Hermes Agent |
+| A disposable one-off code edit | Whichever coding agent is already open |
+
+Hermes makes sense when continuity is part of the product requirement. If every task begins and ends in one repository session, its gateway, memories, profiles, and scheduler may be unnecessary machinery.
+
+Profiles help keep that machinery from bleeding across roles. A coding assistant, personal bot, and research agent can each have separate configuration, credentials, memories, skills, sessions, cron jobs, and gateway state. That is a cleaner boundary than asking one immortal agent to remember which personality and permissions apply today.
+
+## The security boundary is the operating system
+
+This is the section I would read before installing a messaging bot.
+
+Hermes' own [security policy](https://github.com/NousResearch/hermes-agent/security) is unusually direct: the operating system is the only security boundary against an adversarial LLM. Approval prompts, redaction, scanners, and allowlists are useful heuristics, but none contains a compromised in-process agent.
+
+The default local terminal backend runs commands on the host. If the gateway is attached to your personal account, SSH keys, browser sessions, cloud credentials, and source checkouts, that is the effective blast radius.
+
+Hermes supports several execution backends:
+
+| Backend | Isolation posture | Typical use |
+| --- | --- | --- |
+| Local | None; commands run as the host user | Trusted interactive development |
+| Docker / Singularity | Container boundary | Persistent or ephemeral isolated work |
+| SSH | Separate remote machine | A dedicated worker or server |
+| Modal / Daytona | Cloud sandbox | Elastic or hibernating remote execution |
+
+Terminal-backend isolation routes shell and file tools into the selected environment. It does not wrap every gateway, plugin, hook, or Python code path running in the host process. Whole-process containerization is stronger because the entire Hermes process tree is inside the boundary.
+
+That nuance showed up in my test deployment. The Slack-facing gateway was supervised by launchd on macOS, while `terminal.backend` was Docker. Agent-controlled shell and file work stayed in a persistent Docker workspace, but the gateway itself still lived on the Mac. That is a useful separation for many personal setups, not complete host containment.
+
+Keep forwarded environment variables empty by default. Add only task-scoped credentials, and prefer a fine-grained token limited to the repositories the agent may touch. A container that receives your broad host token can still exfiltrate it.
+
+Restato's [Agent Governance guide](/blog/agent-governance-control-plane/) covers the larger pattern: identity, authority, isolation, evidence, and revocation need separate controls.
+
+## A rollout that stays understandable
+
+The official quick install is a curl-to-shell command. For a machine with valuable credentials, download and inspect the installer first:
+
+```bash
+curl -fsSL https://hermes-agent.nousresearch.com/install.sh \
+  -o /tmp/hermes-install.sh
+less /tmp/hermes-install.sh
+bash /tmp/hermes-install.sh
+
+hermes --version
+hermes doctor
+```
+
+Then add capability in this order.
+
+### 1. Configure one model provider
+
+Run `hermes model` or the Portal quick setup, then verify a harmless conversation without tools. Record the model, provider, and billing path. "It uses Claude" is not enough if nobody knows whether the request travels through Anthropic, OpenRouter, Nous Portal, or a company proxy.
+
+### 2. Choose the execution boundary
+
+Before connecting a public or team-facing channel, move terminal work to Docker, SSH, Modal, Daytona, or another environment with an explicit filesystem and credential scope. Test that the agent cannot see an unmounted host directory. Test network and token access too.
+
+### 3. Add one messaging surface
+
+Use `hermes gateway setup`, configure one platform, and authorize one user. Verify that an unknown account is rejected. Install the gateway as a user service only after foreground operation and logs make sense.
+
+```bash
+hermes gateway
+hermes gateway status
+hermes gateway install
+```
+
+### 4. Teach one workflow
+
+Give Hermes a small recurring task with a clear validator. Save only stable preferences to memory. Turn one proven procedure into a skill and inspect the generated files. This produces a much better signal than importing a huge skill catalog on day one.
+
+### 5. Schedule after manual success
+
+Run the task manually several times before adding cron. Decide where results go and how failures surface. Check the execution ledger rather than assuming a missing message means nothing ran.
+
+### 6. Add delegation last
+
+Parallel agents multiply spend and side effects. Start with independent, read-heavy workstreams and keep the default depth flat. A 27-agent tree is technically possible; that does not make it an operating target.
+
+Finally, back up the active profile's configuration, memory, skills, session database, and cron records according to their sensitivity. Pin a known release for an always-on deployment and read release notes before updating. The latest release during this review was [v0.18.2](https://github.com/NousResearch/hermes-agent/releases/tag/v2026.7.7.2), published July 8, 2026.
+
+## Should you use it?
+
+Use Hermes Agent when the same assistant needs to persist across time, learn repeatable procedures, accept work outside a terminal, or operate on infrastructure you control. Its model flexibility is useful, but memory, skills, gateway delivery, and execution portability are the stronger reasons to adopt it.
+
+Skip it when you only need autocomplete, a short code session, or a managed service with no operational responsibility. Self-hosting an agent means owning its updates, logs, credentials, state, and failure modes.
+
+The best first experiment is small: one profile, one provider, one isolated workspace, one authorized channel, and one recurring task. If that loop saves work without creating review debt, expand it. If it does not, a larger model or another dozen skills will not repair the operating design.
+
+## Official resources
+
+- [Hermes Agent repository](https://github.com/NousResearch/hermes-agent)
+- [Quickstart](https://hermes-agent.nousresearch.com/docs/getting-started/quickstart/)
+- [Providers](https://hermes-agent.nousresearch.com/docs/integrations/providers/)
+- [Model configuration](https://hermes-agent.nousresearch.com/docs/user-guide/configuring-models)
+- [Persistent memory](https://hermes-agent.nousresearch.com/docs/user-guide/features/memory/)
+- [Skills](https://hermes-agent.nousresearch.com/docs/user-guide/features/skills/)
+- [Messaging gateway](https://hermes-agent.nousresearch.com/docs/user-guide/messaging)
+- [Scheduled tasks](https://hermes-agent.nousresearch.com/docs/user-guide/features/cron)
+- [Subagent delegation](https://hermes-agent.nousresearch.com/docs/user-guide/features/delegation)
+- [Profiles](https://hermes-agent.nousresearch.com/docs/user-guide/profiles/)
+- [Security guide](https://hermes-agent.nousresearch.com/docs/user-guide/security)
+- [Security policy](https://github.com/NousResearch/hermes-agent/security)

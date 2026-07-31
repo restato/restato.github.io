@@ -11,6 +11,104 @@
 
 실제 검색량을 확인하지 않았다면 수치를 추정하지 말고 정성적으로만 기록합니다.
 
+## Vercel Workflow extended duration
+- intent: tutorial | informational | comparison
+- related: Vercel Workflow 30 minutes, extended max duration, Workflow step, retry, maxRetries, idempotency key, AbortSignal, Fluid compute
+- existing-post: /blog/vercel-workflow-30-minute-step-duration-guide/
+- opportunity: 환경 변수 설정법보다 워크플로 전체 수명과 step 실행 시간의 차이, 30분짜리 원자적 작업의 분리 기준, 재시도·중복 쓰기·취소·timeout budget과 실제 비용을 연결하는 검색 의도
+- notes: Vercel의 2026-07-24 Workflow 발표와 Function duration, WorkflowAgent, cancellation, usage·pricing 공식 자료를 기준으로 작성했으며 기능은 beta이고 검색량 수치는 확인하지 않음
+
+## Vercel Blob WAF
+- intent: tutorial | informational | comparison
+- related: Vercel WAF for Blob, Blob rate limit, Blob challenge, prevent hotlink, public Blob, Private Blob, shared ruleset
+- existing-post: /blog/vercel-blob-waf-security-guide/
+- opportunity: WAF 설정 화면보다 public object traffic policy와 private data authorization의 차이, server-side challenge 실패, 모든 보호 store의 shared rule set, Log-first rollout과 path별 rate limit을 설명하는 검색 의도
+- notes: Vercel의 2026-07-24 beta 발표와 WAF·Blob public/private/security 공식 문서를 기준으로 작성했으며 검색량 수치는 확인하지 않음
+
+## Claude Opus 5 migration
+- intent: tutorial | comparison | informational
+- related: claude-opus-5, Opus 4.8 migration, adaptive thinking, effort, max_tokens, thinking disabled, GitHub Copilot Opus 5, Claude Code
+- existing-post: /blog/claude-opus-5-migration-copilot-guide/
+- opportunity: 출시 소개보다 thinking 기본값이 기존 요청 비용·출력 상한에 주는 영향, effort 재평가, 과도한 self-check prompt 제거, tool artifact 회귀 테스트와 Copilot 조직 정책을 연결하는 검색 의도
+- notes: Anthropic의 2026-07-25 모델·마이그레이션·프롬프트·가격 문서와 GitHub 2026-07-24 발표를 기준으로 작성했으며 검색량 수치는 확인하지 않음
+
+## OpenAI API spend limits
+- intent: tutorial | informational
+- related: organization spend limit, project hard limit, soft budget, API cost control, budget exhaustion, circuit breaker, project API key, usage dashboard
+- existing-post: /blog/openai-api-spend-limits-guide/
+- opportunity: 콘솔 설정법보다 제품·환경별 프로젝트 격리, soft alert 단계의 모델 감속, rate limit과 budget exhaustion 분리, hard limit 이후 제한된 fallback을 설계하는 검색 의도
+- notes: OpenAI 공식 프로젝트 관리·Usage Dashboard·API key·API reference를 2026-07-25 확인했으며 공개 문서에서 고정 오류 코드를 보장하지 않아 실제 계정의 오류 형태를 검증하도록 안내함
+
+## MCP 2026-07-28 migration
+- intent: tutorial | informational | comparison
+- related: stateless MCP, initialize removal, Mcp-Session-Id, server/discover, MRTR, input_required, subscriptions/listen, cacheScope, ttlMs, conformance test
+- existing-post: /blog/mcp-2026-07-28-stateless-migration-guide/
+- opportunity: 릴리스 요약보다 세션·handshake 의존성을 explicit handle과 request metadata로 옮기고, retry·idempotency·elicitation security·conformance CI를 함께 설계하는 검색 의도
+- notes: 2026-07-24 기준 release candidate와 draft specification을 사용했으며 최종 명세는 2026-07-28 공개 전에 다시 확인해야 함
+
+## GitHub Issues agent automation controls
+- intent: tutorial | informational
+- related: issue intents, confidence, approvals, rationale, has:suggestions, GitHub Agentic Workflows, safe-outputs, staged mode, calibration
+- existing-post: /blog/github-issues-agent-automation-controls-guide/
+- opportunity: confidence 기능 소개보다 approval이 security boundary가 아니라는 제한, read-only agent와 permissioned write job 분리, action별 자동화 임계값과 outcome 측정을 연결하는 검색 의도
+- notes: GitHub 2026-07-23 public preview와 공식 gh-aw 문서를 기준으로 작성했으며 검색량 수치는 확인하지 않음
+
+## AI SDK streaming transcription
+- intent: tutorial | informational
+- related: streamTranscribe, experimental_streamTranscribe, AI Gateway, raw PCM, realtime whisper, Grok STT, voice agent, live caption
+- existing-post: /blog/ai-gateway-streaming-transcription-guide/
+- opportunity: API 호출 예제보다 24kHz PCM 입력, 서버 발급 임시 토큰, 부분·최종 전사 상태, 텍스트 에이전트 연결과 승인 경계를 함께 설명하는 실전 검색 의도
+- notes: Vercel 2026-07-22 공식 발표와 AI Gateway Grok STT 공식 모델 페이지를 기준으로 작성했으며 기능은 beta이고 API 이름은 experimental 상태
+
+## eve agent extensions
+- intent: tutorial | informational | comparison
+- related: defineExtension, eve extension build, agent/extensions, agent skills package, tools, connections, hooks, namespace, approval
+- existing-post: /blog/eve-installable-agent-extensions-guide/
+- opportunity: scaffold·install 설명보다 tools·skills·connections·hooks를 권한과 버전이 있는 능력 패키지로 운영하고, namespace·secret·approval·통합 테스트를 설계하는 검색 의도
+- notes: Vercel 2026-07-22 공식 발표, eve 공식 사이트와 agent-browser 공식 extension 문서를 기준으로 작성했으며 검색량 수치는 확인하지 않음
+
+## Gemini 3.6 Flash migration
+- intent: tutorial | comparison | informational
+- related: Gemini 3.5 Flash-Lite, sampling parameters, prefilled model turn, thinking_level, Interactions API, GitHub Copilot, Vercel AI Gateway
+- existing-post: /blog/gemini-3-6-flash-migration-guide/
+- opportunity: 출시 기능 요약보다 temperature·top_p·top_k 제거, model role 400 오류, 모델 역할 분리와 Copilot·AI Gateway 전환을 한 번에 해결하는 실전 검색 의도
+- notes: Google 2026-07-21 최신 모델·사양 문서, GitHub와 Vercel 공식 발표를 기준으로 작성했으며 검색량 수치는 확인하지 않음
+
+## AI Gateway service tiers
+- intent: tutorial | comparison | informational
+- related: priority, flex, default, providerMetadata, serviceTier, AI SDK, OpenAI, Gemini, latency, cost
+- existing-post: /blog/vercel-ai-gateway-service-tiers-guide/
+- opportunity: 티어 설정법보다 requested tier와 실제 applied tier 차이, best-effort downgrade, 실제 과금과 workload routing을 운영 코드로 연결하는 검색 의도
+- notes: Vercel 2026-07-21 changelog와 AI Gateway 공식 service tiers 문서를 기준으로 작성했으며 모델·제공자별 가격은 변동 가능
+
+## Astro 7 migration
+- intent: tutorial | informational
+- related: Astro 7.1, Astro 5 to 7, Content Layer, Node 22, post.id, render(), Tailwind 4, GitHub Pages
+- existing-post: /blog/astro-5-to-7-1-migration-audit/
+- opportunity: 릴리스 기능 요약보다 실제 Astro 5 저장소에서 빌드를 막는 Node·content config·slug·render API와 Tailwind 전환 순서를 연결하는 실전 검색 의도
+- notes: Restato의 package.json, src/content/config.ts, blog route, RSS, deploy workflow와 Astro 공식 v6·v7 migration guide를 기준으로 작성했으며 검색량 수치는 확인하지 않음
+
+## GitHub Copilot code review customization
+- intent: tutorial | informational
+- related: copilot-code-review.yml, REVIEW.md, AGENTS.md, CLAUDE.md, custom instructions, firewall, runner, agent skills
+- existing-post: /blog/github-copilot-code-review-customization-guide/
+- opportunity: 단순 리뷰 요청법보다 head 브랜치 지침 검증, 전용 setup 환경, setup 실패 처리, 네트워크·runner 권한 분리와 review skill 설계에 대한 지속 검색 가능성
+- notes: GitHub 2026-07-17 changelog와 공식 Copilot code review·firewall·environment 문서를 기준으로 작성. 문서 일부의 base branch 설명과 최신 changelog의 head branch 설명 차이를 명시함
+
+## AI SDK 7
+- intent: tutorial | comparison | informational
+- related: WorkflowAgent, HarnessAgent, ToolLoopAgent, tool approval, Vercel AI SDK migration, durable AI agent, AI SDK telemetry
+- existing-post: /blog/ai-sdk-7-production-agent-guide/
+- opportunity: 기능 소개보다 에이전트 실행 경계, 사람 승인, 중단 복구, 컨텍스트 직렬화, 타임아웃과 운영 체크리스트에 대한 지속 검색 가능성
+- notes: Vercel의 2026-06-25 공식 발표와 AI SDK 공식 문서·Knowledge Base를 기준으로 작성했으며 검색량 수치는 확인하지 않음
+
+## Content OS
+- intent: tutorial | informational
+- related: AI blog automation, GitHub agent memory, SKILL.md, content scoring, gap finder, automatic publishing, Astro content collection
+- existing-post: /blog/github-content-os-agent-skills-workflow/
+- opportunity: 단순 글 생성 프롬프트가 아니라 정책·memory·역할별 스킬·후보 상태·발행 중단 조건을 GitHub에서 버전 관리하는 재현 가능한 구조
+- notes: 실제 restato/restato.github.io 저장소 구현을 기준으로 작성했으며 기존 `/blog/building-auto-dev-blog-generator/`와 검색 의도를 분리함
+
 ## GPT-5.6
 - intent: informational | comparison | tutorial
 - related: GPT-5.6 Sol, GPT-5.6 Terra, GPT-5.6 Luna, OpenAI API 가격, GPT-5.5 마이그레이션, prompt caching
