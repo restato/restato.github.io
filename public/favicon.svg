@@ -1,3 +1,21 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
-  <text y=".9em" font-size="90">🚀</text>
+<svg viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg">
+  <style>
+    :root {
+      --brand-icon-bg: #19553C;
+      --brand-icon-r: #F7F8F7;
+      --brand-icon-leaf: #9CC4AD;
+    }
+
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --brand-icon-bg: #70A889;
+        --brand-icon-r: #111713;
+        --brand-icon-leaf: #F0F4F1;
+      }
+    }
+  </style>
+  <rect width="32" height="32" rx="7" fill="var(--brand-icon-bg, #19553C)"/>
+  <path d="M9 22V10h7.2c4.2 0 6.8 2.1 6.8 5.5 0 2.4-1.3 4.2-3.6 5.1L23 25h-4l-3-4.1h-3.4V22H9Z" fill="var(--brand-icon-r, #F7F8F7)"/>
+  <path d="M13 13.4v4.2h3c2 0 3-.7 3-2.1s-1-2.1-3-2.1h-3Z" fill="var(--brand-icon-bg, #19553C)"/>
+  <path d="M20.5 7.5c1.7.1 3.1.7 4 1.9-1.7.7-3.3.6-4.8-.4.1-.6.4-1.1.8-1.5Z" fill="var(--brand-icon-leaf, #9CC4AD)"/>
 </svg>

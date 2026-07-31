@@ -5,12 +5,26 @@ const header = readFileSync('src/components/Header.astro', 'utf8');
 const footer = readFileSync('src/components/Footer.astro', 'utf8');
 const consent = readFileSync('src/components/ConsentBanner.astro', 'utf8');
 const layout = readFileSync('src/layouts/MainLayout.astro', 'utf8');
+const baseLayout = readFileSync('src/layouts/BaseLayout.astro', 'utf8');
 const chromeSources = [header, footer, consent, layout].join('\n');
 const primaryNavStart = header.indexOf('<nav');
 const primaryNavEnd = header.indexOf('</nav>', primaryNavStart);
 const mobileDisclosure = header.indexOf('id="mobile-menu"');
 
 describe('Forest Café site chrome', () => {
+  it('uses the reusable brand mark in the header and footer', () => {
+    expect(header).toContain("import BrandMark from './BrandMark.astro'");
+    expect(footer).toContain("import BrandMark from './BrandMark.astro'");
+    expect(header).toContain('<BrandMark size={32} />');
+    expect(footer).toContain('<BrandMark size={32} />');
+  });
+
+  it('links the canonical favicon and Apple touch icon', () => {
+    expect(baseLayout).toContain('<link rel="icon" type="image/svg+xml" href="/favicon.svg" />');
+    expect(baseLayout).toContain('<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />');
+    expect(baseLayout).toContain("new URL('/favicon.svg', Astro.site).toString()");
+  });
+
   it('labels navigation landmarks and exposes the current route', () => {
     expect(header).toMatch(/<nav[^>]+aria-label=\{chrome\.primaryNavigation\}/);
     expect(primaryNavStart).toBeGreaterThanOrEqual(0);
