@@ -31,24 +31,8 @@ export default {
         },
       },
       fontFamily: {
-        sans: [
-          'D2Coding',
-          'Noto Sans',
-          'Noto Sans KR',
-          'Noto Sans JP',
-          'Noto Sans SC',
-          'Noto Sans Arabic',
-          'system-ui',
-          '-apple-system',
-          'BlinkMacSystemFont',
-          'Apple SD Gothic Neo',
-          'Malgun Gothic',
-          'Hiragino Sans',
-          'Yu Gothic',
-          'ui-monospace',
-          'monospace',
-        ],
-        mono: ['JetBrains Mono', 'Fira Code', 'monospace'],
+        sans: ['-apple-system', 'BlinkMacSystemFont', 'SF Pro Display', 'SF Pro Text', 'Segoe UI', 'sans-serif'],
+        mono: ['D2Coding', 'SFMono-Regular', 'Menlo', 'Consolas', 'monospace'],
       },
       typography: {
         DEFAULT: {
@@ -57,7 +41,7 @@ export default {
             code: {
               backgroundColor: '#1e1e2e',
               padding: '0.25rem 0.5rem',
-              borderRadius: '0.625rem',
+              borderRadius: '0.375rem',
               fontWeight: '400',
             },
             'code::before': {

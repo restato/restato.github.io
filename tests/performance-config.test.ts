@@ -7,7 +7,7 @@ const projectRoot = path.resolve(import.meta.dirname, '..');
 const require = createRequire(import.meta.url);
 
 describe('performance gate configuration', () => {
-  it('ships no global remote font request and uses a system-language font stack', async () => {
+  it('ships no global remote font request and uses the approved system font stack', async () => {
     const [layout, tailwind] = await Promise.all([
       readFile(path.join(projectRoot, 'src/layouts/BaseLayout.astro'), 'utf8'),
       readFile(path.join(projectRoot, 'tailwind.config.mjs'), 'utf8'),
@@ -15,11 +15,9 @@ describe('performance gate configuration', () => {
 
     expect(layout).not.toMatch(/cdn\.jsdelivr\.net|pretendard\.css/i);
     expect(tailwind).not.toMatch(/Pretendard/);
-    expect(tailwind).toContain('system-ui');
-    expect(tailwind).toContain('Apple SD Gothic Neo');
-    expect(tailwind).toContain('Malgun Gothic');
-    expect(tailwind).toContain('Hiragino Sans');
-    expect(tailwind).toContain('Yu Gothic');
+    for (const font of ['-apple-system', 'BlinkMacSystemFont', 'SF Pro Display', 'SF Pro Text', 'Segoe UI', 'sans-serif']) {
+      expect(tailwind).toContain(font);
+    }
   });
 
   it('keeps the SEO category gate while skipping only intentional crawlability', () => {

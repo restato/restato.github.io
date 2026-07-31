@@ -15,7 +15,7 @@ describe('PageShell styling contract', () => {
   });
 
   it('uses border and background tone without a raised-surface shadow', () => {
-    expect(css).toMatch(/\.fc-surface\s*\{[^}]*border:\s*1px solid var\(--border-subtle\);[^}]*background:\s*var\(--surface-raised\);/s);
+    expect(css).toMatch(/\.fc-surface\s*\{[^}]*border:\s*1px solid var\(--border-subtle\);[^}]*border-radius:\s*0\.5rem;[^}]*background:\s*var\(--surface-raised\);/s);
     expect(css).not.toMatch(/\.fc-surface\s*\{[^}]*box-shadow\s*:/s);
   });
 });
