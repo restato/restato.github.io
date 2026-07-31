@@ -56,7 +56,7 @@ const rankedTags = getRankedBlogTagEntries(
     set:html={legacyTagPathsJson}
   />
   <PageShell size="content">
-      <header class="fc-page-header">
+      <header class="fc-page-header max-w-2xl">
         <a href="/blog" class="fc-button fc-button-quiet w-fit px-2 text-sm">
           <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7" />
@@ -64,7 +64,7 @@ const rankedTags = getRankedBlogTagEntries(
           Blog
         </a>
         <h1>
-          <span class="text-[var(--accent)]">#</span>{tag}
+          <span class="text-[var(--brand)]">#</span>{tag}
         </h1>
         <p class="fc-page-description">
           {tagContent.summary}
@@ -96,7 +96,7 @@ const rankedTags = getRankedBlogTagEntries(
       )}
 
       {posts.length > 0 ? (
-        <div class="grid gap-6 md:grid-cols-2">
+        <div class="grid gap-5 md:grid-cols-2">
           {posts.map((post) => (
             <BlogCard
               title={post.data.title}
@@ -116,7 +116,7 @@ const rankedTags = getRankedBlogTagEntries(
       )}
 
       {posts.length > 0 && (
-        <p class="mt-8 text-center text-sm text-[var(--text-muted)]">
+        <p class="mt-8 border-t border-[var(--border-subtle)] pt-5 text-sm text-[var(--text-muted)]">
           {tagContent.summary}
         </p>
       )}
