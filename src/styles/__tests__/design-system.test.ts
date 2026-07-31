@@ -55,6 +55,13 @@ describe('Modern Restato design system', () => {
     expect(css).toMatch(/\.dark\s*\{[^}]*--accent:\s*var\(--brand\);/s);
   });
 
+  it('retokenizes Tailwind color utilities and prose code surfaces', () => {
+    expect(config).toMatch(/primary:\s*\{[^}]*500:\s*'#19553C',[^}]*600:\s*'#236B4C',/s);
+    expect(config).toMatch(/accent:\s*\{[^}]*500:\s*'#19553C',[^}]*600:\s*'#236B4C',/s);
+    expect(config).toContain("backgroundColor: 'var(--surface-soft)'");
+    expect(config).not.toMatch(/#(?:edf5ef|d9e8dd|b4d0bc|8db89a|619777|2f7658|174a35|123b2a|0d2e21|092217|fcf3ed|f5e1d2|ebc4a9|dfa17a|c98358|a7663b|8d522f|734126|5b321e|422416|1e1e2e)/i);
+  });
+
   it('prevents theme flash and exposes the browser color scheme', () => {
     expect(layout).toContain("document.documentElement.classList.add('dark')");
     expect(css).toContain('color-scheme: light');

@@ -774,7 +774,12 @@
   }
 
   .btn-primary {
-    @apply bg-primary-600 text-white hover:bg-primary-700;
+    background: var(--brand);
+    color: var(--surface-raised);
+  }
+
+  .btn-primary:hover {
+    background: var(--brand-hover);
   }
 
   .btn-outline {
