@@ -64,7 +64,7 @@ describe('Modern Restato home content', () => {
   });
 });
 
-describe('Forest Café not-found content', () => {
+describe('Modern Restato not-found content', () => {
   beforeEach(() => localStorage.clear());
 
   it.each(supportedLanguages)('preserves the selected %s locale in return and tool links', language => {

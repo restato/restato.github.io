@@ -1,4 +1,4 @@
-import { mkdir } from 'node:fs/promises';
+import { mkdir, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 import { expect, test, type Page } from '@playwright/test';
 import {
@@ -15,6 +15,13 @@ const screenshotDirectory = path.resolve(
   process.cwd(),
   'docs/superpowers/reports/assets/modern-restato',
 );
+const finalEvidenceAliases = new Map([
+  ['home-en-desktop-light', 'home-light.png'],
+  ['home-en-desktop-dark', 'home-dark.png'],
+  ['blog-index-desktop-light', 'blog-tags-collapsed.png'],
+  ['blog-tags-expanded-desktop-light', 'blog-tags-expanded.png'],
+  ['text-tool-en-mobile-390-dark', 'tool-mobile-dark.png'],
+]);
 const visualDiffTolerance = 0.001;
 const modernRestatoFixedTime = '2026-07-20T12:00:00.000+09:00';
 
@@ -104,6 +111,7 @@ async function openRoute(page: Page, route: ModernRestatoRoute) {
 
 async function setTheme(page: Page, route: ModernRestatoRoute, theme: 'light' | 'dark') {
   await page.evaluate((nextTheme) => {
+    history.scrollRestoration = 'manual';
     localStorage.setItem('theme', nextTheme);
     history.replaceState(null, '', `${location.pathname}${location.search}`);
   }, theme);
@@ -113,7 +121,7 @@ async function setTheme(page: Page, route: ModernRestatoRoute, theme: 'light' | 
     (document.activeElement as HTMLElement | null)?.blur();
     window.scrollTo(0, 0);
   });
-  expect(await page.evaluate(() => window.scrollY)).toBe(0);
+  await expect.poll(() => page.evaluate(() => window.scrollY)).toBe(0);
 }
 
 async function assertSemanticTheme(page: Page, theme: keyof typeof semanticThemes) {
@@ -211,9 +219,14 @@ async function saveEvidenceScreenshot(
       : {}),
     animations: 'disabled',
     caret: 'hide',
+    fullPage: route.id === 'blog-tags-expanded',
     mask: maskSelectors.map((selector) => page.locator(selector)),
   });
   expect(screenshot.byteLength).toBeGreaterThan(1_000);
+  if (writeEvidence) {
+    const alias = finalEvidenceAliases.get(`${route.id}-${projectName}-${theme}`);
+    if (alias) await writeFile(path.join(screenshotDirectory, alias), screenshot);
+  }
   expect(screenshot).toMatchSnapshot(
     `${route.id}-${projectName}-${theme}.png`,
     { maxDiffPixelRatio: visualDiffTolerance },
@@ -235,6 +248,14 @@ for (const route of modernRestatoRoutes) {
       expect(headingDirection.textAlign).not.toBe('left');
     }
     if (testInfo.project.name === 'desktop') {
+      if (route.family === 'blog-index') {
+        const toggle = page.locator('[data-blog-tag-nav] button.blog-tag-toggle');
+        await toggle.focus();
+        await page.keyboard.press('Tab');
+        await page.keyboard.press('Shift+Tab');
+        await expect(toggle).toBeFocused();
+        await expect(toggle).toHaveCSS('outline-style', 'solid');
+      }
       await saveEvidenceScreenshot(
         page,
         route,
@@ -242,6 +263,10 @@ for (const route of modernRestatoRoutes) {
         'light',
         testInfo.config.updateSnapshots === 'all',
       );
+      if (route.family === 'blog-index') {
+        await page.reload({ waitUntil: 'domcontentloaded' });
+        await waitForStablePage(page, route);
+      }
     }
     await assertKeyboardFocusAndSkipLink(page, semanticThemes.light.focus);
     assertNoUnexpectedConsoleErrors(page);
@@ -275,9 +300,16 @@ test('blog tag disclosure shows ten ranked tags and toggles overflow accessibly'
   await toggle.click();
   await expect(toggle).toHaveAttribute('aria-expanded', 'true');
   await expect(tagNav.locator('[data-blog-tag-overflow]')).toBeVisible();
+  await expect(tagNav.locator('a[data-blog-tag-link]:visible')).toHaveCount(
+    await tagNav.locator('a[data-blog-tag-link]').count(),
+  );
   await assertNoHorizontalOverflow(page);
+  await toggle.focus();
+  await page.keyboard.press('Tab');
+  await page.keyboard.press('Shift+Tab');
+  await expect(toggle).toBeFocused();
+  await expect(toggle).toHaveCSS('outline-style', 'solid');
   await page.evaluate(() => {
-    (document.activeElement as HTMLElement | null)?.blur();
     window.scrollTo(0, 0);
   });
   expect(await page.evaluate(() => window.scrollY)).toBe(0);
@@ -287,7 +319,7 @@ test('blog tag disclosure shows ten ranked tags and toggles overflow accessibly'
       { ...route!, id: 'blog-tags-expanded' },
       testInfo.project.name,
       'light',
-      false,
+      testInfo.config.updateSnapshots === 'all',
     );
   }
   await toggle.click();
@@ -299,9 +331,16 @@ test('blog tag disclosure shows ten ranked tags and toggles overflow accessibly'
   await toggle.click();
   await expect(toggle).toHaveAttribute('aria-expanded', 'true');
   await expect(tagNav.locator('[data-blog-tag-overflow]')).toBeVisible();
+  await expect(tagNav.locator('a[data-blog-tag-link]:visible')).toHaveCount(
+    await tagNav.locator('a[data-blog-tag-link]').count(),
+  );
   await assertNoHorizontalOverflow(page);
+  await toggle.focus();
+  await page.keyboard.press('Tab');
+  await page.keyboard.press('Shift+Tab');
+  await expect(toggle).toBeFocused();
+  await expect(toggle).toHaveCSS('outline-style', 'solid');
   await page.evaluate(() => {
-    (document.activeElement as HTMLElement | null)?.blur();
     window.scrollTo(0, 0);
   });
   expect(await page.evaluate(() => window.scrollY)).toBe(0);
@@ -310,7 +349,7 @@ test('blog tag disclosure shows ten ranked tags and toggles overflow accessibly'
     { ...route!, id: 'blog-tags-expanded' },
     testInfo.project.name,
     'dark',
-    false,
+    testInfo.config.updateSnapshots === 'all',
   );
   await toggle.click();
   await expect(toggle).toHaveAttribute('aria-expanded', 'false');

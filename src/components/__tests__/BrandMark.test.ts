@@ -11,7 +11,7 @@ describe('Restato brand mark', () => {
     expect(brandMark).toContain('#19553C');
     expect(brandMark).toContain('#F7F8F7');
     expect(brandMark).toContain('#9CC4AD');
-    expect(brandMark).not.toMatch(/🚀|✨|(?:href|src)=["']https?:\/\//);
+    expect(brandMark).not.toMatch(/\u{1F680}|✨|(?:href|src)=["']https?:\/\//u);
   });
 
   it('is decorative by default and named only when a title is supplied', () => {

@@ -545,7 +545,7 @@ const defaultFeedSources: FeedSource[] = [
     color: '#F22C2C',
     rssUrl: 'https://medium.com/feed/coupang-engineering',
     directUrl: 'https://medium.com/coupang-engineering',
-    icon: '🚀',
+    icon: '📈',
     description: '쿠팡 기술 블로그',
     type: 'rss',
     category: 'korea',
