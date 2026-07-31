@@ -356,6 +356,14 @@ test('blog tag disclosure shows ten ranked tags and toggles overflow accessibly'
   assertNoUnexpectedConsoleErrors(page);
 });
 
+test('Jobworld Kids remains contained at a 320px viewport', async ({ page }) => {
+  const route = modernRestatoRoutes.find(({ id }) => id === 'project-jobworld-kids');
+  expect(route).toBeDefined();
+  await page.setViewportSize({ width: 320, height: 844 });
+  await openRoute(page, route!);
+  await assertNoHorizontalOverflow(page);
+});
+
 test('explicit theme choice persists across navigation and reload', async ({ page }) => {
   assertNoUnexpectedConsoleErrors(page);
   await page.emulateMedia({ colorScheme: 'light', reducedMotion: 'reduce' });
