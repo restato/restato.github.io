@@ -1,6 +1,9 @@
 import { useState, useMemo } from 'react';
 import { useTranslation } from '../../i18n/useTranslation';
-import type { Language } from '../../i18n';
+import { ToolActions } from './ui/ToolActions';
+import { ToolField } from './ui/ToolField';
+import { ToolPanel } from './ui/ToolPanel';
+import { ToolResult } from './ui/ToolResult';
 
 interface JwtParts {
   header: Record<string, unknown> | null;
@@ -54,8 +57,8 @@ function isExpired(exp: number): boolean {
   return Date.now() > exp * 1000;
 }
 
-export default function JwtDecoder({ lang: initialLang }: { lang?: Language } = {}) {
-  const { t } = useTranslation(initialLang);
+export default function JwtDecoder() {
+  const { t } = useTranslation();
 
   const [token, setToken] = useState('');
   const [copiedPart, setCopiedPart] = useState<string | null>(null);
@@ -101,37 +104,22 @@ export default function JwtDecoder({ lang: initialLang }: { lang?: Language } = 
   };
 
   return (
-    <div className="flex flex-col gap-6">
+    <ToolPanel className="gap-6">
       {/* Input */}
       <div className="space-y-2">
-        <div className="flex justify-between items-center">
-          <label className="block text-sm font-medium text-[var(--color-text)]">
-            {t({ ko: 'JWT 토큰', en: 'JWT Token', ja: 'JWTトークン' })}
-          </label>
-          <button
-            onClick={loadExample}
-            className="px-3 py-1 text-xs bg-[var(--color-card)] hover:bg-[var(--color-card-hover)]
-              border border-[var(--color-border)] rounded transition-colors"
-          >
+        <ToolActions primary={<button onClick={loadExample}>
             {t({ ko: '예제 불러오기', en: 'Load Example', ja: 'サンプルを読み込む' })}
-          </button>
-        </div>
-        <textarea
-          value={token}
-          onChange={(e) => setToken(e.target.value)}
-          placeholder="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
-          rows={4}
-          className="w-full px-4 py-3 rounded-lg border border-[var(--color-border)]
-            bg-[var(--color-card)] text-[var(--color-text)] font-mono text-sm resize-y
-            focus:outline-none focus:ring-2 focus:ring-primary-500 break-all"
-        />
+          </button>} />
+        <ToolField id="jwt-token" label={t({ ko: 'JWT 토큰', en: 'JWT Token', ja: 'JWTトークン' })}>
+          <textarea value={token} onChange={(e) => setToken(e.target.value)} placeholder="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..." rows={4} className="font-mono text-sm break-all" />
+        </ToolField>
       </div>
 
       {/* Error */}
       {decoded && !decoded.isValid && (
-        <div className="p-4 rounded-lg bg-red-100 dark:bg-red-900/20 border border-red-200 dark:border-red-800">
+        <ToolResult status="error">
           <p className="text-red-600 dark:text-red-400 font-medium">{decoded.error}</p>
-        </div>
+        </ToolResult>
       )}
 
       {/* Decoded Parts */}
@@ -143,12 +131,12 @@ export default function JwtDecoder({ lang: initialLang }: { lang?: Language } = 
               <span className="font-medium text-red-700 dark:text-red-300">
                 {t({ ko: '헤더', en: 'Header', ja: 'ヘッダー' })} (ALGORITHM & TOKEN TYPE)
               </span>
-              <button
+              <ToolActions primary={<button
                 onClick={() => copyToClipboard(JSON.stringify(decoded.header, null, 2), 'header')}
-                className="px-2 py-1 text-xs bg-white/50 dark:bg-black/20 rounded"
+                className="fc-button fc-button-secondary text-xs"
               >
                 {copiedPart === 'header' ? t({ ko: '복사됨!', en: 'Copied!', ja: 'コピーしました!' }) : t({ ko: '복사', en: 'Copy', ja: 'コピー' })}
-              </button>
+              </button>} />
             </div>
             <div className="p-4 bg-[var(--color-card)]">
               <table className="w-full text-sm">
@@ -170,12 +158,12 @@ export default function JwtDecoder({ lang: initialLang }: { lang?: Language } = 
               <span className="font-medium text-purple-700 dark:text-purple-300">
                 {t({ ko: '페이로드', en: 'Payload', ja: 'ペイロード' })} (DATA)
               </span>
-              <button
+              <ToolActions primary={<button
                 onClick={() => copyToClipboard(JSON.stringify(decoded.payload, null, 2), 'payload')}
-                className="px-2 py-1 text-xs bg-white/50 dark:bg-black/20 rounded"
+                className="fc-button fc-button-secondary text-xs"
               >
                 {copiedPart === 'payload' ? t({ ko: '복사됨!', en: 'Copied!', ja: 'コピーしました!' }) : t({ ko: '복사', en: 'Copy', ja: 'コピー' })}
-              </button>
+              </button>} />
             </div>
             <div className="p-4 bg-[var(--color-card)]">
               <table className="w-full text-sm">
@@ -197,12 +185,12 @@ export default function JwtDecoder({ lang: initialLang }: { lang?: Language } = 
               <span className="font-medium text-cyan-700 dark:text-cyan-300">
                 {t({ ko: '서명', en: 'Signature', ja: '署名' })} (VERIFY SIGNATURE)
               </span>
-              <button
+              <ToolActions primary={<button
                 onClick={() => copyToClipboard(decoded.signature, 'signature')}
-                className="px-2 py-1 text-xs bg-white/50 dark:bg-black/20 rounded"
+                className="fc-button fc-button-secondary text-xs"
               >
                 {copiedPart === 'signature' ? t({ ko: '복사됨!', en: 'Copied!', ja: 'コピーしました!' }) : t({ ko: '복사', en: 'Copy', ja: 'コピー' })}
-              </button>
+              </button>} />
             </div>
             <div className="p-4 bg-[var(--color-card)]">
               <code className="text-sm font-mono text-[var(--color-text)] break-all">
@@ -238,6 +226,6 @@ export default function JwtDecoder({ lang: initialLang }: { lang?: Language } = 
           <span><code>iat</code> - Issued At</span>
         </div>
       </div>
-    </div>
+    </ToolPanel>
   );
 }

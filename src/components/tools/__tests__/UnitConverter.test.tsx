@@ -23,11 +23,10 @@ describe('UnitConverter', () => {
     render(<UnitConverter />);
 
     // Default is 1 meter to feet
-    const outputs = screen.getAllByRole('textbox');
-    const resultInput = outputs[1];
+    const resultInput = screen.getByRole('textbox');
 
     // 1 meter = ~3.28084 feet
-    expect(parseFloat(resultInput.getAttribute('value') || '0')).toBeCloseTo(3.28084, 2);
+    expect(parseFloat((resultInput as HTMLInputElement).value)).toBeCloseTo(3.28084, 2);
   });
 
   it('updates result when input changes', async () => {
@@ -38,11 +37,10 @@ describe('UnitConverter', () => {
     await user.clear(input);
     await user.type(input, '10');
 
-    const outputs = screen.getAllByRole('textbox');
-    const resultInput = outputs[1];
+    const resultInput = screen.getByRole('textbox');
 
     // 10 meters = ~32.8084 feet
-    expect(parseFloat(resultInput.getAttribute('value') || '0')).toBeCloseTo(32.8084, 1);
+    expect(parseFloat((resultInput as HTMLInputElement).value)).toBeCloseTo(32.8084, 1);
   });
 
   it('switches categories correctly', async () => {
@@ -70,11 +68,10 @@ describe('UnitConverter', () => {
     await user.selectOptions(selects[0], 'celsius');
     await user.selectOptions(selects[1], 'fahrenheit');
 
-    const outputs = screen.getAllByRole('textbox');
-    const resultInput = outputs[1];
+    const resultInput = screen.getByRole('textbox');
 
     // 0°C = 32°F
-    expect(parseFloat(resultInput.getAttribute('value') || '0')).toBeCloseTo(32, 0);
+    expect(parseFloat((resultInput as HTMLInputElement).value)).toBeCloseTo(32, 0);
   });
 
   it('converts Korean pyeong to square meters', async () => {
@@ -91,11 +88,10 @@ describe('UnitConverter', () => {
     await user.clear(input);
     await user.type(input, '1');
 
-    const outputs = screen.getAllByRole('textbox');
-    const resultInput = outputs[1];
+    const resultInput = screen.getByRole('textbox');
 
     // 1 평 = ~3.306 m²
-    expect(parseFloat(resultInput.getAttribute('value') || '0')).toBeCloseTo(3.306, 2);
+    expect(parseFloat((resultInput as HTMLInputElement).value)).toBeCloseTo(3.306, 2);
   });
 
   it('swaps units when swap button is clicked', async () => {
@@ -103,20 +99,16 @@ describe('UnitConverter', () => {
     const user = userEvent.setup();
 
     const selects = screen.getAllByRole('combobox');
-    const fromUnit = selects[0].getAttribute('value');
-    const toUnit = selects[1].getAttribute('value');
+    const fromUnit = (selects[0] as HTMLSelectElement).value;
+    const toUnit = (selects[1] as HTMLSelectElement).value;
 
     // Find and click swap button
-    const buttons = screen.getAllByRole('button');
-    const swapBtn = buttons.find(btn => btn.querySelector('svg'));
+    const swapBtn = screen.getByRole('button', { name: '변환 단위 맞바꾸기' });
+    await user.click(swapBtn);
 
-    if (swapBtn) {
-      await user.click(swapBtn);
-
-      // Units should be swapped
-      expect(selects[0]).toHaveValue(toUnit);
-      expect(selects[1]).toHaveValue(fromUnit);
-    }
+    // Units should be swapped
+    expect(selects[0]).toHaveValue(toUnit);
+    expect(selects[1]).toHaveValue(fromUnit);
   });
 
   it('handles very small numbers with exponential notation', async () => {
@@ -127,9 +119,8 @@ describe('UnitConverter', () => {
     await user.clear(input);
     await user.type(input, '0.0000001');
 
-    const outputs = screen.getAllByRole('textbox');
-    const resultInput = outputs[1];
-    const value = resultInput.getAttribute('value') || '';
+    const resultInput = screen.getByRole('textbox');
+    const value = (resultInput as HTMLInputElement).value;
 
     // Should use exponential notation for very small numbers
     expect(value).toMatch(/e|E|-/);
@@ -142,9 +133,15 @@ describe('UnitConverter', () => {
     const input = screen.getByRole('spinbutton');
     await user.clear(input);
 
-    const outputs = screen.getAllByRole('textbox');
-    const resultInput = outputs[1];
+    const resultInput = screen.getByRole('textbox');
 
     expect(resultInput).toHaveValue('');
+  });
+
+  it('suppresses a non-numeric unit conversion result', () => {
+    render(<UnitConverter />);
+    const input = screen.getByRole('spinbutton');
+    fireEvent.change(input, { target: { value: 'not-a-number' } });
+    expect(screen.getByRole('textbox')).toHaveValue('');
   });
 });

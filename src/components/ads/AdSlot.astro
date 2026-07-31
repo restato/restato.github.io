@@ -1,0 +1,36 @@
+---
+import { getAdSlotConfig, type AdPlacement } from '../../lib/ad-config';
+
+interface Props { placement: AdPlacement; class?: string }
+const { placement, class: className = '' } = Astro.props;
+const config = getAdSlotConfig({
+  PUBLIC_ADSENSE_ENABLED: import.meta.env.PUBLIC_ADSENSE_ENABLED,
+  PUBLIC_ADSENSE_CLIENT: import.meta.env.PUBLIC_ADSENSE_CLIENT,
+  PUBLIC_ADSENSE_SLOT_TOOL: import.meta.env.PUBLIC_ADSENSE_SLOT_TOOL,
+  PUBLIC_ADSENSE_SLOT_CATALOG: import.meta.env.PUBLIC_ADSENSE_SLOT_CATALOG,
+}, placement);
+---
+
+{config && (
+  <div class={className} data-ad-placement={placement}>
+    <ins
+      class="adsbygoogle block"
+      data-ad-client={config.client}
+      data-ad-slot={config.slot}
+      data-ad-format="auto"
+      data-full-width-responsive="true"
+    ></ins>
+    <script is:inline define:vars={{ client: config.client }}>
+      if (!document.querySelector('script[data-restato-adsense]')) {
+        const script = document.createElement('script');
+        script.async = true;
+        script.crossOrigin = 'anonymous';
+        script.dataset.restatoAdsense = 'true';
+        script.src = `https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${encodeURIComponent(client)}`;
+        document.head.append(script);
+      }
+      window.adsbygoogle = window.adsbygoogle || [];
+      window.adsbygoogle.push({});
+    </script>
+  </div>
+)}

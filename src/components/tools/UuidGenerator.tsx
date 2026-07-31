@@ -1,6 +1,8 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { useTranslation } from '../../i18n/useTranslation';
-import type { Language } from '../../i18n';
+import { ToolActions } from './ui/ToolActions';
+import { ToolField } from './ui/ToolField';
+import { ToolPanel } from './ui/ToolPanel';
 
 function generateUUID(): string {
   if (crypto.randomUUID) {
@@ -15,21 +17,26 @@ function generateUUID(): string {
   });
 }
 
-export default function UuidGenerator({ lang: initialLang }: { lang?: Language } = {}) {
-  const { t, translations } = useTranslation(initialLang);
+export default function UuidGenerator() {
+  const { t, translations } = useTranslation();
   const tt = translations.tools.uuid;
   const tc = translations.tools.common;
 
-  const [uuids, setUuids] = useState<string[]>([generateUUID()]);
-  const [count, setCount] = useState(1);
+  const [uuids, setUuids] = useState<string[]>([]);
+  const [count, setCount] = useState('1');
   const [uppercase, setUppercase] = useState(false);
   const [hyphens, setHyphens] = useState(true);
   const [copiedIndex, setCopiedIndex] = useState<number | null>(null);
   const [copiedAll, setCopiedAll] = useState(false);
 
+  useEffect(() => {
+    setUuids([generateUUID()]);
+  }, []);
+
   const generate = useCallback(() => {
     const newUuids: string[] = [];
-    for (let i = 0; i < count; i++) {
+    const normalizedCount = Math.max(1, Math.min(100, Number(count) || 1));
+    for (let i = 0; i < normalizedCount; i++) {
       let uuid = generateUUID();
       if (!hyphens) uuid = uuid.replace(/-/g, '');
       if (uppercase) uuid = uuid.toUpperCase();
@@ -69,26 +76,24 @@ export default function UuidGenerator({ lang: initialLang }: { lang?: Language }
   };
 
   return (
-    <div className="flex flex-col gap-6">
+    <ToolPanel className="gap-6">
       {/* Options */}
       <div className="flex flex-wrap gap-4 items-center">
         {/* Count */}
-        <div className="flex items-center gap-2">
-          <label className="text-sm text-[var(--color-text)]">{t(tt.count)}:</label>
+        <ToolField id="uuid-count" label={`${t(tt.count)}:`}>
           <input
             type="number"
             min="1"
             max="100"
             value={count}
-            onChange={(e) => setCount(Math.max(1, Math.min(100, Number(e.target.value))))}
-            className="w-20 px-3 py-2 rounded-lg border border-[var(--color-border)]
-              bg-[var(--color-card)] text-[var(--color-text)] text-center
-              focus:outline-none focus:ring-2 focus:ring-primary-500"
+            onChange={(e) => setCount(e.target.value)}
+            onBlur={() => setCount(String(Math.max(1, Math.min(100, Number(count) || 1))))}
+            className="w-20 text-center"
           />
-        </div>
+        </ToolField>
 
         {/* Options checkboxes */}
-        <label className="flex items-center gap-2 cursor-pointer">
+        <ToolField id="uuid-uppercase" label={t(tt.uppercase)}>
           <input
             type="checkbox"
             checked={uppercase}
@@ -96,10 +101,9 @@ export default function UuidGenerator({ lang: initialLang }: { lang?: Language }
             className="w-4 h-4 rounded border-[var(--color-border)] text-primary-500
               focus:ring-primary-500"
           />
-          <span className="text-sm text-[var(--color-text)]">{t(tt.uppercase)}</span>
-        </label>
+        </ToolField>
 
-        <label className="flex items-center gap-2 cursor-pointer">
+        <ToolField id="uuid-hyphens" label={t(tt.hyphens)}>
           <input
             type="checkbox"
             checked={hyphens}
@@ -107,22 +111,17 @@ export default function UuidGenerator({ lang: initialLang }: { lang?: Language }
             className="w-4 h-4 rounded border-[var(--color-border)] text-primary-500
               focus:ring-primary-500"
           />
-          <span className="text-sm text-[var(--color-text)]">{t(tt.hyphens)}</span>
-        </label>
+        </ToolField>
       </div>
 
       {/* Generate Button */}
-      <button
-        onClick={generate}
-        className="w-full py-3 bg-primary-500 hover:bg-primary-600 text-white rounded-lg
-          font-medium transition-colors flex items-center justify-center gap-2"
-      >
+      <ToolActions primary={<button className="w-full" onClick={generate}>
         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
             d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
         </svg>
         {t(tc.generate)}
-      </button>
+      </button>} />
 
       {/* UUIDs List */}
       <div className="space-y-2">
@@ -135,20 +134,20 @@ export default function UuidGenerator({ lang: initialLang }: { lang?: Language }
             <code className="flex-1 font-mono text-[var(--color-text)] break-all">
               {formatUuid(uuid)}
             </code>
-            <button
+            <ToolActions primary={<button
               onClick={() => copyUuid(formatUuid(uuid), index)}
               className="px-3 py-1 text-sm bg-[var(--color-bg)] hover:bg-[var(--color-card-hover)]
                 border border-[var(--color-border)] rounded transition-colors whitespace-nowrap"
             >
               {copiedIndex === index ? t(tc.copied) : t(tc.copy)}
-            </button>
+            </button>} />
           </div>
         ))}
       </div>
 
       {/* Copy All (if multiple) */}
       {uuids.length > 1 && (
-        <button
+        <ToolActions primary={<button
           onClick={copyAll}
           className="w-full py-2 bg-[var(--color-card)] hover:bg-[var(--color-card-hover)]
             border border-[var(--color-border)] rounded-lg transition-colors"
@@ -156,7 +155,7 @@ export default function UuidGenerator({ lang: initialLang }: { lang?: Language }
           {copiedAll
             ? t(tc.copied)
             : t({ ko: '모두 복사', en: 'Copy All', ja: 'すべてコピー' })}
-        </button>
+        </button>} />
       )}
 
       {/* Info */}
@@ -169,6 +168,6 @@ export default function UuidGenerator({ lang: initialLang }: { lang?: Language }
           })}
         </p>
       </div>
-    </div>
+    </ToolPanel>
   );
 }

@@ -1,15 +1,18 @@
-import { useState, useMemo, useRef, useEffect } from 'react';
+import { useState, useMemo, useRef, useEffect, useId } from 'react';
+import type { Language } from '../../data/tools/types';
+import { getLocalizedToolHref } from './toolLinks';
+import { catalogUi, sharedToolUi } from '../../i18n/tool-ui';
 
-interface Tool {
+export interface SearchableTool {
   slug: string;
   title: string;
   description: string;
   icon: string;
   category: string;
-  keywords: string[];
+  keywords?: string[];
 }
 
-const tools: Tool[] = [
+const defaultTools: SearchableTool[] = [
   // Generators
   { slug: 'qr-code', title: 'QR 코드 생성기', description: 'URL이나 텍스트를 QR 코드로 변환', icon: '📱', category: 'generators', keywords: ['qr', 'qrcode', '큐알', '큐알코드'] },
   { slug: 'password', title: '비밀번호 생성기', description: '안전한 비밀번호 생성', icon: '🔐', category: 'generators', keywords: ['password', '패스워드', '암호'] },
@@ -36,7 +39,7 @@ const tools: Tool[] = [
   { slug: 'gradient', title: 'CSS 그라데이션 생성기', description: 'CSS 그라데이션 시각적 생성', icon: '🌈', category: 'designer', keywords: ['css', 'gradient', '그라데이션', '그라디언트'] },
   { slug: 'box-shadow', title: 'CSS Box Shadow 생성기', description: 'CSS box-shadow 시각적 생성', icon: '🎭', category: 'designer', keywords: ['css', 'shadow', 'box-shadow', '그림자'] },
   // Photographer
-  { slug: 'image-resizer', title: '이미지 리사이저', description: '실시간 크롭 + 프리셋 리사이즈', icon: '📐', category: 'image', keywords: ['image', 'resize', 'compress', 'crop', 'preset', 'slack', 'iphone', 'thumbnail', '이미지', '리사이즈', '크롭', '프리셋', '썸네일'] },
+  { slug: 'image-resizer', title: '이미지 리사이저·압축기', description: '크롭, 프리셋, JPEG/WebP 품질 압축', icon: '📐', category: 'image', keywords: ['image', 'resize', 'compress', 'crop', 'webp', 'jpeg', 'quality', '이미지', '리사이즈', '압축', '용량 줄이기', '크롭'] },
   { slug: 'exif', title: 'EXIF 정보 뷰어', description: '사진 EXIF 메타데이터 확인', icon: '📷', category: 'image', keywords: ['exif', 'metadata', 'photo', '사진', '메타데이터'] },
   // Marketer
   { slug: 'utm', title: 'UTM 링크 생성기', description: '캠페인 추적용 UTM 링크 생성', icon: '📊', category: 'marketer', keywords: ['utm', 'campaign', 'tracking', '캠페인', '마케팅', '추적'] },
@@ -46,12 +49,23 @@ const tools: Tool[] = [
   { slug: 'world-clock', title: '세계 시계', description: '전 세계 시간대 확인 및 변환', icon: '🌍', category: 'productivity', keywords: ['world', 'clock', 'timezone', '세계시간', '시차', '타임존'] },
 ];
 
-export default function ToolSearch() {
+interface ToolSearchProps {
+  lang?: Language;
+  tools?: SearchableTool[];
+}
+
+export default function ToolSearch({ lang = 'en', tools = defaultTools }: ToolSearchProps) {
+  const copy = catalogUi[lang];
+  const ui = { placeholder: copy.search, noResults: copy.noResults, tryAnother: copy.tryAnother };
+  const searchLabel = ui.placeholder.replace(/\s*\(⌘K\)\s*$/, '');
+  const clearLabel = sharedToolUi[lang].clear;
+  const inputId = useId();
+  const resultsId = `${inputId}-results`;
   const [query, setQuery] = useState('');
   const [isOpen, setIsOpen] = useState(false);
-  const [selectedIndex, setSelectedIndex] = useState(0);
+  const [activeIndex, setActiveIndex] = useState(-1);
   const inputRef = useRef<HTMLInputElement>(null);
-  const listRef = useRef<HTMLDivElement>(null);
+  const closeTimeoutRef = useRef<number | null>(null);
 
   const filteredTools = useMemo(() => {
     if (!query.trim()) return [];
@@ -60,12 +74,30 @@ export default function ToolSearch() {
     return tools.filter(tool =>
       tool.title.toLowerCase().includes(lowerQuery) ||
       tool.description.toLowerCase().includes(lowerQuery) ||
-      tool.keywords.some(k => k.toLowerCase().includes(lowerQuery))
+      tool.keywords?.some(k => k.toLowerCase().includes(lowerQuery))
     ).slice(0, 8);
-  }, [query]);
+  }, [query, tools]);
+
+  const cancelPendingClose = () => {
+    if (closeTimeoutRef.current !== null) {
+      window.clearTimeout(closeTimeoutRef.current);
+      closeTimeoutRef.current = null;
+    }
+  };
+
+  const closeResults = () => {
+    cancelPendingClose();
+    setIsOpen(false);
+    setActiveIndex(-1);
+  };
+
+  const optionId = (index: number) => `${resultsId}-option-${index}`;
+  const hasQuery = Boolean(query);
+  const isExpanded = isOpen && hasQuery && filteredTools.length > 0;
+  const showEmptyResults = isOpen && hasQuery && filteredTools.length === 0;
 
   useEffect(() => {
-    setSelectedIndex(0);
+    setActiveIndex(-1);
   }, [filteredTools]);
 
   useEffect(() => {
@@ -73,117 +105,172 @@ export default function ToolSearch() {
       // Cmd/Ctrl + K to focus search
       if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
         e.preventDefault();
+        cancelPendingClose();
         inputRef.current?.focus();
         setIsOpen(true);
-      }
-
-      // Escape to close
-      if (e.key === 'Escape') {
-        setIsOpen(false);
-        inputRef.current?.blur();
       }
     };
 
     window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+      cancelPendingClose();
+    };
   }, []);
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (!isOpen || filteredTools.length === 0) return;
+    if (e.key === 'Escape') {
+      e.preventDefault();
+      closeResults();
+      return;
+    }
+
+    if (filteredTools.length === 0) return;
 
     switch (e.key) {
       case 'ArrowDown':
         e.preventDefault();
-        setSelectedIndex(i => Math.min(i + 1, filteredTools.length - 1));
+        setIsOpen(true);
+        setActiveIndex(i => i >= filteredTools.length - 1 ? 0 : i + 1);
         break;
       case 'ArrowUp':
         e.preventDefault();
-        setSelectedIndex(i => Math.max(i - 1, 0));
+        setIsOpen(true);
+        setActiveIndex(i => i <= 0 ? filteredTools.length - 1 : i - 1);
         break;
       case 'Enter':
-        e.preventDefault();
-        if (filteredTools[selectedIndex]) {
-          window.location.href = `/tools/${filteredTools[selectedIndex].slug}`;
+        if (isOpen && activeIndex >= 0 && filteredTools[activeIndex]) {
+          e.preventDefault();
+          const activeOptionId = optionId(activeIndex);
+          closeResults();
+          document.getElementById(activeOptionId)?.click();
         }
         break;
     }
   };
 
   return (
-    <div className="relative w-full max-w-md">
+    <div className="relative w-full" role="search">
+      <label
+        className="fc-label mb-2 flex items-center justify-between gap-4"
+        htmlFor={inputId}
+      >
+        <span>{searchLabel}</span>
+        <kbd className="fc-chip hidden font-mono text-xs md:inline-flex" aria-hidden="true">
+          ⌘/Ctrl K
+        </kbd>
+      </label>
       <div className="relative">
         <svg
-          className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-[var(--color-text-muted)]"
+          className="pointer-events-none absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-[var(--text-muted)]"
           fill="none" stroke="currentColor" viewBox="0 0 24 24"
+          aria-hidden="true"
         >
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
             d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
           />
         </svg>
         <input
+          id={inputId}
           ref={inputRef}
-          type="text"
+          type="search"
           value={query}
-          onChange={(e) => setQuery(e.target.value)}
-          onFocus={() => setIsOpen(true)}
-          onBlur={() => setTimeout(() => setIsOpen(false), 200)}
+          onChange={(e) => {
+            cancelPendingClose();
+            setQuery(e.target.value);
+            setIsOpen(true);
+            setActiveIndex(-1);
+          }}
+          onFocus={() => {
+            cancelPendingClose();
+            setIsOpen(true);
+          }}
+          onBlur={() => {
+            cancelPendingClose();
+            closeTimeoutRef.current = window.setTimeout(() => {
+              setIsOpen(false);
+              setActiveIndex(-1);
+              closeTimeoutRef.current = null;
+            }, 200);
+          }}
           onKeyDown={handleKeyDown}
-          placeholder="도구 검색... (⌘K)"
-          className="w-full pl-10 pr-4 py-3 rounded-xl
-            bg-[var(--color-card)] border border-[var(--color-border)]
-            focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20
-            outline-none transition-all
-            text-[var(--color-text)] placeholder:text-[var(--color-text-muted)]"
+          placeholder={searchLabel}
+          aria-label={searchLabel}
+          role="combobox"
+          aria-autocomplete="list"
+          aria-expanded={isExpanded}
+          aria-controls={isExpanded ? resultsId : undefined}
+          aria-activedescendant={
+            isExpanded && activeIndex >= 0 && filteredTools[activeIndex]
+              ? optionId(activeIndex)
+              : undefined
+          }
+          className="fc-input min-h-14 pl-12 pr-14 text-lg"
         />
-        <kbd className="hidden md:flex absolute right-3 top-1/2 -translate-y-1/2
-          items-center gap-1 px-2 py-1 rounded
-          bg-[var(--color-card-hover)] text-[var(--color-text-muted)]
-          text-xs font-mono border border-[var(--color-border)]"
-        >
-          ⌘K
-        </kbd>
+        {query && (
+          <button
+            type="button"
+            aria-label={clearLabel}
+            className="fc-button fc-button-quiet absolute right-1 top-1/2 min-h-11 -translate-y-1/2 px-3 text-[var(--text-muted)]"
+            onClick={() => {
+              cancelPendingClose();
+              setQuery('');
+              setActiveIndex(-1);
+              setIsOpen(true);
+              inputRef.current?.focus();
+            }}
+          >
+            <span aria-hidden="true">×</span>
+          </button>
+        )}
       </div>
 
-      {isOpen && filteredTools.length > 0 && (
+      {query && (
+        <span className="sr-only" role="status" aria-live="polite">
+          {copy.count(filteredTools.length)}
+        </span>
+      )}
+
+      {isExpanded && (
         <div
-          ref={listRef}
-          className="absolute z-50 w-full mt-2 py-2 rounded-xl
-            bg-[var(--color-card)] border border-[var(--color-border)]
-            shadow-xl max-h-96 overflow-auto"
+          id={resultsId}
+          className="fc-surface absolute z-50 mt-2 max-h-96 w-full overflow-auto py-2"
+          role="listbox"
         >
           {filteredTools.map((tool, index) => (
             <a
               key={tool.slug}
-              href={`/tools/${tool.slug}`}
+              id={optionId(index)}
+              href={getLocalizedToolHref(tool.slug, lang)}
+              role="option"
+              aria-selected={index === activeIndex}
+              tabIndex={-1}
               className={`flex items-center gap-3 px-4 py-3 transition-colors
-                ${index === selectedIndex
-                  ? 'bg-primary-500/10 text-primary-500'
-                  : 'hover:bg-[var(--color-card-hover)]'
+                ${index === activeIndex
+                  ? 'bg-[var(--surface-soft)] text-[var(--brand)]'
+                  : 'hover:bg-[var(--surface-soft)]'
                 }`}
-              onMouseEnter={() => setSelectedIndex(index)}
+              onMouseDown={(event) => event.preventDefault()}
+              onMouseEnter={() => setActiveIndex(index)}
+              onClick={closeResults}
             >
-              <span className="text-xl">{tool.icon}</span>
+              <span className="w-9 shrink-0 text-center text-xl" aria-hidden="true">{tool.icon}</span>
               <div className="flex-1 min-w-0">
-                <div className="font-medium">{tool.title}</div>
-                <div className="text-sm text-[var(--color-text-muted)] truncate">
+                <div className="font-bold text-[var(--text-primary)]">{tool.title}</div>
+                <div className="truncate text-sm text-[var(--text-primary)]">
                   {tool.description}
                 </div>
               </div>
-              <svg className="w-4 h-4 text-[var(--color-text-muted)]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-              </svg>
+              <span className="text-[var(--text-muted)]" aria-hidden="true">→</span>
             </a>
           ))}
         </div>
       )}
 
-      {isOpen && query && filteredTools.length === 0 && (
-        <div className="absolute z-50 w-full mt-2 py-8 rounded-xl
-          bg-[var(--color-card)] border border-[var(--color-border)]
-          shadow-xl text-center text-[var(--color-text-muted)]"
-        >
-          <p>검색 결과가 없습니다</p>
-          <p className="text-sm mt-1">다른 키워드로 검색해보세요</p>
+      {showEmptyResults && (
+        <div className="fc-surface absolute z-50 mt-2 w-full px-5 py-6 text-center text-[var(--text-primary)]">
+          <p>{ui.noResults}</p>
+          <p className="mt-1 text-sm">{ui.tryAnother}</p>
         </div>
       )}
     </div>

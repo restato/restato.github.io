@@ -1,6 +1,7 @@
 import { useState, useRef } from 'react';
 import { useTranslation } from '../../i18n/useTranslation';
-import type { Language } from '../../i18n';
+import { ToolActions } from './ui/ToolActions';
+import { ToolPanel } from './ui/ToolPanel';
 
 interface ExifData {
   [key: string]: string | number | undefined;
@@ -141,8 +142,8 @@ async function parseExif(file: File): Promise<ExifData> {
   });
 }
 
-export default function ExifViewer({ lang: initialLang }: { lang?: Language } = {}) {
-  const { t } = useTranslation(initialLang);
+export default function ExifViewer() {
+  const { t } = useTranslation();
 
   const [imageUrl, setImageUrl] = useState<string | null>(null);
   const [imageName, setImageName] = useState<string>('');
@@ -252,11 +253,12 @@ export default function ExifViewer({ lang: initialLang }: { lang?: Language } = 
   };
 
   return (
-    <div className="flex flex-col gap-6">
+    <ToolPanel className="gap-6">
       {/* File input */}
       <input
         ref={fileInputRef}
         type="file"
+        aria-label={t({ ko: '이미지 파일 선택', en: 'Choose a JPEG image', ja: 'JPEG画像を選択' })}
         accept="image/jpeg,image/jpg"
         onChange={handleFileChange}
         className="hidden"
@@ -264,8 +266,10 @@ export default function ExifViewer({ lang: initialLang }: { lang?: Language } = 
 
       {/* Drop Zone */}
       {!imageUrl && (
-        <div
-          onClick={() => fileInputRef.current?.click()}
+        <ToolPanel
+          variant="drop-zone"
+          onActivate={() => fileInputRef.current?.click()}
+          aria-label={t({ ko: 'JPEG 이미지를 드래그하거나 클릭하여 업로드', en: 'Drag JPEG image or click to upload', ja: 'JPEG画像をドラッグまたはクリックしてアップロード' })}
           onDrop={handleDrop}
           onDragOver={(e) => { e.preventDefault(); setIsDragging(true); }}
           onDragLeave={() => setIsDragging(false)}
@@ -288,7 +292,7 @@ export default function ExifViewer({ lang: initialLang }: { lang?: Language } = 
               {t({ ko: 'EXIF 데이터는 JPEG 파일에서만 추출됩니다', en: 'EXIF data is only extracted from JPEG files', ja: 'EXIFデータはJPEGファイルからのみ抽出されます' })}
             </p>
           </div>
-        </div>
+        </ToolPanel>
       )}
 
       {/* Loading */}
@@ -311,7 +315,7 @@ export default function ExifViewer({ lang: initialLang }: { lang?: Language } = 
                 <img src={imageUrl} alt={imageName} className="w-full h-auto" />
               </div>
               <p className="text-sm text-[var(--color-text-muted)] mt-2 text-center truncate">{imageName}</p>
-              <button
+              <ToolActions primary={<button
                 onClick={() => {
                   setImageUrl(null);
                   setExifData(null);
@@ -320,7 +324,7 @@ export default function ExifViewer({ lang: initialLang }: { lang?: Language } = 
                   border border-[var(--color-border)] rounded-lg transition-colors text-sm"
               >
                 {t({ ko: '다른 이미지 선택', en: 'Choose Another', ja: '別の画像を選択' })}
-              </button>
+              </button>} />
             </div>
 
             {/* EXIF Data */}
@@ -375,6 +379,6 @@ export default function ExifViewer({ lang: initialLang }: { lang?: Language } = 
           })}
         </p>
       </div>
-    </div>
+    </ToolPanel>
   );
 }

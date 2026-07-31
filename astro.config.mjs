@@ -3,6 +3,13 @@ import mdx from '@astrojs/mdx';
 import react from '@astrojs/react';
 import sitemap from '@astrojs/sitemap';
 import tailwind from '@astrojs/tailwind';
+import { isIndexableLocalizedToolUrl } from './src/data/tools/pageMetadata';
+import { supportedLanguages } from './src/data/tools/locales';
+import { localeMetadata } from './src/i18n';
+
+const sitemapLocales = Object.fromEntries(
+  supportedLanguages.map(lang => [lang, localeMetadata[lang].html]),
+);
 
 export default defineConfig({
   site: 'https://restato.github.io',
@@ -10,13 +17,10 @@ export default defineConfig({
     mdx(),
     react(),
     sitemap({
+      filter: isIndexableLocalizedToolUrl,
       i18n: {
         defaultLocale: 'ko',
-        locales: {
-          ko: 'ko-KR',
-          en: 'en-US',
-          ja: 'ja-JP',
-        },
+        locales: sitemapLocales,
       },
       serialize(item) {
         item.lastmod = new Date().toISOString();
@@ -26,6 +30,11 @@ export default defineConfig({
     tailwind(),
   ],
   output: 'static',
+  vite: {
+    build: {
+      manifest: true,
+    },
+  },
   markdown: {
     shikiConfig: {
       theme: 'github-dark',

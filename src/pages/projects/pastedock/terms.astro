@@ -1,5 +1,6 @@
 ---
 import MainLayout from '../../../layouts/MainLayout.astro';
+import PageShell from '../../../components/ui/PageShell.astro';
 
 const pageTitle = 'PasteDock Terms of Service';
 const pageDescription = 'Terms of Service for purchasing and using PasteDock.';
@@ -8,66 +9,69 @@ const lastUpdated = 'February 16, 2026';
 const pricingUrl = '/projects/pastedock/pricing';
 ---
 
-<MainLayout title={pageTitle} description={pageDescription} canonical={canonical}>
-  <section class="py-16 px-4 bg-gradient-to-b from-emerald-500/10 to-transparent">
-    <div class="max-w-4xl mx-auto">
-      <div class="mb-6 text-sm text-[var(--color-text-muted)] flex items-center gap-2">
-        <a href="/" class="hover:text-[var(--color-text)]">Home</a>
-        <span>/</span>
-        <a href="/projects" class="hover:text-[var(--color-text)]">Projects</a>
-        <span>/</span>
-        <a href="/projects/pastedock" class="hover:text-[var(--color-text)]">PasteDock</a>
-        <span>/</span>
-        <span class="text-[var(--color-text)]">Terms</span>
+<MainLayout title={pageTitle} description={pageDescription} canonical={canonical} lang="en" lockLanguage={true}>
+  <PageShell size="reading">
+    <article class="fc-prose">
+      <nav class="fc-tool-breadcrumb" aria-label="Breadcrumb">
+        <ol>
+          <li><a href="/">Home</a></li>
+          <li aria-hidden="true">/</li>
+          <li><a href="/projects">Projects</a></li>
+          <li aria-hidden="true">/</li>
+          <li><a href="/projects/pastedock">PasteDock</a></li>
+          <li aria-hidden="true">/</li>
+          <li aria-current="page">Terms</li>
+        </ol>
+      </nav>
+
+      <header class="fc-page-header">
+        <p class="fc-eyebrow">PasteDock policy</p>
+        <h1>Terms of Service</h1>
+        <p class="fc-chip w-fit text-[var(--accent)]">Last updated: {lastUpdated}</p>
+        <p class="text-sm">Pricing: <a href={pricingUrl}>US$4.99 one-time</a></p>
+      </header>
+
+      <div class="space-y-10">
+        <section>
+          <h2>1. Seller Information</h2>
+          <p>PasteDock is sold by <strong>Restato (individual seller)</strong>. For support, contact <a href="mailto:direcision@gmail.com">direcision@gmail.com</a>.</p>
+        </section>
+
+        <section>
+          <h2>2. Product Scope</h2>
+          <p>PasteDock is a utility application for macOS 14+ distributed through the official download page and release artifacts.</p>
+        </section>
+
+        <section>
+          <h2>3. License Grant</h2>
+          <p>After a valid purchase, you receive a non-exclusive, non-transferable license to use PasteDock. You may not resell, redistribute, or sublicense the application binaries.</p>
+        </section>
+
+        <section>
+          <h2>4. Payments</h2>
+          <p>Payments are processed by Paddle. Taxes and payment handling are applied according to Paddle checkout settings and local legal requirements.</p>
+        </section>
+
+        <section>
+          <h2>5. Refunds</h2>
+          <p>Please refer to the dedicated <a href="/projects/pastedock/refund">Refund Policy</a>.</p>
+        </section>
+
+        <section>
+          <h2>6. Warranty and Liability</h2>
+          <p>PasteDock is provided "as is" without warranties of any kind to the extent permitted by law. To the maximum extent permitted by law, liability is limited to the amount paid for the product.</p>
+        </section>
+
+        <section>
+          <h2>7. Changes to Terms</h2>
+          <p>These terms may be updated from time to time. The latest version is always published at this URL with an updated effective date.</p>
+        </section>
+
+        <section>
+          <h2>8. Governing Law</h2>
+          <p>These terms are governed by the laws applicable in the seller's principal place of residence, except where mandatory consumer protection laws in your jurisdiction require otherwise.</p>
+        </section>
       </div>
-
-      <h1 class="text-4xl md:text-5xl font-bold mb-4">Terms of Service</h1>
-      <p class="text-[var(--color-text-muted)]">Last updated: {lastUpdated}</p>
-      <p class="text-sm text-[var(--color-text-muted)] mt-2">Pricing: <a href={pricingUrl} class="underline hover:text-[var(--color-text)]">US$4.99 one-time</a></p>
-    </div>
-  </section>
-
-  <section class="py-16 px-4">
-    <div class="max-w-4xl mx-auto space-y-6">
-      <article class="p-6 rounded-2xl border border-[var(--color-border)] bg-[var(--color-card)] space-y-3">
-        <h2 class="text-xl font-semibold">1. Seller Information</h2>
-        <p class="text-[var(--color-text-muted)]">PasteDock is sold by <strong>Restato (individual seller)</strong>. For support, contact <a class="underline" href="mailto:direcision@gmail.com">direcision@gmail.com</a>.</p>
-      </article>
-
-      <article class="p-6 rounded-2xl border border-[var(--color-border)] bg-[var(--color-card)] space-y-3">
-        <h2 class="text-xl font-semibold">2. Product Scope</h2>
-        <p class="text-[var(--color-text-muted)]">PasteDock is a utility application for macOS 14+ distributed through the official download page and release artifacts.</p>
-      </article>
-
-      <article class="p-6 rounded-2xl border border-[var(--color-border)] bg-[var(--color-card)] space-y-3">
-        <h2 class="text-xl font-semibold">3. License Grant</h2>
-        <p class="text-[var(--color-text-muted)]">After a valid purchase, you receive a non-exclusive, non-transferable license to use PasteDock. You may not resell, redistribute, or sublicense the application binaries.</p>
-      </article>
-
-      <article class="p-6 rounded-2xl border border-[var(--color-border)] bg-[var(--color-card)] space-y-3">
-        <h2 class="text-xl font-semibold">4. Payments</h2>
-        <p class="text-[var(--color-text-muted)]">Payments are processed by Paddle. Taxes and payment handling are applied according to Paddle checkout settings and local legal requirements.</p>
-      </article>
-
-      <article class="p-6 rounded-2xl border border-[var(--color-border)] bg-[var(--color-card)] space-y-3">
-        <h2 class="text-xl font-semibold">5. Refunds</h2>
-        <p class="text-[var(--color-text-muted)]">Please refer to the dedicated <a class="underline" href="/projects/pastedock/refund">Refund Policy</a>.</p>
-      </article>
-
-      <article class="p-6 rounded-2xl border border-[var(--color-border)] bg-[var(--color-card)] space-y-3">
-        <h2 class="text-xl font-semibold">6. Warranty and Liability</h2>
-        <p class="text-[var(--color-text-muted)]">PasteDock is provided "as is" without warranties of any kind to the extent permitted by law. To the maximum extent permitted by law, liability is limited to the amount paid for the product.</p>
-      </article>
-
-      <article class="p-6 rounded-2xl border border-[var(--color-border)] bg-[var(--color-card)] space-y-3">
-        <h2 class="text-xl font-semibold">7. Changes to Terms</h2>
-        <p class="text-[var(--color-text-muted)]">These terms may be updated from time to time. The latest version is always published at this URL with an updated effective date.</p>
-      </article>
-
-      <article class="p-6 rounded-2xl border border-[var(--color-border)] bg-[var(--color-card)] space-y-3">
-        <h2 class="text-xl font-semibold">8. Governing Law</h2>
-        <p class="text-[var(--color-text-muted)]">These terms are governed by the laws applicable in the seller's principal place of residence, except where mandatory consumer protection laws in your jurisdiction require otherwise.</p>
-      </article>
-    </div>
-  </section>
+    </article>
+  </PageShell>
 </MainLayout>

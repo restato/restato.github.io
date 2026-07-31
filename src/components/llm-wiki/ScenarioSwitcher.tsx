@@ -34,7 +34,7 @@ export function ScenarioSwitcher({ currentId, onChange }: Props) {
   }
 
   return (
-    <div className="llmw-scenario-switcher" role="tablist" aria-label="Choose a knowledge scenario">
+    <div className="llmw-scenario-switcher fc-surface overflow-hidden" role="tablist" aria-label="Choose a knowledge scenario">
       {scenarioOrder.map((id, index) => {
         const scenario = llmWikiScenarios[id];
         const selected = id === currentId;
@@ -46,7 +46,7 @@ export function ScenarioSwitcher({ currentId, onChange }: Props) {
             aria-selected={selected}
             aria-controls="knowledge-workbench-panel"
             tabIndex={selected ? 0 : -1}
-            className="llmw-scenario-tab"
+            className="llmw-scenario-tab fc-button fc-button-quiet"
             data-active={selected}
             onClick={() => onChange(id)}
             onKeyDown={(event) => {

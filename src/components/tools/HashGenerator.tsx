@@ -1,6 +1,8 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useRef } from 'react';
 import { useTranslation } from '../../i18n/useTranslation';
-import type { Language } from '../../i18n';
+import { ToolActions } from './ui/ToolActions';
+import { ToolField } from './ui/ToolField';
+import { ToolPanel } from './ui/ToolPanel';
 
 type Algorithm = 'SHA-1' | 'SHA-256' | 'SHA-384' | 'SHA-512';
 
@@ -13,17 +15,13 @@ async function generateHash(text: string, algorithm: Algorithm): Promise<string>
 }
 
 // Simple MD5 implementation (for client-side, not crypto.subtle)
-function md5(string: string): string {
+export function md5(string: string): string {
   function rotateLeft(value: number, shift: number): number {
     return (value << shift) | (value >>> (32 - shift));
   }
 
   function addUnsigned(x: number, y: number): number {
-    const result = (x & 0x7fffffff) + (y & 0x7fffffff);
-    if (x & 0x80000000 || y & 0x80000000) {
-      return result ^ 0x80000000;
-    }
-    return result;
+    return (x + y) >>> 0;
   }
 
   function F(x: number, y: number, z: number): number { return (x & y) | (~x & z); }
@@ -167,8 +165,8 @@ function md5(string: string): string {
 const algorithms = ['MD5', 'SHA-1', 'SHA-256', 'SHA-384', 'SHA-512'] as const;
 type AllAlgorithm = typeof algorithms[number];
 
-export default function HashGenerator({ lang: initialLang }: { lang?: Language } = {}) {
-  const { t, translations } = useTranslation(initialLang);
+export default function HashGenerator() {
+  const { t, translations } = useTranslation();
   const tt = translations.tools.hash;
   const tc = translations.tools.common;
 
@@ -182,8 +180,11 @@ export default function HashGenerator({ lang: initialLang }: { lang?: Language }
   });
   const [copiedAlgo, setCopiedAlgo] = useState<string | null>(null);
   const [isGenerating, setIsGenerating] = useState(false);
+  const generationRef = useRef(0);
 
   const generateHashes = useCallback(async (text: string) => {
+    const generation = ++generationRef.current;
+
     if (!text) {
       setHashes({
         'MD5': '',
@@ -192,6 +193,7 @@ export default function HashGenerator({ lang: initialLang }: { lang?: Language }
         'SHA-384': '',
         'SHA-512': '',
       });
+      setIsGenerating(false);
       return;
     }
 
@@ -205,12 +207,12 @@ export default function HashGenerator({ lang: initialLang }: { lang?: Language }
         'SHA-384': await generateHash(text, 'SHA-384'),
         'SHA-512': await generateHash(text, 'SHA-512'),
       };
-      setHashes(results);
+      if (generation === generationRef.current) setHashes(results);
     } catch (err) {
       console.error('Hash generation error:', err);
     }
 
-    setIsGenerating(false);
+    if (generation === generationRef.current) setIsGenerating(false);
   }, []);
 
   const handleInputChange = (value: string) => {
@@ -229,22 +231,16 @@ export default function HashGenerator({ lang: initialLang }: { lang?: Language }
   };
 
   return (
-    <div className="flex flex-col gap-6">
+    <ToolPanel className="gap-6">
       {/* Input */}
-      <div className="space-y-2">
-        <label className="block text-sm font-medium text-[var(--color-text)]">
-          {t(tc.input)}
-        </label>
+      <ToolField id="hash-input" label={t(tc.input)}>
         <textarea
           value={input}
           onChange={(e) => handleInputChange(e.target.value)}
           placeholder={t(tt.inputPlaceholder)}
           rows={4}
-          className="w-full px-4 py-3 rounded-lg border border-[var(--color-border)]
-            bg-[var(--color-card)] text-[var(--color-text)] resize-y
-            focus:outline-none focus:ring-2 focus:ring-primary-500"
         />
-      </div>
+      </ToolField>
 
       {/* Hash Results */}
       <div className="space-y-3">
@@ -255,15 +251,12 @@ export default function HashGenerator({ lang: initialLang }: { lang?: Language }
           >
             <div className="flex justify-between items-center mb-2">
               <span className="text-sm font-medium text-[var(--color-text)]">{algo}</span>
-              <button
+              <ToolActions primary={<button
                 onClick={() => copyHash(algo)}
                 disabled={!hashes[algo]}
-                className="px-3 py-1 text-xs bg-[var(--color-bg)] hover:bg-[var(--color-card-hover)]
-                  border border-[var(--color-border)] rounded transition-colors
-                  disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {copiedAlgo === algo ? t(tc.copied) : t(tc.copy)}
-              </button>
+              </button>} />
             </div>
             <code className="block text-sm font-mono text-[var(--color-text-muted)] break-all min-h-[1.5rem]">
               {isGenerating ? '...' : hashes[algo] || '-'}
@@ -282,6 +275,6 @@ export default function HashGenerator({ lang: initialLang }: { lang?: Language }
           })}
         </p>
       </div>
-    </div>
+    </ToolPanel>
   );
 }

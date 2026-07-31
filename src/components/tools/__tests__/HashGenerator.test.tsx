@@ -1,11 +1,21 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen } from '@testing-library/react';
+import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import HashGenerator from '../HashGenerator';
+import HashGenerator, { md5 } from '../HashGenerator';
 import './testUtils';
 
 // Mock crypto.subtle
 const mockDigest = vi.fn();
+const webCryptoVectors: Record<string, string> = {
+  'SHA-1': '640ab2bae07bedc4c163f679a746f7ab7fb5d1fa',
+  'SHA-256': '532eaabd9574880dbf76b9b8cc00832c20a6ec113d682299550d7a6e0f345e25',
+  'SHA-384': '7b8f4654076b80eb963911f19cfad1aaf4285ed48e826f6cde1b01a79aa73fadb5446e667fc4f90417782c91270540f3',
+  'SHA-512': 'c6ee9e33cf5c6715a1d148fd73f7318884b41adcb916021e2bc0e800a5c5dd97f5142178f6ae88c8fdd98e1afb0ce4c8d2c54b5f37b30b7da1997bb33b0b8a31',
+};
+
+function hexBuffer(hex: string): ArrayBuffer {
+  return Uint8Array.from(hex.match(/../g)!.map((byte) => parseInt(byte, 16))).buffer;
+}
 
 beforeEach(() => {
   vi.clearAllMocks();
@@ -22,9 +32,7 @@ beforeEach(() => {
     value: {
       subtle: {
         digest: mockDigest.mockImplementation(async (algorithm: string, data: ArrayBuffer) => {
-          // Return a mock hash based on algorithm
-          const hashLength = algorithm.includes('256') ? 32 : algorithm.includes('512') ? 64 : 20;
-          return new ArrayBuffer(hashLength);
+          return hexBuffer(webCryptoVectors[algorithm] ?? '0000000000000000000000000000000000000000');
         }),
       },
       getRandomValues: (arr: Uint32Array) => {
@@ -45,40 +53,82 @@ describe('HashGenerator', () => {
     expect(screen.getByPlaceholderText('해시할 텍스트를 입력하세요')).toBeInTheDocument();
   });
 
-  it('has algorithm options (MD5, SHA-1, SHA-256)', () => {
+  it('shows every supported hash algorithm', () => {
     render(<HashGenerator />);
 
-    const select = screen.getByRole('combobox');
-    expect(select).toBeInTheDocument();
+    expect(screen.getByText('MD5')).toBeInTheDocument();
+    expect(screen.getByText('SHA-1')).toBeInTheDocument();
+    expect(screen.getByText('SHA-256')).toBeInTheDocument();
+    expect(screen.getByText('SHA-384')).toBeInTheDocument();
+    expect(screen.getByText('SHA-512')).toBeInTheDocument();
   });
 
-  it('generates hash on input', async () => {
+  it.each([
+    ['', 'd41d8cd98f00b204e9800998ecf8427e'],
+    ['Hello', '8b1a9953c4611296a827abf8c47804d7'],
+    ['안녕하세요', '209bebae3eb7363d9b080a66f9e306ef'],
+  ])('generates the standard MD5 vector for %j', (input, expected) => {
+    expect(md5(input)).toBe(expected);
+  });
+
+  it('renders the standard MD5 value after repeated input', async () => {
     render(<HashGenerator />);
     const user = userEvent.setup();
 
     const input = screen.getByPlaceholderText('해시할 텍스트를 입력하세요');
     await user.type(input, 'Hello');
+    await user.clear(input);
+    await user.type(input, 'Hello');
 
-    // Should show hash result (hex string)
-    const outputs = screen.getAllByRole('textbox');
-    const outputWithHash = outputs.find(o =>
-      (o.getAttribute('value') || '').match(/^[0-9a-f]+$/i)
-    );
-    expect(outputWithHash || outputs.length).toBeTruthy();
-  });
+    await waitFor(() => expect(mockDigest).toHaveBeenCalled());
+    expect(screen.getByText('8b1a9953c4611296a827abf8c47804d7')).toBeInTheDocument();
+  }, 30_000);
 
-  it('changes hash when algorithm changes', async () => {
+  it('keeps the newest input when older Web Crypto digests finish last', async () => {
+    const resolvers = new Map<string, Array<(value: ArrayBuffer) => void>>();
+    mockDigest.mockImplementation((_: string, data: Uint8Array) => {
+      const text = new TextDecoder().decode(data);
+      return new Promise<ArrayBuffer>((resolve) => {
+        const pending = resolvers.get(text) ?? [];
+        pending.push(resolve);
+        resolvers.set(text, pending);
+      });
+    });
+
+    const resolveDigest = async (text: string) => {
+      await waitFor(() => expect(resolvers.get(text)?.length).toBeGreaterThan(0));
+      resolvers.get(text)!.shift()!(hexBuffer(webCryptoVectors['SHA-1']));
+    };
+
     render(<HashGenerator />);
-    const user = userEvent.setup();
-
     const input = screen.getByPlaceholderText('해시할 텍스트를 입력하세요');
-    await user.type(input, 'Test');
+    fireEvent.change(input, { target: { value: 'older' } });
+    fireEvent.change(input, { target: { value: 'newer' } });
 
-    const select = screen.getByRole('combobox');
-    await user.selectOptions(select, 'SHA-256');
+    for (let index = 0; index < 4; index++) await resolveDigest('newer');
+    await screen.findByText(md5('newer'));
+    for (let index = 0; index < 4; index++) await resolveDigest('older');
 
-    // Hash should be recalculated
-    expect(mockDigest).toHaveBeenCalled();
+    await waitFor(() => expect(screen.getByText(md5('newer'))).toBeInTheDocument());
+    expect(screen.queryByText(md5('older'))).not.toBeInTheDocument();
+  }, 30_000);
+
+  it('generates each Web Crypto hash variant after input', async () => {
+    render(<HashGenerator />);
+    const input = screen.getByPlaceholderText('해시할 텍스트를 입력하세요');
+    fireEvent.change(input, { target: { value: 'Test' } });
+
+    await waitFor(() => {
+      expect(mockDigest).toHaveBeenCalledWith('SHA-1', expect.any(Uint8Array));
+      expect(mockDigest).toHaveBeenCalledWith('SHA-256', expect.any(Uint8Array));
+      expect(mockDigest).toHaveBeenCalledWith('SHA-384', expect.any(Uint8Array));
+      expect(mockDigest).toHaveBeenCalledWith('SHA-512', expect.any(Uint8Array));
+    });
+
+    expect(screen.getByText(webCryptoVectors['SHA-1'])).toBeInTheDocument();
+    expect(screen.getByText(webCryptoVectors['SHA-256'])).toBeInTheDocument();
+    expect(screen.getByText(webCryptoVectors['SHA-384'])).toBeInTheDocument();
+    expect(screen.getByText(webCryptoVectors['SHA-512'])).toBeInTheDocument();
   });
 
   it('copies hash to clipboard', async () => {
@@ -91,11 +141,13 @@ describe('HashGenerator', () => {
     const input = screen.getByPlaceholderText('해시할 텍스트를 입력하세요');
     await user.type(input, 'Test');
 
+    await screen.findByText('0cbc6611f5540bd0809a388dc95a615b');
+
     const copyButtons = screen.getAllByText('복사');
-    if (copyButtons.length > 0) {
-      await user.click(copyButtons[0]);
-    }
-  });
+    await user.click(copyButtons[0]);
+
+    expect(mockWriteText).toHaveBeenCalledWith('0cbc6611f5540bd0809a388dc95a615b');
+  }, 30_000);
 
   it('handles empty input', () => {
     render(<HashGenerator />);

@@ -1,7 +1,7 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import DdayCalculator from '../DdayCalculator';
+import DdayCalculator, { differenceInCalendarDays, parseLocalDate } from '../DdayCalculator';
 import './testUtils';
 
 describe('DdayCalculator', () => {
@@ -13,6 +13,21 @@ describe('DdayCalculator', () => {
 
   afterEach(() => {
     vi.useRealTimers();
+  });
+
+  it('parses a date-only value at local calendar midnight', () => {
+    const date = parseLocalDate('2024-06-15');
+
+    expect(date.getFullYear()).toBe(2024);
+    expect(date.getMonth()).toBe(5);
+    expect(date.getDate()).toBe(15);
+    expect(date.getHours()).toBe(0);
+  });
+
+  it('compares local calendar days without UTC date-only drift', () => {
+    expect(differenceInCalendarDays(parseLocalDate('2024-06-15'), parseLocalDate('2024-06-15'))).toBe(0);
+    expect(differenceInCalendarDays(parseLocalDate('2024-06-16'), parseLocalDate('2024-06-15'))).toBe(1);
+    expect(differenceInCalendarDays(parseLocalDate('2024-06-14'), parseLocalDate('2024-06-15'))).toBe(-1);
   });
 
   it('renders date input', () => {
@@ -36,7 +51,7 @@ describe('DdayCalculator', () => {
     fireEvent.change(dateInput, { target: { value: futureDateStr } });
 
     // Should show D-30 or similar
-    expect(screen.getByText(/D-|일|days/i)).toBeInTheDocument();
+    expect(screen.getAllByText(/D-|일|days/i).length).toBeGreaterThan(0);
   });
 
   it('shows D-Day for today', async () => {
@@ -46,11 +61,12 @@ describe('DdayCalculator', () => {
     const dateInput = document.querySelector('input[type="date"]') as HTMLInputElement;
 
     // Set today's date
-    const today = new Date().toISOString().split('T')[0];
+    const now = new Date();
+    const today = new Date(now.getTime() - now.getTimezoneOffset() * 60_000).toISOString().split('T')[0];
     fireEvent.change(dateInput, { target: { value: today } });
 
     // Should show D-Day
-    expect(screen.getByText(/D-Day|D-0|0일/i)).toBeInTheDocument();
+    expect(screen.getByText('D-Day')).toBeInTheDocument();
   });
 
   it('calculates days since past date', async () => {
@@ -71,6 +87,7 @@ describe('DdayCalculator', () => {
   });
 
   it('allows adding event name', async () => {
+    vi.useRealTimers();
     render(<DdayCalculator />);
     const user = userEvent.setup({ delay: null });
 
@@ -79,5 +96,35 @@ describe('DdayCalculator', () => {
       await user.type(nameInputs[0], 'Birthday');
       expect(nameInputs[0]).toHaveValue('Birthday');
     }
+  });
+
+  it('clears empty and malformed targets without retaining a previous result', () => {
+    render(<DdayCalculator />);
+    const dateInput = document.querySelector('input[type="date"]') as HTMLInputElement;
+    const tomorrow = new Date();
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    const tomorrowValue = `${tomorrow.getFullYear()}-${String(tomorrow.getMonth() + 1).padStart(2, '0')}-${String(tomorrow.getDate()).padStart(2, '0')}`;
+
+    fireEvent.change(dateInput, { target: { value: tomorrowValue } });
+    expect(screen.getByText('D-1')).toBeInTheDocument();
+    fireEvent.change(dateInput, { target: { value: '' } });
+    expect(screen.queryByText('D-1')).not.toBeInTheDocument();
+    fireEvent.change(dateInput, { target: { value: 'not-a-date' } });
+    expect(screen.queryByText('D-1')).not.toBeInTheDocument();
+  });
+
+  it('calculates a one-day boundary and saves a non-Latin event name', () => {
+    render(<DdayCalculator />);
+    const dateInput = document.querySelector('input[type="date"]') as HTMLInputElement;
+    const nameInput = screen.getByRole('textbox');
+    const tomorrow = new Date();
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    const tomorrowValue = `${tomorrow.getFullYear()}-${String(tomorrow.getMonth() + 1).padStart(2, '0')}-${String(tomorrow.getDate()).padStart(2, '0')}`;
+
+    fireEvent.change(dateInput, { target: { value: tomorrowValue } });
+    fireEvent.change(nameInput, { target: { value: '여름 휴가' } });
+    expect(screen.getByText('D-1')).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: 'D-Day 저장하기' }));
+    expect(screen.getByText('여름 휴가')).toBeInTheDocument();
   });
 });

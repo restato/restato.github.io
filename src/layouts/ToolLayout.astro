@@ -86,62 +86,61 @@ const appSchema = {
   <script type="application/ld+json" set:html={JSON.stringify(faqSchema)} />
   <script type="application/ld+json" set:html={JSON.stringify(appSchema)} />
 
-  <div class="max-w-4xl mx-auto px-4 py-8">
+  <div class="fc-page fc-tool-shell">
     <!-- Breadcrumb -->
-    <nav class="text-sm mb-6">
-      <ol class="flex items-center gap-2">
-        <li><a href="/" class="text-[var(--color-text-muted)] hover:text-primary-500">홈</a></li>
-        <li class="text-[var(--color-text-muted)]">/</li>
-        <li><a href="/tools" class="text-[var(--color-text-muted)] hover:text-primary-500">도구</a></li>
-        <li class="text-[var(--color-text-muted)]">/</li>
-        <li class="text-[var(--color-text)]">{title}</li>
+    <nav class="fc-tool-breadcrumb" aria-label="이동 경로">
+      <ol>
+        <li><a href="/">홈</a></li>
+        <li aria-hidden="true">/</li>
+        <li><a href="/tools">도구</a></li>
+        <li aria-hidden="true">/</li>
+        <li aria-current="page">{title}</li>
       </ol>
     </nav>
 
     <!-- Header -->
-    <header class="mb-8">
-      <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-        <div>
-          <h1 class="text-3xl font-bold text-[var(--color-text)] mb-2">
-            {icon} {title}
-          </h1>
-          <p class="text-[var(--color-text-muted)]">
-            {description}
-          </p>
-        </div>
-        <div class="flex items-center gap-2">
-          <FavoriteButton client:load slug={slug} title={title} icon={icon} lang="en" />
-          <ShareButton client:load title={pageTitle} description={description} lang="en" />
-        </div>
+    <header class="fc-tool-header">
+      <div class="fc-tool-heading">
+        <p class="fc-eyebrow">Restato Tool</p>
+        <h1><span aria-hidden="true">{icon}</span> {title}</h1>
+        <p>{description}</p>
+      </div>
+      <div class="fc-tool-header-actions">
+        <FavoriteButton client:load slug={slug} title={title} icon={icon} />
+        <ShareButton client:load title={pageTitle} description={description} />
       </div>
     </header>
 
     <!-- Tool Content -->
-    <div class="p-6 rounded-xl bg-[var(--color-card)] border border-[var(--color-border)]">
+    <section class="fc-tool-workspace fc-surface fc-surface-padding-md" aria-label={`${title} 작업 영역`}>
+      <p class="fc-tool-privacy">
+        <span aria-hidden="true">🔒</span>
+        모든 처리는 브라우저에서 실행되며 데이터는 서버로 전송되지 않습니다.
+      </p>
       <slot />
-    </div>
+    </section>
 
     <!-- Related Tools -->
     <RelatedTools currentSlug={slug} currentCategory={category} />
 
     <!-- Info Section -->
-    <section class="mt-8 p-6 rounded-xl bg-[var(--color-card)] border border-[var(--color-border)]">
-      <h2 class="text-lg font-semibold text-[var(--color-text)] mb-4">ℹ️ {title} 사용 안내</h2>
-      <ul class="space-y-2 text-sm text-[var(--color-text-muted)]">
-        <li class="flex items-start gap-2">
-          <span class="text-green-500">✓</span>
+    <section class="fc-tool-instructions fc-prose">
+      <h2>{title} 사용 안내</h2>
+      <ul>
+        <li>
+          <span aria-hidden="true">✓</span>
           <span>완전 무료, 회원가입 불필요</span>
         </li>
-        <li class="flex items-start gap-2">
-          <span class="text-green-500">✓</span>
+        <li>
+          <span aria-hidden="true">✓</span>
           <span>모든 처리는 브라우저에서 실행 (데이터 서버 전송 없음)</span>
         </li>
-        <li class="flex items-start gap-2">
-          <span class="text-green-500">✓</span>
+        <li>
+          <span aria-hidden="true">✓</span>
           <span>모바일, 태블릿, 데스크톱 모두 지원</span>
         </li>
-        <li class="flex items-start gap-2">
-          <span class="text-green-500">✓</span>
+        <li>
+          <span aria-hidden="true">✓</span>
           <span>한국어, 영어, 일본어 지원</span>
         </li>
       </ul>
@@ -149,7 +148,7 @@ const appSchema = {
   </div>
 
   <!-- Bookmark Prompt -->
-  <BookmarkPrompt client:idle lang="en" />
+  <BookmarkPrompt client:idle />
 
   <!-- Track tool visit -->
   <script define:vars={{ slug, title, icon }}>
@@ -192,20 +191,3 @@ const appSchema = {
     })();
   </script>
 </MainLayout>
-
-<style>
-  @keyframes slide-up {
-    from {
-      opacity: 0;
-      transform: translateY(20px);
-    }
-    to {
-      opacity: 1;
-      transform: translateY(0);
-    }
-  }
-
-  :global(.animate-slide-up) {
-    animation: slide-up 0.3s ease-out;
-  }
-</style>

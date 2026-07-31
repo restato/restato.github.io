@@ -1,89 +1,117 @@
 ---
 import MainLayout from '../../../layouts/MainLayout.astro';
 import BlogCard from '../../../components/BlogCard.astro';
+import PageShell from '../../../components/ui/PageShell.astro';
 import { getCollection } from 'astro:content';
+import { getBlogTagContent, selectBlogTagLanguage } from '../../../data/blog-tag-content';
+import { getBlogTagEntries, getBlogTagRouteEntries, toBlogTagSlug } from '../../../lib/blogTags';
 
 export async function getStaticPaths() {
   const posts = await getCollection('blog', ({ data }) => !data.draft);
 
-  // Get all unique tags
-  const allTags = [...new Set(posts.flatMap(post => post.data.tags))];
+  const tagRoutes = getBlogTagRouteEntries(posts.flatMap(post => post.data.tags));
+  const canonicalRoutes = tagRoutes.filter(route => route.kind === 'canonical');
 
-  return allTags.map(tag => ({
-    params: { tag },
+  return canonicalRoutes.map(route => ({
+    params: { tag: route.filesystemSegment },
     props: {
-      tag,
+      tag: route.label,
       posts: posts
-        .filter(post => post.data.tags.includes(tag))
-        .sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf())
-    }
+        .filter(post => post.data.tags.some(postTag => toBlogTagSlug(postTag) === route.canonicalSlug))
+        .sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf()),
+      legacyTagPaths: tagRoutes
+        .filter(candidate => candidate.kind === 'redirect' && candidate.canonicalSlug === route.canonicalSlug)
+        .map(candidate => ({
+          filesystemSegment: candidate.filesystemSegment,
+          urlSegment: candidate.urlSegment,
+        })),
+    },
   }));
 }
 
-const { tag, posts } = Astro.props;
+const { tag, posts, legacyTagPaths = [] } = Astro.props;
+const legacyTagPathsJson = JSON.stringify(legacyTagPaths).replace(/</g, '\\u003c');
+const tagLanguage = selectBlogTagLanguage(tag, posts);
+const tagContent = getBlogTagContent(tagLanguage, tag, posts.length);
 
 // Get all unique tags for the filter section
 const allPosts = await getCollection('blog', ({ data }) => !data.draft);
-const allTags = [...new Set(allPosts.flatMap(post => post.data.tags))].sort();
+const allTagEntries = getBlogTagEntries(allPosts.flatMap(post => post.data.tags));
 ---
 
 <MainLayout
   title={`${tag} | Blog | Restato`}
-  description={`Posts tagged with "${tag}"`}
-  lang="en"
-  robots="noindex, follow"
+  description={tagContent.metaDescription}
+  lang={tagLanguage}
+  lockLanguage={true}
 >
-  <section class="py-20 px-6">
-    <div class="max-w-4xl mx-auto">
-      <!-- Header -->
-      <div class="mb-12">
-        <a href="/blog" class="text-sm font-medium text-primary-600 dark:text-primary-400 mb-2 inline-flex items-center gap-1 hover:underline">
+  <script
+    slot="head"
+    id="blog-tag-legacy-aliases"
+    type="application/json"
+    data-canonical-slug={toBlogTagSlug(tag)}
+    set:html={legacyTagPathsJson}
+  />
+  <PageShell size="content">
+      <header class="fc-page-header">
+        <a href="/blog" class="fc-button fc-button-quiet w-fit px-2 text-sm">
           <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7" />
           </svg>
           Blog
         </a>
-        <h1 class="text-4xl font-bold mb-4">
-          <span class="text-[var(--color-text-muted)]">#</span>{tag}
+        <h1>
+          <span class="text-[var(--accent)]">#</span>{tag}
         </h1>
-        <p class="text-lg text-[var(--color-text-muted)] max-w-xl">
-          {posts.length} post{posts.length !== 1 ? 's' : ''} tagged with "{tag}"
+        <p class="fc-page-description">
+          {tagContent.summary}
         </p>
-      </div>
+      </header>
 
-      <!-- Tags Filter -->
-      {allTags.length > 0 && (
-        <div class="mb-10 pb-6 border-b border-[var(--color-border)]">
+      <section
+        class="fc-surface fc-surface-soft mb-10 p-5 sm:p-6"
+        aria-labelledby="tag-introduction-title"
+      >
+        <h2 id="tag-introduction-title" class="mb-3 text-xl">
+          {tagContent.introductionTitle}
+        </h2>
+        <p class="m-0 leading-7 text-[var(--text-muted)]">
+          {tagContent.introduction}
+        </p>
+      </section>
+
+      {allTagEntries.length > 0 && (
+        <nav
+          class="mb-10 border-b border-[var(--border-subtle)] pb-6"
+          aria-label={tagContent.tagsLabel}
+        >
           <div class="flex flex-wrap gap-2 items-center">
-            <span class="text-sm font-medium text-[var(--color-text-muted)] mr-1">Tags</span>
+            <span class="mr-1 text-sm font-bold text-[var(--text-muted)]">{tagContent.tagsLabel}</span>
             <a
               href="/blog"
-              class="text-sm px-3 py-1.5 rounded-lg bg-[var(--color-card)] border border-[var(--color-border)]
-                     hover:border-primary-500/50 hover:text-primary-600 dark:hover:text-primary-400
-                     transition-colors font-medium"
+              class="fc-chip border border-transparent transition-colors hover:border-[var(--brand)] hover:text-[var(--brand)]"
             >
-              All
+              {tagContent.allLabel}
             </a>
-            {allTags.map(t => (
+            {allTagEntries.map(entry => (
               <a
-                href={`/blog/tag/${t}`}
+                href={`/blog/tag/${entry.slug}`}
                 class:list={[
-                  "text-sm px-3 py-1.5 rounded-lg border transition-colors font-medium",
-                  t === tag
-                    ? "bg-primary-500 text-white border-primary-500"
-                    : "bg-[var(--color-card)] border-[var(--color-border)] hover:border-primary-500/50 hover:text-primary-600 dark:hover:text-primary-400"
+                  "fc-chip border transition-colors",
+                  entry.label === tag
+                    ? "border-[var(--brand)] bg-[var(--brand)] text-white"
+                    : "border-transparent hover:border-[var(--brand)] hover:text-[var(--brand)]"
                 ]}
               >
-                {t}
+                {entry.label}
               </a>
             ))}
           </div>
-        </div>
+        </nav>
       )}
 
-      <!-- Posts Grid -->
       {posts.length > 0 ? (
-        <div class="grid md:grid-cols-2 gap-6">
+        <div class="grid gap-6 md:grid-cols-2">
           {posts.map((post) => (
             <BlogCard
               title={post.data.title}
@@ -96,26 +124,16 @@ const allTags = [...new Set(allPosts.flatMap(post => post.data.tags))].sort();
           ))}
         </div>
       ) : (
-        <div class="text-center py-20 px-6 rounded-2xl border border-dashed border-[var(--color-border)]">
-          <div class="w-16 h-16 mx-auto mb-4 rounded-2xl bg-primary-500/10 flex items-center justify-center">
-            <svg class="w-8 h-8 text-primary-500" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M9.568 3H5.25A2.25 2.25 0 003 5.25v4.318c0 .597.237 1.17.659 1.591l9.581 9.581c.699.699 1.78.872 2.607.33a18.095 18.095 0 005.223-5.223c.542-.827.369-1.908-.33-2.607L11.16 3.66A2.25 2.25 0 009.568 3z" />
-              <path stroke-linecap="round" stroke-linejoin="round" d="M6 6h.008v.008H6V6z" />
-            </svg>
-          </div>
-          <h2 class="text-xl font-bold mb-2">No posts found</h2>
-          <p class="text-[var(--color-text-muted)]">
-            No posts are tagged with "{tag}" yet.
-          </p>
+        <div class="fc-empty-state">
+          <h2>{tagContent.noPostsTitle}</h2>
+          <p>{tagContent.noPostsDescription}</p>
         </div>
       )}
 
-      <!-- Post count -->
       {posts.length > 0 && (
-        <p class="mt-8 text-center text-sm text-[var(--color-text-muted)]">
-          {posts.length} post{posts.length !== 1 ? 's' : ''} with tag "{tag}"
+        <p class="mt-8 text-center text-sm text-[var(--text-muted)]">
+          {tagContent.summary}
         </p>
       )}
-    </div>
-  </section>
+  </PageShell>
 </MainLayout>

@@ -10,11 +10,19 @@ describe('JsonFormatter', () => {
   });
 
   it('renders format, minify and validate buttons', () => {
-    render(<JsonFormatter />);
+    const { container } = render(<JsonFormatter />);
 
     expect(screen.getByText('포매팅')).toBeInTheDocument();
     expect(screen.getByText('압축')).toBeInTheDocument();
     expect(screen.getByText('검증')).toBeInTheDocument();
+    expect(container.firstElementChild).toHaveClass('fc-tool-panel');
+    expect(screen.getByRole('button', { name: '포매팅' })).toHaveClass('fc-button', 'fc-button-primary');
+    expect(screen.getByRole('button', { name: '압축' })).toHaveClass('fc-button', 'fc-button-secondary');
+    expect(screen.getByPlaceholderText('JSON을 입력하세요')).toHaveClass('fc-textarea');
+    expect(screen.getByRole('textbox', { name: '입력' })).toBeInTheDocument();
+    const actions = screen.getByRole('button', { name: '포매팅' }).closest('.fc-tool-actions');
+    expect(actions).not.toBeNull();
+    expect(actions?.querySelectorAll('button')[0]).toHaveTextContent('포매팅');
   });
 
   it('formats valid JSON correctly', async () => {
@@ -22,12 +30,12 @@ describe('JsonFormatter', () => {
     const user = userEvent.setup();
 
     const input = screen.getByPlaceholderText('JSON을 입력하세요');
-    await user.type(input, '{"name":"test","value":123}');
+    fireEvent.change(input, { target: { value: '{"name":"test","value":123}' } });
 
     await user.click(screen.getByText('포매팅'));
 
     const output = screen.getAllByRole('textbox')[1];
-    const formattedValue = output.getAttribute('value') || '';
+    const formattedValue = (output as HTMLTextAreaElement).value;
     expect(formattedValue).toContain('"name": "test"');
   });
 
@@ -36,7 +44,7 @@ describe('JsonFormatter', () => {
     const user = userEvent.setup();
 
     const input = screen.getByPlaceholderText('JSON을 입력하세요');
-    await user.type(input, '{  "name"  :  "test"  }');
+    fireEvent.change(input, { target: { value: '{  "name"  :  "test"  }' } });
 
     await user.click(screen.getByText('압축'));
 
@@ -49,11 +57,16 @@ describe('JsonFormatter', () => {
     const user = userEvent.setup();
 
     const input = screen.getByPlaceholderText('JSON을 입력하세요');
-    await user.type(input, '{"valid": true}');
+    fireEvent.change(input, { target: { value: '{"valid": true}' } });
 
     await user.click(screen.getByText('검증'));
 
     expect(screen.getByText('유효한 JSON')).toBeInTheDocument();
+    expect(screen.getByRole('status')).toHaveClass('fc-tool-result-success');
+    expect(screen.getByText('유효한 JSON')).toHaveClass(
+      'text-green-800',
+      'dark:text-green-300',
+    );
   });
 
   it('shows invalid status for invalid JSON', async () => {
@@ -61,11 +74,27 @@ describe('JsonFormatter', () => {
     const user = userEvent.setup();
 
     const input = screen.getByPlaceholderText('JSON을 입력하세요');
-    await user.type(input, '{invalid json}');
+    fireEvent.change(input, { target: { value: '{invalid json}' } });
 
     await user.click(screen.getByText('검증'));
 
     expect(screen.getByText('유효하지 않은 JSON')).toBeInTheDocument();
+    expect(screen.getByRole('alert')).toHaveClass('fc-tool-result-error');
+    const errorDetail = document.querySelector('code');
+    expect(errorDetail).toHaveTextContent('JSON');
+    expect(errorDetail).toHaveClass('text-red-700', 'dark:text-red-400');
+  });
+
+  it('reports empty input as invalid and formats non-Latin JSON keys', async () => {
+    render(<JsonFormatter />);
+    const input = screen.getByPlaceholderText('JSON을 입력하세요');
+
+    fireEvent.change(input, { target: { value: '' } });
+    fireEvent.click(screen.getByText('검증'));
+    expect(screen.getByText('유효하지 않은 JSON')).toBeInTheDocument();
+    fireEvent.change(input, { target: { value: '{"제목":"도구"}' } });
+    fireEvent.click(screen.getByText('포매팅'));
+    expect((screen.getAllByRole('textbox')[1] as HTMLTextAreaElement).value).toContain('"제목": "도구"');
   });
 
   it('loads sample JSON when clicking sample button', async () => {
@@ -75,7 +104,7 @@ describe('JsonFormatter', () => {
     await user.click(screen.getByText('샘플 불러오기'));
 
     const input = screen.getByPlaceholderText('JSON을 입력하세요');
-    expect(input.getAttribute('value')).toContain('Sample Object');
+    expect((input as HTMLTextAreaElement).value).toContain('Sample Object');
   });
 
   it('respects indent size setting', async () => {
@@ -87,12 +116,12 @@ describe('JsonFormatter', () => {
     await user.selectOptions(indentSelect, '4');
 
     const input = screen.getByPlaceholderText('JSON을 입력하세요');
-    await user.type(input, '{"a":"b"}');
+    fireEvent.change(input, { target: { value: '{"a":"b"}' } });
 
     await user.click(screen.getByText('포매팅'));
 
     const output = screen.getAllByRole('textbox')[1];
-    const formattedValue = output.getAttribute('value') || '';
+    const formattedValue = (output as HTMLTextAreaElement).value;
     expect(formattedValue).toContain('    '); // 4 spaces
   });
 
@@ -104,7 +133,7 @@ describe('JsonFormatter', () => {
     const user = userEvent.setup();
 
     const input = screen.getByPlaceholderText('JSON을 입력하세요');
-    await user.type(input, '{"test":1}');
+    fireEvent.change(input, { target: { value: '{"test":1}' } });
 
     await user.click(screen.getByText('포매팅'));
     await user.click(screen.getByText('복사'));
@@ -117,12 +146,12 @@ describe('JsonFormatter', () => {
     const user = userEvent.setup();
 
     const input = screen.getByPlaceholderText('JSON을 입력하세요');
-    await user.type(input, '{"a":{"b":{"c":1}}}');
+    fireEvent.change(input, { target: { value: '{"a":{"b":{"c":1}}}' } });
 
     await user.click(screen.getByText('포매팅'));
 
     const output = screen.getAllByRole('textbox')[1];
-    expect(output.getAttribute('value')).toContain('"c": 1');
+    expect((output as HTMLTextAreaElement).value).toContain('"c": 1');
   });
 
   it('handles arrays correctly', async () => {
@@ -130,7 +159,7 @@ describe('JsonFormatter', () => {
     const user = userEvent.setup();
 
     const input = screen.getByPlaceholderText('JSON을 입력하세요');
-    await user.type(input, '[1,2,3]');
+    fireEvent.change(input, { target: { value: '[1,2,3]' } });
 
     await user.click(screen.getByText('포매팅'));
 

@@ -867,46 +867,45 @@ export default function ArticleAggregator() {
 
   return (
     <div className="space-y-6">
-      {/* 헤더 */}
-      <div className="bg-gradient-to-r from-orange-500 to-red-600 rounded-xl p-6 text-white">
+      <section className="fc-surface fc-surface-padding-md">
         <div className="flex items-center justify-between mb-2">
-          <h1 className="text-2xl font-bold">아티클 피드</h1>
+          <h2 className="text-2xl font-bold text-[var(--text-primary)]">아티클 피드</h2>
           <a
             href="/articles/admin"
-            className="text-sm bg-white/30 hover:bg-white/40 px-4 py-2 rounded-lg transition-colors font-medium"
+            className="fc-button fc-button-secondary text-sm"
           >
             🔐 관리자
           </a>
         </div>
-        <p className="opacity-90 mb-4">개발/기술 뉴스를 한 곳에서 모아보세요</p>
+        <p className="mb-4 text-[var(--text-muted)]">개발/기술 뉴스를 한 곳에서 모아보세요</p>
 
         <div className="flex flex-wrap gap-3 text-sm">
-          <div className="bg-white/20 rounded-lg px-3 py-2">
-            <span className="opacity-80">RSS</span>
+          <div className="fc-chip">
+            <span className="text-[var(--text-muted)]">RSS</span>
             <span className="ml-2 font-bold">{allFeedSources.length}</span>
           </div>
-          <div className="bg-white/20 rounded-lg px-3 py-2">
-            <span className="opacity-80">아티클</span>
+          <div className="fc-chip">
+            <span className="text-[var(--text-muted)]">아티클</span>
             <span className="ml-2 font-bold">{filteredArticles.length}</span>
           </div>
           {pickedArticles.length > 0 && (
-            <div className="bg-white/20 rounded-lg px-3 py-2">
-              <span className="opacity-80">수집</span>
+            <div className="fc-chip">
+              <span className="text-[var(--text-muted)]">수집</span>
               <span className="ml-2 font-bold">{pickedArticles.length}</span>
             </div>
           )}
           <button
             onClick={fetchAllFeeds}
             disabled={refreshing}
-            className="bg-white/20 hover:bg-white/30 rounded-lg px-3 py-2 transition-colors disabled:opacity-50"
+            className="fc-button fc-button-primary text-sm disabled:opacity-50"
           >
             {refreshing ? '로딩...' : '🔄 새로고침'}
           </button>
         </div>
-      </div>
+      </section>
 
       {/* 탭 */}
-      <div className="flex gap-2 border-b border-[var(--color-border)] overflow-x-auto">
+      <div className="flex gap-2 overflow-x-auto border-b border-[var(--border-subtle)]">
         {[
           { id: 'feed', label: '📰 피드' },
           { id: 'picks', label: `⭐ 수집함${pickedArticles.length > 0 ? ` (${pickedArticles.length})` : ''}` },
@@ -914,10 +913,10 @@ export default function ArticleAggregator() {
           <button
             key={tab.id}
             onClick={() => setActiveTab(tab.id as typeof activeTab)}
-            className={`px-4 py-2 font-medium transition-colors whitespace-nowrap ${
+            className={`fc-button fc-button-quiet whitespace-nowrap rounded-b-none ${
               activeTab === tab.id
-                ? 'text-orange-600 border-b-2 border-orange-600'
-                : 'text-[var(--color-text-muted)] hover:text-[var(--color-text)]'
+                ? 'border-b-2 border-[var(--accent)] text-[var(--accent)]'
+                : 'text-[var(--text-muted)]'
             }`}
           >
             {tab.label}
@@ -931,18 +930,18 @@ export default function ArticleAggregator() {
           {/* 필터 버튼 */}
           <button
             onClick={() => setIsFilterOpen(true)}
-            className="w-full flex items-center justify-between p-3 mb-4 rounded-xl border border-[var(--color-border)] bg-[var(--color-card)] hover:border-orange-400 transition-all"
+            className="fc-button fc-button-secondary mb-4 w-full justify-between"
           >
             <div className="flex items-center gap-2">
               <span className="text-lg">🔍</span>
               <span className="font-medium">소스 필터</span>
               {selectedSourceFilters.length > 0 && (
-                <span className="px-2 py-0.5 bg-orange-100 dark:bg-orange-900/30 text-orange-600 dark:text-orange-400 text-xs font-medium rounded-full">
+                <span className="fc-chip min-h-0 py-0.5 text-xs text-[var(--accent)]">
                   {selectedSourceFilters.length}개 선택
                 </span>
               )}
             </div>
-            <span className="text-[var(--color-text-muted)]">▼</span>
+            <span className="text-[var(--text-muted)]">▼</span>
           </button>
 
           {/* 바텀시트 모달 */}
@@ -954,26 +953,26 @@ export default function ArticleAggregator() {
                 onClick={() => setIsFilterOpen(false)}
               />
               {/* 바텀시트 */}
-              <div className="fixed inset-x-0 bottom-0 z-50 bg-[var(--color-bg)] rounded-t-2xl max-h-[80vh] overflow-hidden animate-slide-up">
+              <div className="fc-surface fixed inset-x-0 bottom-0 z-50 max-h-[80vh] overflow-hidden rounded-b-none bg-[var(--surface-page)] animate-slide-up">
                 {/* 핸들 */}
                 <div className="flex justify-center pt-3 pb-2">
-                  <div className="w-10 h-1 bg-[var(--color-border)] rounded-full" />
+                  <div className="h-1 w-10 rounded-full bg-[var(--border-subtle)]" />
                 </div>
                 {/* 헤더 */}
-                <div className="flex items-center justify-between px-4 pb-3 border-b border-[var(--color-border)]">
+                <div className="flex items-center justify-between border-b border-[var(--border-subtle)] px-4 pb-3">
                   <h3 className="font-semibold text-lg">소스 필터</h3>
                   <div className="flex items-center gap-2">
                     {selectedSourceFilters.length > 0 && (
                       <button
                         onClick={clearAllFilters}
-                        className="text-sm text-orange-600 hover:text-orange-700"
+                        className="fc-button fc-button-quiet px-2 text-sm text-[var(--accent)]"
                       >
                         초기화
                       </button>
                     )}
                     <button
                       onClick={() => setIsFilterOpen(false)}
-                      className="p-2 hover:bg-[var(--color-card)] rounded-lg transition-colors"
+                      className="fc-button fc-button-quiet w-11 px-0"
                     >
                       ✕
                     </button>
@@ -981,7 +980,7 @@ export default function ArticleAggregator() {
                 </div>
                 {/* 필터 내용 */}
                 <div className="p-4 overflow-y-auto max-h-[calc(80vh-100px)]">
-                  <div className="text-sm text-[var(--color-text-muted)] mb-4">
+                  <div className="mb-4 text-sm text-[var(--text-muted)]">
                     {selectedSourceFilters.length > 0
                       ? `${selectedSourceFilters.length}개 소스 선택됨`
                       : '전체 소스 표시 중'}
@@ -992,24 +991,24 @@ export default function ArticleAggregator() {
                     <div className="flex items-center gap-2 mb-2">
                       <button
                         onClick={() => toggleCategoryAll('korea')}
-                        className={`px-2.5 py-1 rounded-lg text-xs font-medium transition-all ${
+                        className={`fc-button min-h-0 px-2.5 py-1 text-xs ${
                           sourcesByCategory.korea.every((s) => selectedSourceFilters.includes(s.id))
-                            ? 'bg-orange-600 text-white'
-                            : 'bg-[var(--color-card)] text-[var(--color-text-muted)] border border-[var(--color-border)]'
+                            ? 'fc-button-primary'
+                            : 'fc-button-secondary text-[var(--text-muted)]'
                         }`}
                       >
                         🇰🇷 한국 전체 ({sourcesByCategory.korea.length})
                       </button>
                     </div>
-                    <div className="flex flex-wrap gap-1.5 pl-3 border-l-2 border-orange-200 dark:border-orange-800">
+                    <div className="flex flex-wrap gap-1.5 border-l-2 border-[var(--accent)] pl-3">
                       {sourcesByCategory.korea.map((source) => (
                         <button
                           key={source.id}
                           onClick={() => toggleSourceFilter(source.id)}
-                          className={`px-2 py-1 rounded text-xs font-medium transition-all ${
+                          className={`fc-chip border px-2 py-1 text-xs ${
                             selectedSourceFilters.includes(source.id)
                               ? 'text-white'
-                              : 'bg-[var(--color-card)] text-[var(--color-text-muted)] border border-[var(--color-border)] hover:border-orange-400'
+                              : 'border-[var(--border-subtle)] text-[var(--text-muted)] hover:border-[var(--brand)]'
                           }`}
                           style={selectedSourceFilters.includes(source.id) ? { backgroundColor: source.color } : {}}
                         >
@@ -1024,24 +1023,24 @@ export default function ArticleAggregator() {
                     <div className="flex items-center gap-2 mb-2">
                       <button
                         onClick={() => toggleCategoryAll('global')}
-                        className={`px-2.5 py-1 rounded-lg text-xs font-medium transition-all ${
+                        className={`fc-button min-h-0 px-2.5 py-1 text-xs ${
                           sourcesByCategory.global.every((s) => selectedSourceFilters.includes(s.id))
-                            ? 'bg-orange-600 text-white'
-                            : 'bg-[var(--color-card)] text-[var(--color-text-muted)] border border-[var(--color-border)]'
+                            ? 'fc-button-primary'
+                            : 'fc-button-secondary text-[var(--text-muted)]'
                         }`}
                       >
                         🌍 글로벌 전체 ({sourcesByCategory.global.length})
                       </button>
                     </div>
-                    <div className="flex flex-wrap gap-1.5 pl-3 border-l-2 border-blue-200 dark:border-blue-800">
+                    <div className="flex flex-wrap gap-1.5 border-l-2 border-[var(--brand)] pl-3">
                       {sourcesByCategory.global.map((source) => (
                         <button
                           key={source.id}
                           onClick={() => toggleSourceFilter(source.id)}
-                          className={`px-2 py-1 rounded text-xs font-medium transition-all ${
+                          className={`fc-chip border px-2 py-1 text-xs ${
                             selectedSourceFilters.includes(source.id)
                               ? 'text-white'
-                              : 'bg-[var(--color-card)] text-[var(--color-text-muted)] border border-[var(--color-border)] hover:border-blue-400'
+                              : 'border-[var(--border-subtle)] text-[var(--text-muted)] hover:border-[var(--brand)]'
                           }`}
                           style={selectedSourceFilters.includes(source.id) ? { backgroundColor: source.color } : {}}
                         >
@@ -1056,24 +1055,24 @@ export default function ArticleAggregator() {
                     <div className="flex items-center gap-2 mb-2">
                       <button
                         onClick={() => toggleCategoryAll('tech-blog')}
-                        className={`px-2.5 py-1 rounded-lg text-xs font-medium transition-all ${
+                        className={`fc-button min-h-0 px-2.5 py-1 text-xs ${
                           sourcesByCategory['tech-blog'].every((s) => selectedSourceFilters.includes(s.id))
-                            ? 'bg-orange-600 text-white'
-                            : 'bg-[var(--color-card)] text-[var(--color-text-muted)] border border-[var(--color-border)]'
+                            ? 'fc-button-primary'
+                            : 'fc-button-secondary text-[var(--text-muted)]'
                         }`}
                       >
                         🏢 기술블로그 전체 ({sourcesByCategory['tech-blog'].length})
                       </button>
                     </div>
-                    <div className="flex flex-wrap gap-1.5 pl-3 border-l-2 border-purple-200 dark:border-purple-800">
+                    <div className="flex flex-wrap gap-1.5 border-l-2 border-[var(--accent)] pl-3">
                       {sourcesByCategory['tech-blog'].map((source) => (
                         <button
                           key={source.id}
                           onClick={() => toggleSourceFilter(source.id)}
-                          className={`px-2 py-1 rounded text-xs font-medium transition-all ${
+                          className={`fc-chip border px-2 py-1 text-xs ${
                             selectedSourceFilters.includes(source.id)
                               ? 'text-white'
-                              : 'bg-[var(--color-card)] text-[var(--color-text-muted)] border border-[var(--color-border)] hover:border-purple-400'
+                              : 'border-[var(--border-subtle)] text-[var(--text-muted)] hover:border-[var(--brand)]'
                           }`}
                           style={selectedSourceFilters.includes(source.id) ? { backgroundColor: source.color } : {}}
                         >
@@ -1084,10 +1083,10 @@ export default function ArticleAggregator() {
                   </div>
                 </div>
                 {/* 적용 버튼 */}
-                <div className="p-4 border-t border-[var(--color-border)] bg-[var(--color-bg)]">
+                <div className="border-t border-[var(--border-subtle)] bg-[var(--surface-page)] p-4">
                   <button
                     onClick={() => setIsFilterOpen(false)}
-                    className="w-full py-3 bg-orange-600 hover:bg-orange-700 text-white font-medium rounded-xl transition-colors"
+                    className="fc-button fc-button-primary w-full"
                   >
                     {selectedSourceFilters.length > 0
                       ? `${selectedSourceFilters.length}개 소스로 필터 적용`
@@ -1107,14 +1106,14 @@ export default function ArticleAggregator() {
           {isLoading ? (
             <div className="space-y-4">
               {[...Array(5)].map((_, i) => (
-                <div key={i} className="animate-pulse p-4 rounded-xl border border-[var(--color-border)] bg-[var(--color-card)]">
+                <div key={i} className="fc-surface animate-pulse p-4">
                   <div className="h-4 bg-[var(--color-border)] rounded w-3/4 mb-3"></div>
                   <div className="h-3 bg-[var(--color-border)] rounded w-full mb-2"></div>
                 </div>
               ))}
             </div>
           ) : filteredArticles.length === 0 ? (
-            <div className="text-center py-12 text-[var(--color-text-muted)]">
+            <div className="fc-empty-state">
               <p className="text-4xl mb-4">📭</p>
               <p>표시할 아티클이 없습니다.</p>
               <p className="text-sm mt-2">소스를 선택하고 새로고침 해주세요.</p>
@@ -1127,7 +1126,7 @@ export default function ArticleAggregator() {
                   href={article.link}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="block p-4 rounded-xl border border-[var(--color-border)] bg-[var(--color-card)] hover:border-orange-400 hover:shadow-md transition-all group"
+                  className="fc-surface group block p-4 transition-colors hover:border-[var(--brand)]"
                 >
                   <div className="flex items-start gap-4">
                     {article.thumbnail && (
@@ -1143,16 +1142,16 @@ export default function ArticleAggregator() {
                         <span className="px-2 py-0.5 rounded text-xs font-medium text-white" style={{ backgroundColor: article.sourceColor }}>
                           {article.source}
                         </span>
-                        <span className="text-xs text-[var(--color-text-muted)]">{formatDate(article.pubDate)}</span>
+                        <span className="text-xs text-[var(--text-muted)]">{formatDate(article.pubDate)}</span>
                       </div>
-                      <h3 className="font-semibold text-[var(--color-text)] group-hover:text-orange-600 transition-colors line-clamp-2 mb-1">
+                      <h3 className="mb-1 line-clamp-2 font-semibold text-[var(--text-primary)] transition-colors group-hover:text-[var(--brand)]">
                         {article.title}
                       </h3>
                       {article.description && (
-                        <p className="text-sm text-[var(--color-text-muted)] line-clamp-2">{article.description}</p>
+                        <p className="line-clamp-2 text-sm text-[var(--text-muted)]">{article.description}</p>
                       )}
                     </div>
-                    <span className="text-[var(--color-text-muted)] group-hover:text-orange-600 shrink-0">↗</span>
+                    <span className="shrink-0 text-[var(--text-muted)] group-hover:text-[var(--brand)]">↗</span>
                   </div>
                 </a>
               ))}
@@ -1165,11 +1164,11 @@ export default function ArticleAggregator() {
       {activeTab === 'picks' && (
         <div className="space-y-6">
           {pickedArticles.length === 0 ? (
-            <div className="text-center py-12 text-[var(--color-text-muted)]">
+            <div className="fc-empty-state">
               <p className="text-4xl mb-4">⭐</p>
               <p>아직 수집한 아티클이 없습니다.</p>
               <p className="text-sm mt-2">
-                <a href="/articles/admin" className="text-orange-600 hover:underline">
+                <a href="/articles/admin" className="text-[var(--brand)] hover:underline">
                   관리자 페이지
                 </a>
                 에서 아티클을 수집할 수 있습니다.
@@ -1180,16 +1179,16 @@ export default function ArticleAggregator() {
               {Array.from(groupedPicks.entries()).map(([dateKey, picks]) => (
                 <div key={dateKey}>
                   <div className="flex items-center gap-3 mb-3">
-                    <div className="w-3 h-3 rounded-full bg-orange-500"></div>
-                    <h3 className="font-semibold text-[var(--color-text)]">{dateKey}</h3>
-                    <span className="text-sm text-[var(--color-text-muted)]">({picks.length}개)</span>
+                    <div className="h-3 w-3 rounded-full bg-[var(--accent)]"></div>
+                    <h3 className="font-semibold text-[var(--text-primary)]">{dateKey}</h3>
+                    <span className="text-sm text-[var(--text-muted)]">({picks.length}개)</span>
                   </div>
 
-                  <div className="ml-6 border-l-2 border-orange-200 dark:border-orange-800 pl-4 space-y-3">
+                  <div className="ml-6 space-y-3 border-l-2 border-[var(--accent)] pl-4">
                     {picks.map((pick) => (
                       <div
                         key={pick.id}
-                        className="p-4 rounded-xl border border-[var(--color-border)] bg-[var(--color-card)] group"
+                        className="fc-surface group p-4"
                       >
                         <div className="flex items-start gap-4">
                           <div className="flex-1 min-w-0">
@@ -1197,16 +1196,16 @@ export default function ArticleAggregator() {
                               href={pick.link}
                               target="_blank"
                               rel="noopener noreferrer"
-                              className="font-semibold text-[var(--color-text)] hover:text-orange-600 transition-colors line-clamp-2"
+                              className="line-clamp-2 font-semibold text-[var(--text-primary)] transition-colors hover:text-[var(--brand)]"
                             >
                               {pick.title}
                             </a>
                             {pick.memo && (
-                              <p className="text-sm text-orange-600 dark:text-orange-400 mt-2 p-2 bg-orange-50 dark:bg-orange-900/20 rounded-lg">
+                              <p className="fc-surface-soft mt-2 rounded-lg p-2 text-sm text-[var(--accent)]">
                                 💬 {pick.memo}
                               </p>
                             )}
-                            <p className="text-xs text-[var(--color-text-muted)] mt-2">
+                            <p className="mt-2 text-xs text-[var(--text-muted)]">
                               {new Date(pick.addedAt).toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit' })}
                             </p>
                           </div>
@@ -1214,7 +1213,7 @@ export default function ArticleAggregator() {
                             href={pick.link}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="text-[var(--color-text-muted)] hover:text-orange-600 transition-colors shrink-0"
+                            className="shrink-0 text-[var(--text-muted)] transition-colors hover:text-[var(--brand)]"
                           >
                             ↗
                           </a>

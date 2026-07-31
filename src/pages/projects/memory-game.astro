@@ -1,29 +1,33 @@
 ---
 import MainLayout from '../../layouts/MainLayout.astro';
 import MemoryGame from '../../components/MemoryGame';
+import PageHeader from '../../components/ui/PageHeader.astro';
+import PageShell from '../../components/ui/PageShell.astro';
 ---
 
 <MainLayout title="기억력 게임 | Restato" description="카드 짝 맞추기 두뇌 게임">
-  <section class="py-8 px-4">
-    <div class="max-w-4xl mx-auto">
-      <!-- Header -->
-      <div class="mb-8">
-        <div class="flex items-center gap-2 text-sm text-[var(--color-text-muted)] mb-2">
-          <a href="/projects/games" class="hover:text-primary-500">게임센터</a>
-          <span>/</span>
-          <span>기억력 게임</span>
-        </div>
-        <h1 class="text-3xl font-bold mb-2">🧠 기억력 게임</h1>
-        <p class="text-[var(--color-text-muted)]">
-          카드를 뒤집어 같은 짝을 찾아보세요! 두뇌 훈련에 좋아요!
-        </p>
-      </div>
+  <PageShell size="content">
+      <nav class="fc-tool-breadcrumb" aria-label="게임센터">
+        <ol>
+          <li><a href="/projects/games">게임센터</a></li>
+          <li aria-hidden="true">/</li>
+          <li aria-current="page">기억력 게임</li>
+        </ol>
+      </nav>
+      <PageHeader
+        eyebrow="🧠 Mini game"
+        title="기억력 게임"
+        description="카드를 뒤집어 같은 짝을 찾아보세요! 두뇌 훈련에 좋아요!"
+      />
 
       <!-- Game Component -->
-      <MemoryGame client:load />
+      <section class="fc-surface fc-surface-padding-md" aria-label="기억력 게임">
+        <MemoryGame client:load />
+      </section>
 
       <!-- Info -->
-      <div class="mt-12 p-6 bg-[var(--color-card)] rounded-xl border border-[var(--color-border)]">
+      <section class="fc-tool-instructions fc-prose">
+        <div>
         <h2 class="text-lg font-bold mb-4">💡 게임 방법</h2>
         <ul class="space-y-2 text-[var(--color-text-muted)]">
           <li>• 카드를 클릭하면 뒤집힙니다</li>
@@ -31,7 +35,7 @@ import MemoryGame from '../../components/MemoryGame';
           <li>• 모든 카드를 매치하면 게임 클리어</li>
           <li>• 적은 시도 횟수와 빠른 시간에 도전해보세요</li>
         </ul>
-      </div>
-    </div>
-  </section>
+        </div>
+      </section>
+  </PageShell>
 </MainLayout>

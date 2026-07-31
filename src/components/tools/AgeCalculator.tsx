@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react';
 import { useTranslation } from '../../i18n/useTranslation';
-import type { Language } from '../../i18n';
+import { ToolField } from './ui/ToolField';
+import { ToolPanel } from './ui/ToolPanel';
+import { ToolResult } from './ui/ToolResult';
 
 interface AgeResult {
   koreanAge: number;
@@ -15,8 +17,17 @@ interface AgeResult {
   chineseZodiacEmoji: string;
 }
 
-export default function AgeCalculator({ lang: initialLang }: { lang?: Language } = {}) {
-  const { t, translations } = useTranslation(initialLang);
+function parseLocalDate(value: string): Date {
+  const [year, month, day] = value.split('-').map(Number);
+  return new Date(year, month - 1, day);
+}
+
+function formatLocalDate(date: Date): string {
+  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
+}
+
+export default function AgeCalculator() {
+  const { t, translations } = useTranslation();
   const tc = translations.tools.age;
 
   const [birthDate, setBirthDate] = useState('');
@@ -79,8 +90,13 @@ export default function AgeCalculator({ lang: initialLang }: { lang?: Language }
       return;
     }
 
-    const birth = new Date(birthDate);
+    const birth = parseLocalDate(birthDate);
     const today = new Date();
+
+    if (Number.isNaN(birth.getTime()) || birth > today) {
+      setResult(null);
+      return;
+    }
 
     // Korean age (만 나이 + 1, but since 2023 Korea uses international age)
     const koreanAge = today.getFullYear() - birth.getFullYear() + 1;
@@ -170,26 +186,22 @@ export default function AgeCalculator({ lang: initialLang }: { lang?: Language }
   };
 
   return (
-    <div className="flex flex-col gap-6">
+    <ToolPanel className="gap-6">
       {/* Birth Date Input */}
-      <div className="space-y-2">
-        <label className="block text-sm font-medium text-[var(--color-text)]">
-          {t(tc.birthDate)}
-        </label>
+      <ToolField id="birth-date" label={t(tc.birthDate)}>
         <input
           type="date"
           value={birthDate}
           onChange={(e) => setBirthDate(e.target.value)}
-          max={new Date().toISOString().split('T')[0]}
-          className="w-full px-4 py-3 rounded-lg border border-[var(--color-border)]
-            bg-[var(--color-card)] text-[var(--color-text)] text-lg
-            focus:outline-none focus:ring-2 focus:ring-primary-500"
+          max={formatLocalDate(new Date())}
+          className="text-lg"
         />
-      </div>
+      </ToolField>
 
       {/* Results */}
       {result && (
-        <div className="space-y-4">
+        <ToolResult status="success">
+          <div className="space-y-4">
           {/* Main Age Display */}
           <div className="grid grid-cols-2 gap-4">
             <div className="p-4 rounded-lg bg-primary-500/10 border border-primary-500/20 text-center">
@@ -249,8 +261,9 @@ export default function AgeCalculator({ lang: initialLang }: { lang?: Language }
               <p>• ~{(result.totalDays * 24 * 60 * 72).toLocaleString()} {t(tc.heartbeats)}</p>
             </div>
           </div>
-        </div>
+          </div>
+        </ToolResult>
       )}
-    </div>
+    </ToolPanel>
   );
 }

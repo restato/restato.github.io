@@ -22,7 +22,7 @@ describe('TextCounter', () => {
     const textarea = screen.getByPlaceholderText('텍스트를 입력하세요...');
     await user.type(textarea, 'Hello');
 
-    expect(screen.getByText('5')).toBeInTheDocument();
+    expect(screen.getAllByText('5').length).toBeGreaterThan(0);
   });
 
   it('counts characters without spaces', async () => {
@@ -67,7 +67,7 @@ describe('TextCounter', () => {
     await user.type(textarea, '안녕하세요');
 
     // 5 Korean characters
-    expect(screen.getByText('5')).toBeInTheDocument();
+    expect(screen.getAllByText('5').length).toBeGreaterThan(0);
   });
 
   it('handles empty text', () => {

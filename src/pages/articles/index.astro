@@ -1,13 +1,20 @@
 ---
 import MainLayout from '../../layouts/MainLayout.astro';
 import ArticleAggregator from '../../components/articles/ArticleAggregator';
+import PageShell from '../../components/ui/PageShell.astro';
 ---
 
 <MainLayout
   title="아티클 피드 | Restato"
   description="개발/기술 뉴스를 한 곳에서 모아보세요. GeekNews, Hacker News, DEV.to, TechCrunch 등 주요 기술 뉴스와 아티클을 실시간으로 확인할 수 있습니다."
 >
-  <div class="max-w-4xl mx-auto px-4 py-8">
+  <PageShell size="wide">
+    <header class="fc-page-header">
+      <h1>개발·기술 아티클 피드</h1>
+      <p class="fc-page-description">
+        국내외 개발 커뮤니티와 기술 매체의 최신 글을 한곳에서 살펴보세요. 출처별 새 글을 빠르게 비교하고, 관심 있는 원문으로 바로 이동할 수 있습니다.
+      </p>
+    </header>
     <ArticleAggregator client:load />
-  </div>
+  </PageShell>
 </MainLayout>

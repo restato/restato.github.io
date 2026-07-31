@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen } from '@testing-library/react';
+import { fireEvent, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import DiscountCalculator from '../DiscountCalculator';
 import './testUtils';
@@ -17,7 +17,7 @@ describe('DiscountCalculator', () => {
   });
 
   it('calculates discount price correctly', async () => {
-    render(<DiscountCalculator />);
+    const { container } = render(<DiscountCalculator />);
     const user = userEvent.setup();
 
     const inputs = screen.getAllByRole('spinbutton');
@@ -31,7 +31,8 @@ describe('DiscountCalculator', () => {
     await user.type(inputs[1], '20');
 
     // Should show 8000 (10000 - 20%)
-    expect(screen.getByText(/8,?000|8000/)).toBeInTheDocument();
+    expect(screen.getAllByText(/8,?000|8000/).length).toBeGreaterThan(0);
+    expect(container.querySelector('.fc-tool-result-success')).toHaveAttribute('role', 'status');
   });
 
   it('calculates discount amount correctly', async () => {
@@ -63,7 +64,7 @@ describe('DiscountCalculator', () => {
     await user.type(inputs[1], '0');
 
     // Final price should still be 10000
-    expect(screen.getByText(/10,?000|10000/)).toBeInTheDocument();
+    expect(screen.getAllByText(/10,?000|10000/).length).toBeGreaterThan(0);
   });
 
   it('handles 100% discount', async () => {
@@ -96,6 +97,18 @@ describe('DiscountCalculator', () => {
     await user.type(inputs[1], '10');
 
     // Should display formatted number
-    expect(screen.getByText(/900,?000|900000/)).toBeInTheDocument();
+    expect(screen.getAllByText(/900,?000|900000/).length).toBeGreaterThan(0);
+  });
+
+  it('clears output for empty and non-numeric price inputs', () => {
+    render(<DiscountCalculator />);
+    const inputs = screen.getAllByRole('spinbutton');
+    fireEvent.change(inputs[0], { target: { value: '10000' } });
+    fireEvent.change(inputs[1], { target: { value: '20' } });
+    expect(screen.getAllByText(/8,?000|8000/).length).toBeGreaterThan(0);
+    fireEvent.change(inputs[0], { target: { value: '' } });
+    expect(screen.queryByText('최종 가격')).not.toBeInTheDocument();
+    fireEvent.change(inputs[0], { target: { value: 'not-a-number' } });
+    expect(screen.queryByText('최종 가격')).not.toBeInTheDocument();
   });
 });

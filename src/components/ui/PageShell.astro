@@ -1,0 +1,12 @@
+---
+interface Props {
+  size?: 'reading' | 'content' | 'wide';
+  class?: string;
+}
+
+const { size = 'content', class: className } = Astro.props;
+---
+
+<div class:list={['fc-page', `fc-${size}`, className]}>
+  <slot />
+</div>

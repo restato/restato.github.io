@@ -1,255 +1,255 @@
 import { useTranslation } from '../i18n/useTranslation';
+import type { Language } from '../data/tools/types';
 
-// Hero Section
+const editorialCopy = {
+  eyebrow: {
+    ko: 'RESTATO · 작은 웹 작업실',
+    en: 'RESTATO · THE SMALL WEB DESK',
+    ja: 'RESTATO · 小さなウェブ作業室',
+  },
+  title: {
+    ko: '작은 웹 작업을 가볍게 끝내세요.',
+    en: 'Small web tasks, quietly solved.',
+    ja: '小さなウェブ作業を、軽やかに。',
+  },
+  description: {
+    ko: '계산, 변환, 개발 작업에 필요한 도구와 직접 만들며 배운 기록을 한곳에 모았습니다.',
+    en: 'Practical tools for calculations, conversions, and development, alongside notes from making them.',
+    ja: '計算、変換、開発に役立つ道具と、ものづくりから得た記録を一か所にまとめました。',
+  },
+  annotation: {
+    ko: '큰일 사이의 작은 일을 위한 도구.',
+    en: 'For the small jobs between bigger ones.',
+    ja: '大きな仕事の合間にある、小さな作業のために。',
+  },
+  searchTools: {
+    ko: '도구 검색',
+    en: 'Search tools',
+    ja: 'ツールを検索',
+  },
+  readNotes: {
+    ko: '최근 기록 읽기',
+    en: 'Read recent notes',
+    ja: '最近の記録を読む',
+  },
+  toolsEyebrow: {
+    ko: '빠른 시작',
+    en: 'QUICK START',
+    ja: 'クイックスタート',
+  },
+  popularTools: {
+    ko: '자주 쓰는 도구',
+    en: 'Popular tools',
+    ja: 'よく使うツール',
+  },
+  recentEyebrow: {
+    ko: '작업 노트',
+    en: 'WORK NOTES',
+    ja: '作業ノート',
+  },
+  recentNotes: {
+    ko: '최근 기록',
+    en: 'Recent notes',
+    ja: '最近の記録',
+  },
+  projectsEyebrow: {
+    ko: '잠시 쉬어가기',
+    en: 'SIDE DESK',
+    ja: '寄り道',
+  },
+  projectsTitle: {
+    ko: '프로젝트와 놀이',
+    en: 'Projects & play',
+    ja: 'プロジェクトと遊び',
+  },
+} as const;
+
+function toolPath(lang: Language, slug?: string) {
+  if (slug === 'anonymous-chat') return `/${lang}/anonymous-chat/`;
+  return `/${lang}/tools/${slug ? `${slug}/` : ''}`;
+}
+
+function Arrow() {
+  return <span aria-hidden="true">→</span>;
+}
+
 export function HeroSection() {
-  const { t, translations } = useTranslation();
-  const idx = translations.common.index;
-  const nav = translations.common.nav;
+  const { routingLang, t } = useTranslation();
 
   return (
-    <section className="py-20 md:py-32 px-6">
-      <div className="max-w-4xl mx-auto">
-        <div className="space-y-8">
-          <div className="space-y-4">
-            <p className="text-sm font-medium text-primary-600 dark:text-primary-400 tracking-wide uppercase">
-              {t(idx.welcome)}
-            </p>
-            <h1 className="text-4xl md:text-6xl font-bold leading-tight">
-              {t(idx.greeting)} <span className="gradient-text">Restato</span>
-            </h1>
-            <p className="text-xl md:text-2xl text-[var(--color-text-muted)] leading-relaxed max-w-2xl">
-              {t(idx.heroDescription)}
-            </p>
-          </div>
-
-          <div className="flex flex-wrap gap-4">
-            <a href="/blog" className="btn btn-primary">
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
-              </svg>
-              {t(idx.readBlog)}
-            </a>
-            <a href="/projects" className="btn btn-outline">
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
-              </svg>
-              {t(nav.projects)}
-            </a>
-            <a
-              href="https://github.com/restato"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="btn btn-ghost text-[var(--color-text-muted)]"
-            >
-              <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
-                <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/>
-              </svg>
-              GitHub
-            </a>
-          </div>
+    <section className="grid gap-8 border-b border-[var(--border-subtle)] py-12 md:py-16 lg:grid-cols-[minmax(0,1fr)_18rem] lg:items-end">
+      <div className="max-w-3xl">
+        <p className="fc-eyebrow mb-3">{t(editorialCopy.eyebrow)}</p>
+        <h1 className="m-0 text-4xl font-bold leading-tight text-[var(--text-primary)] md:text-5xl">
+          {t(editorialCopy.title)}
+        </h1>
+        <p className="mt-5 max-w-2xl text-lg text-[var(--text-muted)]">
+          {t(editorialCopy.description)}
+        </p>
+        <div className="mt-7 flex flex-wrap gap-3">
+          <a href={toolPath(routingLang)} className="fc-button fc-button-primary">
+            {t(editorialCopy.searchTools)}
+            <Arrow />
+          </a>
+          <a href="/blog" className="fc-button fc-button-secondary">
+            {t(editorialCopy.readNotes)}
+          </a>
         </div>
       </div>
+
+      <p className="m-0 border-l-2 border-[var(--accent)] pl-4 text-sm text-[var(--accent)]">
+        {t(editorialCopy.annotation)}
+      </p>
     </section>
   );
 }
 
-// Recent Posts Header
 export function RecentPostsHeader() {
   const { t, translations } = useTranslation();
   const idx = translations.common.index;
 
   return (
-    <div className="flex items-end justify-between mb-10">
+    <div className="mb-5 flex items-end justify-between gap-4">
       <div>
-        <p className="text-sm font-medium text-primary-600 dark:text-primary-400 mb-2">{t(idx.latestPosts)}</p>
-        <h2 className="text-3xl font-bold">{t(idx.recentPosts)}</h2>
+        <p className="fc-eyebrow mb-2">{t(editorialCopy.recentEyebrow)}</p>
+        <h2 id="recent-notes-heading" className="m-0 text-2xl font-bold leading-tight text-[var(--text-primary)]">
+          {t(editorialCopy.recentNotes)}
+        </h2>
       </div>
-      <a
-        href="/blog"
-        className="text-sm font-medium text-[var(--color-text-muted)] hover:text-primary-600 dark:hover:text-primary-400 transition-colors flex items-center gap-1"
-      >
+      <a href="/blog" className="fc-button fc-button-quiet px-2 text-sm">
         {t(idx.viewAll)}
-        <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
-        </svg>
+        <Arrow />
       </a>
     </div>
   );
 }
 
-// No Posts Message
 export function NoPostsMessage() {
   const { t, translations } = useTranslation();
   const idx = translations.common.index;
 
   return (
-    <div className="text-center py-16 px-6 rounded-2xl border border-dashed border-[var(--color-border)]">
-      <div className="w-16 h-16 mx-auto mb-4 rounded-2xl bg-primary-500/10 flex items-center justify-center">
-        <svg className="w-8 h-8 text-primary-500" fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0115.75 21H5.25A2.25 2.25 0 013 18.75V8.25A2.25 2.25 0 015.25 6H10" />
-        </svg>
-      </div>
-      <p className="text-lg font-medium mb-1">{t(idx.noPosts)}</p>
-      <p className="text-sm text-[var(--color-text-muted)]">{t(idx.comingSoon)}</p>
+    <div className="fc-empty-state">
+      <h2 className="text-xl">{t(idx.noPosts)}</h2>
+      <p>{t(idx.comingSoon)}</p>
     </div>
   );
 }
 
-// Popular Tools Section
 export function PopularToolsSection() {
-  const { t, translations } = useTranslation();
+  const { routingLang, t, translations } = useTranslation();
   const idx = translations.common.index;
-
   const tools = [
-    { href: '/tools/json', icon: '{ }', name: idx.jsonFormatter },
-    { href: '/tools/qr-code', icon: '📱', name: idx.qrCode },
-    { href: '/tools/color', icon: '🌈', name: idx.colorConverter },
-    { href: '/tools/image-resizer', icon: '📐', name: idx.imageResizer },
-    { href: '/tools/base64', icon: '🔄', name: idx.base64 },
-    { href: '/tools/utm', icon: '📊', name: idx.utmBuilder },
-    { href: '/tools/regex', icon: '🔍', name: idx.regexTester },
-    { href: '/tools/password', icon: '🔐', name: idx.passwordGenerator },
+    { slug: 'json', icon: '{ }', name: idx.jsonFormatter },
+    { slug: 'qr-code', icon: 'QR', name: idx.qrCode },
+    { slug: 'color', icon: 'HEX', name: idx.colorConverter },
+    { slug: 'image-resizer', icon: 'PX', name: idx.imageResizer },
+    { slug: 'base64', icon: '64', name: idx.base64 },
+    {
+      slug: 'anonymous-chat',
+      icon: 'P2P',
+      name: { ko: '익명 채팅', en: 'Anonymous chat', ja: '匿名チャット' },
+    },
   ];
 
   return (
-    <section className="py-16 px-6 border-t border-[var(--color-border)]">
-      <div className="max-w-4xl mx-auto">
-        <div className="flex items-end justify-between mb-8">
-          <div>
-            <p className="text-sm font-medium text-primary-600 dark:text-primary-400 mb-2">{t(idx.webTools)}</p>
-            <h2 className="text-3xl font-bold">{t(idx.popularTools)}</h2>
-          </div>
-          <a
-            href="/tools"
-            className="text-sm font-medium text-[var(--color-text-muted)] hover:text-primary-600 dark:hover:text-primary-400 transition-colors flex items-center gap-1"
-          >
-            {t(idx.viewAll)}
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
-            </svg>
-          </a>
+    <section className="border-b border-[var(--border-subtle)] py-10" aria-labelledby="popular-tools-heading">
+      <div className="mb-5 flex items-end justify-between gap-4">
+        <div>
+          <p className="fc-eyebrow mb-2">{t(editorialCopy.toolsEyebrow)}</p>
+          <h2 id="popular-tools-heading" className="m-0 text-2xl font-bold leading-tight text-[var(--text-primary)]">
+            {t(editorialCopy.popularTools)}
+          </h2>
         </div>
-
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          {tools.map((tool) => (
-            <a key={tool.href} href={tool.href} className="group p-4 rounded-xl bg-[var(--color-card)] border border-[var(--color-border)] hover:border-primary-500 hover:shadow-lg transition-all text-center">
-              <span className="text-3xl mb-2 block">{tool.icon}</span>
-              <span className="font-medium group-hover:text-primary-500 transition-colors">{t(tool.name)}</span>
-            </a>
-          ))}
-        </div>
-
-        <div className="mt-6 text-center">
-          <a href="/tools" className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-primary-500 text-white font-medium hover:bg-primary-600 transition-colors">
-            26{t(idx.seeAllTools)}
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
-            </svg>
-          </a>
-        </div>
-      </div>
-    </section>
-  );
-}
-
-// Game Center Banner
-export function GameCenterBanner() {
-  const { t, translations } = useTranslation();
-  const idx = translations.common.index;
-
-  return (
-    <section className="py-16 px-6 bg-gradient-to-r from-purple-500/10 via-pink-500/10 to-orange-500/10 border-t border-[var(--color-border)]">
-      <div className="max-w-4xl mx-auto">
-        <a href="/projects/games" className="block group">
-          <div className="flex flex-col md:flex-row items-center gap-8 p-8 bg-[var(--color-card)] rounded-2xl border border-[var(--color-border)] hover:border-primary-500/50 transition-all hover:shadow-xl">
-            <div className="flex gap-2 text-5xl">
-              <span className="animate-bounce" style={{ animationDelay: '0s' }}>🎮</span>
-              <span className="animate-bounce" style={{ animationDelay: '0.1s' }}>🎰</span>
-              <span className="animate-bounce" style={{ animationDelay: '0.2s' }}>🎡</span>
-            </div>
-            <div className="flex-1 text-center md:text-left">
-              <h2 className="text-2xl font-bold mb-2 group-hover:text-primary-500 transition-colors">
-                {t(idx.gameCenterOpen)}
-              </h2>
-              <p className="text-[var(--color-text-muted)] mb-4">
-                {t(idx.gameCenterDesc)}
-              </p>
-              <span className="inline-flex items-center gap-2 text-primary-500 font-medium">
-                {t(idx.playNow)}
-                <svg className="w-4 h-4 group-hover:translate-x-1 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7" />
-                </svg>
-              </span>
-            </div>
-          </div>
+        <a href={toolPath(routingLang)} className="fc-button fc-button-quiet px-2 text-sm">
+          {t(idx.viewAll)}
+          <Arrow />
         </a>
       </div>
+
+      <div className="fc-surface overflow-hidden">
+        <ul className="m-0 grid list-none p-0 sm:grid-cols-2">
+          {tools.map((tool, index) => (
+            <li
+              key={tool.slug}
+              className={[
+                'border-[var(--border-subtle)]',
+                index > 0 ? 'border-t' : '',
+                index === 1 ? 'sm:border-t-0' : '',
+                index % 2 === 1 ? 'sm:border-l' : '',
+              ].join(' ')}
+            >
+              <a
+                href={toolPath(routingLang, tool.slug)}
+                className="flex min-h-14 items-center gap-3 px-4 py-3 text-[var(--text-primary)] transition-colors hover:bg-[var(--surface-soft)]"
+              >
+                <span className="w-9 shrink-0 text-xs font-bold text-[var(--accent)]" aria-hidden="true">
+                  {tool.icon}
+                </span>
+                <span className="font-bold">{t(tool.name)}</span>
+                <span className="ml-auto text-[var(--text-muted)]"><Arrow /></span>
+              </a>
+            </li>
+          ))}
+        </ul>
+      </div>
     </section>
   );
 }
 
-// Projects Section
 export function ProjectsSection() {
   const { t, translations } = useTranslation();
   const idx = translations.common.index;
-  const nav = translations.common.nav;
+  const projects = [
+    {
+      href: '/projects/games',
+      label: idx.gameCenter,
+      description: idx.sixFreeGames,
+      marker: 'PLAY',
+    },
+    {
+      href: '/projects/roulette',
+      label: idx.roulette,
+      description: idx.rouletteDesc,
+      marker: 'SPIN',
+    },
+  ];
 
   return (
-    <section className="py-20 px-6 bg-[var(--color-card)] border-t border-[var(--color-border)]">
-      <div className="max-w-4xl mx-auto">
-        <div className="flex items-end justify-between mb-10">
-          <div>
-            <p className="text-sm font-medium text-primary-600 dark:text-primary-400 mb-2">{t(idx.sideProjects)}</p>
-            <h2 className="text-3xl font-bold">{t(nav.projects)}</h2>
-          </div>
-          <a
-            href="/projects"
-            className="text-sm font-medium text-[var(--color-text-muted)] hover:text-primary-600 dark:hover:text-primary-400 transition-colors flex items-center gap-1"
-          >
-            {t(idx.viewAll)}
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
-            </svg>
-          </a>
+    <section aria-labelledby="projects-heading">
+      <div className="mb-5 flex items-end justify-between gap-4">
+        <div>
+          <p className="fc-eyebrow mb-2">{t(editorialCopy.projectsEyebrow)}</p>
+          <h2 id="projects-heading" className="m-0 text-2xl font-bold leading-tight text-[var(--text-primary)]">
+            {t(editorialCopy.projectsTitle)}
+          </h2>
         </div>
+        <a href="/projects" className="fc-button fc-button-quiet px-2 text-sm">
+          {t(idx.viewAll)}
+          <Arrow />
+        </a>
+      </div>
 
-        <div className="grid md:grid-cols-3 gap-6">
-          <a href="/projects/games" className="card group bg-gradient-to-br from-purple-500/5 to-pink-500/5 border-primary-500/20">
-            <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center text-2xl mb-4 shadow-lg">
-              🎮
-            </div>
-            <h3 className="text-lg font-bold mb-2 group-hover:text-primary-600 dark:group-hover:text-primary-400 transition-colors">
-              {t(idx.gameCenter)}
-            </h3>
-            <p className="text-sm text-[var(--color-text-muted)]">
-              {t(idx.sixFreeGames)}
-            </p>
-            <span className="inline-block mt-2 text-xs px-2 py-1 bg-primary-500/20 text-primary-500 rounded-full">NEW</span>
-          </a>
-
-          <a href="/projects/roulette" className="card group">
-            <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-rose-500 to-orange-500 flex items-center justify-center text-2xl mb-4 shadow-lg">
-              🎡
-            </div>
-            <h3 className="text-lg font-bold mb-2 group-hover:text-primary-600 dark:group-hover:text-primary-400 transition-colors">
-              {t(idx.roulette)}
-            </h3>
-            <p className="text-sm text-[var(--color-text-muted)]">
-              {t(idx.rouletteDesc)}
-            </p>
-          </a>
-
-          <a href="/projects" className="card group border-dashed flex flex-col items-center justify-center text-center min-h-[180px]">
-            <div className="w-12 h-12 rounded-xl bg-[var(--color-card-hover)] flex items-center justify-center mb-4 group-hover:bg-primary-500/10 transition-colors">
-              <svg className="w-6 h-6 text-[var(--color-text-muted)] group-hover:text-primary-500 transition-colors" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
-              </svg>
-            </div>
-            <h3 className="text-lg font-bold group-hover:text-primary-600 dark:group-hover:text-primary-400 transition-colors">
-              {t(idx.seeMore)}
-            </h3>
-          </a>
-        </div>
+      <div className="fc-surface overflow-hidden">
+        <ul className="m-0 list-none divide-y divide-[var(--border-subtle)] p-0">
+          {projects.map(project => (
+            <li key={project.href}>
+              <a
+                href={project.href}
+                className="flex items-center gap-4 px-4 py-4 transition-colors hover:bg-[var(--surface-soft)]"
+              >
+                <span className="w-10 shrink-0 text-xs font-bold text-[var(--accent)]" aria-hidden="true">
+                  {project.marker}
+                </span>
+                <span>
+                  <strong className="block text-[var(--text-primary)]">{t(project.label)}</strong>
+                  <span className="text-sm text-[var(--text-muted)]">{t(project.description)}</span>
+                </span>
+                <span className="ml-auto text-[var(--text-muted)]"><Arrow /></span>
+              </a>
+            </li>
+          ))}
+        </ul>
       </div>
     </section>
   );

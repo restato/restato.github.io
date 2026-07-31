@@ -64,7 +64,7 @@ describe('Base64Tool', () => {
 
     const output = screen.getAllByRole('textbox')[1];
     // Verify it produces valid Base64
-    expect(output.getAttribute('value')).toMatch(/^[A-Za-z0-9+/=]+$/);
+    expect((output as HTMLTextAreaElement).value).toMatch(/^[A-Za-z0-9+/=]+$/);
   });
 
   it('swaps input and output when swap button is clicked', async () => {
@@ -74,13 +74,10 @@ describe('Base64Tool', () => {
     const input = screen.getByPlaceholderText('텍스트를 입력하세요');
     await user.type(input, 'Test');
 
-    const swapButton = screen.getByRole('button', { name: '' }); // SVG button
-    const buttons = screen.getAllByRole('button');
-    const swapBtn = buttons.find(btn => btn.querySelector('svg path[d*="M7 16V4"]'));
+    const swapButton = screen.getByRole('button', { name: '입력과 출력 바꾸기' });
+    await user.click(swapButton);
 
-    if (swapBtn) {
-      await user.click(swapBtn);
-    }
+    expect(input).toHaveValue('VGVzdA==');
   });
 
   it('copies output to clipboard', async () => {
@@ -110,5 +107,15 @@ describe('Base64Tool', () => {
     await user.click(screen.getByText('디코딩'));
 
     expect(input).toHaveValue('');
+  });
+
+  it('keeps an empty value blank and encodes a long boundary-sized input', () => {
+    render(<Base64Tool />);
+    const [input, output] = screen.getAllByRole('textbox');
+    expect(input).toHaveValue('');
+    expect(output).toHaveValue('');
+
+    fireEvent.change(input, { target: { value: 'a'.repeat(4096) } });
+    expect(output).toHaveValue('YWFh'.repeat(1365) + 'YQ==');
   });
 });

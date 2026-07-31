@@ -1,6 +1,8 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useTranslation } from '../../i18n/useTranslation';
-import type { Language } from '../../i18n';
+import { ToolActions } from './ui/ToolActions';
+import { ToolField } from './ui/ToolField';
+import { ToolPanel } from './ui/ToolPanel';
 
 // Color conversion utilities
 function hexToRgb(hex: string): { r: number; g: number; b: number } | null {
@@ -86,8 +88,8 @@ function hslToRgb(h: number, s: number, l: number): { r: number; g: number; b: n
   };
 }
 
-export default function ColorConverter({ lang: initialLang }: { lang?: Language } = {}) {
-  const { t, translations } = useTranslation(initialLang);
+export default function ColorConverter() {
+  const { t, translations } = useTranslation();
   const tt = translations.tools.color;
   const tc = translations.tools.common;
 
@@ -146,13 +148,14 @@ export default function ColorConverter({ lang: initialLang }: { lang?: Language 
   };
 
   return (
-    <div className="flex flex-col gap-6">
+    <ToolPanel className="gap-6">
       {/* Color Preview */}
       <div className="flex flex-col items-center gap-4">
         <div
           className="w-32 h-32 rounded-2xl shadow-lg border-4 border-white dark:border-gray-700"
           style={{ backgroundColor: hex }}
         />
+        <ToolField id="color-picker" label={t({ ko: '색상 선택', en: 'Choose color', ja: '色を選択' })}>
         <input
           type="color"
           value={hex}
@@ -162,31 +165,23 @@ export default function ColorConverter({ lang: initialLang }: { lang?: Language 
           }}
           className="w-16 h-10 cursor-pointer rounded border-0"
         />
+        </ToolField>
       </div>
 
       {/* HEX Input */}
-      <div className="space-y-2">
-        <label className="block text-sm font-medium text-[var(--color-text)]">
-          {t(tt.hex)}
-        </label>
-        <div className="flex gap-2">
+      <div className="grid gap-2 sm:grid-cols-[1fr_auto] sm:items-end">
+        <ToolField id="color-hex" label={t(tt.hex)}>
           <input
             type="text"
             value={hex}
             onChange={(e) => handleHexChange(e.target.value)}
             placeholder="#000000"
-            className="flex-1 px-4 py-2 rounded-lg border border-[var(--color-border)]
-              bg-[var(--color-card)] text-[var(--color-text)] font-mono
-              focus:outline-none focus:ring-2 focus:ring-primary-500"
+            className="font-mono"
           />
-          <button
-            onClick={() => copyToClipboard(hex, 'hex')}
-            className="px-4 py-2 bg-[var(--color-card)] hover:bg-[var(--color-card-hover)]
-              border border-[var(--color-border)] rounded-lg transition-colors text-sm"
-          >
+        </ToolField>
+          <ToolActions primary={<button onClick={() => copyToClipboard(hex, 'hex')}>
             {copied === 'hex' ? t(tc.copied) : t(tc.copy)}
-          </button>
-        </div>
+          </button>} />
       </div>
 
       {/* RGB Input */}
@@ -197,8 +192,7 @@ export default function ColorConverter({ lang: initialLang }: { lang?: Language 
         <div className="flex gap-2 items-center">
           <div className="flex-1 grid grid-cols-3 gap-2">
             {(['r', 'g', 'b'] as const).map((channel) => (
-              <div key={channel} className="space-y-1">
-                <label className="text-xs text-[var(--color-text-muted)] uppercase">{channel}</label>
+              <ToolField key={channel} id={`color-rgb-${channel}`} label={channel.toUpperCase()}>
                 <input
                   type="number"
                   min="0"
@@ -209,16 +203,16 @@ export default function ColorConverter({ lang: initialLang }: { lang?: Language 
                     bg-[var(--color-card)] text-[var(--color-text)] text-center
                     focus:outline-none focus:ring-2 focus:ring-primary-500"
                 />
-              </div>
+              </ToolField>
             ))}
           </div>
-          <button
+          <ToolActions primary={<button
             onClick={() => copyToClipboard(`rgb(${rgb.r}, ${rgb.g}, ${rgb.b})`, 'rgb')}
             className="px-4 py-2 bg-[var(--color-card)] hover:bg-[var(--color-card-hover)]
               border border-[var(--color-border)] rounded-lg transition-colors text-sm self-end"
           >
             {copied === 'rgb' ? t(tc.copied) : t(tc.copy)}
-          </button>
+          </button>} />
         </div>
       </div>
 
@@ -234,8 +228,7 @@ export default function ColorConverter({ lang: initialLang }: { lang?: Language 
               { key: 's' as const, label: 'S', max: 100 },
               { key: 'l' as const, label: 'L', max: 100 },
             ].map(({ key, label, max }) => (
-              <div key={key} className="space-y-1">
-                <label className="text-xs text-[var(--color-text-muted)]">{label}</label>
+              <ToolField key={key} id={`color-hsl-${key}`} label={label}>
                 <input
                   type="number"
                   min="0"
@@ -246,23 +239,22 @@ export default function ColorConverter({ lang: initialLang }: { lang?: Language 
                     bg-[var(--color-card)] text-[var(--color-text)] text-center
                     focus:outline-none focus:ring-2 focus:ring-primary-500"
                 />
-              </div>
+              </ToolField>
             ))}
           </div>
-          <button
+          <ToolActions primary={<button
             onClick={() => copyToClipboard(`hsl(${hsl.h}, ${hsl.s}%, ${hsl.l}%)`, 'hsl')}
             className="px-4 py-2 bg-[var(--color-card)] hover:bg-[var(--color-card-hover)]
               border border-[var(--color-border)] rounded-lg transition-colors text-sm self-end"
           >
             {copied === 'hsl' ? t(tc.copied) : t(tc.copy)}
-          </button>
+          </button>} />
         </div>
       </div>
 
       {/* Sliders */}
       <div className="space-y-4">
-        <div className="space-y-2">
-          <label className="text-sm text-[var(--color-text-muted)]">Hue</label>
+        <ToolField id="color-hue" label="Hue">
           <input
             type="range"
             min="0"
@@ -274,9 +266,8 @@ export default function ColorConverter({ lang: initialLang }: { lang?: Language 
               background: 'linear-gradient(to right, #ff0000, #ffff00, #00ff00, #00ffff, #0000ff, #ff00ff, #ff0000)',
             }}
           />
-        </div>
-        <div className="space-y-2">
-          <label className="text-sm text-[var(--color-text-muted)]">Saturation</label>
+        </ToolField>
+        <ToolField id="color-saturation" label="Saturation">
           <input
             type="range"
             min="0"
@@ -285,9 +276,8 @@ export default function ColorConverter({ lang: initialLang }: { lang?: Language 
             onChange={(e) => handleHslChange('s', Number(e.target.value))}
             className="w-full accent-primary-500"
           />
-        </div>
-        <div className="space-y-2">
-          <label className="text-sm text-[var(--color-text-muted)]">Lightness</label>
+        </ToolField>
+        <ToolField id="color-lightness" label="Lightness">
           <input
             type="range"
             min="0"
@@ -296,8 +286,8 @@ export default function ColorConverter({ lang: initialLang }: { lang?: Language 
             onChange={(e) => handleHslChange('l', Number(e.target.value))}
             className="w-full accent-primary-500"
           />
-        </div>
+        </ToolField>
       </div>
-    </div>
+    </ToolPanel>
   );
 }

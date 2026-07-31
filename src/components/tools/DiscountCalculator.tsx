@@ -1,6 +1,14 @@
 import { useState, useEffect } from 'react';
+import { useTranslation } from '../../i18n/useTranslation';
+import { ToolActions } from './ui/ToolActions';
+import { ToolField } from './ui/ToolField';
+import { ToolPanel } from './ui/ToolPanel';
+import { ToolResult } from './ui/ToolResult';
 
 export default function DiscountCalculator() {
+  const { t, lang } = useTranslation();
+  const locale = lang === 'ko' ? 'ko-KR' : lang === 'ja' ? 'ja-JP' : 'en-US';
+  const currency = t({ ko: '원', en: 'currency units', ja: '通貨単位' });
   const [originalPrice, setOriginalPrice] = useState('');
   const [discountPercent, setDiscountPercent] = useState('');
   const [finalPrice, setFinalPrice] = useState('');
@@ -13,66 +21,58 @@ export default function DiscountCalculator() {
     if (!isNaN(price) && !isNaN(discount)) {
       const saved = price * (discount / 100);
       const final = price - saved;
-      setSavedAmount(saved.toLocaleString('ko-KR', { maximumFractionDigits: 0 }));
-      setFinalPrice(final.toLocaleString('ko-KR', { maximumFractionDigits: 0 }));
+      setSavedAmount(saved.toLocaleString(locale, { maximumFractionDigits: 0 }));
+      setFinalPrice(final.toLocaleString(locale, { maximumFractionDigits: 0 }));
     } else {
       setSavedAmount('');
       setFinalPrice('');
     }
-  }, [originalPrice, discountPercent]);
+  }, [originalPrice, discountPercent, locale]);
 
   const quickDiscounts = [5, 10, 15, 20, 25, 30, 40, 50, 60, 70, 80, 90];
 
   return (
-    <div className="flex flex-col gap-6">
+    <ToolPanel className="gap-6">
       {/* Original Price */}
-      <div className="space-y-2">
-        <label className="block text-sm font-medium text-[var(--color-text)]">
-          원래 가격
-        </label>
-        <div className="relative">
+      <div className="grid gap-1">
+        <ToolField id="discount-original" label={t({ ko: '원래 가격', en: 'Original price', ja: '元の価格' })}>
           <input
             type="number"
             value={originalPrice}
             onChange={(e) => setOriginalPrice(e.target.value)}
             placeholder="10000"
-            className="w-full px-4 py-3 pr-12 rounded-lg border border-[var(--color-border)]
-              bg-[var(--color-card)] text-[var(--color-text)] text-lg
-              focus:outline-none focus:ring-2 focus:ring-primary-500"
+            className="text-lg"
           />
-          <span className="absolute right-4 top-1/2 -translate-y-1/2 text-[var(--color-text-muted)]">
-            원
-          </span>
-        </div>
+        </ToolField>
+        <span className="text-sm text-[var(--color-text-muted)]">{currency}</span>
       </div>
 
       {/* Discount Percent */}
       <div className="space-y-2">
-        <label className="block text-sm font-medium text-[var(--color-text)]">
-          할인율
-        </label>
         <div className="relative">
-          <input
-            type="number"
-            value={discountPercent}
-            onChange={(e) => setDiscountPercent(e.target.value)}
-            placeholder="20"
-            min="0"
-            max="100"
-            className="w-full px-4 py-3 pr-12 rounded-lg border border-[var(--color-border)]
-              bg-[var(--color-card)] text-[var(--color-text)] text-lg
-              focus:outline-none focus:ring-2 focus:ring-primary-500"
-          />
+          <ToolField id="discount-rate" label={t({ ko: '할인율', en: 'Discount rate', ja: '割引率' })}>
+            <input
+              type="number"
+              value={discountPercent}
+              onChange={(e) => setDiscountPercent(e.target.value)}
+              placeholder="20"
+              min="0"
+              max="100"
+              className="pr-12 text-lg"
+            />
+          </ToolField>
           <span className="absolute right-4 top-1/2 -translate-y-1/2 text-[var(--color-text-muted)]">
             %
           </span>
         </div>
 
         {/* Quick Discount Buttons */}
-        <div className="flex flex-wrap gap-2 mt-2">
-          {quickDiscounts.map((d) => (
+        <ToolActions
+          selection
+          primary={quickDiscounts.slice(0, 1).map((d) => (
             <button
               key={d}
+              aria-pressed={discountPercent === String(d)}
               onClick={() => setDiscountPercent(String(d))}
               className={`px-3 py-1 rounded-lg text-sm transition-colors
                 ${discountPercent === String(d)
@@ -83,26 +83,30 @@ export default function DiscountCalculator() {
               {d}%
             </button>
           ))}
-        </div>
+          secondary={quickDiscounts.slice(1).map((d) => (
+            <button key={d} aria-pressed={discountPercent === String(d)} onClick={() => setDiscountPercent(String(d))}>{d}%</button>
+          ))}
+        />
       </div>
 
       {/* Results */}
       {finalPrice && (
-        <div className="space-y-4">
+        <ToolResult status="success">
+          <div className="space-y-4">
           <div className="grid grid-cols-2 gap-4">
             {/* Saved Amount */}
             <div className="p-4 rounded-lg bg-red-500/10 border border-red-500/20">
-              <p className="text-sm text-[var(--color-text-muted)] mb-1">할인 금액</p>
+              <p className="text-sm text-[var(--color-text-muted)] mb-1">{t({ ko: '할인 금액', en: 'Amount saved', ja: '割引額' })}</p>
               <p className="text-2xl font-bold text-red-500">
-                -{savedAmount}원
+                -{savedAmount} {currency}
               </p>
             </div>
 
             {/* Final Price */}
             <div className="p-4 rounded-lg bg-green-500/10 border border-green-500/20">
-              <p className="text-sm text-[var(--color-text-muted)] mb-1">최종 가격</p>
+              <p className="text-sm text-[var(--color-text-muted)] mb-1">{t({ ko: '최종 가격', en: 'Final price', ja: '最終価格' })}</p>
               <p className="text-2xl font-bold text-green-500">
-                {finalPrice}원
+                {finalPrice} {currency}
               </p>
             </div>
           </div>
@@ -110,48 +114,48 @@ export default function DiscountCalculator() {
           {/* Visual Comparison */}
           <div className="p-4 rounded-lg bg-[var(--color-card)] border border-[var(--color-border)]">
             <div className="flex items-center justify-between mb-2">
-              <span className="text-sm text-[var(--color-text-muted)]">원래 가격</span>
+              <span className="text-sm text-[var(--color-text-muted)]">{t({ ko: '원래 가격', en: 'Original price', ja: '元の価格' })}</span>
               <span className="text-[var(--color-text)] line-through">
-                {parseFloat(originalPrice).toLocaleString('ko-KR')}원
+                {parseFloat(originalPrice).toLocaleString(locale)} {currency}
               </span>
             </div>
             <div className="h-2 bg-[var(--color-border)] rounded-full overflow-hidden">
               <div
-                className="h-full bg-gradient-to-r from-green-500 to-primary-500 transition-all duration-300"
+                className="h-full bg-primary-500 transition-all duration-300"
                 style={{ width: `${100 - parseFloat(discountPercent)}%` }}
               />
             </div>
             <div className="flex items-center justify-between mt-2">
               <span className="text-sm text-[var(--color-text-muted)]">
-                {discountPercent}% 할인 적용
+                {t({ ko: `${discountPercent}% 할인 적용`, en: `${discountPercent}% discount applied`, ja: `${discountPercent}% 割引を適用` })}
               </span>
-              <span className="text-green-500 font-bold">{finalPrice}원</span>
+              <span className="text-green-500 font-bold">{finalPrice} {currency}</span>
             </div>
           </div>
-        </div>
+          </div>
+        </ToolResult>
       )}
 
       {/* Common Discount Scenarios */}
       <div className="p-4 rounded-lg bg-[var(--color-card)] border border-[var(--color-border)]">
-        <h3 className="font-medium text-[var(--color-text)] mb-3">💡 자주 쓰는 할인</h3>
-        <div className="grid grid-cols-2 gap-2 text-sm">
-          {[
-            { label: '1+1 행사', discount: 50 },
-            { label: '반값 할인', discount: 50 },
-            { label: '블프 세일', discount: 70 },
-            { label: '신규가입 혜택', discount: 10 },
+        <h3 className="font-medium text-[var(--color-text)] mb-3">💡 {t({ ko: '자주 쓰는 할인', en: 'Common discounts', ja: 'よく使う割引' })}</h3>
+        <ToolActions selection className="grid grid-cols-2 gap-2 text-sm" primary={[
+            { label: t({ ko: '1+1 행사', en: 'Buy one, get one', ja: '1つ買うと1つ無料' }), discount: 50 },
+            { label: t({ ko: '반값 할인', en: 'Half price', ja: '半額' }), discount: 50 },
+            { label: t({ ko: '블프 세일', en: 'Black Friday sale', ja: 'ブラックフライデー' }), discount: 70 },
+            { label: t({ ko: '신규가입 혜택', en: 'New customer offer', ja: '新規登録特典' }), discount: 10 },
           ].map((item) => (
             <button
               key={item.label}
+              aria-pressed={discountPercent === String(item.discount)}
               onClick={() => setDiscountPercent(String(item.discount))}
               className="px-3 py-2 rounded-lg text-left hover:bg-[var(--color-card-hover)]
                 text-[var(--color-text-muted)] transition-colors"
             >
               {item.label} ({item.discount}%)
             </button>
-          ))}
-        </div>
+          ))} />
       </div>
-    </div>
+    </ToolPanel>
   );
 }

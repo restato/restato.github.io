@@ -11,8 +11,6 @@ vi.mock('react-image-crop', () => ({
 
 const mockCreateObjectURL = vi.fn(() => 'blob:mock-url');
 const mockRevokeObjectURL = vi.fn();
-global.URL.createObjectURL = mockCreateObjectURL;
-global.URL.revokeObjectURL = mockRevokeObjectURL;
 
 const mockDrawImage = vi.fn();
 const mockClearRect = vi.fn();
@@ -69,6 +67,10 @@ const uploadImage = async () => {
 describe('ImageResizer', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    vi.stubGlobal('URL', {
+      createObjectURL: mockCreateObjectURL,
+      revokeObjectURL: mockRevokeObjectURL,
+    });
     Object.defineProperty(global, 'Image', { configurable: true, writable: true, value: MockImage });
     Object.defineProperty(HTMLCanvasElement.prototype, 'getContext', {
       configurable: true,
@@ -89,6 +91,7 @@ describe('ImageResizer', () => {
 
   afterEach(() => {
     Object.defineProperty(global, 'Image', { configurable: true, writable: true, value: OriginalImage });
+    vi.unstubAllGlobals();
   });
 
   it('renders drop zone initially', () => {
@@ -104,12 +107,40 @@ describe('ImageResizer', () => {
     expect(input).toHaveClass('hidden');
   });
 
+  it('keeps the drop zone for empty and unsupported selections', () => {
+    render(<ImageResizer />);
+    const input = document.querySelector('input[type="file"]') as HTMLInputElement;
+    fireEvent.change(input, { target: { files: [] } });
+    fireEvent.change(input, { target: { files: [new File(['text'], 'unsupported.txt', { type: 'text/plain' })] } });
+    expect(screen.getByText('이미지를 드래그하거나 클릭하여 업로드')).toBeInTheDocument();
+  });
+
+  it('loads a non-Latin local filename into the resizer', async () => {
+    render(<ImageResizer />);
+    const input = document.querySelector('input[type="file"]') as HTMLInputElement;
+    fireEvent.change(input, { target: { files: [new File(['image-data'], '이미지.png', { type: 'image/png' })] } });
+    await waitFor(() => expect(screen.getByText('원본')).toBeInTheDocument());
+  });
+
   it('shows crop UI after upload and removes manual resize button', async () => {
     render(<ImageResizer />);
     await uploadImage();
 
     expect(screen.getByTestId('react-crop')).toBeInTheDocument();
     expect(screen.queryByRole('button', { name: '리사이즈' })).not.toBeInTheDocument();
+  });
+
+  it('exposes post-upload settings controls by their visible labels', async () => {
+    render(<ImageResizer />);
+    await uploadImage();
+
+    expect(screen.getByRole('spinbutton', { name: '너비 (px)' })).toBeInTheDocument();
+    expect(screen.getByRole('spinbutton', { name: '높이 (px)' })).toBeInTheDocument();
+    expect(screen.getByRole('slider', { name: '품질:' })).toBeInTheDocument();
+    expect(screen.getByRole('combobox', { name: '포맷:' })).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole('button', { name: '프리셋' }));
+    expect(screen.getByRole('combobox', { name: '프리셋 선택' })).toBeInTheDocument();
   });
 
   it('switches crop mode between free and output ratio', async () => {
@@ -162,10 +193,34 @@ describe('ImageResizer', () => {
     });
   });
 
-  it('shows download button when preview is ready', async () => {
+  it('downloads the generated preview when ready', async () => {
+    const localFetch = vi.fn();
+    vi.stubGlobal('fetch', localFetch);
+    const xhrSend = vi.spyOn(XMLHttpRequest.prototype, 'send');
     render(<ImageResizer />);
     await uploadImage();
 
-    expect(screen.getByRole('button', { name: '다운로드' })).toBeInTheDocument();
+    const click = vi.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(() => undefined);
+    const downloadButton = screen.getByRole('button', { name: '다운로드' });
+
+    expect(downloadButton).toHaveClass('bg-green-700', 'hover:bg-green-800');
+    fireEvent.click(downloadButton);
+
+    expect(click).toHaveBeenCalledTimes(1);
+    expect(mockToDataURL).toHaveBeenCalled();
+    expect(localFetch).not.toHaveBeenCalled();
+    expect(xhrSend).not.toHaveBeenCalled();
+  });
+
+  it('orders Download before Reset in the shared mobile action group', async () => {
+    render(<ImageResizer />);
+    await uploadImage();
+
+    const actions = screen.getByRole('button', { name: '다운로드' }).closest('.fc-tool-actions');
+    expect(actions).not.toBeNull();
+    expect(Array.from(actions!.querySelectorAll('button')).map(button => button.textContent?.trim())).toEqual([
+      '다운로드',
+      '초기화',
+    ]);
   });
 });

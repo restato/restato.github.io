@@ -217,9 +217,9 @@ export default function SnakeGame() {
   };
 
   return (
-    <div className="flex flex-col items-center w-full max-w-lg lg:max-w-2xl mx-auto px-4">
+    <div className="fc-game mx-auto flex w-full max-w-lg flex-col items-center px-0 lg:max-w-2xl">
       {/* Score */}
-      <div className="flex justify-between items-center w-full mb-4 p-4 bg-[var(--color-card)] rounded-xl border border-[var(--color-border)]">
+      <div className="fc-surface mb-4 flex w-full items-center justify-between p-4">
         <div className="text-center">
           <div className="text-2xl font-bold text-green-500">{score}</div>
           <div className="text-sm text-[var(--color-text-muted)]">
@@ -235,25 +235,26 @@ export default function SnakeGame() {
       </div>
 
       {/* Game Canvas */}
-      <div className="relative">
+      <div className="relative w-full max-w-[400px]">
         <canvas
           ref={canvasRef}
           width={GRID_SIZE * CELL_SIZE}
           height={GRID_SIZE * CELL_SIZE}
-          className="rounded-xl border-2 border-[var(--color-border)]"
+          className="aspect-square w-full rounded-xl border-2 border-[var(--color-border)]"
         />
 
         {/* Overlay */}
         {!isPlaying && (
           <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/70 rounded-xl">
             {gameOver && (
-              <div className="text-3xl mb-4">
+              <div className="text-3xl mb-4" role="status" aria-live="assertive">
                 {t({ ko: '게임 오버!', en: 'Game Over!', ja: 'ゲームオーバー!' })}
               </div>
             )}
             <button
+              type="button"
               onClick={startGame}
-              className="px-8 py-4 bg-green-500 text-white text-xl font-bold rounded-full hover:bg-green-600 transition-colors"
+              className="fc-button fc-button-primary px-8 text-xl"
             >
               {gameOver
                 ? t({ ko: '다시 하기', en: 'Play Again', ja: 'もう一度' })
@@ -267,27 +268,35 @@ export default function SnakeGame() {
       <div className="mt-6 grid grid-cols-3 gap-2 md:hidden">
         <div />
         <button
+          type="button"
           onClick={() => handleMobileControl('UP')}
-          className="p-4 bg-[var(--color-card)] rounded-xl border border-[var(--color-border)] active:bg-[var(--color-card-hover)]"
+          aria-label={t({ ko: '위', en: 'Up', ja: '上' })}
+          className="fc-button fc-button-secondary p-4"
         >
           ⬆️
         </button>
         <div />
         <button
+          type="button"
           onClick={() => handleMobileControl('LEFT')}
-          className="p-4 bg-[var(--color-card)] rounded-xl border border-[var(--color-border)] active:bg-[var(--color-card-hover)]"
+          aria-label={t({ ko: '왼쪽', en: 'Left', ja: '左' })}
+          className="fc-button fc-button-secondary p-4"
         >
           ⬅️
         </button>
         <button
+          type="button"
           onClick={() => handleMobileControl('DOWN')}
-          className="p-4 bg-[var(--color-card)] rounded-xl border border-[var(--color-border)] active:bg-[var(--color-card-hover)]"
+          aria-label={t({ ko: '아래', en: 'Down', ja: '下' })}
+          className="fc-button fc-button-secondary p-4"
         >
           ⬇️
         </button>
         <button
+          type="button"
           onClick={() => handleMobileControl('RIGHT')}
-          className="p-4 bg-[var(--color-card)] rounded-xl border border-[var(--color-border)] active:bg-[var(--color-card-hover)]"
+          aria-label={t({ ko: '오른쪽', en: 'Right', ja: '右' })}
+          className="fc-button fc-button-secondary p-4"
         >
           ➡️
         </button>

@@ -1,0 +1,122 @@
+---
+import MainLayout from '../../layouts/MainLayout.astro';
+import { getPublishedTools } from '../../data/tools';
+import { supportedLanguages } from '../../data/tools/locales';
+import type { Language, ToolDefinition } from '../../data/tools/types';
+import { getToolFallbackNotice, landingContent } from '../../i18n/landing';
+import { getAlternateUrls } from '../../i18n/urlUtils';
+import AdSlot from '../../components/ads/AdSlot.astro';
+
+export function getStaticPaths() {
+  return supportedLanguages.map(lang => ({ params: { lang } }));
+}
+
+const { lang } = Astro.params as { lang: Language };
+const copy = landingContent[lang];
+const alternateUrls = getAlternateUrls(`/${lang}/`, 'https://restato.github.io');
+const tools = getPublishedTools();
+
+const clusterNames: Record<Language, Record<string, string>> = {
+  ko: { calculators: '계산', converters: '변환', design: '디자인', developer: '개발', generators: '생성', image: '이미지', marketing: '마케팅', productivity: '생산성', random: '랜덤', text: '텍스트' },
+  en: { calculators: 'Calculators', converters: 'Converters', design: 'Design', developer: 'Developer', generators: 'Generators', image: 'Images', marketing: 'Marketing', productivity: 'Productivity', random: 'Random', text: 'Text' },
+  ja: { calculators: '計算', converters: '変換', design: 'デザイン', developer: '開発', generators: '生成', image: '画像', marketing: 'マーケティング', productivity: '生産性', random: 'ランダム', text: 'テキスト' },
+  'zh-CN': { calculators: '计算', converters: '转换', design: '设计', developer: '开发', generators: '生成', image: '图像', marketing: '营销', productivity: '效率', random: '随机', text: '文本' },
+  'zh-TW': { calculators: '計算', converters: '轉換', design: '設計', developer: '開發', generators: '產生', image: '圖片', marketing: '行銷', productivity: '效率', random: '隨機', text: '文字' },
+  es: { calculators: 'Cálculo', converters: 'Conversión', design: 'Diseño', developer: 'Desarrollo', generators: 'Generadores', image: 'Imágenes', marketing: 'Marketing', productivity: 'Productividad', random: 'Aleatorio', text: 'Texto' },
+  pt: { calculators: 'Cálculo', converters: 'Conversão', design: 'Design', developer: 'Desenvolvimento', generators: 'Geradores', image: 'Imagens', marketing: 'Marketing', productivity: 'Produtividade', random: 'Aleatório', text: 'Texto' },
+  de: { calculators: 'Rechnen', converters: 'Umwandeln', design: 'Design', developer: 'Entwicklung', generators: 'Generatoren', image: 'Bilder', marketing: 'Marketing', productivity: 'Produktivität', random: 'Zufall', text: 'Text' },
+  fr: { calculators: 'Calcul', converters: 'Conversion', design: 'Design', developer: 'Développement', generators: 'Générateurs', image: 'Images', marketing: 'Marketing', productivity: 'Productivité', random: 'Aléatoire', text: 'Texte' },
+  it: { calculators: 'Calcolo', converters: 'Conversione', design: 'Design', developer: 'Sviluppo', generators: 'Generatori', image: 'Immagini', marketing: 'Marketing', productivity: 'Produttività', random: 'Casuale', text: 'Testo' },
+  id: { calculators: 'Kalkulasi', converters: 'Konversi', design: 'Desain', developer: 'Pengembangan', generators: 'Generator', image: 'Gambar', marketing: 'Pemasaran', productivity: 'Produktivitas', random: 'Acak', text: 'Teks' },
+  hi: { calculators: 'गणना', converters: 'रूपांतरण', design: 'डिज़ाइन', developer: 'डेवलपमेंट', generators: 'जनरेटर', image: 'इमेज', marketing: 'मार्केटिंग', productivity: 'उत्पादकता', random: 'रैंडम', text: 'टेक्स्ट' },
+};
+
+const groupedTools = tools.reduce<Record<string, ToolDefinition[]>>((groups, tool) => {
+  (groups[tool.cluster] ??= []).push(tool);
+  return groups;
+}, {});
+
+const toolClusters = Object.entries(groupedTools);
+const getDisplayContent = (tool: ToolDefinition) =>
+  tool.content[lang] ?? tool.content.en ?? tool.content.ko;
+---
+
+<MainLayout
+  title={copy.title}
+  description={copy.description}
+  canonical={`https://restato.github.io/${lang}/`}
+  lang={lang}
+  alternateUrls={alternateUrls}
+>
+  <div class="fc-page fc-content">
+    <header class="grid gap-8 border-b border-[var(--border-subtle)] py-8 md:py-12 lg:grid-cols-[minmax(0,1fr)_18rem] lg:items-end">
+      <div class="max-w-3xl">
+        <p class="fc-eyebrow mb-3">RESTATO · WEB TOOLS</p>
+        <h1 class="m-0 text-4xl font-bold leading-tight text-[var(--text-primary)] md:text-5xl">{copy.heading}</h1>
+        <p class="mt-5 max-w-2xl text-lg text-[var(--text-muted)]">{copy.intro}</p>
+        <a class="fc-button fc-button-primary mt-7" href={`/${lang}/tools/`}>
+          {copy.allTools}
+          <span aria-hidden="true">→</span>
+        </a>
+      </div>
+      <p class="m-0 border-l-2 border-[var(--accent)] pl-4 text-sm text-[var(--accent)]">
+        {copy.localPrivacy}
+      </p>
+    </header>
+
+    <section class="py-10" aria-labelledby="tool-clusters-heading">
+      <div class="mb-6 flex flex-wrap items-end justify-between gap-4">
+        <div>
+          <p class="fc-eyebrow mb-2">{copy.allTools}</p>
+          <h2 id="tool-clusters-heading" class="m-0 text-2xl font-bold leading-tight text-[var(--text-primary)]">
+            {copy.clusters}
+          </h2>
+        </div>
+        <a class="fc-button fc-button-quiet px-2 text-sm" href={`/${lang}/tools/`}>
+          {copy.allTools}
+          <span aria-hidden="true">→</span>
+        </a>
+      </div>
+
+      <div class="grid gap-5 lg:grid-cols-2 lg:items-start">
+        {toolClusters.map(([cluster, clusterTools], index) => (
+          <>
+            {index === 1 && <AdSlot placement="catalog-between-clusters" class="lg:col-span-2" />}
+            <section class="fc-surface overflow-hidden" id={cluster} aria-labelledby={`${cluster}-heading`}>
+              <header class="border-b border-[var(--border-subtle)] bg-[var(--surface-soft)] px-4 py-3">
+                <h3 id={`${cluster}-heading`} class="m-0 text-lg font-bold text-[var(--text-primary)]">
+                  {clusterNames[lang][cluster] ?? clusterNames.en[cluster] ?? cluster}
+                </h3>
+              </header>
+              <ul class="m-0 list-none divide-y divide-[var(--border-subtle)] p-0">
+                {clusterTools.map(tool => {
+                  const content = getDisplayContent(tool);
+                  const usesFallback = content?.status === 'fallback' || !tool.content[lang];
+                  const fallbackNotice = getToolFallbackNotice(tool, lang);
+                  return (
+                    <li>
+                      <a
+                        href={tool.slug === 'anonymous-chat' ? `/${lang}/anonymous-chat/` : `/${lang}/tools/${tool.slug}/`}
+                        class="flex min-h-16 items-start gap-3 px-4 py-3 transition-colors hover:bg-[var(--surface-soft)]"
+                      >
+                        <span class="w-8 shrink-0 text-center" aria-hidden="true">{tool.icon}</span>
+                        <span class="min-w-0">
+                          <strong class="block text-[var(--text-primary)]">{content?.name ?? tool.slug}</strong>
+                          <span class="mt-0.5 block text-sm leading-snug text-[var(--text-muted)]">{content?.description}</span>
+                          {usesFallback && fallbackNotice && (
+                            <span class="mt-1 block text-xs text-[var(--accent)]">{fallbackNotice}</span>
+                          )}
+                        </span>
+                        <span class="ml-auto text-[var(--text-muted)]" aria-hidden="true">→</span>
+                      </a>
+                    </li>
+                  );
+                })}
+              </ul>
+            </section>
+          </>
+        ))}
+      </div>
+    </section>
+  </div>
+</MainLayout>

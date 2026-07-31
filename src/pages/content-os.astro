@@ -1,5 +1,6 @@
 ---
 import MainLayout from '../layouts/MainLayout.astro';
+import PageShell from '../components/ui/PageShell.astro';
 import candidateData from '../data/contentCandidates.json';
 
 const statusLabel: Record<string, string> = {
@@ -26,69 +27,69 @@ const readyCount = candidates.filter((candidate) => candidate.score >= candidate
   description="Restato 블로그의 콘텐츠 후보, 점수, 조사 상태와 발행 결정을 관리하는 대시보드"
   robots="noindex, follow"
 >
-  <main class="mx-auto max-w-6xl px-4 py-12">
-    <header class="mb-10">
-      <p class="mb-2 text-sm font-semibold text-blue-600 dark:text-blue-400">RESTATO CONTENT OS</p>
-      <h1 class="text-4xl font-bold tracking-tight">콘텐츠 운영 대시보드</h1>
-      <p class="mt-4 max-w-3xl text-[var(--color-text-muted)]">
+  <PageShell size="wide">
+    <header class="fc-page-header">
+      <p class="fc-eyebrow">RESTATO CONTENT OS</p>
+      <h1>콘텐츠 운영 대시보드</h1>
+      <p class="fc-page-description">
         관심 주제에서 글감을 찾고, 콘텐츠 공백과 근거를 확인한 뒤 점수 기준을 통과한 후보만 발행합니다.
       </p>
     </header>
 
     <section class="mb-8 grid gap-4 sm:grid-cols-3">
-      <article class="rounded-2xl border border-[var(--color-border)] bg-[var(--color-card)] p-5">
-        <p class="text-sm text-[var(--color-text-muted)]">전체 후보</p>
+      <article class="fc-surface p-5">
+        <p class="text-sm text-[var(--text-muted)]">전체 후보</p>
         <p class="mt-2 text-3xl font-bold">{candidates.length}</p>
       </article>
-      <article class="rounded-2xl border border-[var(--color-border)] bg-[var(--color-card)] p-5">
-        <p class="text-sm text-[var(--color-text-muted)]">발행 기준</p>
+      <article class="fc-surface p-5">
+        <p class="text-sm text-[var(--text-muted)]">발행 기준</p>
         <p class="mt-2 text-3xl font-bold">{candidateData.threshold}점</p>
       </article>
-      <article class="rounded-2xl border border-[var(--color-border)] bg-[var(--color-card)] p-5">
-        <p class="text-sm text-[var(--color-text-muted)]">기준 통과</p>
+      <article class="fc-surface p-5">
+        <p class="text-sm text-[var(--text-muted)]">기준 통과</p>
         <p class="mt-2 text-3xl font-bold">{readyCount}</p>
       </article>
     </section>
 
-    <section class="overflow-hidden rounded-2xl border border-[var(--color-border)] bg-[var(--color-card)]">
-      <div class="border-b border-[var(--color-border)] px-6 py-4">
+    <section class="fc-surface overflow-hidden">
+      <div class="border-b border-[var(--border-subtle)] px-6 py-4">
         <h2 class="text-xl font-semibold">콘텐츠 후보</h2>
-        <p class="mt-1 text-sm text-[var(--color-text-muted)]">최근 갱신: {candidateData.updatedAt}</p>
+        <p class="mt-1 text-sm text-[var(--text-muted)]">최근 갱신: {candidateData.updatedAt}</p>
       </div>
 
-      <div class="divide-y divide-[var(--color-border)]">
+      <div class="divide-y divide-[var(--border-subtle)]">
         {candidates.map((candidate) => (
           <article class="grid gap-4 px-6 py-5 md:grid-cols-[1fr_auto] md:items-center">
             <div>
               <div class="mb-2 flex flex-wrap items-center gap-2">
-                <span class="rounded-full bg-blue-500/10 px-2.5 py-1 text-xs font-semibold text-blue-600 dark:text-blue-400">
+                <span class="fc-chip text-xs text-[var(--brand)]">
                   {candidate.topic}
                 </span>
-                <span class="rounded-full border border-[var(--color-border)] px-2.5 py-1 text-xs">
+                <span class="fc-chip border border-[var(--border-subtle)] text-xs">
                   {statusLabel[candidate.status] ?? candidate.status}
                 </span>
-                <span class="rounded-full border border-[var(--color-border)] px-2.5 py-1 text-xs">
+                <span class="fc-chip border border-[var(--border-subtle)] text-xs">
                   {actionLabel[candidate.action] ?? candidate.action}
                 </span>
               </div>
               <h3 class="text-lg font-semibold">{candidate.title}</h3>
-              <p class="mt-2 text-sm leading-6 text-[var(--color-text-muted)]">{candidate.reason}</p>
+              <p class="mt-2 text-sm leading-6 text-[var(--text-muted)]">{candidate.reason}</p>
             </div>
             <div class="min-w-24 text-left md:text-right">
               <p class="text-3xl font-bold">{candidate.score}</p>
-              <p class="text-xs text-[var(--color-text-muted)]">100점 만점</p>
+              <p class="text-xs text-[var(--text-muted)]">100점 만점</p>
             </div>
           </article>
         ))}
       </div>
     </section>
 
-    <section class="mt-8 rounded-2xl border border-dashed border-[var(--color-border)] p-6">
+    <section class="fc-surface fc-surface-soft mt-8 border-dashed p-6">
       <h2 class="font-semibold">즉시 발행 명령</h2>
-      <p class="mt-2 text-sm text-[var(--color-text-muted)]">
+      <p class="mt-2 text-sm text-[var(--text-muted)]">
         ChatGPT에서 “이 주제로 글 써서 올려”, “후보 1번 발행해”, “최근 커밋으로 개발일지 올려”라고 요청하면
         One Click Publish 파이프라인을 실행합니다.
       </p>
     </section>
-  </main>
+  </PageShell>
 </MainLayout>

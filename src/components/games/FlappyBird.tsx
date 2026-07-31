@@ -244,9 +244,9 @@ export default function FlappyBird() {
   };
 
   return (
-    <div className="flex flex-col items-center w-full max-w-md lg:max-w-lg mx-auto px-4">
+    <div className="fc-game mx-auto flex w-full max-w-md flex-col items-center px-0 lg:max-w-lg">
       {/* Score */}
-      <div className="flex gap-4 mb-4 p-4 bg-[var(--color-card)] rounded-xl border border-[var(--color-border)]">
+      <div className="fc-surface mb-4 flex gap-4 p-4">
         <div className="text-center">
           <div className="text-2xl font-bold text-primary-500">{score}</div>
           <div className="text-sm text-[var(--color-text-muted)]">
@@ -263,15 +263,19 @@ export default function FlappyBird() {
 
       {/* Game Canvas */}
       <div
-        className="relative cursor-pointer"
+        className="relative w-full max-w-[400px] cursor-pointer"
         onClick={handleInteraction}
         onTouchStart={handleInteraction}
+        onKeyDown={event => event.key === 'Enter' && handleInteraction()}
+        role="button"
+        tabIndex={0}
+        aria-label={t({ ko: '플래피 버드 시작 또는 날기', en: 'Start or flap', ja: '開始または飛ぶ' })}
       >
         <canvas
           ref={canvasRef}
           width={CANVAS_WIDTH}
           height={CANVAS_HEIGHT}
-          className="rounded-xl border-2 border-[var(--color-border)] max-w-full"
+          className="aspect-[2/3] w-full rounded-xl border-2 border-[var(--color-border)]"
           style={{ maxHeight: '70vh' }}
         />
 
@@ -279,14 +283,14 @@ export default function FlappyBird() {
         {!isPlaying && (
           <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/50 rounded-xl">
             {gameOver && (
-              <>
+              <div role="status" aria-live="assertive" className="text-center">
                 <div className="text-3xl font-bold text-white mb-2">
                   {t({ ko: '게임 오버!', en: 'Game Over!', ja: 'ゲームオーバー!' })}
                 </div>
                 <div className="text-xl text-white/80 mb-4">
                   {t({ ko: '점수', en: 'Score', ja: 'スコア' })}: {score}
                 </div>
-              </>
+              </div>
             )}
             <div className="text-6xl mb-4">🐦</div>
             <div className="text-white text-lg text-center px-4">

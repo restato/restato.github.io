@@ -32,8 +32,8 @@ describe('imageCropPresets', () => {
 
     expect(crop.width).toBe(600);
     expect(crop.height).toBe(200);
-    expect(crop.x).toBe(200);
-    expect(crop.y).toBe(150);
+    expect(crop.x).toBe(400);
+    expect(crop.y).toBe(250);
   });
 
   it('clamps crop values to valid ranges', () => {

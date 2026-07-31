@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen } from '@testing-library/react';
+import { fireEvent, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import BmiCalculator from '../BmiCalculator';
 import './testUtils';
@@ -10,11 +10,17 @@ describe('BmiCalculator', () => {
   });
 
   it('renders height and weight inputs', () => {
-    render(<BmiCalculator />);
+    const { container } = render(<BmiCalculator />);
 
     // Should have inputs for height and weight
     const inputs = screen.getAllByRole('spinbutton');
     expect(inputs.length).toBeGreaterThanOrEqual(2);
+    expect(container.firstElementChild).toHaveClass('fc-tool-panel');
+    expect(inputs[0]).toHaveClass('fc-input');
+    expect(screen.getByRole('spinbutton', { name: '키 (cm)' })).toBe(inputs[0]);
+    expect(screen.getByRole('spinbutton', { name: '몸무게 (kg)' })).toBe(inputs[1]);
+    expect(screen.getByRole('button', { name: 'BMI 계산하기' })).toHaveClass('fc-button', 'fc-button-primary');
+    expect(screen.getByRole('button', { name: 'BMI 계산하기' }).closest('.fc-tool-actions')).not.toBeNull();
   });
 
   it('calculates BMI correctly', async () => {
@@ -30,9 +36,11 @@ describe('BmiCalculator', () => {
 
     await user.clear(weightInput);
     await user.type(weightInput, '70');
+    await user.click(screen.getByRole('button', { name: 'BMI 계산하기' }));
 
     // BMI = 70 / (1.7)^2 = ~24.22
-    expect(screen.getByText(/24\.[0-9]/)).toBeInTheDocument();
+    expect(screen.getByText('24.2')).toBeInTheDocument();
+    expect(screen.getByRole('status')).toHaveClass('fc-tool-result-success');
   });
 
   it('shows BMI category (normal, overweight, etc.)', async () => {
@@ -48,9 +56,9 @@ describe('BmiCalculator', () => {
 
     await user.clear(weightInput);
     await user.type(weightInput, '70');
+    await user.click(screen.getByRole('button', { name: 'BMI 계산하기' }));
 
-    // Should show BMI category (정상, 과체중, etc.)
-    expect(screen.getByText(/정상|과체중|저체중|비만|normal|overweight/i)).toBeInTheDocument();
+    expect(screen.getAllByText('과체중')).toHaveLength(2);
   });
 
   it('handles underweight BMI', async () => {
@@ -66,9 +74,10 @@ describe('BmiCalculator', () => {
 
     await user.clear(weightInput);
     await user.type(weightInput, '50');
+    await user.click(screen.getByRole('button', { name: 'BMI 계산하기' }));
 
     // BMI = 50 / (1.8)^2 = ~15.43 (underweight)
-    expect(screen.getByText(/15\.[0-9]/)).toBeInTheDocument();
+    expect(screen.getByText('15.4')).toBeInTheDocument();
   });
 
   it('handles obese BMI', async () => {
@@ -84,9 +93,10 @@ describe('BmiCalculator', () => {
 
     await user.clear(weightInput);
     await user.type(weightInput, '100');
+    await user.click(screen.getByRole('button', { name: 'BMI 계산하기' }));
 
     // BMI = 100 / (1.6)^2 = ~39.06 (obese)
-    expect(screen.getByText(/39\.[0-9]|비만|obese/i)).toBeInTheDocument();
+    expect(screen.getByText('39.1')).toBeInTheDocument();
   });
 
   it('handles empty inputs gracefully', () => {
@@ -94,5 +104,20 @@ describe('BmiCalculator', () => {
 
     // Should not crash with empty inputs
     expect(screen.getAllByRole('spinbutton').length).toBeGreaterThan(0);
+  });
+
+  it('suppresses BMI results for empty and invalid dimensions', () => {
+    render(<BmiCalculator />);
+    const inputs = screen.getAllByRole('spinbutton');
+    fireEvent.change(inputs[0], { target: { value: '170' } });
+    fireEvent.change(inputs[1], { target: { value: '70' } });
+    fireEvent.click(screen.getByRole('button', { name: 'BMI 계산하기' }));
+    expect(screen.getByText('24.2')).toBeInTheDocument();
+    fireEvent.change(inputs[1], { target: { value: '' } });
+    fireEvent.click(screen.getByRole('button', { name: 'BMI 계산하기' }));
+    expect(screen.queryByText('24.2')).not.toBeInTheDocument();
+    fireEvent.change(inputs[1], { target: { value: '-1' } });
+    fireEvent.click(screen.getByRole('button', { name: 'BMI 계산하기' }));
+    expect(screen.queryByText('24.2')).not.toBeInTheDocument();
   });
 });

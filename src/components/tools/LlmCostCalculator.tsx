@@ -1,6 +1,9 @@
 import { useState, useMemo, useEffect } from 'react';
 import { useTranslation } from '../../i18n/useTranslation';
-import type { Language } from '../../i18n';
+import { ToolPanel } from './ui/ToolPanel';
+import { ToolActions } from './ui/ToolActions';
+import { ToolField } from './ui/ToolField';
+import { ToolResult } from './ui/ToolResult';
 
 interface ModelPrice {
   name: string;
@@ -100,8 +103,8 @@ function estimateTokens(text: string): number {
   return Math.ceil(tokens);
 }
 
-export default function LlmCostCalculator({ lang: initialLang }: { lang?: Language } = {}) {
-  const { t, translations } = useTranslation(initialLang);
+export default function LlmCostCalculator() {
+  const { t, translations } = useTranslation();
   const tc = translations.tools.llmCost;
 
   const [inputText, setInputText] = useState('');
@@ -292,11 +295,14 @@ export default function LlmCostCalculator({ lang: initialLang }: { lang?: Langua
   };
 
   return (
-    <div className="flex flex-col gap-6">
+    <ToolPanel className="gap-6">
       {/* Input Mode Toggle */}
-      <div className="flex gap-2">
-        <button
+      <ToolActions
+        selection
+        className="fc-segmented-control"
+        primary={<button
           onClick={() => setUseManualTokens(false)}
+          aria-pressed={!useManualTokens}
           className={`flex-1 px-4 py-2 rounded-lg text-sm font-medium transition-colors
             ${!useManualTokens
               ? 'bg-primary-500 text-white'
@@ -304,9 +310,10 @@ export default function LlmCostCalculator({ lang: initialLang }: { lang?: Langua
             }`}
         >
           {t(tc.textMode)}
-        </button>
-        <button
+        </button>}
+        secondary={<button
           onClick={() => setUseManualTokens(true)}
+          aria-pressed={useManualTokens}
           className={`flex-1 px-4 py-2 rounded-lg text-sm font-medium transition-colors
             ${useManualTokens
               ? 'bg-primary-500 text-white'
@@ -314,16 +321,14 @@ export default function LlmCostCalculator({ lang: initialLang }: { lang?: Langua
             }`}
         >
           {t(tc.manualMode)}
-        </button>
-      </div>
+        </button>}
+      />
 
       {/* Text Input Mode */}
       {!useManualTokens && (
         <div className="space-y-4">
           <div className="space-y-2">
-            <label className="block text-sm font-medium text-[var(--color-text)]">
-              {t(tc.inputText)}
-            </label>
+            <ToolField id="llm-input-text" label={t(tc.inputText)}>
             <textarea
               value={inputText}
               onChange={(e) => setInputText(e.target.value)}
@@ -333,6 +338,7 @@ export default function LlmCostCalculator({ lang: initialLang }: { lang?: Langua
                 bg-[var(--color-card)] text-[var(--color-text)]
                 focus:outline-none focus:ring-2 focus:ring-primary-500 resize-none"
             />
+            </ToolField>
             <div className="flex justify-between text-sm text-[var(--color-text-muted)]">
               <span>{inputText.length.toLocaleString()}{t(tc.characters)}</span>
               <span>≈ {estimateTokens(inputText).toLocaleString()} {t(tc.tokensEstimated)}</span>
@@ -340,9 +346,7 @@ export default function LlmCostCalculator({ lang: initialLang }: { lang?: Langua
           </div>
 
           <div className="space-y-2">
-            <label className="block text-sm font-medium text-[var(--color-text)]">
-              {t(tc.outputText)}
-            </label>
+            <ToolField id="llm-output-text" label={t(tc.outputText)}>
             <textarea
               value={outputText}
               onChange={(e) => setOutputText(e.target.value)}
@@ -352,6 +356,7 @@ export default function LlmCostCalculator({ lang: initialLang }: { lang?: Langua
                 bg-[var(--color-card)] text-[var(--color-text)]
                 focus:outline-none focus:ring-2 focus:ring-primary-500 resize-none"
             />
+            </ToolField>
             <div className="flex justify-between text-sm text-[var(--color-text-muted)]">
               <span>{outputText.length.toLocaleString()}{t(tc.characters)}</span>
               <span>≈ {estimateTokens(outputText).toLocaleString()} {t(tc.tokensEstimated)}</span>
@@ -360,10 +365,7 @@ export default function LlmCostCalculator({ lang: initialLang }: { lang?: Langua
 
           {!outputText && (
             <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <label className="block text-sm font-medium text-[var(--color-text)]">
-                  {t(tc.outputTokensAlt)}
-                </label>
+              <ToolField id="llm-output-tokens" label={t(tc.outputTokensAlt)}>
                 <input
                   type="number"
                   value={outputTokensManual}
@@ -373,11 +375,8 @@ export default function LlmCostCalculator({ lang: initialLang }: { lang?: Langua
                     bg-[var(--color-card)] text-[var(--color-text)]
                     focus:outline-none focus:ring-2 focus:ring-primary-500"
                 />
-              </div>
-              <div className="space-y-2">
-                <label className="block text-sm font-medium text-[var(--color-text)]">
-                  {t(tc.requestCount)}
-                </label>
+              </ToolField>
+              <ToolField id="llm-request-count" label={t(tc.requestCount)}>
                 <input
                   type="number"
                   value={requestCount}
@@ -388,15 +387,12 @@ export default function LlmCostCalculator({ lang: initialLang }: { lang?: Langua
                     bg-[var(--color-card)] text-[var(--color-text)]
                     focus:outline-none focus:ring-2 focus:ring-primary-500"
                 />
-              </div>
+              </ToolField>
             </div>
           )}
 
           {outputText && (
-            <div className="space-y-2">
-              <label className="block text-sm font-medium text-[var(--color-text)]">
-                {t(tc.requestCount)}
-              </label>
+            <ToolField id="llm-request-count" label={t(tc.requestCount)}>
               <input
                 type="number"
                 value={requestCount}
@@ -407,7 +403,7 @@ export default function LlmCostCalculator({ lang: initialLang }: { lang?: Langua
                   bg-[var(--color-card)] text-[var(--color-text)]
                   focus:outline-none focus:ring-2 focus:ring-primary-500"
               />
-            </div>
+            </ToolField>
           )}
         </div>
       )}
@@ -415,10 +411,7 @@ export default function LlmCostCalculator({ lang: initialLang }: { lang?: Langua
       {/* Manual Token Input Mode */}
       {useManualTokens && (
         <div className="grid grid-cols-3 gap-4">
-          <div className="space-y-2">
-            <label className="block text-sm font-medium text-[var(--color-text)]">
-              {t(tc.inputTokens)}
-            </label>
+          <ToolField id="llm-manual-input" label={t(tc.inputTokens)}>
             <input
               type="number"
               value={inputTokensManual}
@@ -428,11 +421,8 @@ export default function LlmCostCalculator({ lang: initialLang }: { lang?: Langua
                 bg-[var(--color-card)] text-[var(--color-text)]
                 focus:outline-none focus:ring-2 focus:ring-primary-500"
             />
-          </div>
-          <div className="space-y-2">
-            <label className="block text-sm font-medium text-[var(--color-text)]">
-              {t(tc.outputTokens)}
-            </label>
+          </ToolField>
+          <ToolField id="llm-manual-output" label={t(tc.outputTokens)}>
             <input
               type="number"
               value={outputTokensManual}
@@ -442,11 +432,8 @@ export default function LlmCostCalculator({ lang: initialLang }: { lang?: Langua
                 bg-[var(--color-card)] text-[var(--color-text)]
                 focus:outline-none focus:ring-2 focus:ring-primary-500"
             />
-          </div>
-          <div className="space-y-2">
-            <label className="block text-sm font-medium text-[var(--color-text)]">
-              {t(tc.requestCount)}
-            </label>
+          </ToolField>
+          <ToolField id="llm-manual-requests" label={t(tc.requestCount)}>
             <input
               type="number"
               value={requestCount}
@@ -457,13 +444,12 @@ export default function LlmCostCalculator({ lang: initialLang }: { lang?: Langua
                 bg-[var(--color-card)] text-[var(--color-text)]
                 focus:outline-none focus:ring-2 focus:ring-primary-500"
             />
-          </div>
+          </ToolField>
         </div>
       )}
 
       {/* Quick Presets */}
-      <div className="flex flex-wrap gap-2">
-        {presets.map((preset) => (
+      <ToolActions className="flex flex-wrap gap-2" primary={presets.map((preset) => (
           <button
             key={preset.labelKey}
             onClick={() => {
@@ -477,11 +463,10 @@ export default function LlmCostCalculator({ lang: initialLang }: { lang?: Langua
           >
             {t(tc[preset.labelKey])}
           </button>
-        ))}
-      </div>
+        ))} />
 
       {/* Token Summary */}
-      <div className="p-4 rounded-lg bg-primary-500/10 border border-primary-500/20">
+      <ToolResult status="success">
         <div className="grid grid-cols-3 gap-4 text-center">
           <div>
             <p className="text-sm text-[var(--color-text-muted)]">{t(tc.inputTokensSummary)}</p>
@@ -496,24 +481,19 @@ export default function LlmCostCalculator({ lang: initialLang }: { lang?: Langua
             <p className="text-2xl font-bold text-[var(--color-text)]">{requests.toLocaleString()}</p>
           </div>
         </div>
-      </div>
+      </ToolResult>
 
       {/* Currency Selection */}
       <div className="space-y-2">
         <div className="flex items-center justify-between">
           <label className="text-sm font-medium text-[var(--color-text)]">{t(tc.currencySelect)}</label>
-          <button
-            onClick={() => setShowExchangeRates(!showExchangeRates)}
-            className="text-sm text-primary-500 hover:underline"
-          >
-            {showExchangeRates ? t(tc.exchangeClose) : t(tc.exchangeSettings)}
-          </button>
+          <ToolActions primary={<button onClick={() => setShowExchangeRates(!showExchangeRates)}>{showExchangeRates ? t(tc.exchangeClose) : t(tc.exchangeSettings)}</button>} />
         </div>
-        <div className="flex flex-wrap gap-2">
-          {CURRENCIES.map((currency) => (
+        <ToolActions selection className="fc-segmented-control flex flex-wrap gap-2" primary={CURRENCIES.map((currency) => (
             <button
               key={currency.code}
               onClick={() => setSelectedCurrency(currency.code)}
+              aria-pressed={selectedCurrency === currency.code}
               className={`px-3 py-1 rounded-lg text-sm font-medium transition-colors
                 ${selectedCurrency === currency.code
                   ? 'bg-primary-500 text-white'
@@ -522,32 +502,20 @@ export default function LlmCostCalculator({ lang: initialLang }: { lang?: Langua
             >
               {currency.symbol} {t(tc[currency.nameKey])}
             </button>
-          ))}
-        </div>
+          ))} />
 
         {showExchangeRates && (
           <div className="p-4 rounded-lg bg-[var(--color-card)] border border-[var(--color-border)] mt-2">
             <div className="flex items-center justify-between mb-3">
               <p className="text-sm text-[var(--color-text-muted)]">{t(tc.exchangeRate)}</p>
-              <button
-                onClick={fetchExchangeRates}
-                disabled={isLoadingRates}
-                className="px-3 py-1 text-sm rounded-lg bg-primary-500 text-white hover:bg-primary-600 disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                {isLoadingRates ? t(tc.fetchingRates) : t(tc.fetchRates)}
-              </button>
+              <ToolActions primary={<button onClick={fetchExchangeRates} disabled={isLoadingRates}>{isLoadingRates ? t(tc.fetchingRates) : t(tc.fetchRates)}</button>} />
             </div>
 
-            {ratesError && (
-              <p className="text-sm text-red-500 mb-3">{ratesError}</p>
-            )}
+            {ratesError && <ToolResult status="error">{ratesError}</ToolResult>}
 
             <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
               {CURRENCIES.filter(c => c.code !== 'USD').map((currency) => (
-                <div key={currency.code} className="space-y-1">
-                  <label className="block text-xs text-[var(--color-text-muted)]">
-                    {currency.symbol} {t(tc[currency.nameKey])}
-                  </label>
+                <ToolField key={currency.code} id={`llm-rate-${currency.code}`} label={`${currency.symbol} ${t(tc[currency.nameKey])}`}>
                   <input
                     type="number"
                     value={exchangeRates[currency.code]}
@@ -560,7 +528,7 @@ export default function LlmCostCalculator({ lang: initialLang }: { lang?: Langua
                       bg-[var(--color-bg)] text-[var(--color-text)]
                       focus:outline-none focus:ring-2 focus:ring-primary-500"
                   />
-                </div>
+                </ToolField>
               ))}
             </div>
 
@@ -593,34 +561,31 @@ export default function LlmCostCalculator({ lang: initialLang }: { lang?: Langua
       <div className="space-y-2">
         <div className="flex items-center justify-between">
           <label className="text-sm font-medium text-[var(--color-text)]">{t(tc.providerFilter)}</label>
-          <div className="flex gap-2">
+          <ToolActions
+            primary={<>
             <button
               onClick={selectAllProviders}
-              className="text-xs text-primary-500 hover:underline"
             >
               {t(tc.selectAll)}
             </button>
-            <span className="text-[var(--color-text-muted)]">|</span>
             <button
               onClick={deselectAllProviders}
-              className="text-xs text-[var(--color-text-muted)] hover:underline"
             >
               {t(tc.deselectAll)}
             </button>
-            <span className="text-[var(--color-text-muted)]">|</span>
             <button
               onClick={() => setShowModelSelector(!showModelSelector)}
-              className="text-xs text-primary-500 hover:underline"
             >
               {showModelSelector ? t(tc.modelSelectClose) : t(tc.modelSelect)}
             </button>
-          </div>
+            </>}
+          />
         </div>
-        <div className="flex flex-wrap gap-2">
-          {providers.map((provider) => (
+        <ToolActions selection className="fc-segmented-control flex flex-wrap gap-2" primary={providers.map((provider) => (
             <button
               key={provider}
               onClick={() => toggleProvider(provider)}
+              aria-pressed={selectedProviders.has(provider)}
               className={`px-3 py-1 rounded-lg text-sm font-medium transition-colors
                 ${selectedProviders.has(provider)
                   ? 'bg-primary-500 text-white'
@@ -629,65 +594,53 @@ export default function LlmCostCalculator({ lang: initialLang }: { lang?: Langua
             >
               {provider}
             </button>
-          ))}
-        </div>
+          ))} />
       </div>
 
       {/* Model Selector */}
       {showModelSelector && (
         <div className="p-4 rounded-lg bg-[var(--color-card)] border border-[var(--color-border)]">
-          <div className="flex gap-2 mb-4">
-            <button
+          <ToolActions
+            primary={<button
               onClick={selectAllModels}
-              className="px-3 py-1 text-sm rounded-lg bg-primary-500/10 text-primary-500 hover:bg-primary-500/20"
             >
               {t(tc.selectAll)}
-            </button>
-            <button
+            </button>}
+            secondary={<button
               onClick={deselectAllModels}
-              className="px-3 py-1 text-sm rounded-lg bg-[var(--color-card-hover)] text-[var(--color-text-muted)]"
             >
               {t(tc.deselectAll)}
-            </button>
-          </div>
+            </button>}
+          />
 
           {[...new Set(MODEL_PRICES.map(m => m.provider))].map((provider) => (
             <div key={provider} className="mb-4">
               <div className="flex items-center gap-2 mb-2">
                 <span className="font-medium text-[var(--color-text)]">{provider}</span>
-                <button
-                  onClick={() => selectProviderModels(provider)}
-                  className="text-xs text-primary-500 hover:underline"
-                >
-                  {t(tc.select)}
-                </button>
-                <button
-                  onClick={() => deselectProviderModels(provider)}
-                  className="text-xs text-[var(--color-text-muted)] hover:underline"
-                >
-                  {t(tc.deselect)}
-                </button>
+                <ToolActions
+                  primary={<button onClick={() => selectProviderModels(provider)}>{t(tc.select)}</button>}
+                  secondary={<button onClick={() => deselectProviderModels(provider)}>{t(tc.deselect)}</button>}
+                />
               </div>
-              <div className="flex flex-wrap gap-2">
-                {MODEL_PRICES.filter(m => m.provider === provider).map((model) => (
-                  <label
+              <ToolActions
+                selection
+                className="flex flex-wrap gap-2"
+                primary={MODEL_PRICES.filter(m => m.provider === provider).map((model) => (
+                  <button
+                    type="button"
                     key={model.name}
+                    aria-pressed={selectedModels.has(model.name)}
+                    onClick={() => toggleModel(model.name)}
                     className={`flex items-center gap-2 px-3 py-1 rounded-lg text-sm cursor-pointer transition-colors
                       ${selectedModels.has(model.name)
                         ? 'bg-primary-500/10 text-primary-500 border border-primary-500/30'
                         : 'bg-[var(--color-bg)] text-[var(--color-text-muted)] border border-[var(--color-border)]'
                       }`}
                   >
-                    <input
-                      type="checkbox"
-                      checked={selectedModels.has(model.name)}
-                      onChange={() => toggleModel(model.name)}
-                      className="hidden"
-                    />
                     {model.displayName}
-                  </label>
+                  </button>
                 ))}
-              </div>
+              />
             </div>
           ))}
         </div>
@@ -757,12 +710,7 @@ export default function LlmCostCalculator({ lang: initialLang }: { lang?: Langua
 
       {/* Pricing Table Toggle */}
       <div className="space-y-2">
-        <button
-          onClick={() => setShowPricingTable(!showPricingTable)}
-          className="w-full px-4 py-2 text-sm font-medium rounded-lg bg-[var(--color-card)] hover:bg-[var(--color-card-hover)] border border-[var(--color-border)] text-[var(--color-text)]"
-        >
-          {showPricingTable ? '▲ ' : '▼ '}{t(tc.pricingTable)}
-        </button>
+        <ToolActions primary={<button onClick={() => setShowPricingTable(!showPricingTable)}>{showPricingTable ? '▲ ' : '▼ '}{t(tc.pricingTable)}</button>} />
 
         {showPricingTable && (
           <div className="overflow-x-auto">
@@ -832,6 +780,6 @@ export default function LlmCostCalculator({ lang: initialLang }: { lang?: Langua
           ))}
         </ul>
       </div>
-    </div>
+    </ToolPanel>
   );
 }

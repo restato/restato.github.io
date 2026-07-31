@@ -1,11 +1,13 @@
 import { useState } from 'react';
 import { useTranslation } from '../../i18n/useTranslation';
-import type { Language } from '../../i18n';
+import { ToolActions } from './ui/ToolActions';
+import { ToolField } from './ui/ToolField';
+import { ToolPanel } from './ui/ToolPanel';
 
 type Mode = 'encode' | 'decode';
 
-export default function Base64Tool({ lang: initialLang }: { lang?: Language } = {}) {
-  const { t, translations } = useTranslation(initialLang);
+export default function Base64Tool() {
+  const { t, translations } = useTranslation();
   const tt = translations.tools.base64;
   const tc = translations.tools.common;
 
@@ -79,10 +81,13 @@ export default function Base64Tool({ lang: initialLang }: { lang?: Language } = 
   };
 
   return (
-    <div className="flex flex-col gap-6">
+    <ToolPanel className="gap-6">
       {/* Mode Toggle */}
-      <div className="flex rounded-lg overflow-hidden border border-[var(--color-border)]">
-        <button
+      <ToolActions
+        selection
+        className="grid grid-cols-2"
+        primary={<button
+          aria-pressed={mode === 'encode'}
           onClick={() => handleModeChange('encode')}
           className={`flex-1 py-3 font-medium transition-colors
             ${mode === 'encode'
@@ -91,8 +96,9 @@ export default function Base64Tool({ lang: initialLang }: { lang?: Language } = 
             }`}
         >
           {t(tt.encode)}
-        </button>
-        <button
+        </button>}
+        secondary={<button
+          aria-pressed={mode === 'decode'}
           onClick={() => handleModeChange('decode')}
           className={`flex-1 py-3 font-medium transition-colors
             ${mode === 'decode'
@@ -101,30 +107,29 @@ export default function Base64Tool({ lang: initialLang }: { lang?: Language } = 
             }`}
         >
           {t(tt.decode)}
-        </button>
-      </div>
+        </button>}
+      />
 
       {/* Input */}
-      <div className="space-y-2">
-        <label className="block text-sm font-medium text-[var(--color-text)]">
-          {t(tc.input)} ({mode === 'encode' ? 'Text' : 'Base64'})
-        </label>
+      <ToolField id="base64-input" label={`${t(tc.input)} (${mode === 'encode' ? 'Text' : 'Base64'})`} error={error || undefined}>
         <textarea
           value={input}
           onChange={(e) => handleInputChange(e.target.value)}
           placeholder={t(tt.inputPlaceholder)}
           rows={5}
-          className="w-full px-4 py-3 rounded-lg border border-[var(--color-border)]
-            bg-[var(--color-card)] text-[var(--color-text)] font-mono resize-y
-            focus:outline-none focus:ring-2 focus:ring-primary-500"
+          className="font-mono"
         />
-      </div>
+      </ToolField>
 
       {/* Swap Button */}
-      <div className="flex justify-center">
-        <button
+      <ToolActions className="justify-center" primary={<button
           onClick={swapInputOutput}
           disabled={!output}
+          aria-label={t({
+            ko: '입력과 출력 바꾸기',
+            en: 'Swap input and output',
+            ja: '入力と出力を入れ替える',
+          })}
           className="p-2 rounded-full bg-[var(--color-card)] hover:bg-[var(--color-card-hover)]
             border border-[var(--color-border)] transition-colors disabled:opacity-50"
         >
@@ -132,42 +137,24 @@ export default function Base64Tool({ lang: initialLang }: { lang?: Language } = 
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
               d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4" />
           </svg>
-        </button>
-      </div>
+        </button>} />
 
       {/* Output */}
       <div className="space-y-2">
-        <div className="flex justify-between items-center">
-          <label className="block text-sm font-medium text-[var(--color-text)]">
-            {t(tc.output)} ({mode === 'encode' ? 'Base64' : 'Text'})
-          </label>
-          <button
-            onClick={copyOutput}
-            disabled={!output}
-            className="px-3 py-1 text-sm bg-[var(--color-card)] hover:bg-[var(--color-card-hover)]
-              border border-[var(--color-border)] rounded-lg transition-colors
-              disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            {copied ? t(tc.copied) : t(tc.copy)}
-          </button>
-        </div>
+        <ToolActions primary={<button onClick={copyOutput} disabled={!output}>
+          {copied ? t(tc.copied) : t(tc.copy)}
+        </button>} />
+        <ToolField id="base64-output" label={`${t(tc.output)} (${mode === 'encode' ? 'Base64' : 'Text'})`}>
         <textarea
           value={output}
           readOnly
           rows={5}
-          className="w-full px-4 py-3 rounded-lg border border-[var(--color-border)]
-            bg-[var(--color-bg)] text-[var(--color-text)] font-mono resize-y
-            focus:outline-none"
+          className="font-mono"
         />
+        </ToolField>
       </div>
 
       {/* Error */}
-      {error && (
-        <div className="p-3 rounded-lg bg-red-100 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-red-600 dark:text-red-400">
-          {error}
-        </div>
-      )}
-
       {/* Info */}
       <p className="text-sm text-[var(--color-text-muted)] text-center">
         {t({
@@ -176,6 +163,6 @@ export default function Base64Tool({ lang: initialLang }: { lang?: Language } = 
           ja: 'Base64はバイナリデータをテキストにエンコードする方式です',
         })}
       </p>
-    </div>
+    </ToolPanel>
   );
 }

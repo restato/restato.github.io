@@ -101,9 +101,9 @@ export default function RockPaperScissors() {
   };
 
   const getResultColor = () => {
-    if (result === 'win') return 'from-green-400 to-emerald-500';
-    if (result === 'lose') return 'from-red-400 to-rose-500';
-    return 'from-yellow-400 to-amber-500';
+    if (result === 'win') return 'bg-green-600';
+    if (result === 'lose') return 'bg-red-600';
+    return 'bg-amber-600';
   };
 
   const resetStats = () => {
@@ -113,23 +113,23 @@ export default function RockPaperScissors() {
   };
 
   return (
-    <div className="flex flex-col items-center max-w-lg mx-auto">
+    <div className="fc-game mx-auto flex max-w-lg flex-col items-center">
       {/* 통계 */}
       <div className="w-full grid grid-cols-4 gap-2 mb-8">
-        <div className="bg-green-500/20 rounded-lg p-3 text-center">
+        <div className="fc-surface bg-green-500/10 p-3 text-center">
           <div className="text-2xl font-bold text-green-500">{stats.wins}</div>
           <div className="text-xs text-[var(--color-text-muted)]">승</div>
         </div>
-        <div className="bg-red-500/20 rounded-lg p-3 text-center">
+        <div className="fc-surface bg-red-500/10 p-3 text-center">
           <div className="text-2xl font-bold text-red-500">{stats.losses}</div>
           <div className="text-xs text-[var(--color-text-muted)]">패</div>
         </div>
-        <div className="bg-yellow-500/20 rounded-lg p-3 text-center">
+        <div className="fc-surface bg-amber-500/10 p-3 text-center">
           <div className="text-2xl font-bold text-yellow-500">{stats.draws}</div>
           <div className="text-xs text-[var(--color-text-muted)]">무</div>
         </div>
-        <div className="bg-purple-500/20 rounded-lg p-3 text-center">
-          <div className="text-2xl font-bold text-purple-500">{streak}</div>
+        <div className="fc-surface fc-surface-soft p-3 text-center">
+          <div className="text-2xl font-bold text-[var(--accent)]">{streak}</div>
           <div className="text-xs text-[var(--color-text-muted)]">연승</div>
         </div>
       </div>
@@ -158,7 +158,7 @@ export default function RockPaperScissors() {
             </div>
           ) : result !== null ? (
             <div
-              className={`px-4 py-2 rounded-full bg-gradient-to-r ${getResultColor()} text-white font-bold`}
+              className={`rounded-full px-4 py-2 font-bold text-white ${getResultColor()}`}
             >
               {getResultText()}
             </div>
@@ -187,7 +187,8 @@ export default function RockPaperScissors() {
       {/* 결과 메시지 */}
       {result && (
         <div
-          className={`mb-8 text-center p-4 rounded-xl bg-gradient-to-r ${getResultColor()} text-white animate-bounce`}
+          className={`mb-8 rounded-xl p-4 text-center text-white ${getResultColor()}`}
+          role="status"
         >
           <div className="text-4xl mb-2">{getResultEmoji()}</div>
           <div className="text-xl font-bold">{getResultText()}</div>
@@ -206,11 +207,13 @@ export default function RockPaperScissors() {
           {CHOICES.map((choice) => (
             <button
               key={choice.id}
+              type="button"
               onClick={() => play(choice.id)}
               disabled={isPlaying}
-              className={`w-20 h-20 md:w-24 md:h-24 rounded-2xl bg-[var(--color-card)] border-2 border-[var(--color-border)] hover:border-primary-500 text-4xl md:text-5xl transition-all transform hover:scale-110 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none ${
+              aria-label={choice.name}
+              className={`fc-button fc-button-secondary h-20 w-20 rounded-2xl p-0 text-4xl md:h-24 md:w-24 md:text-5xl ${
                 playerChoice === choice.id && !isPlaying
-                  ? 'ring-4 ring-primary-500'
+                  ? 'ring-4 ring-[var(--focus)]'
                   : ''
               }`}
             >
@@ -230,11 +233,12 @@ export default function RockPaperScissors() {
       {/* 최고 연승 & 리셋 */}
       <div className="mt-8 flex items-center gap-4">
         <span className="text-sm text-[var(--color-text-muted)]">
-          최고 연승: <span className="font-bold text-primary-500">{maxStreak}</span>
+          최고 연승: <span className="font-bold text-[var(--brand)]">{maxStreak}</span>
         </span>
         <button
+          type="button"
           onClick={resetStats}
-          className="text-sm px-3 py-1 rounded-lg border border-[var(--color-border)] hover:bg-[var(--color-card)] transition-colors"
+          className="fc-button fc-button-secondary text-sm"
         >
           기록 초기화
         </button>

@@ -69,7 +69,7 @@ export default function ReactionTest() {
     if (time < 150) return { rank: 'S', label: '신급!', color: 'text-yellow-400', emoji: '⚡' };
     if (time < 200) return { rank: 'A', label: '매우 빠름', color: 'text-green-400', emoji: '🚀' };
     if (time < 250) return { rank: 'B', label: '빠름', color: 'text-blue-400', emoji: '💨' };
-    if (time < 300) return { rank: 'C', label: '보통', color: 'text-purple-400', emoji: '👍' };
+    if (time < 300) return { rank: 'C', label: '보통', color: 'text-[var(--accent)]', emoji: '👍' };
     if (time < 400) return { rank: 'D', label: '느림', color: 'text-orange-400', emoji: '🐢' };
     return { rank: 'F', label: '매우 느림', color: 'text-red-400', emoji: '😴' };
   };
@@ -112,52 +112,59 @@ export default function ReactionTest() {
   const rank = reactionTime ? getRank(reactionTime) : null;
 
   return (
-    <div className="max-w-lg mx-auto">
+    <div className="fc-game mx-auto max-w-lg">
       {/* 메인 클릭 영역 */}
       <button
+        type="button"
         onClick={handleClick}
-        className={`w-full h-64 md:h-80 rounded-2xl flex flex-col items-center justify-center transition-colors duration-200 ${getBackgroundColor()} text-white shadow-xl hover:shadow-2xl`}
+        className={`fc-button h-64 w-full flex-col rounded-2xl text-white md:h-80 ${getBackgroundColor()}`}
       >
         {state === 'result' && rank && (
           <div className="text-6xl mb-4 animate-bounce">{rank.emoji}</div>
         )}
-        <div className="text-4xl md:text-5xl font-bold mb-2">{stateText.main}</div>
-        <div className="text-lg opacity-90">{stateText.sub}</div>
+        <div>
+          <div className="text-4xl md:text-5xl font-bold mb-2">{stateText.main}</div>
+          <div className="text-lg opacity-90">{stateText.sub}</div>
+        </div>
         {state === 'result' && rank && (
           <div className={`mt-4 text-2xl font-bold ${rank.color}`}>
             랭크: {rank.rank}
           </div>
         )}
       </button>
+      <div className="sr-only" role="status" aria-live="assertive">
+        {stateText.main} {stateText.sub}
+      </div>
 
       {/* 통계 */}
       <div className="mt-8 grid grid-cols-3 gap-4">
-        <div className="bg-[var(--color-card)] rounded-xl p-4 text-center border border-[var(--color-border)]">
+        <div className="fc-surface p-4 text-center">
           <div className="text-2xl font-bold text-green-500">
             {getBestTime() ? `${getBestTime()}ms` : '-'}
           </div>
           <div className="text-sm text-[var(--color-text-muted)]">최고 기록</div>
         </div>
-        <div className="bg-[var(--color-card)] rounded-xl p-4 text-center border border-[var(--color-border)]">
+        <div className="fc-surface p-4 text-center">
           <div className="text-2xl font-bold text-blue-500">
             {getAverageTime() ? `${getAverageTime()}ms` : '-'}
           </div>
           <div className="text-sm text-[var(--color-text-muted)]">평균</div>
         </div>
-        <div className="bg-[var(--color-card)] rounded-xl p-4 text-center border border-[var(--color-border)]">
-          <div className="text-2xl font-bold text-purple-500">{results.length}</div>
+        <div className="fc-surface p-4 text-center">
+          <div className="text-2xl font-bold text-[var(--accent)]">{results.length}</div>
           <div className="text-sm text-[var(--color-text-muted)]">시도</div>
         </div>
       </div>
 
       {/* 최근 기록 */}
       {results.length > 0 && (
-        <div className="mt-6 bg-[var(--color-card)] rounded-xl p-4 border border-[var(--color-border)]">
+        <div className="fc-surface mt-6 p-4">
           <div className="flex justify-between items-center mb-4">
             <h3 className="font-bold">최근 기록</h3>
             <button
+              type="button"
               onClick={resetResults}
-              className="text-sm text-red-500 hover:text-red-400"
+              className="fc-button fc-button-quiet text-sm text-[var(--accent)]"
             >
               초기화
             </button>
@@ -183,14 +190,14 @@ export default function ReactionTest() {
       )}
 
       {/* 랭크 설명 */}
-      <div className="mt-6 bg-[var(--color-card)] rounded-xl p-4 border border-[var(--color-border)]">
+      <div className="fc-surface mt-6 p-4">
         <h3 className="font-bold mb-4 text-center">랭크 기준</h3>
         <div className="grid grid-cols-2 md:grid-cols-3 gap-2 text-sm">
           {[
             { range: '< 150ms', rank: 'S', color: 'text-yellow-400' },
             { range: '< 200ms', rank: 'A', color: 'text-green-400' },
             { range: '< 250ms', rank: 'B', color: 'text-blue-400' },
-            { range: '< 300ms', rank: 'C', color: 'text-purple-400' },
+            { range: '< 300ms', rank: 'C', color: 'text-[var(--accent)]' },
             { range: '< 400ms', rank: 'D', color: 'text-orange-400' },
             { range: '400ms+', rank: 'F', color: 'text-red-400' },
           ].map(({ range, rank, color }) => (
@@ -206,7 +213,7 @@ export default function ReactionTest() {
       </div>
 
       {/* 팁 */}
-      <div className="mt-6 p-4 bg-blue-500/10 rounded-xl border border-blue-500/30">
+      <div className="fc-surface fc-surface-soft mt-6 p-4">
         <div className="flex items-start gap-3">
           <span className="text-2xl">💡</span>
           <div className="text-sm text-[var(--color-text-muted)]">

@@ -175,9 +175,9 @@ export default function TicTacToe() {
   };
 
   return (
-    <div className="flex flex-col items-center w-full max-w-md lg:max-w-lg mx-auto px-4">
+    <div className="fc-game mx-auto flex w-full max-w-md flex-col items-center px-0 lg:max-w-lg">
       {/* Stats */}
-      <div className="flex gap-4 mb-6 p-4 bg-[var(--color-card)] rounded-xl border border-[var(--color-border)]">
+      <div className="fc-surface mb-6 flex gap-4 p-4">
         <div className="text-center">
           <div className="text-2xl font-bold text-green-500">{stats.wins}</div>
           <div className="text-sm text-[var(--color-text-muted)]">
@@ -202,12 +202,14 @@ export default function TicTacToe() {
       <div className="flex gap-2 mb-6">
         {(['easy', 'medium', 'hard'] as const).map((diff) => (
           <button
+            type="button"
             key={diff}
             onClick={() => changeDifficulty(diff)}
-            className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+            aria-pressed={difficulty === diff}
+            className={`fc-button text-sm ${
               difficulty === diff
-                ? 'bg-primary-500 text-white'
-                : 'bg-[var(--color-card)] border border-[var(--color-border)] hover:bg-[var(--color-card-hover)]'
+                ? 'fc-button-primary'
+                : 'fc-button-secondary'
             }`}
           >
             {diff === 'easy' && t({ ko: '쉬움', en: 'Easy', ja: '簡単' })}
@@ -218,13 +220,19 @@ export default function TicTacToe() {
       </div>
 
       {/* Board */}
-      <div className="grid grid-cols-3 gap-2 mb-6">
+      <div className="mb-6 grid w-full max-w-80 grid-cols-3 gap-2 sm:max-w-96">
         {board.map((cell, index) => (
           <button
+            type="button"
             key={index}
             onClick={() => handleClick(index)}
             disabled={!!cell || !!winner || !isPlayerTurn}
-            className={`w-24 h-24 md:w-28 md:h-28 text-5xl font-bold rounded-xl transition-all ${
+            aria-label={t({
+              ko: `${index + 1}번 칸${cell ? ` ${cell}` : ' 비어 있음'}`,
+              en: `Cell ${index + 1}${cell ? ` ${cell}` : ' empty'}`,
+              ja: `${index + 1}番マス${cell ? ` ${cell}` : ' 空き'}`,
+            })}
+            className={`fc-game-cell aspect-square w-full rounded-xl text-4xl font-bold sm:text-5xl ${
               winningLine?.includes(index)
                 ? 'bg-yellow-500/30 border-2 border-yellow-500'
                 : 'bg-[var(--color-card)] border border-[var(--color-border)]'
@@ -241,7 +249,7 @@ export default function TicTacToe() {
       </div>
 
       {/* Status */}
-      <div className="text-center mb-6">
+      <div className="mb-6 text-center" role="status" aria-live="polite">
         {winner ? (
           <div className="text-2xl font-bold">
             {winner === 'X' && (
@@ -271,8 +279,9 @@ export default function TicTacToe() {
 
       {/* New Game Button */}
       <button
+        type="button"
         onClick={resetGame}
-        className="px-6 py-3 bg-primary-500 text-white font-bold rounded-lg hover:bg-primary-600 transition-colors"
+        className="fc-button fc-button-primary"
       >
         {t({ ko: '새 게임', en: 'New Game', ja: '新しいゲーム' })}
       </button>

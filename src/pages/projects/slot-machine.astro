@@ -1,29 +1,33 @@
 ---
 import MainLayout from '../../layouts/MainLayout.astro';
 import SlotMachine from '../../components/SlotMachine';
+import PageHeader from '../../components/ui/PageHeader.astro';
+import PageShell from '../../components/ui/PageShell.astro';
 ---
 
 <MainLayout title="슬롯머신 | Restato" description="행운의 777을 노려보세요!">
-  <section class="py-8 px-4">
-    <div class="max-w-4xl mx-auto">
-      <!-- Header -->
-      <div class="mb-8">
-        <div class="flex items-center gap-2 text-sm text-[var(--color-text-muted)] mb-2">
-          <a href="/projects/games" class="hover:text-primary-500">게임센터</a>
-          <span>/</span>
-          <span>슬롯머신</span>
-        </div>
-        <h1 class="text-3xl font-bold mb-2">🎰 슬롯머신</h1>
-        <p class="text-[var(--color-text-muted)]">
-          행운의 777을 노려보세요! 같은 심볼 3개를 맞추면 대박!
-        </p>
-      </div>
+  <PageShell size="content">
+      <nav class="fc-tool-breadcrumb" aria-label="게임센터">
+        <ol>
+          <li><a href="/projects/games">게임센터</a></li>
+          <li aria-hidden="true">/</li>
+          <li aria-current="page">슬롯머신</li>
+        </ol>
+      </nav>
+      <PageHeader
+        eyebrow="🎰 Mini game"
+        title="슬롯머신"
+        description="행운의 777을 노려보세요! 같은 심볼 3개를 맞추면 대박!"
+      />
 
       <!-- Game Component -->
-      <SlotMachine client:load />
+      <section class="fc-surface fc-surface-padding-md" aria-label="슬롯머신">
+        <SlotMachine client:load />
+      </section>
 
       <!-- Info -->
-      <div class="mt-12 p-6 bg-[var(--color-card)] rounded-xl border border-[var(--color-border)]">
+      <section class="fc-tool-instructions fc-prose">
+        <div>
         <h2 class="text-lg font-bold mb-4">💡 게임 방법</h2>
         <ul class="space-y-2 text-[var(--color-text-muted)]">
           <li>• 베팅 금액을 설정하고 SPIN 버튼을 눌러주세요</li>
@@ -31,7 +35,7 @@ import SlotMachine from '../../components/SlotMachine';
           <li>• 2개가 일치해도 1.5배의 코인을 받을 수 있어요</li>
           <li>• 777이 나오면 100배 잭팟!</li>
         </ul>
-      </div>
-    </div>
-  </section>
+        </div>
+      </section>
+  </PageShell>
 </MainLayout>

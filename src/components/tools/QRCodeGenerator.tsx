@@ -1,6 +1,8 @@
 import { useState, useEffect, useRef } from 'react';
 import { useTranslation } from '../../i18n/useTranslation';
-import type { Language } from '../../i18n';
+import { ToolActions } from './ui/ToolActions';
+import { ToolField } from './ui/ToolField';
+import { ToolPanel } from './ui/ToolPanel';
 
 // Simple QR Code generator using canvas
 const QR_ERROR_CORRECTION = {
@@ -100,8 +102,8 @@ function drawQRCode(canvas: HTMLCanvasElement, text: string, size: number, darkC
   }
 }
 
-export default function QRCodeGenerator({ lang: initialLang }: { lang?: Language } = {}) {
-  const { t, translations } = useTranslation(initialLang);
+export default function QRCodeGenerator() {
+  const { t, translations } = useTranslation();
   const tt = translations.tools.qrCode;
   const tc = translations.tools.common;
 
@@ -141,38 +143,21 @@ export default function QRCodeGenerator({ lang: initialLang }: { lang?: Language
   };
 
   return (
-    <div className="flex flex-col gap-6">
+    <ToolPanel className="gap-6">
       {/* Input */}
-      <div className="space-y-2">
-        <label className="block text-sm font-medium text-[var(--color-text)]">
-          {t(tc.input)}
-        </label>
+      <ToolField id="qr-input" label={t(tc.input)}>
         <input
           type="text"
           value={text}
           onChange={(e) => setText(e.target.value)}
           placeholder={t(tt.inputPlaceholder)}
-          className="w-full px-4 py-2 rounded-lg border border-[var(--color-border)]
-            bg-[var(--color-card)] text-[var(--color-text)]
-            focus:outline-none focus:ring-2 focus:ring-primary-500"
         />
-      </div>
+      </ToolField>
 
       {/* Size slider */}
-      <div className="space-y-2">
-        <label className="block text-sm font-medium text-[var(--color-text)]">
-          {t(tt.size)}: {size}px
-        </label>
-        <input
-          type="range"
-          min="128"
-          max="512"
-          step="32"
-          value={size}
-          onChange={(e) => setSize(Number(e.target.value))}
-          className="w-full accent-primary-500"
-        />
-      </div>
+      <ToolField id="qr-size" label={`${t(tt.size)}: ${size}px`}>
+        <input type="range" min="128" max="512" step="32" value={size} onChange={(e) => setSize(Number(e.target.value))} />
+      </ToolField>
 
       {/* QR Code Display */}
       <div className="flex flex-col items-center gap-4">
@@ -185,8 +170,7 @@ export default function QRCodeGenerator({ lang: initialLang }: { lang?: Language
         </div>
 
         {/* Actions */}
-        <div className="flex gap-2 flex-wrap justify-center">
-          <button
+        <ToolActions primary={<button
             onClick={handleDownload}
             className="px-4 py-2 bg-primary-500 hover:bg-primary-600 text-white rounded-lg
               transition-colors flex items-center gap-2"
@@ -196,8 +180,7 @@ export default function QRCodeGenerator({ lang: initialLang }: { lang?: Language
                 d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
             </svg>
             {t(tt.downloadPng)}
-          </button>
-          <button
+          </button>} secondary={<button
             onClick={handleCopyImage}
             className="px-4 py-2 bg-[var(--color-card)] hover:bg-[var(--color-card-hover)]
               border border-[var(--color-border)] rounded-lg transition-colors flex items-center gap-2"
@@ -207,14 +190,13 @@ export default function QRCodeGenerator({ lang: initialLang }: { lang?: Language
                 d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
             </svg>
             {copied ? t(tc.copied) : t(tc.copy)}
-          </button>
-        </div>
+          </button>} />
       </div>
 
       {/* Info */}
       <p className="text-sm text-[var(--color-text-muted)] text-center">
         {t({ ko: 'URL이나 텍스트를 입력하면 QR 코드가 생성됩니다', en: 'Enter URL or text to generate QR code', ja: 'URLやテキストを入力するとQRコードが生成されます' })}
       </p>
-    </div>
+    </ToolPanel>
   );
 }

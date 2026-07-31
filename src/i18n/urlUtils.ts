@@ -1,54 +1,103 @@
-// URL utilities for language-based routing
-import { type Language, languages, defaultLang } from './index';
+import { supportedLanguages } from '../data/tools/locales';
+import { supportedLanguagePattern } from '../data/tools/supportedLanguages.mjs';
+import type { Language } from '../data/tools/types';
 
-// Paths that support language routing
-const LANG_SUPPORTED_PATHS = ['/tools', '/anonymous-chat', '/games'];
+export { supportedLanguagePattern };
+export const languagePrefixPattern = new RegExp(
+  `^/(${supportedLanguagePattern})(?=/|$|[?#])`,
+);
 
-// Detect language from URL path
-export function getLanguageFromUrl(pathname: string): Language | null {
-  const match = pathname.match(/^\/(ko|en|ja)(\/|$)/);
-  return match ? (match[1] as Language) : null;
+export const localizedRouteFamilies = [
+  '/',
+  '/tools',
+  '/anonymous-chat',
+  '/games',
+  '/about',
+  '/contact',
+  '/privacy',
+  '/terms',
+  '/disclaimer',
+] as const;
+const GAME_LANGUAGES = new Set<Language>(['ko', 'en', 'ja']);
+
+function splitPathSuffix(value: string): { path: string; suffix: string } {
+  const suffixIndex = value.search(/[?#]/);
+  if (suffixIndex === -1) return { path: value, suffix: '' };
+  return { path: value.slice(0, suffixIndex), suffix: value.slice(suffixIndex) };
 }
 
-// Get the base path without language prefix
+export function parseLanguage(pathname: string): Language | null {
+  const match = pathname.match(languagePrefixPattern);
+  return match ? match[1] as Language : null;
+}
+
+export const getLanguageFromUrl = parseLanguage;
+
 export function getBasePathFromUrl(pathname: string): string {
-  return pathname.replace(/^\/(ko|en|ja)(\/|$)/, '/');
+  const withoutLanguage = pathname.replace(languagePrefixPattern, '');
+  return withoutLanguage.startsWith('/') ? withoutLanguage : `/${withoutLanguage}`;
 }
 
-// Check if a path supports language routing
 export function supportsLanguageRouting(pathname: string): boolean {
-  const basePath = getBasePathFromUrl(pathname);
-  return LANG_SUPPORTED_PATHS.some(
-    (p) => basePath === p || basePath.startsWith(p + '/')
+  const { path } = splitPathSuffix(getBasePathFromUrl(pathname));
+  return localizedRouteFamilies.some(
+    supportedPath => supportedPath === '/'
+      ? path === '/' || path === ''
+      : path === supportedPath || path.startsWith(`${supportedPath}/`),
   );
 }
 
-// Build URL with language prefix
 export function buildLanguageUrl(pathname: string, lang: Language): string {
   const basePath = getBasePathFromUrl(pathname);
-
-  // Only add language prefix for supported paths
-  if (!supportsLanguageRouting(basePath)) {
-    return basePath;
-  }
-
-  // Add language prefix
-  return `/${lang}${basePath}`;
+  if (!supportsLanguageRouting(basePath)) return basePath;
+  const { path } = splitPathSuffix(basePath);
+  const routeLanguage = (path === '/games' || path.startsWith('/games/')) && !GAME_LANGUAGES.has(lang)
+    ? 'en'
+    : lang;
+  return `/${routeLanguage}${basePath}`;
 }
 
-// Get alternate URLs for hreflang tags
+function normalizeTrailingSlash(pathname: string): string {
+  if (pathname === '/') return pathname;
+  return pathname.endsWith('/') ? pathname : `${pathname}/`;
+}
+
 export function getAlternateUrls(
   pathname: string,
-  siteUrl: string
+  siteUrl: string,
 ): { lang: Language; url: string }[] {
   const basePath = getBasePathFromUrl(pathname);
+  if (!supportsLanguageRouting(basePath)) return [];
 
-  if (!supportsLanguageRouting(basePath)) {
-    return [];
+  const { path } = splitPathSuffix(basePath);
+  const origin = siteUrl.replace(/\/+$/, '');
+  const normalizedPath = normalizeTrailingSlash(path || '/');
+
+  return supportedLanguages.map(lang => ({
+    lang,
+    url: `${origin}/${lang}${normalizedPath}`,
+  }));
+}
+
+export interface HeadAlternateUrl {
+  lang: string;
+  url: string;
+}
+
+export function normalizeHeadAlternates(alternates: HeadAlternateUrl[]): HeadAlternateUrl[] {
+  const unique = new Map<string, HeadAlternateUrl>();
+
+  for (const alternate of alternates) {
+    if (alternate.lang === 'x-default' || unique.has(alternate.lang)) continue;
+    const url = new URL(alternate.url);
+    url.search = '';
+    url.hash = '';
+    if (!url.pathname.endsWith('/')) url.pathname += '/';
+    unique.set(alternate.lang, { lang: alternate.lang, url: url.toString() });
   }
 
-  return (Object.keys(languages) as Language[]).map((lang) => ({
-    lang,
-    url: `${siteUrl}/${lang}${basePath}`,
-  }));
+  const normalized = [...unique.values()];
+  const english = unique.get('en');
+  if (english) normalized.push({ lang: 'x-default', url: english.url });
+  return normalized;
 }

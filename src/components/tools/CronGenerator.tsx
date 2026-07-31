@@ -1,6 +1,8 @@
 import { useState, useMemo } from 'react';
 import { useTranslation } from '../../i18n/useTranslation';
-import type { Language } from '../../i18n';
+import { ToolActions } from './ui/ToolActions';
+import { ToolField } from './ui/ToolField';
+import { ToolPanel } from './ui/ToolPanel';
 
 interface CronParts {
   minute: string;
@@ -47,7 +49,9 @@ const MONTHS = [
   { value: '12', label: { ko: '12월', en: 'Dec', ja: '12月' } },
 ];
 
-function describeCron(parts: CronParts, t: (obj: Record<string, string>) => string): string {
+type CronTranslation = { ko: string; en: string; ja: string };
+
+function describeCron(parts: CronParts, t: (obj: CronTranslation) => string): string {
   const { minute, hour, dayOfMonth, month, dayOfWeek } = parts;
 
   const descriptions: string[] = [];
@@ -104,8 +108,8 @@ function describeCron(parts: CronParts, t: (obj: Record<string, string>) => stri
   return descriptions.join(' ');
 }
 
-export default function CronGenerator({ lang: initialLang }: { lang?: Language } = {}) {
-  const { t, lang } = useTranslation(initialLang);
+export default function CronGenerator() {
+  const { t } = useTranslation();
 
   const [parts, setParts] = useState<CronParts>({
     minute: '0',
@@ -121,7 +125,7 @@ export default function CronGenerator({ lang: initialLang }: { lang?: Language }
   }, [parts]);
 
   const description = useMemo(() => {
-    return describeCron(parts, t);
+    return describeCron(parts, (value) => t(value));
   }, [parts, t]);
 
   const parseCron = (cron: string) => {
@@ -148,18 +152,14 @@ export default function CronGenerator({ lang: initialLang }: { lang?: Language }
   };
 
   return (
-    <div className="flex flex-col gap-6">
+    <ToolPanel className="gap-6">
       {/* Result */}
       <div className="p-6 rounded-xl bg-[var(--color-card)] border border-[var(--color-border)]">
         <div className="flex items-center justify-between mb-4">
           <span className="text-sm text-[var(--color-text-muted)]">Cron Expression</span>
-          <button
-            onClick={copyToClipboard}
-            className="px-3 py-1 text-sm bg-[var(--color-bg)] hover:bg-[var(--color-card-hover)]
-              border border-[var(--color-border)] rounded transition-colors"
-          >
+          <ToolActions primary={<button onClick={copyToClipboard}>
             {copied ? t({ ko: '복사됨!', en: 'Copied!', ja: 'コピーしました!' }) : t({ ko: '복사', en: 'Copy', ja: 'コピー' })}
-          </button>
+          </button>} />
         </div>
         <code className="block text-3xl font-mono text-center text-primary-500 py-4">
           {cronExpression}
@@ -174,10 +174,10 @@ export default function CronGenerator({ lang: initialLang }: { lang?: Language }
         <label className="text-sm font-medium text-[var(--color-text)]">
           {t({ ko: '프리셋', en: 'Presets', ja: 'プリセット' })}
         </label>
-        <div className="flex flex-wrap gap-2">
-          {PRESETS.map((preset) => (
+        <ToolActions selection className="flex flex-wrap gap-2" primary={PRESETS.map((preset) => (
             <button
               key={preset.cron}
+              aria-pressed={cronExpression === preset.cron}
               onClick={() => parseCron(preset.cron)}
               className={`px-3 py-1.5 text-sm rounded-lg transition-colors
                 ${cronExpression === preset.cron
@@ -187,8 +187,7 @@ export default function CronGenerator({ lang: initialLang }: { lang?: Language }
             >
               {t(preset.label)}
             </button>
-          ))}
-        </div>
+          ))} />
       </div>
 
       {/* Editor */}
@@ -200,22 +199,14 @@ export default function CronGenerator({ lang: initialLang }: { lang?: Language }
           { key: 'month', label: { ko: '월', en: 'Month', ja: '月' }, range: '1-12' },
           { key: 'dayOfWeek', label: { ko: '요일', en: 'DoW', ja: '曜日' }, range: '0-6' },
         ].map(({ key, label, range }) => (
-          <div key={key} className="space-y-1">
-            <label className="block text-xs text-center text-[var(--color-text-muted)]">
-              {t(label)}
-            </label>
+          <ToolField key={key} id={`cron-${key}`} label={t(label)} hint={range}>
             <input
               type="text"
               value={parts[key as keyof CronParts]}
               onChange={(e) => setParts({ ...parts, [key]: e.target.value })}
-              className="w-full px-2 py-2 text-center font-mono text-lg rounded-lg
-                border border-[var(--color-border)] bg-[var(--color-card)]
-                text-[var(--color-text)] focus:outline-none focus:ring-2 focus:ring-primary-500"
+              className="text-center font-mono text-lg"
             />
-            <span className="block text-xs text-center text-[var(--color-text-muted)]">
-              {range}
-            </span>
-          </div>
+          </ToolField>
         ))}
       </div>
 
@@ -226,20 +217,23 @@ export default function CronGenerator({ lang: initialLang }: { lang?: Language }
           <label className="text-sm font-medium text-[var(--color-text)]">
             {t({ ko: '요일 선택', en: 'Day of Week', ja: '曜日選択' })}
           </label>
-          <div className="flex flex-wrap gap-1">
+          <ToolActions selection className="flex flex-wrap gap-1" primary={<>
             <button
+              aria-pressed={parts.dayOfWeek === '*'}
               onClick={() => setParts({ ...parts, dayOfWeek: '*' })}
               className={`px-2 py-1 text-xs rounded ${parts.dayOfWeek === '*' ? 'bg-primary-500 text-white' : 'bg-[var(--color-card)] border border-[var(--color-border)]'}`}
             >
               {t({ ko: '매일', en: 'Every', ja: '毎日' })}
             </button>
             <button
+              aria-pressed={parts.dayOfWeek === '1-5'}
               onClick={() => setParts({ ...parts, dayOfWeek: '1-5' })}
               className={`px-2 py-1 text-xs rounded ${parts.dayOfWeek === '1-5' ? 'bg-primary-500 text-white' : 'bg-[var(--color-card)] border border-[var(--color-border)]'}`}
             >
               {t({ ko: '평일', en: 'Weekdays', ja: '平日' })}
             </button>
             <button
+              aria-pressed={parts.dayOfWeek === '0,6'}
               onClick={() => setParts({ ...parts, dayOfWeek: '0,6' })}
               className={`px-2 py-1 text-xs rounded ${parts.dayOfWeek === '0,6' ? 'bg-primary-500 text-white' : 'bg-[var(--color-card)] border border-[var(--color-border)]'}`}
             >
@@ -248,13 +242,14 @@ export default function CronGenerator({ lang: initialLang }: { lang?: Language }
             {DAYS_OF_WEEK.map((day) => (
               <button
                 key={day.value}
+                aria-pressed={parts.dayOfWeek === day.value}
                 onClick={() => setParts({ ...parts, dayOfWeek: day.value })}
                 className={`px-2 py-1 text-xs rounded ${parts.dayOfWeek === day.value ? 'bg-primary-500 text-white' : 'bg-[var(--color-card)] border border-[var(--color-border)]'}`}
               >
                 {t(day.label)}
               </button>
             ))}
-          </div>
+          </>} />
         </div>
 
         {/* Common Intervals */}
@@ -262,17 +257,16 @@ export default function CronGenerator({ lang: initialLang }: { lang?: Language }
           <label className="text-sm font-medium text-[var(--color-text)]">
             {t({ ko: '분 간격', en: 'Minute Interval', ja: '分間隔' })}
           </label>
-          <div className="flex flex-wrap gap-1">
-            {['*', '0', '*/5', '*/10', '*/15', '*/30'].map((val) => (
+          <ToolActions selection className="flex flex-wrap gap-1" primary={['*', '0', '*/5', '*/10', '*/15', '*/30'].map((val) => (
               <button
                 key={val}
+                aria-pressed={parts.minute === val}
                 onClick={() => setParts({ ...parts, minute: val })}
                 className={`px-2 py-1 text-xs rounded ${parts.minute === val ? 'bg-primary-500 text-white' : 'bg-[var(--color-card)] border border-[var(--color-border)]'}`}
               >
                 {val === '*' ? t({ ko: '매분', en: 'Every', ja: '毎分' }) : val}
               </button>
-            ))}
-          </div>
+            ))} />
         </div>
       </div>
 
@@ -288,6 +282,6 @@ export default function CronGenerator({ lang: initialLang }: { lang?: Language }
           <p><code>/</code> - {t({ ko: '간격 (*/5 = 5마다)', en: 'step (*/5 = every 5)', ja: '間隔 (*/5 = 5ごと)' })}</p>
         </div>
       </div>
-    </div>
+    </ToolPanel>
   );
 }

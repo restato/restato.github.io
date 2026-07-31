@@ -1,11 +1,13 @@
 import { useState } from 'react';
 import { useTranslation } from '../../i18n/useTranslation';
-import type { Language } from '../../i18n';
+import { ToolActions } from './ui/ToolActions';
+import { ToolField } from './ui/ToolField';
+import { ToolPanel } from './ui/ToolPanel';
 
 type Mode = 'encode' | 'decode';
 
-export default function UrlEncoder({ lang: initialLang }: { lang?: Language } = {}) {
-  const { t } = useTranslation(initialLang);
+export default function UrlEncoder() {
+  const { t } = useTranslation();
 
   const [mode, setMode] = useState<Mode>('encode');
   const [input, setInput] = useState('');
@@ -80,10 +82,10 @@ export default function UrlEncoder({ lang: initialLang }: { lang?: Language } = 
   ];
 
   return (
-    <div className="flex flex-col gap-6">
+    <ToolPanel className="gap-6">
       {/* Mode Toggle */}
-      <div className="flex rounded-lg overflow-hidden border border-[var(--color-border)]">
-        <button
+      <ToolActions selection className="grid grid-cols-2" primary={<button
+          aria-pressed={mode === 'encode'}
           onClick={() => handleModeChange('encode')}
           className={`flex-1 py-3 font-medium transition-colors
             ${mode === 'encode'
@@ -92,8 +94,8 @@ export default function UrlEncoder({ lang: initialLang }: { lang?: Language } = 
             }`}
         >
           {t({ ko: '인코딩', en: 'Encode', ja: 'エンコード' })}
-        </button>
-        <button
+        </button>} secondary={<button
+          aria-pressed={mode === 'decode'}
           onClick={() => handleModeChange('decode')}
           className={`flex-1 py-3 font-medium transition-colors
             ${mode === 'decode'
@@ -102,12 +104,11 @@ export default function UrlEncoder({ lang: initialLang }: { lang?: Language } = 
             }`}
         >
           {t({ ko: '디코딩', en: 'Decode', ja: 'デコード' })}
-        </button>
-      </div>
+        </button>} />
 
       {/* Options */}
       <div className="flex flex-wrap gap-4">
-        <label className="flex items-center gap-2 cursor-pointer">
+        <ToolField id="url-component" label={`encodeURIComponent (${t({ ko: '전체 인코딩', en: 'Full encoding', ja: '完全エンコード' })})`}>
           <input
             type="radio"
             name="encodeType"
@@ -115,14 +116,8 @@ export default function UrlEncoder({ lang: initialLang }: { lang?: Language } = 
             onChange={() => handleComponentToggle(true)}
             className="w-4 h-4 text-primary-500"
           />
-          <span className="text-sm text-[var(--color-text)]">
-            encodeURIComponent
-            <span className="text-[var(--color-text-muted)] ml-1">
-              ({t({ ko: '전체 인코딩', en: 'Full encoding', ja: '完全エンコード' })})
-            </span>
-          </span>
-        </label>
-        <label className="flex items-center gap-2 cursor-pointer">
+        </ToolField>
+        <ToolField id="url-structure" label={`encodeURI (${t({ ko: 'URL 구조 유지', en: 'Keep URL structure', ja: 'URL構造を維持' })})`}>
           <input
             type="radio"
             name="encodeType"
@@ -130,18 +125,11 @@ export default function UrlEncoder({ lang: initialLang }: { lang?: Language } = 
             onChange={() => handleComponentToggle(false)}
             className="w-4 h-4 text-primary-500"
           />
-          <span className="text-sm text-[var(--color-text)]">
-            encodeURI
-            <span className="text-[var(--color-text-muted)] ml-1">
-              ({t({ ko: 'URL 구조 유지', en: 'Keep URL structure', ja: 'URL構造を維持' })})
-            </span>
-          </span>
-        </label>
+        </ToolField>
       </div>
 
       {/* Examples */}
-      <div className="flex flex-wrap gap-2">
-        {examples.map((example) => (
+      <ToolActions className="flex flex-wrap gap-2" primary={examples.map((example) => (
           <button
             key={example.label}
             onClick={() => handleInputChange(example.value)}
@@ -150,28 +138,21 @@ export default function UrlEncoder({ lang: initialLang }: { lang?: Language } = 
           >
             {example.label}
           </button>
-        ))}
-      </div>
+        ))} />
 
       {/* Input */}
-      <div className="space-y-2">
-        <label className="block text-sm font-medium text-[var(--color-text)]">
-          {t({ ko: '입력', en: 'Input', ja: '入力' })}
-        </label>
+      <ToolField id="url-input" label={t({ ko: '입력', en: 'Input', ja: '入力' })} error={error || undefined}>
         <textarea
           value={input}
           onChange={(e) => handleInputChange(e.target.value)}
           placeholder={t({ ko: 'URL 또는 텍스트를 입력하세요', en: 'Enter URL or text', ja: 'URLまたはテキストを入力' })}
           rows={4}
-          className="w-full px-4 py-3 rounded-lg border border-[var(--color-border)]
-            bg-[var(--color-card)] text-[var(--color-text)] font-mono text-sm resize-y
-            focus:outline-none focus:ring-2 focus:ring-primary-500"
+          className="font-mono text-sm"
         />
-      </div>
+      </ToolField>
 
       {/* Swap Button */}
-      <div className="flex justify-center">
-        <button
+      <ToolActions className="justify-center" primary={<button
           onClick={swapInputOutput}
           disabled={!output}
           className="p-2 rounded-full bg-[var(--color-card)] hover:bg-[var(--color-card-hover)]
@@ -181,16 +162,13 @@ export default function UrlEncoder({ lang: initialLang }: { lang?: Language } = 
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
               d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4" />
           </svg>
-        </button>
-      </div>
+        </button>} />
 
       {/* Output */}
       <div className="space-y-2">
         <div className="flex justify-between items-center">
-          <label className="block text-sm font-medium text-[var(--color-text)]">
-            {t({ ko: '결과', en: 'Result', ja: '結果' })}
-          </label>
-          <button
+          <span />
+          <ToolActions primary={<button
             onClick={copyOutput}
             disabled={!output}
             className="px-3 py-1 text-sm bg-[var(--color-card)] hover:bg-[var(--color-card-hover)]
@@ -198,8 +176,9 @@ export default function UrlEncoder({ lang: initialLang }: { lang?: Language } = 
               disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {copied ? t({ ko: '복사됨!', en: 'Copied!', ja: 'コピーしました!' }) : t({ ko: '복사', en: 'Copy', ja: 'コピー' })}
-          </button>
+          </button>} />
         </div>
+        <ToolField id="url-output" label={t({ ko: '결과', en: 'Result', ja: '結果' })}>
         <textarea
           value={output}
           readOnly
@@ -208,15 +187,10 @@ export default function UrlEncoder({ lang: initialLang }: { lang?: Language } = 
             bg-[var(--color-bg)] text-[var(--color-text)] font-mono text-sm resize-y
             focus:outline-none"
         />
+        </ToolField>
       </div>
 
       {/* Error */}
-      {error && (
-        <div className="p-3 rounded-lg bg-red-100 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-red-600 dark:text-red-400">
-          {error}
-        </div>
-      )}
-
       {/* Reference */}
       <div className="p-4 rounded-lg bg-[var(--color-card)] border border-[var(--color-border)]">
         <h3 className="text-sm font-medium text-[var(--color-text)] mb-2">
@@ -227,6 +201,6 @@ export default function UrlEncoder({ lang: initialLang }: { lang?: Language } = 
           <p><code className="bg-[var(--color-bg)] px-1 rounded">encodeURI</code>: {t({ ko: 'URL 구조 문자 유지 (: / ? # 등)', en: 'Keeps URL structure chars (: / ? # etc)', ja: 'URL構造文字を維持（: / ? #など）' })}</p>
         </div>
       </div>
-    </div>
+    </ToolPanel>
   );
 }

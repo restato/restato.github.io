@@ -1,6 +1,8 @@
 import { useState, useMemo } from 'react';
 import { useTranslation } from '../../i18n/useTranslation';
-import type { Language } from '../../i18n';
+import { ToolActions } from './ui/ToolActions';
+import { ToolField } from './ui/ToolField';
+import { ToolPanel } from './ui/ToolPanel';
 
 interface TextStats {
   characters: number;
@@ -37,8 +39,8 @@ function analyzeText(text: string): TextStats {
   };
 }
 
-export default function TextCounter({ lang: initialLang }: { lang?: Language } = {}) {
-  const { t, translations } = useTranslation(initialLang);
+export default function TextCounter() {
+  const { t, translations } = useTranslation();
   const tt = translations.tools.textCounter;
   const tc = translations.tools.common;
 
@@ -56,7 +58,7 @@ export default function TextCounter({ lang: initialLang }: { lang?: Language } =
   ];
 
   return (
-    <div className="flex flex-col gap-6">
+    <ToolPanel className="gap-6">
       {/* Stats Grid */}
       <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
         {statItems.map(({ key, label, value, color }) => (
@@ -73,41 +75,27 @@ export default function TextCounter({ lang: initialLang }: { lang?: Language } =
       </div>
 
       {/* Text Input */}
-      <div className="space-y-2">
-        <label className="block text-sm font-medium text-[var(--color-text)]">
-          {t(tc.input)}
-        </label>
+      <ToolField id="text-counter-input" label={t(tc.input)}>
         <textarea
           value={text}
           onChange={(e) => setText(e.target.value)}
           placeholder={t(tt.placeholder)}
           rows={10}
-          className="w-full px-4 py-3 rounded-lg border border-[var(--color-border)]
-            bg-[var(--color-card)] text-[var(--color-text)] resize-y
-            focus:outline-none focus:ring-2 focus:ring-primary-500"
         />
-      </div>
+      </ToolField>
 
       {/* Actions */}
-      <div className="flex gap-2">
-        <button
-          onClick={() => setText('')}
-          className="px-4 py-2 bg-[var(--color-card)] hover:bg-[var(--color-card-hover)]
-            border border-[var(--color-border)] rounded-lg transition-colors"
-        >
-          {t(tc.clear)}
-        </button>
-        <button
+      <ToolActions
+        primary={<button
           onClick={async () => {
             const clipText = await navigator.clipboard.readText();
             setText(clipText);
           }}
-          className="px-4 py-2 bg-[var(--color-card)] hover:bg-[var(--color-card-hover)]
-            border border-[var(--color-border)] rounded-lg transition-colors"
         >
           {t({ ko: '붙여넣기', en: 'Paste', ja: '貼り付け' })}
-        </button>
-      </div>
+        </button>}
+        secondary={<button onClick={() => setText('')}>{t(tc.clear)}</button>}
+      />
 
       {/* Reading time estimate */}
       {stats.words > 0 && (
@@ -120,6 +108,6 @@ export default function TextCounter({ lang: initialLang }: { lang?: Language } =
           </p>
         </div>
       )}
-    </div>
+    </ToolPanel>
   );
 }

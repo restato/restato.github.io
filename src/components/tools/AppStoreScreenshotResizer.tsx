@@ -2,7 +2,9 @@ import { useState, useRef, useCallback } from 'react';
 import ReactCrop, { type Crop, centerCrop, makeAspectCrop } from 'react-image-crop';
 import 'react-image-crop/dist/ReactCrop.css';
 import { useTranslation } from '../../i18n/useTranslation';
-import type { Language } from '../../i18n';
+import { ToolPanel } from './ui/ToolPanel';
+import { ToolActions } from './ui/ToolActions';
+import { ToolField } from './ui/ToolField';
 
 interface ScreenSize {
   id: string;
@@ -96,8 +98,8 @@ interface ImageItem {
 type DeviceType = 'iphone' | 'ipad';
 type Orientation = 'portrait' | 'landscape';
 
-export default function AppStoreScreenshotResizer({ lang: initialLang }: { lang?: Language } = {}) {
-  const { t, translations } = useTranslation(initialLang);
+export default function AppStoreScreenshotResizer() {
+  const { t, translations } = useTranslation();
   const tt = translations.tools.appStoreScreenshot;
   const tc = translations.tools.common;
 
@@ -322,12 +324,13 @@ export default function AppStoreScreenshotResizer({ lang: initialLang }: { lang?
   const activeImage = images[activeImageIndex];
 
   return (
-    <div className="flex flex-col gap-6">
+    <ToolPanel className="gap-6">
       <canvas ref={canvasRef} className="hidden" />
 
       <input
         ref={fileInputRef}
         type="file"
+        aria-label={t({ ko: '이미지 파일 선택', en: 'Choose screenshot files', ja: 'スクリーンショットを選択' })}
         accept="image/*"
         multiple
         onChange={handleFileChange}
@@ -336,8 +339,10 @@ export default function AppStoreScreenshotResizer({ lang: initialLang }: { lang?
 
       {/* Drop Zone */}
       {images.length === 0 && (
-        <div
-          onClick={() => fileInputRef.current?.click()}
+        <ToolPanel
+          variant="drop-zone"
+          onActivate={() => fileInputRef.current?.click()}
+          aria-label={t(tt.dropzone)}
           onDrop={handleDrop}
           onDragOver={handleDragOver}
           onDragLeave={handleDragLeave}
@@ -355,7 +360,7 @@ export default function AppStoreScreenshotResizer({ lang: initialLang }: { lang?
           <p className="text-[var(--color-text-muted)] text-center">
             {t(tt.dropzone)}
           </p>
-        </div>
+        </ToolPanel>
       )}
 
       {images.length > 0 && (
@@ -363,9 +368,12 @@ export default function AppStoreScreenshotResizer({ lang: initialLang }: { lang?
           {/* Device Selection */}
           <div className="flex flex-col gap-4">
             {/* Device Type Tabs */}
-            <div className="flex gap-2">
-              <button
+            <ToolActions
+              selection
+              className="fc-segmented-control"
+              primary={<button
                 onClick={() => handleDeviceTypeChange('iphone')}
+                aria-pressed={deviceType === 'iphone'}
                 className={`flex-1 py-2 px-4 rounded-lg font-medium transition-colors
                   ${deviceType === 'iphone'
                     ? 'bg-primary-500 text-white'
@@ -373,9 +381,10 @@ export default function AppStoreScreenshotResizer({ lang: initialLang }: { lang?
                   }`}
               >
                 iPhone
-              </button>
-              <button
+              </button>}
+              secondary={<button
                 onClick={() => handleDeviceTypeChange('ipad')}
+                aria-pressed={deviceType === 'ipad'}
                 className={`flex-1 py-2 px-4 rounded-lg font-medium transition-colors
                   ${deviceType === 'ipad'
                     ? 'bg-primary-500 text-white'
@@ -383,15 +392,12 @@ export default function AppStoreScreenshotResizer({ lang: initialLang }: { lang?
                   }`}
               >
                 iPad
-              </button>
-            </div>
+              </button>}
+            />
 
             {/* Device & Size Selection */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div className="space-y-2">
-                <label className="text-sm font-medium text-[var(--color-text)]">
-                  {t(tt.selectDevice)}
-                </label>
+              <ToolField id="appstore-device" label={t(tt.selectDevice)}>
                 <select
                   value={selectedDevice.id}
                   onChange={(e) => handleDeviceChange(e.target.value)}
@@ -403,12 +409,9 @@ export default function AppStoreScreenshotResizer({ lang: initialLang }: { lang?
                     <option key={device.id} value={device.id}>{device.name}</option>
                   ))}
                 </select>
-              </div>
+              </ToolField>
 
-              <div className="space-y-2">
-                <label className="text-sm font-medium text-[var(--color-text)]">
-                  {t(tt.selectSize)}
-                </label>
+              <ToolField id="appstore-size" label={t(tt.selectSize)}>
                 <select
                   value={selectedSize.id}
                   onChange={(e) => handleSizeChange(e.target.value)}
@@ -420,15 +423,18 @@ export default function AppStoreScreenshotResizer({ lang: initialLang }: { lang?
                     <option key={size.id} value={size.id}>{size.label}</option>
                   ))}
                 </select>
-              </div>
+              </ToolField>
 
               <div className="space-y-2">
                 <label className="text-sm font-medium text-[var(--color-text)]">
                   {t(tt.orientation)}
                 </label>
-                <div className="flex gap-2">
-                  <button
+                <ToolActions
+                  selection
+                  className="fc-segmented-control"
+                  primary={<button
                     onClick={() => setOrientation('portrait')}
+                    aria-pressed={orientation === 'portrait'}
                     className={`flex-1 py-2 px-3 rounded-lg text-sm transition-colors
                       ${orientation === 'portrait'
                         ? 'bg-primary-500 text-white'
@@ -436,9 +442,10 @@ export default function AppStoreScreenshotResizer({ lang: initialLang }: { lang?
                       }`}
                   >
                     {t(tt.portrait)}
-                  </button>
-                  <button
+                  </button>}
+                  secondary={<button
                     onClick={() => setOrientation('landscape')}
+                    aria-pressed={orientation === 'landscape'}
                     className={`flex-1 py-2 px-3 rounded-lg text-sm transition-colors
                       ${orientation === 'landscape'
                         ? 'bg-primary-500 text-white'
@@ -446,8 +453,8 @@ export default function AppStoreScreenshotResizer({ lang: initialLang }: { lang?
                       }`}
                   >
                     {t(tt.landscape)}
-                  </button>
-                </div>
+                  </button>}
+                />
               </div>
             </div>
 
@@ -463,36 +470,44 @@ export default function AppStoreScreenshotResizer({ lang: initialLang }: { lang?
               {images.map((img, idx) => (
                 <div
                   key={img.id}
-                  className={`relative flex-shrink-0 cursor-pointer rounded-lg overflow-hidden border-2 transition-colors
-                    ${idx === activeImageIndex ? 'border-primary-500' : 'border-[var(--color-border)]'}`}
-                  onClick={() => setActiveImageIndex(idx)}
+                  className="relative flex-shrink-0"
                 >
-                  <img
-                    src={img.url}
-                    alt={`Image ${idx + 1}`}
-                    className="w-16 h-16 object-cover"
-                  />
                   <button
-                    onClick={(e) => { e.stopPropagation(); removeImage(idx); }}
-                    className="absolute top-0 right-0 w-5 h-5 bg-red-500 text-white text-xs flex items-center justify-center rounded-bl"
+                    type="button"
+                    aria-label={t({
+                      ko: `이미지 ${idx + 1} 선택`,
+                      en: `Select image ${idx + 1}`,
+                      ja: `画像 ${idx + 1} を選択`,
+                    })}
+                    aria-pressed={idx === activeImageIndex}
+                    className={`block overflow-hidden rounded-lg border-2 transition-colors
+                      ${idx === activeImageIndex ? 'border-primary-500' : 'border-[var(--color-border)]'}`}
+                    onClick={() => setActiveImageIndex(idx)}
                   >
-                    ×
+                    <img
+                      src={img.url}
+                      alt=""
+                      className="w-16 h-16 object-cover"
+                    />
+                    {img.processed && (
+                      <span data-contrast-target="appstore-processed" className="absolute bottom-0 left-0 right-0 bg-[var(--surface-soft)] py-0.5 text-center text-xs font-bold text-[var(--brand)]">
+                        ✓
+                      </span>
+                    )}
                   </button>
-                  {img.processed && (
-                    <div className="absolute bottom-0 left-0 right-0 bg-green-500 text-white text-xs text-center py-0.5">
-                      ✓
-                    </div>
-                  )}
+                  <ToolActions className="absolute top-0 right-0" primary={<button
+                    type="button"
+                    onClick={() => removeImage(idx)}
+                    aria-label={t({
+                      ko: `이미지 ${idx + 1} 제거`,
+                      en: `Remove image ${idx + 1}`,
+                      ja: `画像 ${idx + 1} を削除`,
+                    })}
+                  >×</button>} />
                 </div>
               ))}
               {images.length < 10 && (
-                <button
-                  onClick={() => fileInputRef.current?.click()}
-                  className="flex-shrink-0 w-16 h-16 border-2 border-dashed border-[var(--color-border)] rounded-lg
-                    flex items-center justify-center text-2xl text-[var(--color-text-muted)] hover:border-primary-500"
-                >
-                  +
-                </button>
+                <ToolActions primary={<button onClick={() => fileInputRef.current?.click()} aria-label={t(tt.dropzone)}>+</button>} />
               )}
             </div>
           )}
@@ -505,13 +520,7 @@ export default function AppStoreScreenshotResizer({ lang: initialLang }: { lang?
                   {t(tt.adjustCrop)}
                 </span>
                 {images.length > 1 && (
-                  <button
-                    onClick={applyToAll}
-                    className="px-3 py-1 text-sm bg-[var(--color-card)] hover:bg-[var(--color-card-hover)]
-                      border border-[var(--color-border)] rounded-lg transition-colors"
-                  >
-                    {t(tt.applyToAll)}
-                  </button>
+                  <ToolActions primary={<button onClick={applyToAll}>{t(tt.applyToAll)}</button>} />
                 )}
               </div>
 
@@ -535,8 +544,8 @@ export default function AppStoreScreenshotResizer({ lang: initialLang }: { lang?
           )}
 
           {/* Actions */}
-          <div className="flex gap-2">
-            <button
+          <ToolActions
+            primary={<button
               onClick={processAll}
               disabled={isProcessing}
               className="flex-1 py-3 bg-primary-500 hover:bg-primary-600 disabled:bg-gray-400 text-white rounded-lg
@@ -545,15 +554,15 @@ export default function AppStoreScreenshotResizer({ lang: initialLang }: { lang?
               {isProcessing
                 ? t({ ko: '처리 중...', en: 'Processing...', ja: '処理中...' })
                 : t(tt.processAll)}
-            </button>
-            <button
+            </button>}
+            secondary={<button
               onClick={reset}
               className="px-4 py-3 bg-[var(--color-card)] hover:bg-[var(--color-card-hover)]
                 border border-[var(--color-border)] rounded-lg transition-colors"
             >
               {t(tc.reset)}
-            </button>
-          </div>
+            </button>}
+          />
 
           {/* Processed Results */}
           {images.some(img => img.processed) && (
@@ -562,17 +571,13 @@ export default function AppStoreScreenshotResizer({ lang: initialLang }: { lang?
                 <span className="text-sm font-medium text-[var(--color-text)]">
                   {t({ ko: '처리된 이미지', en: 'Processed Images', ja: '処理済み画像' })}
                 </span>
-                <button
-                  onClick={downloadAll}
-                  className="px-4 py-2 bg-green-500 hover:bg-green-600 text-white rounded-lg
-                    font-medium transition-colors flex items-center gap-2"
-                >
+                <ToolActions primary={<button onClick={downloadAll}>
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
                       d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
                   </svg>
                   {t(tt.downloadAll)}
-                </button>
+                </button>} />
               </div>
 
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
@@ -586,16 +591,12 @@ export default function AppStoreScreenshotResizer({ lang: initialLang }: { lang?
                       alt={`Processed ${idx + 1}`}
                       className="w-full h-auto"
                     />
-                    <button
-                      onClick={() => downloadImage(img, idx)}
-                      className="absolute bottom-2 right-2 w-8 h-8 bg-green-500 hover:bg-green-600 text-white rounded-full
-                        flex items-center justify-center transition-colors"
-                    >
+                    <ToolActions className="absolute bottom-2 right-2" primary={<button onClick={() => downloadImage(img, idx)} aria-label={`${t(tc.download)} ${idx + 1}`}>
                       <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
                           d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
                       </svg>
-                    </button>
+                    </button>} />
                   </div>
                 ))}
               </div>
@@ -603,6 +604,6 @@ export default function AppStoreScreenshotResizer({ lang: initialLang }: { lang?
           )}
         </>
       )}
-    </div>
+    </ToolPanel>
   );
 }

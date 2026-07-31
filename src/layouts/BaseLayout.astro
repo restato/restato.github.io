@@ -1,5 +1,10 @@
 ---
 import '../styles/global.css';
+import { localeMetadata } from '../i18n';
+import type { Language } from '../data/tools/types';
+import { normalizeHeadAlternates, parseLanguage } from '../i18n/urlUtils';
+import ConsentBanner from '../components/ConsentBanner.astro';
+import { getAdsenseClient } from '../lib/ad-config';
 
 interface AlternateUrl {
   lang: string;
@@ -16,7 +21,7 @@ interface Props {
   author?: string;
   robots?: string;
   canonical?: string;
-  lang?: 'ko' | 'en' | 'ja';
+  lang?: Language;
   lockLanguage?: boolean;
   alternateUrls?: AlternateUrl[];
 }
@@ -36,19 +41,26 @@ const {
   alternateUrls = []
 } = Astro.props;
 
-// Locale mapping
-const localeMap: Record<string, string> = {
-  ko: 'ko_KR',
-  en: 'en_US',
-  ja: 'ja_JP'
-};
-const ogLocale = localeMap[lang] || 'ko_KR';
+const ogLocale = localeMetadata[lang].og;
+
+const normalizedAlternateUrls = normalizeHeadAlternates(alternateUrls);
+const clientLocaleMap = Object.fromEntries(
+  Object.entries(localeMetadata).map(([code, metadata]) => [code, { html: metadata.html, ogLocale: metadata.og }]),
+);
+const metadataLanguageLocked = lockLanguage || parseLanguage(Astro.url.pathname) !== null;
 
 const canonicalURL = canonical
   ? new URL(canonical, Astro.site)
   : new URL(Astro.url.pathname, Astro.site);
 const siteName = 'Restato';
 const twitterHandle = '@restato_dev';
+const gaId = import.meta.env.PUBLIC_GA_ID?.trim() ?? '';
+const adsenseClient = getAdsenseClient({
+  PUBLIC_ADSENSE_ENABLED: import.meta.env.PUBLIC_ADSENSE_ENABLED,
+  PUBLIC_ADSENSE_CLIENT: import.meta.env.PUBLIC_ADSENSE_CLIENT,
+  PUBLIC_ADSENSE_SLOT_TOOL: import.meta.env.PUBLIC_ADSENSE_SLOT_TOOL,
+  PUBLIC_ADSENSE_SLOT_CATALOG: import.meta.env.PUBLIC_ADSENSE_SLOT_CATALOG,
+});
 
 // JSON-LD Schema
 const websiteSchema = {
@@ -97,10 +109,11 @@ const articleSchema = type === 'article' ? {
 ---
 
 <!doctype html>
-<html lang={lang}>
+<html lang={localeMetadata[lang].html} dir={localeMetadata[lang].dir} data-locale-map={JSON.stringify(clientLocaleMap)}>
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="color-scheme" content="light dark" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <link rel="sitemap" href="/sitemap-index.xml" />
 
@@ -110,12 +123,9 @@ const articleSchema = type === 'article' ? {
     <link rel="canonical" href={canonicalURL} />
 
     <!-- hreflang for multi-language -->
-    {alternateUrls.length > 0 && alternateUrls.map(alt => (
+    {normalizedAlternateUrls.map(alt => (
       <link rel="alternate" hreflang={alt.lang} href={alt.url} />
     ))}
-    {alternateUrls.length > 0 && (
-      <link rel="alternate" hreflang="x-default" href={alternateUrls.find(a => a.lang === 'en')?.url || canonicalURL.toString()} />
-    )}
 
     <!-- Open Graph -->
     <meta property="og:type" content={type} />
@@ -148,7 +158,7 @@ const articleSchema = type === 'article' ? {
     <meta name="robots" content={robots} />
     <meta name="googlebot" content={robots} />
     <meta name="google-site-verification" content="0GLTtjarMTr8NsaJaP-z0tbHPycvu_rOoQykr81BL0o" />
-    <meta name="google-adsense-account" content="ca-pub-5341896100319873" />
+    {adsenseClient && <meta name="google-adsense-account" content={adsenseClient} />}
     <link rel="alternate" type="application/rss+xml" title="RSS Feed" href="/rss.xml" />
     <slot name="head" />
 
@@ -157,22 +167,6 @@ const articleSchema = type === 'article' ? {
     {articleSchema && (
       <script type="application/ld+json" set:html={JSON.stringify(articleSchema)} />
     )}
-
-    <!-- Google Analytics -->
-    <script async src="https://www.googletagmanager.com/gtag/js?id=G-CJKYE91FQM"></script>
-    <script is:inline>
-      window.dataLayer = window.dataLayer || [];
-      function gtag(){dataLayer.push(arguments);}
-      gtag('js', new Date());
-      gtag('config', 'G-CJKYE91FQM');
-    </script>
-
-    <!-- Fonts -->
-    <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin />
-    <link
-      href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css"
-      rel="stylesheet"
-    />
 
     <!-- Theme Script -->
     <script is:inline>
@@ -192,14 +186,10 @@ const articleSchema = type === 'article' ? {
     </script>
 
     <!-- Language Script -->
-    {!lockLanguage && (
+    {!metadataLanguageLocked && (
       <script is:inline>
         (function() {
-          const langMap = {
-            ko: { html: 'ko', ogLocale: 'ko_KR' },
-            en: { html: 'en', ogLocale: 'en_US' },
-            ja: { html: 'ja', ogLocale: 'ja_JP' }
-          };
+          const langMap = JSON.parse(document.documentElement.dataset.localeMap || '{}');
 
           function updateHtmlLang(lang) {
             const config = langMap[lang];
@@ -230,5 +220,6 @@ const articleSchema = type === 'article' ? {
   </head>
   <body class="min-h-screen flex flex-col">
     <slot />
+    <ConsentBanner lang={lang} gaId={gaId} />
   </body>
 </html>

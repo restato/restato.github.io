@@ -160,17 +160,19 @@ export default function MemoryGame() {
   };
 
   return (
-    <div className="max-w-lg mx-auto">
+    <div className="fc-game mx-auto max-w-lg">
       {/* 난이도 선택 */}
       <div className="flex justify-center gap-2 mb-6">
         {(['easy', 'normal', 'hard'] as const).map((diff) => (
           <button
             key={diff}
+            type="button"
             onClick={() => setDifficulty(diff)}
-            className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+            aria-pressed={difficulty === diff}
+            className={`fc-button text-sm ${
               difficulty === diff
-                ? 'bg-primary-500 text-white'
-                : 'bg-[var(--color-card)] border border-[var(--color-border)] hover:bg-[var(--color-card-hover)]'
+                ? 'fc-button-primary'
+                : 'fc-button-secondary'
             }`}
           >
             {getDifficultySettings(diff).label}
@@ -179,17 +181,17 @@ export default function MemoryGame() {
       </div>
 
       {/* 게임 정보 */}
-      <div className="flex justify-between items-center mb-6 p-4 bg-[var(--color-card)] rounded-xl border border-[var(--color-border)]">
+      <div className="fc-surface mb-6 flex items-center justify-between p-4">
         <div className="text-center">
-          <div className="text-2xl font-bold text-primary-500">{formatTime(time)}</div>
+          <div className="text-2xl font-bold text-[var(--brand)]">{formatTime(time)}</div>
           <div className="text-sm text-[var(--color-text-muted)]">시간</div>
         </div>
         <div className="text-center">
-          <div className="text-2xl font-bold text-green-500">{matches}/{settings.pairs}</div>
+          <div className="text-2xl font-bold text-[var(--brand)]">{matches}/{settings.pairs}</div>
           <div className="text-sm text-[var(--color-text-muted)]">매치</div>
         </div>
         <div className="text-center">
-          <div className="text-2xl font-bold text-yellow-500">{moves}</div>
+          <div className="text-2xl font-bold text-[var(--accent)]">{moves}</div>
           <div className="text-sm text-[var(--color-text-muted)]">시도</div>
         </div>
       </div>
@@ -202,13 +204,15 @@ export default function MemoryGame() {
         {cards.map((card) => (
           <button
             key={card.id}
+            type="button"
             onClick={() => handleCardClick(card.id)}
             disabled={card.isFlipped || card.isMatched || isChecking}
-            className={`aspect-square rounded-xl text-3xl md:text-4xl flex items-center justify-center transition-all duration-300 transform ${
+            aria-label={card.isFlipped || card.isMatched ? card.emoji : '숨겨진 카드'}
+            className={`fc-game-cell aspect-square rounded-xl text-3xl md:text-4xl flex items-center justify-center duration-300 ${
               card.isFlipped || card.isMatched
-                ? 'bg-white dark:bg-gray-700 rotate-0'
-                : 'bg-gradient-to-br from-primary-500 to-purple-500 rotate-0 hover:scale-105'
-            } ${card.isMatched ? 'opacity-70 scale-95' : ''}`}
+                ? 'bg-[var(--surface-raised)] border border-[var(--border-subtle)]'
+                : 'bg-[var(--brand)] hover:bg-[var(--brand-hover)]'
+            } ${card.isMatched ? 'opacity-70' : ''}`}
             style={{
               transformStyle: 'preserve-3d',
             }}
@@ -224,15 +228,16 @@ export default function MemoryGame() {
 
       {/* 게임 오버 */}
       {gameOver && (
-        <div className="p-6 bg-gradient-to-r from-green-500/20 to-emerald-500/20 rounded-xl border border-green-500 text-center mb-6 animate-bounce">
+        <div className="fc-surface fc-surface-soft mb-6 p-6 text-center" role="status">
           <div className="text-5xl mb-4">🎉</div>
           <h3 className="text-2xl font-bold mb-2">축하합니다!</h3>
           <p className="text-[var(--color-text-muted)] mb-4">
             {formatTime(time)} / {moves}번 시도
           </p>
           <button
+            type="button"
             onClick={startNewGame}
-            className="px-6 py-3 bg-primary-500 text-white rounded-lg font-bold hover:bg-primary-600"
+            className="fc-button fc-button-primary"
           >
             다시 하기
           </button>
@@ -242,8 +247,9 @@ export default function MemoryGame() {
       {/* 새 게임 버튼 */}
       {!gameOver && (
         <button
+          type="button"
           onClick={startNewGame}
-          className="w-full py-3 border border-[var(--color-border)] rounded-lg hover:bg-[var(--color-card)] transition-colors"
+          className="fc-button fc-button-secondary w-full"
         >
           새 게임
         </button>
@@ -251,7 +257,7 @@ export default function MemoryGame() {
 
       {/* 최고 기록 */}
       {Object.keys(bestScores).length > 0 && (
-        <div className="mt-6 p-4 bg-[var(--color-card)] rounded-xl border border-[var(--color-border)]">
+        <div className="fc-surface mt-6 p-4">
           <h3 className="font-bold mb-3 text-center">🏆 최고 기록</h3>
           <div className="space-y-2">
             {(['easy', 'normal', 'hard'] as const).map((diff) => {
@@ -265,7 +271,7 @@ export default function MemoryGame() {
                   <span className="text-[var(--color-text-muted)]">
                     {getDifficultySettings(diff).label}
                   </span>
-                  <span className="font-bold text-yellow-500">{formatTime(score)}</span>
+                  <span className="font-bold text-[var(--accent)]">{formatTime(score)}</span>
                 </div>
               );
             })}

@@ -1,6 +1,8 @@
 import { useState, useMemo } from 'react';
 import { useTranslation } from '../../i18n/useTranslation';
-import type { Language } from '../../i18n';
+import { ToolActions } from './ui/ToolActions';
+import { ToolField } from './ui/ToolField';
+import { ToolPanel } from './ui/ToolPanel';
 
 interface ColorStop {
   color: string;
@@ -20,8 +22,8 @@ const PRESETS = [
   { name: 'Mint', colors: ['#00b09b', '#96c93d'] },
 ];
 
-export default function GradientGenerator({ lang: initialLang }: { lang?: Language } = {}) {
-  const { t } = useTranslation(initialLang);
+export default function GradientGenerator() {
+  const { t } = useTranslation();
 
   const [gradientType, setGradientType] = useState<GradientType>('linear');
   const [angle, setAngle] = useState(90);
@@ -98,7 +100,7 @@ export default function GradientGenerator({ lang: initialLang }: { lang?: Langua
   };
 
   return (
-    <div className="flex flex-col gap-6">
+    <ToolPanel className="gap-6">
       {/* Preview */}
       <div
         className="w-full h-48 rounded-xl shadow-lg"
@@ -106,10 +108,13 @@ export default function GradientGenerator({ lang: initialLang }: { lang?: Langua
       />
 
       {/* Type Selection */}
-      <div className="flex rounded-lg overflow-hidden border border-[var(--color-border)]">
-        {(['linear', 'radial', 'conic'] as GradientType[]).map((type) => (
+      <ToolActions
+        selection
+        className="grid grid-cols-3"
+        primary={(['linear'] as GradientType[]).map((type) => (
           <button
             key={type}
+            aria-pressed={gradientType === type}
             onClick={() => setGradientType(type)}
             className={`flex-1 py-2 font-medium transition-colors capitalize
               ${gradientType === type
@@ -120,7 +125,10 @@ export default function GradientGenerator({ lang: initialLang }: { lang?: Langua
             {type}
           </button>
         ))}
-      </div>
+        secondary={(['radial', 'conic'] as GradientType[]).map((type) => (
+          <button key={type} aria-pressed={gradientType === type} onClick={() => setGradientType(type)} className="capitalize">{type}</button>
+        ))}
+      />
 
       {/* Angle (for linear and conic) */}
       {(gradientType === 'linear' || gradientType === 'conic') && (
@@ -131,6 +139,7 @@ export default function GradientGenerator({ lang: initialLang }: { lang?: Langua
             </label>
             <span className="text-sm text-[var(--color-text-muted)]">{angle}°</span>
           </div>
+          <ToolField id="gradient-angle" label={t({ ko: '각도', en: 'Angle', ja: '角度' })}>
           <input
             type="range"
             min="0"
@@ -139,6 +148,7 @@ export default function GradientGenerator({ lang: initialLang }: { lang?: Langua
             onChange={(e) => setAngle(Number(e.target.value))}
             className="w-full accent-primary-500"
           />
+          </ToolField>
         </div>
       )}
 
@@ -148,24 +158,27 @@ export default function GradientGenerator({ lang: initialLang }: { lang?: Langua
           <label className="text-sm font-medium text-[var(--color-text)]">
             {t({ ko: '색상 정지점', en: 'Color Stops', ja: 'カラーストップ' })}
           </label>
-          <button
+          <ToolActions primary={<button
             onClick={addColorStop}
             disabled={colorStops.length >= 10}
             className="px-3 py-1 text-sm bg-primary-500 hover:bg-primary-600 text-white rounded
               transition-colors disabled:opacity-50"
           >
             + {t({ ko: '추가', en: 'Add', ja: '追加' })}
-          </button>
+          </button>} />
         </div>
 
         {colorStops.map((stop, index) => (
-          <div key={index} className="flex items-center gap-3 p-3 rounded-lg bg-[var(--color-card)] border border-[var(--color-border)]">
+          <div key={index} className="flex min-w-0 items-center gap-2 p-3 rounded-lg bg-[var(--color-card)] border border-[var(--color-border)]">
+            <ToolField id={`gradient-color-${index}`} label={`${t({ ko: '색상', en: 'Color', ja: '色' })} ${index + 1}`}>
             <input
               type="color"
               value={stop.color}
               onChange={(e) => updateColorStop(index, { color: e.target.value })}
-              className="w-10 h-10 rounded cursor-pointer border-0"
+              className="h-10 w-10 shrink-0 rounded cursor-pointer border-0"
             />
+            </ToolField>
+            <ToolField id={`gradient-stop-${index}`} label={`${t({ ko: '색상 정지점', en: 'Color stop', ja: 'カラーストップ' })} ${index + 1}`}>
             <input
               type="text"
               value={stop.color}
@@ -174,28 +187,31 @@ export default function GradientGenerator({ lang: initialLang }: { lang?: Langua
                   updateColorStop(index, { color: e.target.value });
                 }
               }}
-              className="w-24 px-2 py-1 rounded border border-[var(--color-border)]
-                bg-[var(--color-bg)] text-[var(--color-text)] font-mono text-sm"
+              className="w-20 shrink-0 font-mono text-sm"
             />
+            </ToolField>
+            <ToolField id={`gradient-position-${index}`} label={`${t({ ko: '위치', en: 'Position', ja: '位置' })} ${index + 1}`}>
             <input
               type="range"
               min="0"
               max="100"
               value={stop.position}
               onChange={(e) => updateColorStop(index, { position: Number(e.target.value) })}
-              className="flex-1 accent-primary-500"
+              className="min-w-0 flex-1 accent-primary-500"
             />
-            <span className="w-12 text-sm text-[var(--color-text-muted)]">{stop.position}%</span>
-            <button
+            </ToolField>
+            <span className="w-10 shrink-0 text-sm text-[var(--color-text-muted)]">{stop.position}%</span>
+            <ToolActions primary={<button
+              aria-label={`${t({ ko: '색상 정지점 제거', en: 'Remove color stop', ja: 'カラーストップを削除' })} ${index + 1}`}
               onClick={() => removeColorStop(index)}
               disabled={colorStops.length <= 2}
-              className="p-1 text-red-500 hover:bg-red-100 dark:hover:bg-red-900/30 rounded
+              className="shrink-0 p-1 text-red-500 hover:bg-red-100 dark:hover:bg-red-900/30 rounded
                 transition-colors disabled:opacity-30"
             >
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
               </svg>
-            </button>
+            </button>} />
           </div>
         ))}
       </div>
@@ -205,12 +221,12 @@ export default function GradientGenerator({ lang: initialLang }: { lang?: Langua
         <label className="text-sm font-medium text-[var(--color-text)]">
           {t({ ko: '프리셋', en: 'Presets', ja: 'プリセット' })}
         </label>
-        <div className="flex flex-wrap gap-2">
+        <ToolActions className="flex flex-wrap gap-2" primary={<>
           {PRESETS.map((preset) => (
             <button
               key={preset.name}
               onClick={() => applyPreset(preset.colors)}
-              className="w-12 h-8 rounded-lg shadow-sm hover:scale-110 transition-transform"
+              className="w-12 h-8 rounded-lg shadow-sm"
               style={{
                 background: `linear-gradient(90deg, ${preset.colors.join(', ')})`,
               }}
@@ -224,20 +240,20 @@ export default function GradientGenerator({ lang: initialLang }: { lang?: Langua
           >
             🎲 {t({ ko: '랜덤', en: 'Random', ja: 'ランダム' })}
           </button>
-        </div>
+        </>} />
       </div>
 
       {/* CSS Output */}
       <div className="space-y-2">
         <div className="flex justify-between items-center">
           <label className="text-sm font-medium text-[var(--color-text)]">CSS</label>
-          <button
+          <ToolActions primary={<button
             onClick={copyToClipboard}
             className="px-3 py-1 text-sm bg-[var(--color-card)] hover:bg-[var(--color-card-hover)]
               border border-[var(--color-border)] rounded transition-colors"
           >
             {copied ? t({ ko: '복사됨!', en: 'Copied!', ja: 'コピーしました!' }) : t({ ko: '복사', en: 'Copy', ja: 'コピー' })}
-          </button>
+          </button>} />
         </div>
         <div className="p-4 rounded-lg bg-[var(--color-bg)] border border-[var(--color-border)]">
           <code className="text-sm font-mono text-[var(--color-text)] break-all">
@@ -245,6 +261,6 @@ export default function GradientGenerator({ lang: initialLang }: { lang?: Langua
           </code>
         </div>
       </div>
-    </div>
+    </ToolPanel>
   );
 }

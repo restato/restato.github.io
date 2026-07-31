@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen } from '@testing-library/react';
+import { fireEvent, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import RegexTester from '../RegexTester';
 import './testUtils';
@@ -12,26 +12,22 @@ describe('RegexTester', () => {
   it('renders pattern input and test string area', () => {
     render(<RegexTester />);
 
-    expect(screen.getByPlaceholderText(/패턴|pattern/i)).toBeInTheDocument();
+    expect(screen.getByPlaceholderText('[a-z]+')).toBeInTheDocument();
   });
 
   it('finds matches with simple pattern', async () => {
     render(<RegexTester />);
     const user = userEvent.setup();
 
-    // Find pattern input (first text input)
     const inputs = screen.getAllByRole('textbox');
     const patternInput = inputs[0];
+    const testArea = inputs[2];
 
     await user.type(patternInput, 'hello');
-
-    // Find test string input (textarea)
-    const testArea = screen.getByRole('textbox', { name: '' }) || inputs[1];
-    await user.clear(testArea);
     await user.type(testArea, 'hello world hello');
 
-    // Should show matches
-    expect(screen.getByText(/매치|match/i)).toBeInTheDocument();
+    expect(screen.getByText(/매치\s*\(2\)/)).toBeInTheDocument();
+    expect(screen.getAllByText('hello')).toHaveLength(4);
   });
 
   it('shows no match message when pattern does not match', async () => {
@@ -40,11 +36,9 @@ describe('RegexTester', () => {
 
     const inputs = screen.getAllByRole('textbox');
     const patternInput = inputs[0];
+    const testArea = inputs[2];
 
     await user.type(patternInput, 'xyz');
-
-    const testArea = inputs[1];
-    await user.clear(testArea);
     await user.type(testArea, 'hello world');
 
     // Should show no match
@@ -57,37 +51,41 @@ describe('RegexTester', () => {
 
     const inputs = screen.getAllByRole('textbox');
     const patternInput = inputs[0];
+    const testArea = inputs[2];
 
-    // Case insensitive pattern
     await user.type(patternInput, 'HELLO');
-
-    const testArea = inputs[1];
-    await user.clear(testArea);
     await user.type(testArea, 'hello world');
 
-    // Check if there's an "i" flag checkbox or input
-    const flagsInput = screen.getAllByRole('textbox').find(
-      input => input.getAttribute('placeholder')?.includes('플래그') ||
-               input.getAttribute('placeholder')?.includes('flag')
-    );
+    await user.click(screen.getByRole('button', { name: 'Ignore case (i)' }));
 
-    if (flagsInput) {
-      await user.type(flagsInput, 'i');
-    }
+    expect(screen.getByText(/매치\s*\(1\)/)).toBeInTheDocument();
+    expect(screen.getAllByText('hello')).toHaveLength(2);
   });
 
   it('handles invalid regex gracefully', async () => {
     render(<RegexTester />);
-    const user = userEvent.setup();
-
     const inputs = screen.getAllByRole('textbox');
     const patternInput = inputs[0];
+    const testArea = inputs[2];
 
-    // Invalid regex pattern
-    await user.type(patternInput, '[invalid(');
+    fireEvent.change(patternInput, { target: { value: '[invalid(' } });
+    fireEvent.change(testArea, { target: { value: 'test' } });
 
-    // Should not crash, may show error message
-    expect(patternInput).toBeInTheDocument();
+    expect(screen.getByText(/invalid regular expression/i)).toBeInTheDocument();
+  });
+
+  it('suppresses output for empty test text and matches non-Latin text', () => {
+    render(<RegexTester />);
+    const inputs = screen.getAllByRole('textbox');
+
+    fireEvent.change(inputs[0], { target: { value: 'before' } });
+    fireEvent.change(inputs[2], { target: { value: 'before' } });
+    expect(screen.getByText(/매치\s*\(1\)/)).toBeInTheDocument();
+    fireEvent.change(inputs[2], { target: { value: '' } });
+    expect(screen.queryByText(/매치\s*\(1\)/)).not.toBeInTheDocument();
+    fireEvent.change(inputs[0], { target: { value: '한글' } });
+    fireEvent.change(inputs[2], { target: { value: '한글 도구' } });
+    expect(screen.getByText(/매치\s*\(1\)/)).toBeInTheDocument();
   });
 
   it('highlights matching groups', async () => {
@@ -96,15 +94,13 @@ describe('RegexTester', () => {
 
     const inputs = screen.getAllByRole('textbox');
     const patternInput = inputs[0];
+    const testArea = inputs[2];
 
-    // Pattern with capture groups
-    await user.type(patternInput, '(\\w+)@(\\w+)');
+    fireEvent.change(patternInput, { target: { value: '(\\w+)@(\\w+)' } });
+    fireEvent.change(testArea, { target: { value: 'test@example' } });
 
-    const testArea = inputs[1];
-    await user.clear(testArea);
-    await user.type(testArea, 'test@example');
-
-    // Should show group information
-    expect(screen.getByText(/그룹|group/i)).toBeInTheDocument();
+    expect(screen.getByText('그룹:')).toBeInTheDocument();
+    expect(screen.getByText('$1: test')).toBeInTheDocument();
+    expect(screen.getByText('$2: example')).toBeInTheDocument();
   });
 });

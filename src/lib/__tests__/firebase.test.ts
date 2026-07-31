@@ -12,6 +12,7 @@ vi.mock('firebase/database', async () => {
     push,
     remove,
     onValue,
+    runTransaction,
     ref,
     getDatabase,
     resetMockDatabase,
@@ -25,11 +26,12 @@ vi.mock('firebase/database', async () => {
     get,
     push,
     onValue,
+    runTransaction,
     remove,
   };
 });
 
-import { createRoom, joinRoom, findWaitingRoom, cleanupExpiredRooms, getRoom } from '../firebase';
+import { createRoom, joinRoom, findWaitingRoom, cleanupExpiredRooms, getRoom, subscribeToRoom } from '../firebase';
 import { resetMockDatabase, setMockData } from '../../test/mocks/firebase';
 
 describe('Firebase Functions', () => {
@@ -88,6 +90,26 @@ describe('Firebase Functions', () => {
       expect(room).toBeDefined();
       expect(room?.hostPeerId).toBe(hostPeerId);
       expect(room?.guestPeerId).toBe(guestPeerId);
+      await expect(getRoom(roomId)).resolves.toMatchObject({ guestPeerId });
+    });
+
+    it('reserves a room for only one guest', async () => {
+      const roomId = await createRoom('host-123');
+
+      await expect(joinRoom(roomId, 'guest-1')).resolves.toMatchObject({ guestPeerId: 'guest-1' });
+      await expect(joinRoom(roomId, 'guest-2')).resolves.toBeNull();
+      await expect(getRoom(roomId)).resolves.toMatchObject({ guestPeerId: 'guest-1' });
+    });
+
+    it('allows exactly one concurrent guest reservation', async () => {
+      const roomId = await createRoom('host-123');
+      const results = await Promise.all([
+        joinRoom(roomId, 'guest-1'),
+        joinRoom(roomId, 'guest-2'),
+      ]);
+
+      expect(results.filter(Boolean)).toHaveLength(1);
+      expect((await getRoom(roomId))?.guestPeerId).toMatch(/guest-[12]/);
     });
 
     it('should return null for non-existent room', async () => {
@@ -113,6 +135,19 @@ describe('Firebase Functions', () => {
       const room = await joinRoom(roomId, guestPeerId);
 
       expect(room).toBeNull();
+    });
+  });
+
+  describe('subscribeToRoom', () => {
+    it('publishes persisted room state after a guest joins', async () => {
+      const roomId = await createRoom('host-123');
+      const states: Array<string | null | undefined> = [];
+      const unsubscribe = subscribeToRoom(roomId, (room) => states.push(room?.guestPeerId));
+
+      await joinRoom(roomId, 'guest-456');
+
+      expect(states).toEqual([undefined, 'guest-456']);
+      unsubscribe();
     });
   });
 

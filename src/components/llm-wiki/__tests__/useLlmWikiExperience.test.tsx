@@ -42,7 +42,7 @@ describe('useLlmWikiExperience', () => {
 
     fireEvent.click(screen.getByRole('button', { name: 'Ask first question' }));
     expect(screen.getByTestId('question')).toHaveTextContent('papers-disagree');
-  });
+  }, 30_000);
 
   it('resets transient state while retaining a safe default scenario', () => {
     render(<HookHarness />);

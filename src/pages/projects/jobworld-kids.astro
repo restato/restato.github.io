@@ -149,12 +149,13 @@ const steps = [
   <script type="application/ld+json" set:html={JSON.stringify(appSchema)} />
   <script type="application/ld+json" set:html={JSON.stringify(breadcrumbSchema)} />
 
+  <div class="fc-page fc-content fc-section-flow">
   <!-- Hero Section -->
-  <section class="py-16 px-4 bg-gradient-to-b from-blue-500/5 to-transparent">
-    <div class="max-w-6xl mx-auto">
+  <section class="fc-surface fc-surface-padding-md">
+    <div>
       <div class="grid lg:grid-cols-2 gap-12 items-center">
         <div>
-          <span class="inline-block px-3 py-1 text-sm font-medium bg-blue-500/10 text-blue-600 dark:text-blue-400 rounded-full mb-4">
+          <span class="fc-eyebrow mb-4 inline-block">
             한국잡월드 어린이체험관
           </span>
           <h1 class="text-4xl md:text-5xl font-bold mb-4">
@@ -173,7 +174,7 @@ const steps = [
               href={appUrl}
               target="_blank"
               rel="noopener noreferrer"
-              class="inline-flex items-center px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-xl transition-colors"
+              class="fc-button fc-button-primary"
             >
               지금 시작하기
               <svg class="w-5 h-5 ml-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -182,7 +183,7 @@ const steps = [
             </a>
             <a
               href="#features"
-              class="inline-flex items-center px-6 py-3 border border-[var(--color-border)] hover:bg-[var(--color-card-hover)] font-medium rounded-xl transition-colors"
+              class="fc-button fc-button-secondary"
             >
               기능 살펴보기
               <svg class="w-5 h-5 ml-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -194,8 +195,8 @@ const steps = [
         <div class="relative">
           <div class="relative mx-auto w-[280px] md:w-[320px]">
             <!-- Phone Frame -->
-            <div class="relative bg-gray-900 rounded-[3rem] p-3 shadow-2xl">
-              <div class="absolute top-0 left-1/2 transform -translate-x-1/2 w-32 h-6 bg-gray-900 rounded-b-2xl"></div>
+            <div class="fc-surface relative rounded-[3rem] p-3">
+              <div class="absolute top-0 left-1/2 h-6 w-32 -translate-x-1/2 rounded-b-2xl bg-[var(--text-primary)]"></div>
               <img
                 src="/images/projects/jobworld/hero.png"
                 alt="잡월드 키즈 플래너 앱 화면"
@@ -210,25 +211,25 @@ const steps = [
   </section>
 
   <!-- Pain Points Section -->
-  <section class="py-16 px-4">
+  <section>
     <div class="max-w-4xl mx-auto">
       <h2 class="text-3xl font-bold text-center mb-12">이런 고민 있으셨나요?</h2>
       <div class="grid md:grid-cols-3 gap-6">
-        <div class="p-6 bg-[var(--color-card)] rounded-xl border border-[var(--color-border)]">
+        <div class="fc-surface fc-surface-padding-md">
           <div class="text-4xl mb-4">😵</div>
           <h3 class="font-bold mb-2">42개 체험실, 어디부터?</h3>
           <p class="text-sm text-[var(--color-text-muted)]">
             "처음 가는데 뭘 해야 할지 모르겠어요"
           </p>
         </div>
-        <div class="p-6 bg-[var(--color-card)] rounded-xl border border-[var(--color-border)]">
+        <div class="fc-surface fc-surface-padding-md">
           <div class="text-4xl mb-4">⏰</div>
           <h3 class="font-bold mb-2">시간표 확인이 번거로워요</h3>
           <p class="text-sm text-[var(--color-text-muted)]">
             "체험실마다 시작 시간이 달라서 헷갈려요"
           </p>
         </div>
-        <div class="p-6 bg-[var(--color-card)] rounded-xl border border-[var(--color-border)]">
+        <div class="fc-surface fc-surface-padding-md">
           <div class="text-4xl mb-4">🗺️</div>
           <h3 class="font-bold mb-2">동선 계획이 어려워요</h3>
           <p class="text-sm text-[var(--color-text-muted)]">
@@ -240,9 +241,9 @@ const steps = [
   </section>
 
   <!-- Solution Banner -->
-  <section class="py-8 px-4">
+  <section>
     <div class="max-w-4xl mx-auto">
-      <div class="p-8 bg-gradient-to-r from-blue-500/10 to-cyan-500/10 rounded-2xl border border-blue-500/20 text-center">
+      <div class="fc-surface fc-surface-soft fc-surface-padding-md text-center">
         <h3 class="text-2xl font-bold mb-2">잡월드 키즈 플래너로 해결하세요!</h3>
         <p class="text-[var(--color-text-muted)]">
           시간표 확인부터 체험 기록까지, 한 곳에서 편리하게
@@ -252,7 +253,7 @@ const steps = [
   </section>
 
   <!-- Features Section -->
-  <section id="features" class="py-16 px-4">
+  <section id="features">
     <div class="max-w-6xl mx-auto">
       <h2 class="text-3xl font-bold text-center mb-4">주요 기능</h2>
       <p class="text-center text-[var(--color-text-muted)] mb-12">
@@ -260,8 +261,8 @@ const steps = [
       </p>
       <div class="grid md:grid-cols-3 gap-8">
         {features.map((feature) => (
-          <div class="bg-[var(--color-card)] rounded-2xl border border-[var(--color-border)] overflow-hidden hover:shadow-xl transition-shadow">
-            <div class="aspect-[9/16] overflow-hidden bg-gray-100 dark:bg-gray-800">
+          <div class="fc-surface overflow-hidden">
+            <div class="aspect-[9/16] overflow-hidden bg-[var(--surface-soft)]">
               <img
                 src={feature.image}
                 alt={`${feature.title} 화면`}
@@ -274,7 +275,7 @@ const steps = [
                 <span class="text-3xl">{feature.icon}</span>
                 <div>
                   <h3 class="font-bold text-lg">{feature.title}</h3>
-                  <p class="text-sm text-blue-600 dark:text-blue-400">{feature.subtitle}</p>
+                  <p class="text-sm text-[var(--accent)]">{feature.subtitle}</p>
                 </div>
               </div>
               <p class="text-[var(--color-text-muted)]">
@@ -288,13 +289,13 @@ const steps = [
   </section>
 
   <!-- How It Works Section -->
-  <section class="py-16 px-4 bg-[var(--color-card)]">
+  <section class="fc-surface fc-surface-padding-md">
     <div class="max-w-4xl mx-auto">
       <h2 class="text-3xl font-bold text-center mb-12">이렇게 사용하세요</h2>
-      <div class="grid md:grid-cols-4 gap-6">
+      <div class="relative grid overflow-hidden md:grid-cols-4 gap-6" data-jobworld-process-grid>
         {steps.map((step, index) => (
-          <div class="text-center">
-            <div class="w-12 h-12 mx-auto mb-4 bg-blue-600 text-white rounded-full flex items-center justify-center text-xl font-bold">
+          <div class="relative min-w-0 text-center">
+            <div class="fc-chip mx-auto mb-4 h-12 w-12 justify-center text-xl font-bold text-[var(--accent)]">
               {step.number}
             </div>
             <h3 class="font-bold mb-2">{step.title}</h3>
@@ -302,7 +303,7 @@ const steps = [
               {step.description}
             </p>
             {index < steps.length - 1 && (
-              <div class="hidden md:block absolute right-0 top-1/2 transform translate-x-1/2 -translate-y-1/2">
+              <div class="pointer-events-none absolute right-0 top-1/2 hidden max-w-full -translate-y-1/2 md:block" aria-hidden="true">
                 <svg class="w-6 h-6 text-[var(--color-border)]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
                 </svg>
@@ -315,20 +316,20 @@ const steps = [
   </section>
 
   <!-- Benefits Section -->
-  <section class="py-16 px-4">
+  <section>
     <div class="max-w-4xl mx-auto">
       <div class="grid md:grid-cols-3 gap-6">
-        <div class="text-center p-6 bg-[var(--color-card)] rounded-xl border border-[var(--color-border)]">
+        <div class="fc-surface fc-surface-padding-md text-center">
           <div class="text-4xl mb-4">💰</div>
           <h3 class="font-bold mb-2">100% 무료</h3>
           <p class="text-sm text-[var(--color-text-muted)]">광고 없이 모든 기능 무료 이용</p>
         </div>
-        <div class="text-center p-6 bg-[var(--color-card)] rounded-xl border border-[var(--color-border)]">
+        <div class="fc-surface fc-surface-padding-md text-center">
           <div class="text-4xl mb-4">📱</div>
           <h3 class="font-bold mb-2">설치 없이 바로 사용</h3>
           <p class="text-sm text-[var(--color-text-muted)]">웹 브라우저에서 바로 접속</p>
         </div>
-        <div class="text-center p-6 bg-[var(--color-card)] rounded-xl border border-[var(--color-border)]">
+        <div class="fc-surface fc-surface-padding-md text-center">
           <div class="text-4xl mb-4">🌐</div>
           <h3 class="font-bold mb-2">오프라인 지원</h3>
           <p class="text-sm text-[var(--color-text-muted)]">PWA로 인터넷 없이도 사용 가능</p>
@@ -338,12 +339,12 @@ const steps = [
   </section>
 
   <!-- FAQ Section -->
-  <section class="py-16 px-4 bg-[var(--color-card)]">
+  <section class="fc-surface fc-surface-padding-md">
     <div class="max-w-3xl mx-auto">
       <h2 class="text-3xl font-bold text-center mb-12">자주 묻는 질문</h2>
       <div class="space-y-4">
         {faqs.map((faq) => (
-          <details class="group bg-[var(--color-bg)] rounded-xl border border-[var(--color-border)] overflow-hidden">
+          <details class="fc-surface group overflow-hidden">
             <summary class="flex items-center justify-between p-5 cursor-pointer hover:bg-[var(--color-card-hover)] transition-colors">
               <span class="font-medium pr-4">{faq.question}</span>
               <svg class="w-5 h-5 text-[var(--color-text-muted)] transform group-open:rotate-180 transition-transform flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -360,9 +361,9 @@ const steps = [
   </section>
 
   <!-- Operating Hours Info -->
-  <section class="py-12 px-4">
+  <section>
     <div class="max-w-3xl mx-auto">
-      <div class="p-6 bg-gradient-to-r from-amber-500/10 to-orange-500/10 rounded-xl border border-amber-500/20">
+      <div class="fc-surface fc-surface-soft fc-surface-padding-md">
         <div class="flex items-start gap-4">
           <span class="text-3xl">⏰</span>
           <div>
@@ -379,7 +380,7 @@ const steps = [
   </section>
 
   <!-- Final CTA Section -->
-  <section class="py-16 px-4">
+  <section>
     <div class="max-w-3xl mx-auto text-center">
       <h2 class="text-3xl font-bold mb-4">지금 바로 일정을 계획해보세요</h2>
       <p class="text-[var(--color-text-muted)] mb-8">
@@ -389,7 +390,7 @@ const steps = [
         href={appUrl}
         target="_blank"
         rel="noopener noreferrer"
-        class="inline-flex items-center px-8 py-4 bg-blue-600 hover:bg-blue-700 text-white text-lg font-medium rounded-xl transition-colors shadow-lg hover:shadow-xl"
+        class="fc-button fc-button-primary px-8 py-4 text-lg"
       >
         앱 사용하기
         <svg class="w-6 h-6 ml-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -400,19 +401,20 @@ const steps = [
   </section>
 
   <!-- Breadcrumb -->
-  <nav class="py-4 px-4 border-t border-[var(--color-border)]">
+  <nav class="fc-tool-breadcrumb border-t border-[var(--border-subtle)] pt-4" aria-label="이동 경로">
     <div class="max-w-6xl mx-auto">
       <ol class="flex items-center text-sm text-[var(--color-text-muted)]">
         <li>
-          <a href="/" class="hover:text-[var(--color-text)]">홈</a>
+          <a href="/">홈</a>
         </li>
         <li class="mx-2">/</li>
         <li>
-          <a href="/projects" class="hover:text-[var(--color-text)]">프로젝트</a>
+          <a href="/projects">프로젝트</a>
         </li>
         <li class="mx-2">/</li>
-        <li class="text-[var(--color-text)]">잡월드 키즈 플래너</li>
+        <li aria-current="page">잡월드 키즈 플래너</li>
       </ol>
     </div>
   </nav>
+  </div>
 </MainLayout>

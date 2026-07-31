@@ -1,6 +1,8 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { useTranslation } from '../../i18n/useTranslation';
-import type { Language } from '../../i18n';
+import { ToolActions } from './ui/ToolActions';
+import { ToolField } from './ui/ToolField';
+import { ToolPanel } from './ui/ToolPanel';
 
 type TimerMode = 'work' | 'shortBreak' | 'longBreak';
 
@@ -24,8 +26,8 @@ function formatTime(seconds: number): string {
   return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
 }
 
-export default function PomodoroTimer({ lang: initialLang }: { lang?: Language } = {}) {
-  const { t } = useTranslation(initialLang);
+export default function PomodoroTimer() {
+  const { t } = useTranslation();
 
   const [settings, setSettings] = useState<Settings>(DEFAULT_SETTINGS);
   const [mode, setMode] = useState<TimerMode>('work');
@@ -140,12 +142,12 @@ export default function PomodoroTimer({ lang: initialLang }: { lang?: Language }
   };
 
   return (
-    <div className="flex flex-col gap-6">
+    <ToolPanel className="gap-6">
       {/* Mode Tabs */}
-      <div className="flex rounded-lg overflow-hidden border border-[var(--color-border)]">
-        {(['work', 'shortBreak', 'longBreak'] as TimerMode[]).map((timerMode) => (
+      <ToolActions selection className="flex rounded-lg overflow-hidden border border-[var(--color-border)]" primary={(['work', 'shortBreak', 'longBreak'] as TimerMode[]).map((timerMode) => (
           <button
             key={timerMode}
+            aria-pressed={mode === timerMode}
             onClick={() => switchMode(timerMode)}
             className={`flex-1 py-3 font-medium transition-colors
               ${mode === timerMode
@@ -155,8 +157,7 @@ export default function PomodoroTimer({ lang: initialLang }: { lang?: Language }
           >
             {t(modeLabels[timerMode])}
           </button>
-        ))}
-      </div>
+        ))} />
 
       {/* Timer Display */}
       <div className="flex flex-col items-center py-8">
@@ -200,8 +201,7 @@ export default function PomodoroTimer({ lang: initialLang }: { lang?: Language }
       </div>
 
       {/* Controls */}
-      <div className="flex justify-center gap-4">
-        <button
+      <ToolActions primary={<button
           onClick={toggleTimer}
           className={`px-8 py-3 rounded-full font-medium text-white transition-colors text-lg
             ${isRunning
@@ -212,15 +212,13 @@ export default function PomodoroTimer({ lang: initialLang }: { lang?: Language }
           {isRunning
             ? t({ ko: '일시정지', en: 'Pause', ja: '一時停止' })
             : t({ ko: '시작', en: 'Start', ja: 'スタート' })}
-        </button>
-        <button
+        </button>} secondary={<button
           onClick={resetTimer}
           className="px-6 py-3 rounded-full font-medium bg-[var(--color-card)] hover:bg-[var(--color-card-hover)]
             border border-[var(--color-border)] transition-colors"
         >
           {t({ ko: '리셋', en: 'Reset', ja: 'リセット' })}
-        </button>
-      </div>
+        </button>} />
 
       {/* Session Counter */}
       <div className="flex justify-center items-center gap-2">
@@ -240,16 +238,16 @@ export default function PomodoroTimer({ lang: initialLang }: { lang?: Language }
           ))}
         </div>
         <span className="font-bold text-[var(--color-text)]">{completedSessions}</span>
-        <button
+        <ToolActions primary={<button
           onClick={resetAll}
           className="ml-2 text-xs text-[var(--color-text-muted)] hover:text-[var(--color-text)]"
         >
           ({t({ ko: '초기화', en: 'Reset All', ja: 'すべてリセット' })})
-        </button>
+        </button>} />
       </div>
 
       {/* Settings Toggle */}
-      <button
+      <ToolActions primary={<button
         onClick={() => setShowSettings(!showSettings)}
         className="flex items-center justify-center gap-2 text-sm text-[var(--color-text-muted)] hover:text-[var(--color-text)]"
       >
@@ -259,7 +257,7 @@ export default function PomodoroTimer({ lang: initialLang }: { lang?: Language }
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
         </svg>
         {t({ ko: '설정', en: 'Settings', ja: '設定' })}
-      </button>
+      </button>} />
 
       {/* Settings Panel */}
       {showSettings && (
@@ -272,34 +270,39 @@ export default function PomodoroTimer({ lang: initialLang }: { lang?: Language }
               { key: 'sessionsBeforeLongBreak', label: { ko: '긴 휴식까지', en: 'Sessions', ja: 'セッション数' }, suffix: t({ ko: '회', en: '', ja: '回' }) },
             ].map(({ key, label, suffix }) => (
               <div key={key} className="space-y-1">
-                <label className="text-xs text-[var(--color-text-muted)]">{t(label)}</label>
                 <div className="flex items-center gap-1">
-                  <input
-                    type="number"
-                    min="1"
-                    max="60"
-                    value={settings[key as keyof Settings]}
-                    onChange={(e) => {
-                      const newSettings = { ...settings, [key]: Number(e.target.value) };
-                      setSettings(newSettings);
-                      if (!isRunning) {
-                        setTimeLeft(getDuration(mode));
-                      }
-                    }}
-                    className="w-16 px-2 py-1 text-center rounded border border-[var(--color-border)]
-                      bg-[var(--color-bg)] text-[var(--color-text)]"
-                  />
+                  <ToolField id={`pomodoro-${key}`} label={t(label)}>
+                    <input
+                      type="number"
+                      min="1"
+                      max="60"
+                      value={settings[key as keyof Settings]}
+                      onChange={(e) => {
+                        const parsedValue = Number(e.target.value);
+                        const value = Number.isFinite(parsedValue)
+                          ? Math.max(1, Math.min(60, parsedValue))
+                          : 1;
+                        const newSettings = { ...settings, [key]: value };
+                        setSettings(newSettings);
+                        if (!isRunning) {
+                          setTimeLeft(getDuration(mode));
+                        }
+                      }}
+                      className="w-16 px-2 py-1 text-center rounded border border-[var(--color-border)]
+                        bg-[var(--color-bg)] text-[var(--color-text)]"
+                    />
+                  </ToolField>
                   <span className="text-xs text-[var(--color-text-muted)]">{suffix}</span>
                 </div>
               </div>
             ))}
           </div>
-          <button
+          <ToolActions primary={<button
             onClick={() => setSettings(DEFAULT_SETTINGS)}
             className="text-xs text-primary-500 hover:underline"
           >
             {t({ ko: '기본값으로 복원', en: 'Reset to defaults', ja: 'デフォルトに戻す' })}
-          </button>
+          </button>} />
         </div>
       )}
 
@@ -313,6 +316,6 @@ export default function PomodoroTimer({ lang: initialLang }: { lang?: Language }
           })}
         </p>
       </div>
-    </div>
+    </ToolPanel>
   );
 }

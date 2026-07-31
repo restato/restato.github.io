@@ -45,7 +45,7 @@ export function maskWord(word: string, guessedLetters: Set<string>): string {
 }
 
 export default function HangmanGame() {
-  const { t, language } = useTranslation();
+  const { t, lang } = useTranslation();
   const [currentWordItem, setCurrentWordItem] = useState<WordItem>(() => pickRandomWord(WORDS));
   const [guessedLetters, setGuessedLetters] = useState<Set<string>>(new Set());
   const [wrongGuesses, setWrongGuesses] = useState(0);
@@ -85,7 +85,7 @@ export default function HangmanGame() {
   const alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('');
 
   return (
-    <div className="w-full max-w-2xl mx-auto flex flex-col gap-6">
+    <div className="fc-game mx-auto flex w-full max-w-2xl flex-col gap-6">
       <div className="text-center">
         <div className="inline-block text-left bg-slate-900 text-slate-100 rounded-xl px-6 py-4 font-mono text-sm whitespace-pre leading-tight">
           {HANGMAN_STAGES[wrongGuesses]}
@@ -94,9 +94,9 @@ export default function HangmanGame() {
 
       <div className="text-center">
         <p className="text-sm text-[var(--color-text-muted)] mb-2">
-          {t({ ko: '힌트', en: 'Hint', ja: 'ヒント' })}: {currentWordItem.hint[language]}
+          {t({ ko: '힌트', en: 'Hint', ja: 'ヒント' })}: {currentWordItem.hint[lang]}
         </p>
-        <p className="text-3xl md:text-4xl tracking-[0.45em] font-bold text-primary-500">{maskedWord}</p>
+        <p className="text-3xl md:text-4xl tracking-[0.45em] font-bold text-[var(--brand)]">{maskedWord}</p>
       </div>
 
       <div className="text-center text-sm text-[var(--color-text-muted)]">
@@ -108,10 +108,11 @@ export default function HangmanGame() {
           const isUsed = guessedLetters.has(letter);
           return (
             <button
+              type="button"
               key={letter}
               onClick={() => handleGuess(letter)}
               disabled={isUsed || isGameOver}
-              className={`w-10 py-2 rounded-lg border text-sm font-semibold transition-colors ${
+              className={`fc-game-cell w-10 py-2 rounded-lg text-sm font-semibold ${
                 isUsed
                   ? 'bg-[var(--color-card)] border-[var(--color-border)] text-[var(--color-text-muted)] cursor-not-allowed'
                   : 'bg-[var(--color-card)] border-[var(--color-border)] hover:border-primary-500 hover:text-primary-500'
@@ -123,7 +124,7 @@ export default function HangmanGame() {
         })}
       </div>
 
-      <div className="text-center rounded-xl border border-[var(--color-border)] bg-[var(--color-card)] p-4">
+      <div className="fc-surface p-4 text-center" role="status">
         {!isGameOver && (
           <p>
             {t({ ko: '남은 기회', en: 'Attempts Left', ja: '残りチャンス' })}: {MAX_WRONG_GUESSES - wrongGuesses}
@@ -142,8 +143,9 @@ export default function HangmanGame() {
       </div>
 
       <button
+        type="button"
         onClick={resetGame}
-        className="mx-auto px-5 py-2 rounded-lg bg-primary-500 text-white font-semibold hover:bg-primary-600 transition-colors"
+        className="fc-button fc-button-primary mx-auto"
       >
         {t({ ko: '새 게임', en: 'New Game', ja: '新しいゲーム' })}
       </button>

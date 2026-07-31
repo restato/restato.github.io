@@ -11,11 +11,15 @@
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import { supportedLanguagePattern } from '../src/data/tools/supportedLanguages.mjs';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const DIST_DIR = path.join(__dirname, '../dist');
 const CONTENT_DIR = path.join(__dirname, '../src/content/blog');
 const SITE_URL = 'https://restato.github.io';
+const localizedToolsPattern = new RegExp(`^/(${supportedLanguagePattern})/tools/`);
+const localizedChatPattern = new RegExp(`^/(${supportedLanguagePattern})/anonymous-chat/`);
+const localizedToolIndexPattern = new RegExp(`^/(${supportedLanguagePattern})/tools/?$`);
 
 /**
  * URLs to exclude from sitemap
@@ -29,7 +33,6 @@ const REDIRECT_PATTERNS = [
   /^\/blog\/tag\//, // thin tag archive pages
   /^\/dashboard\/?$/, // personal dashboard
   /^\/content-os\/?$/, // internal editorial dashboard
-  /^\/(en|ja)\/(tools|games)(\/|$)/, // incomplete localized interactive UI
 ];
 
 /**
@@ -37,6 +40,17 @@ const REDIRECT_PATTERNS = [
  */
 function isRedirectUrl(pathname) {
   return REDIRECT_PATTERNS.some((pattern) => pattern.test(pathname));
+}
+
+export function isNoindexHtml(html) {
+  return /<meta\s+[^>]*name=["']robots["'][^>]*content=["'][^"']*noindex/i.test(html)
+    || /<meta\s+[^>]*content=["'][^"']*noindex[^"']*["'][^>]*name=["']robots["']/i.test(html);
+}
+
+function isNoindexUrl(pathname) {
+  const relative = pathname === '/' ? 'index.html' : `${pathname.replace(/^\//, '').replace(/\/$/, '')}/index.html`;
+  const htmlPath = path.join(DIST_DIR, relative);
+  return fs.existsSync(htmlPath) && isNoindexHtml(fs.readFileSync(htmlPath, 'utf8'));
 }
 
 /**
@@ -47,10 +61,10 @@ function categorizeUrl(pathname) {
   if (pathname.startsWith('/blog/')) return 'blog';
 
   // Tools with language prefix (canonical URLs)
-  if (pathname.match(/^\/(ko|en|ja)\/tools/)) return 'tools';
+  if (localizedToolsPattern.test(pathname)) return 'tools';
 
   // Anonymous chat with language prefix
-  if (pathname.match(/^\/(ko|en|ja)\/anonymous-chat/)) return 'tools';
+  if (localizedChatPattern.test(pathname)) return 'tools';
 
   // Projects
   if (pathname.startsWith('/projects/')) return 'projects';
@@ -68,7 +82,7 @@ function getPriority(category, pathname) {
 
   if (category === 'tools') {
     // Tool index pages get highest priority
-    if (pathname.match(/^\/(ko|en|ja)\/tools\/?$/)) return 1.0;
+    if (localizedToolIndexPattern.test(pathname)) return 1.0;
     return 0.8;
   }
 
@@ -247,7 +261,7 @@ async function main() {
     const pathname = new URL(url).pathname;
 
     // Skip redirect URLs
-    if (isRedirectUrl(pathname)) {
+    if (isRedirectUrl(pathname) || isNoindexUrl(pathname)) {
       excludedCount++;
       continue;
     }
@@ -304,7 +318,7 @@ async function main() {
   console.log(`Tools URLs:    ${categorized.tools.length}`);
   console.log(`Projects URLs: ${categorized.projects.length}`);
   console.log(`Other Pages:   ${categorized.pages.length}`);
-  console.log(`Excluded:      ${excludedCount} (redirect pages)`);
+  console.log(`Excluded:      ${excludedCount} (redirect or noindex pages)`);
   console.log('-'.repeat(50));
   console.log(
     `Total:         ${allUrls.length - excludedCount} (of ${allUrls.length} original)`
@@ -312,4 +326,9 @@ async function main() {
   console.log('\nSitemap generation complete!');
 }
 
-main().catch(console.error);
+const isDirectInvocation = process.argv[1]
+  && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url);
+if (isDirectInvocation) main().catch(error => {
+  console.error(error);
+  process.exitCode = 1;
+});

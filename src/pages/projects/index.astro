@@ -1,54 +1,49 @@
 ---
 import MainLayout from '../../layouts/MainLayout.astro';
+import PageHeader from '../../components/ui/PageHeader.astro';
+import PageShell from '../../components/ui/PageShell.astro';
 import { projects } from '../../data/projects';
 
 const pageDescription = "A collection of personal projects, practical apps, and tools including Local Price Extractor, RoomFit 3D, PasteDock, Quick Issue, JobWorld Kids Planner, and mini games.";
 ---
 
 <MainLayout title="Projects | Restato" description={pageDescription} lang="en" lockLanguage={true}>
-  <section class="py-16 px-4">
-    <div class="max-w-5xl mx-auto">
-      <!-- Header -->
-      <div class="text-center mb-12">
-        <h1 class="text-4xl font-bold mb-4">Projects</h1>
-        <p class="text-xl text-[var(--color-text-muted)]">
-          Apps and tools I have built
-        </p>
-      </div>
+  <PageShell size="content">
+    <PageHeader
+      eyebrow="Restato"
+      title="Projects"
+      description="Apps and tools I have built"
+    />
 
-      <!-- Projects Grid -->
-      <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+    <div class="fc-surface overflow-hidden">
+      <ul class="m-0 grid list-none p-0 md:grid-cols-2">
         {projects.map((project) => (
-          <a
-            href={`/projects/${project.slug}`}
-            class="group relative overflow-hidden rounded-2xl bg-[var(--color-card)] border border-[var(--color-border)] hover:border-transparent transition-all duration-300 hover:shadow-2xl hover:-translate-y-1"
-          >
-            <div class={`absolute inset-0 bg-gradient-to-br ${project.color} opacity-0 group-hover:opacity-10 transition-opacity`} />
-            <div class="p-8">
+          <li class="border-b border-[var(--border-subtle)] md:border-r">
+            <a
+              href={`/projects/${project.slug}`}
+              class="group relative flex min-h-28 items-center gap-4 px-5 py-4 transition-colors hover:bg-[var(--surface-soft)]"
+            >
               {project.badge && (
-                <span class="absolute top-4 right-4 px-2 py-1 text-xs font-bold bg-primary-500 text-white rounded-full">
+                <span class="fc-chip absolute right-3 top-3 text-xs text-[var(--accent)]">
                   {project.badge}
                 </span>
               )}
-              <div class="text-6xl mb-4 transform group-hover:scale-110 transition-transform duration-300">
+              <span class="w-12 shrink-0 text-center text-4xl" aria-hidden="true">
                 {project.icon}
-              </div>
-              <h3 class="text-2xl font-bold mb-2 group-hover:text-primary-500 transition-colors">
-                {project.title}
-              </h3>
-              <p class="text-[var(--color-text-muted)] text-lg">
-                {project.description}
-              </p>
-              <div class="mt-6 flex items-center text-primary-500 opacity-0 group-hover:opacity-100 transition-opacity">
-                <span>View details</span>
-                <svg class="w-5 h-5 ml-1 transform group-hover:translate-x-1 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
-                </svg>
-              </div>
-            </div>
-          </a>
+              </span>
+              <span class="min-w-0 flex-1">
+                <span class="block font-bold text-[var(--text-primary)] group-hover:text-[var(--brand)]">
+                  {project.title}
+                </span>
+                <span class="mt-1 block text-sm text-[var(--text-muted)]">
+                  {project.description}
+                </span>
+              </span>
+              <span class="text-[var(--text-muted)]" aria-hidden="true">→</span>
+            </a>
+          </li>
         ))}
-      </div>
+      </ul>
     </div>
-  </section>
+  </PageShell>
 </MainLayout>

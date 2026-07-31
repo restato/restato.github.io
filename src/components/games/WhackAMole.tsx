@@ -76,17 +76,17 @@ export default function WhackAMole() {
   };
 
   return (
-    <div className="w-full max-w-md mx-auto">
+    <div className="fc-game mx-auto w-full max-w-md">
       <div className="grid grid-cols-3 gap-3 mb-6 text-center">
-        <div className="p-3 rounded-xl bg-[var(--color-card)] border border-[var(--color-border)]">
+        <div className="fc-surface p-3">
           <p className="text-xs text-[var(--color-text-muted)]">{t({ ko: '점수', en: 'Score', ja: 'スコア' })}</p>
-          <p className="text-2xl font-bold text-primary-500">{score}</p>
+          <p className="text-2xl font-bold text-[var(--brand)]">{score}</p>
         </div>
-        <div className="p-3 rounded-xl bg-[var(--color-card)] border border-[var(--color-border)]">
+        <div className="fc-surface p-3">
           <p className="text-xs text-[var(--color-text-muted)]">{t({ ko: '남은 시간', en: 'Time', ja: '残り時間' })}</p>
-          <p className="text-2xl font-bold text-orange-500">{timeLeft}</p>
+          <p className="text-2xl font-bold text-[var(--accent)]">{timeLeft}</p>
         </div>
-        <div className="p-3 rounded-xl bg-[var(--color-card)] border border-[var(--color-border)]">
+        <div className="fc-surface p-3">
           <p className="text-xs text-[var(--color-text-muted)]">{t({ ko: '최고 기록', en: 'Best', ja: 'ベスト' })}</p>
           <p className="text-2xl font-bold text-green-500">{bestScore}</p>
         </div>
@@ -98,8 +98,10 @@ export default function WhackAMole() {
             key={index}
             type="button"
             onClick={() => hitMole(index)}
-            className="h-20 rounded-xl border border-[var(--color-border)] bg-[var(--color-card)] hover:border-primary-500 transition-colors"
-            aria-label={t({ ko: `${index + 1}번 구멍`, en: `Hole ${index + 1}`, ja: `${index + 1}番ホール` })}
+            className="fc-game-cell h-20 rounded-xl"
+            aria-label={moleIndex === index
+              ? t({ ko: `${index + 1}번 구멍 두더지`, en: `Hole ${index + 1}, mole`, ja: `${index + 1}番ホール モグラ` })
+              : t({ ko: `${index + 1}번 빈 구멍`, en: `Hole ${index + 1}, empty`, ja: `${index + 1}番の空のホール` })}
           >
             <span className="text-3xl">{moleIndex === index ? '🐹' : '🕳️'}</span>
           </button>
@@ -118,7 +120,7 @@ export default function WhackAMole() {
         )}
 
         {!isPlaying && timeLeft === 0 && (
-          <p className="text-lg font-bold mb-4">
+          <p className="fc-surface fc-surface-soft mb-4 p-3 text-lg font-bold" role="status" aria-live="polite">
             {t({ ko: '게임 종료!', en: 'Time Up!', ja: 'ゲーム終了！' })} {t({ ko: '최종 점수', en: 'Final Score', ja: '最終スコア' })}: {score}
           </p>
         )}
@@ -126,7 +128,7 @@ export default function WhackAMole() {
         <button
           type="button"
           onClick={startGame}
-          className="px-6 py-3 bg-primary-500 text-white rounded-xl font-bold hover:bg-primary-600 transition-colors"
+          className="fc-button fc-button-primary"
         >
           {isPlaying
             ? t({ ko: '다시 시작', en: 'Restart', ja: 'リスタート' })

@@ -1,4 +1,6 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import { readFileSync } from 'node:fs';
+import { resolve } from 'node:path';
 import { render, screen, waitFor, act } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import Chat from '../Chat';
@@ -72,6 +74,16 @@ vi.mock('../../i18n/useTranslation', () => ({
           connectingMessage: { ko: '연결 준비 중...', en: 'Preparing connection...', ja: '接続準備中...' },
           emptyChat: { ko: '메시지를 입력하여 대화를 시작하세요!', en: 'Type a message to start chatting!', ja: 'メッセージを入力して会話を始めましょう！' },
         },
+        security: {
+          title: { ko: '안심하고 대화하세요', en: 'Chat with confidence', ja: '安心してチャット' },
+          noStorage: { ko: '대화 내용이 저장되지 않습니다', en: 'Messages are not stored', ja: 'メッセージは保存されません' },
+          p2p: { ko: 'P2P 직접 연결', en: 'Direct P2P connection', ja: 'P2Pダイレクト接続' },
+          sessionLimit: { ko: '1시간 후 자동 종료', en: 'Auto-ends after 1 hour', ja: '1時間後に自動終了' },
+        },
+        quickGuide: {
+          share: { ko: '링크를 공유하세요', en: 'Share your link', ja: 'リンクを共有してください' },
+          random: { ko: '무작위 연결을 기다리세요', en: 'Wait for a random connection', ja: 'ランダム接続を待ってください' },
+        },
       },
     },
   }),
@@ -97,6 +109,7 @@ vi.mock('../../hooks/useTimeFormat', () => ({
 const mockLocation = {
   hash: '',
   origin: 'https://example.com',
+  pathname: '/anonymous-chat',
 };
 Object.defineProperty(window, 'location', {
   value: mockLocation,
@@ -135,7 +148,13 @@ describe('Chat', () => {
 
     it('displays loading spinner during initialization', () => {
       render(<Chat />);
-      expect(screen.getByRole('status')).toBeInTheDocument();
+      expect(document.querySelector('svg.animate-spin')).toBeInTheDocument();
+    });
+
+    it('uses the shared panel and working-result contracts', () => {
+      const { container } = render(<Chat />);
+      expect(container.querySelector('.fc-tool-panel')).toBeInTheDocument();
+      expect(container.querySelector('.fc-tool-result-working')).toBeInTheDocument();
     });
   });
 
@@ -217,6 +236,8 @@ describe('Chat', () => {
         expect(screen.getByText('이 링크를 공유하세요:')).toBeInTheDocument();
         expect(screen.getByDisplayValue(/test-room-123/)).toBeInTheDocument();
       });
+      expect(screen.getByDisplayValue(/test-room-123/).closest('.fc-tool-field')).not.toBeNull();
+      expect(screen.getByRole('button', { name: '복사' }).closest('.fc-tool-actions')).not.toBeNull();
     });
 
     it('copies link to clipboard when copy button is clicked', async () => {
@@ -265,6 +286,9 @@ describe('Chat', () => {
         expect(screen.getByPlaceholderText('메시지를 입력하세요...')).toBeInTheDocument();
         expect(screen.getByText('전송')).toBeInTheDocument();
       });
+      expect(screen.getByPlaceholderText('메시지를 입력하세요...').closest('.fc-tool-field')).not.toBeNull();
+      expect(screen.getByRole('button', { name: '전송' })).toHaveClass('fc-button', 'fc-button-primary');
+      expect(screen.getByRole('button', { name: '전송' }).closest('.fc-tool-actions')).not.toBeNull();
     });
 
     it('does not show input field when not connected', () => {
@@ -293,18 +317,8 @@ describe('Chat', () => {
       });
 
       const input = screen.getByPlaceholderText('메시지를 입력하세요...');
-      await act(async () => {
-        input.focus();
-        await new Promise(r => setTimeout(r, 0));
-      });
-
-      // Type into input
-      await act(async () => {
-        const event = new Event('input', { bubbles: true });
-        Object.defineProperty(event, 'target', { value: { value: 'Hello' } });
-        input.value = 'Hello';
-        input.dispatchEvent(event);
-      });
+      const user = userEvent.setup();
+      await user.type(input, 'Hello');
 
       const form = screen.getByRole('form');
       await act(async () => {
@@ -312,6 +326,23 @@ describe('Chat', () => {
       });
 
       expect(mockSendMessage).toHaveBeenCalledWith('Hello');
+    });
+
+    it('sends non-Latin messages without changing their text', async () => {
+      mockSendMessage.mockReturnValue({
+        id: 'msg-korean',
+        sender: 'me',
+        text: '안녕하세요 👋',
+        timestamp: Date.now(),
+      });
+      render(<Chat />);
+      await act(async () => mockOnStatusChange?.('connected'));
+      const input = await screen.findByPlaceholderText('메시지를 입력하세요...');
+      await userEvent.setup().type(input, '안녕하세요 👋');
+      await act(async () => {
+        screen.getByRole('form').dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }));
+      });
+      expect(mockSendMessage).toHaveBeenCalledWith('안녕하세요 👋');
     });
 
     it('does not send empty message', async () => {
@@ -418,6 +449,8 @@ describe('Chat', () => {
       await waitFor(() => {
         expect(screen.getByText('새 대화 시작')).toBeInTheDocument();
       });
+      expect(screen.getByRole('alert')).toHaveClass('fc-tool-result-error');
+      expect(screen.getByRole('button', { name: '새 대화 시작' }).closest('.fc-tool-actions')).not.toBeNull();
     });
 
     it('shows new chat button when expired', async () => {
@@ -476,6 +509,32 @@ describe('Chat', () => {
   });
 
   describe('Accessibility', () => {
+    it('keeps the message input named and operable at a mobile viewport', async () => {
+      Object.defineProperty(window, 'innerWidth', { configurable: true, value: 375 });
+      Object.defineProperty(navigator, 'maxTouchPoints', { configurable: true, value: 1 });
+      window.matchMedia = vi.fn().mockImplementation((query: string) => ({
+        matches: query.includes('max-width') || query.includes('pointer: coarse'),
+        media: query,
+        onchange: null,
+        addListener: vi.fn(),
+        removeListener: vi.fn(),
+        addEventListener: vi.fn(),
+        removeEventListener: vi.fn(),
+        dispatchEvent: vi.fn(),
+      }));
+      render(<Chat />);
+
+      await act(async () => {
+        if (mockOnStatusChange) {
+          mockOnStatusChange('connected');
+        }
+      });
+
+      const input = await screen.findByRole('textbox', { name: '메시지를 입력하세요...' });
+      input.focus();
+      expect(input).toHaveFocus();
+    });
+
     it('has proper ARIA labels', async () => {
       render(<Chat />);
 
@@ -496,5 +555,30 @@ describe('Chat', () => {
       const statusElements = screen.getAllByRole('status');
       expect(statusElements.length).toBeGreaterThan(0);
     });
+  });
+
+  it('keeps the localized route on the shared tool-page shell', () => {
+    const source = readFileSync(resolve('src/pages/[lang]/anonymous-chat.astro'), 'utf8');
+    expect(source).toContain('fc-page fc-tool-shell');
+    expect(source).toContain('fc-tool-header');
+    expect(source).toContain('fc-tool-workspace');
+    expect(source).toContain('fc-tool-privacy');
+    expect(source).toContain('fc-tool-instructions');
+  });
+
+  it('gives anonymous chat the complete public tool-page shell and tracking', () => {
+    const source = readFileSync(resolve('src/pages/[lang]/anonymous-chat.astro'), 'utf8');
+
+    expect(source).toContain('"@type": "WebApplication"');
+    expect(source).toContain('"@type": "BreadcrumbList"');
+    expect(source).toContain('fc-tool-breadcrumb');
+    expect(source).toContain('<FavoriteButton client:load');
+    expect(source).toContain('<ShareButton client:load');
+    expect(source).toContain('<AdSlot placement="tool-after-help"');
+    expect(source).toContain('<RelatedTools currentSlug={tool.slug}');
+    expect(source).toContain('<BookmarkPrompt client:idle />');
+    expect(source).toContain("const STORAGE_KEY = 'restato_recent_tools'");
+    expect(source).toContain('localStorage.setItem(STORAGE_KEY');
+    expect(source.match(/class="fc-tool-privacy"/g)).toHaveLength(1);
   });
 });

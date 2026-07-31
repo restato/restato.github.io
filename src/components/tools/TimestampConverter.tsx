@@ -1,18 +1,21 @@
 import { useState, useEffect } from 'react';
 import { useTranslation } from '../../i18n/useTranslation';
-import type { Language } from '../../i18n';
+import { ToolActions } from './ui/ToolActions';
+import { ToolField } from './ui/ToolField';
+import { ToolPanel } from './ui/ToolPanel';
 
-export default function TimestampConverter({ lang: initialLang }: { lang?: Language } = {}) {
-  const { t, lang, translations } = useTranslation(initialLang);
+export default function TimestampConverter() {
+  const { t, lang, translations } = useTranslation();
   const tc = translations.tools.timestamp;
   const tcc = translations.tools.common;
 
   const [timestamp, setTimestamp] = useState('');
   const [dateString, setDateString] = useState('');
-  const [currentTime, setCurrentTime] = useState(Date.now());
+  const [currentTime, setCurrentTime] = useState(0);
   const [unit, setUnit] = useState<'seconds' | 'milliseconds'>('seconds');
 
   useEffect(() => {
+    setCurrentTime(Date.now());
     const interval = setInterval(() => {
       setCurrentTime(Date.now());
     }, 1000);
@@ -90,20 +93,23 @@ export default function TimestampConverter({ lang: initialLang }: { lang?: Langu
 
   const currentTimestamp = unit === 'milliseconds' ? currentTime : Math.floor(currentTime / 1000);
 
+  // Keep the initial server and client render deterministic; this is refreshed
+  // from Date.now() after hydration by the currentTime effect above.
+  const baseTimestamp = Math.floor(currentTime / 1000);
   const commonTimes = [
-    { labelKey: 'inOneHour' as const, getTs: () => Math.floor(Date.now() / 1000) + 3600 },
-    { labelKey: 'tomorrow' as const, getTs: () => Math.floor(Date.now() / 1000) + 86400 },
-    { labelKey: 'inOneWeek' as const, getTs: () => Math.floor(Date.now() / 1000) + 604800 },
-    { labelKey: 'inOneMonth' as const, getTs: () => Math.floor(Date.now() / 1000) + 2592000 },
+    { labelKey: 'inOneHour' as const, getTs: () => baseTimestamp + 3600 },
+    { labelKey: 'tomorrow' as const, getTs: () => baseTimestamp + 86400 },
+    { labelKey: 'inOneWeek' as const, getTs: () => baseTimestamp + 604800 },
+    { labelKey: 'inOneMonth' as const, getTs: () => baseTimestamp + 2592000 },
     { label: '2000/1/1', getTs: () => 946684800 },
     { label: '2024/1/1', getTs: () => 1704067200 },
     { label: '2025/1/1', getTs: () => 1735689600 },
   ];
 
   return (
-    <div className="flex flex-col gap-6">
+    <ToolPanel className="gap-6">
       {/* Current Time */}
-      <div className="p-4 rounded-xl bg-gradient-to-r from-primary-500/10 to-primary-500/5 border border-primary-500/20">
+      <div className="p-4 rounded-xl bg-[var(--surface-soft)] border border-primary-500/20">
         <div className="flex items-center justify-between">
           <div>
             <p className="text-sm text-[var(--color-text-muted)]">{t(tc.currentTimestamp)}</p>
@@ -111,7 +117,7 @@ export default function TimestampConverter({ lang: initialLang }: { lang?: Langu
               {currentTimestamp}
             </p>
           </div>
-          <button
+          <ToolActions primary={<button
             onClick={() => {
               setTimestamp(String(currentTimestamp));
               copyText(String(currentTimestamp));
@@ -119,16 +125,16 @@ export default function TimestampConverter({ lang: initialLang }: { lang?: Langu
             className="px-4 py-2 bg-primary-500 hover:bg-primary-600 text-white rounded-lg text-sm font-medium transition-colors"
           >
             {t(tc.copyAndUse)}
-          </button>
+          </button>} />
         </div>
         <p className="text-sm text-[var(--color-text-muted)] mt-2">
-          {formatDate(new Date(currentTime))}
+          {currentTime ? formatDate(new Date(currentTime)) : '—'}
         </p>
       </div>
 
       {/* Unit Toggle */}
-      <div className="flex gap-2">
-        <button
+      <ToolActions selection className="grid grid-cols-2" primary={<button
+          aria-pressed={unit === 'seconds'}
           onClick={() => setUnit('seconds')}
           className={`flex-1 px-4 py-2 rounded-lg text-sm font-medium transition-colors
             ${unit === 'seconds'
@@ -137,8 +143,8 @@ export default function TimestampConverter({ lang: initialLang }: { lang?: Langu
             }`}
         >
           {t(tc.seconds)}
-        </button>
-        <button
+        </button>} secondary={<button
+          aria-pressed={unit === 'milliseconds'}
           onClick={() => setUnit('milliseconds')}
           className={`flex-1 px-4 py-2 rounded-lg text-sm font-medium transition-colors
             ${unit === 'milliseconds'
@@ -147,22 +153,21 @@ export default function TimestampConverter({ lang: initialLang }: { lang?: Langu
             }`}
         >
           {t(tc.milliseconds)}
-        </button>
-      </div>
+        </button>} />
 
       {/* Timestamp to Date */}
       <div className="p-4 rounded-lg bg-[var(--color-card)] border border-[var(--color-border)]">
         <h3 className="font-medium text-[var(--color-text)] mb-4">⏱️ {t(tc.timestampToDate)}</h3>
         <div className="space-y-4">
+          <ToolField id="timestamp-input" label={t(tc.timestampToDate)}>
           <input
             type="text"
             value={timestamp}
             onChange={(e) => setTimestamp(e.target.value.replace(/\D/g, ''))}
             placeholder={unit === 'milliseconds' ? '1704067200000' : '1704067200'}
-            className="w-full px-4 py-3 rounded-lg border border-[var(--color-border)]
-              bg-[var(--color-bg)] text-[var(--color-text)] font-mono
-              focus:outline-none focus:ring-2 focus:ring-primary-500"
+            className="font-mono"
           />
+          </ToolField>
 
           {timestampDate && (
             <div className="space-y-2">
@@ -187,6 +192,7 @@ export default function TimestampConverter({ lang: initialLang }: { lang?: Langu
       <div className="p-4 rounded-lg bg-[var(--color-card)] border border-[var(--color-border)]">
         <h3 className="font-medium text-[var(--color-text)] mb-4">📅 {t(tc.dateToTimestamp)}</h3>
         <div className="space-y-4">
+          <ToolField id="timestamp-date" label={t(tc.dateToTimestamp)}>
           <input
             type="datetime-local"
             value={dateString}
@@ -195,6 +201,7 @@ export default function TimestampConverter({ lang: initialLang }: { lang?: Langu
               bg-[var(--color-bg)] text-[var(--color-text)]
               focus:outline-none focus:ring-2 focus:ring-primary-500"
           />
+          </ToolField>
 
           {dateTimestamp !== null && (
             <div className="p-3 rounded-lg bg-[var(--color-bg)] flex items-center justify-between">
@@ -202,12 +209,12 @@ export default function TimestampConverter({ lang: initialLang }: { lang?: Langu
                 <p className="text-sm text-[var(--color-text-muted)]">Unix Timestamp</p>
                 <p className="font-mono font-bold text-[var(--color-text)]">{dateTimestamp}</p>
               </div>
-              <button
+              <ToolActions primary={<button
                 onClick={() => copyText(String(dateTimestamp))}
                 className="px-3 py-1 bg-primary-500 hover:bg-primary-600 text-white rounded-lg text-sm transition-colors"
               >
                 {t(tcc.copy)}
-              </button>
+              </button>} />
             </div>
           )}
         </div>
@@ -216,19 +223,17 @@ export default function TimestampConverter({ lang: initialLang }: { lang?: Langu
       {/* Common Timestamps */}
       <div className="p-4 rounded-lg bg-[var(--color-card)] border border-[var(--color-border)]">
         <h3 className="font-medium text-[var(--color-text)] mb-3">📌 {t(tc.commonTimestamps)}</h3>
-        <div className="space-y-2">
-          {commonTimes.map((item, idx) => (
+        <ToolActions className="space-y-2" primary={commonTimes.map((item, idx) => (
             <button
               key={idx}
               onClick={() => setTimestamp(String(unit === 'milliseconds' ? item.getTs() * 1000 : item.getTs()))}
               className="w-full p-2 rounded-lg text-left hover:bg-[var(--color-bg)]
                 text-[var(--color-text-muted)] transition-colors flex justify-between"
             >
-              <span>{'labelKey' in item ? t(tc[item.labelKey]) : item.label}</span>
+              <span>{'labelKey' in item && item.labelKey ? t(tc[item.labelKey]) : item.label}</span>
               <span className="font-mono text-sm">{item.getTs()}</span>
             </button>
-          ))}
-        </div>
+          ))} />
       </div>
 
       {/* Info */}
@@ -238,6 +243,6 @@ export default function TimestampConverter({ lang: initialLang }: { lang?: Langu
           {t(tc.timestampExplanation)}
         </p>
       </div>
-    </div>
+    </ToolPanel>
   );
 }

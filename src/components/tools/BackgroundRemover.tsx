@@ -1,6 +1,9 @@
 import { useState, useRef, useCallback, useEffect } from 'react';
 import { useTranslation } from '../../i18n/useTranslation';
-import type { Language } from '../../i18n';
+import { ToolPanel } from './ui/ToolPanel';
+import { ToolActions } from './ui/ToolActions';
+import { ToolField } from './ui/ToolField';
+import { ToolResult } from './ui/ToolResult';
 
 interface ImageInfo {
   file: File;
@@ -9,8 +12,8 @@ interface ImageInfo {
   height: number;
 }
 
-export default function BackgroundRemover({ lang: initialLang }: { lang?: Language } = {}) {
-  const { t, translations } = useTranslation(initialLang);
+export default function BackgroundRemover() {
+  const { t, translations } = useTranslation();
   const tt = translations.tools.backgroundRemover;
   const tc = translations.tools.common;
 
@@ -162,7 +165,7 @@ export default function BackgroundRemover({ lang: initialLang }: { lang?: Langua
   ];
 
   return (
-    <div className="flex flex-col gap-6">
+    <ToolPanel className="gap-6">
       {/* Hidden canvas for processing */}
       <canvas ref={canvasRef} className="hidden" />
 
@@ -170,6 +173,7 @@ export default function BackgroundRemover({ lang: initialLang }: { lang?: Langua
       <input
         ref={fileInputRef}
         type="file"
+        aria-label={t({ ko: '이미지 파일 선택', en: 'Choose an image file', ja: '画像ファイルを選択' })}
         accept="image/*"
         onChange={handleFileChange}
         className="hidden"
@@ -177,8 +181,10 @@ export default function BackgroundRemover({ lang: initialLang }: { lang?: Langua
 
       {/* Drop Zone */}
       {!original && (
-        <div
-          onClick={() => fileInputRef.current?.click()}
+        <ToolPanel
+          variant="drop-zone"
+          onActivate={() => fileInputRef.current?.click()}
+          aria-label={t(tt.dropzone)}
           onDrop={handleDrop}
           onDragOver={handleDragOver}
           onDragLeave={handleDragLeave}
@@ -196,15 +202,15 @@ export default function BackgroundRemover({ lang: initialLang }: { lang?: Langua
           <p className="text-[var(--color-text-muted)] text-center">
             {t(tt.dropzone)}
           </p>
-        </div>
+        </ToolPanel>
       )}
 
       {/* Image Loaded */}
       {original && (
         <>
           {/* Actions */}
-          <div className="flex gap-2">
-            <button
+          <ToolActions
+            primary={<button
               onClick={removeBackground}
               disabled={isProcessing}
               className="flex-1 py-3 bg-primary-500 hover:bg-primary-600 text-white rounded-lg
@@ -228,8 +234,8 @@ export default function BackgroundRemover({ lang: initialLang }: { lang?: Langua
                   {t(tt.removeButton)}
                 </>
               )}
-            </button>
-            <button
+            </button>}
+            secondary={<button
               onClick={() => {
                 setOriginal(null);
                 setResult(null);
@@ -240,8 +246,8 @@ export default function BackgroundRemover({ lang: initialLang }: { lang?: Langua
                 border border-[var(--color-border)] rounded-lg transition-colors"
             >
               {t(tc.reset)}
-            </button>
-          </div>
+            </button>}
+          />
 
           {/* Progress Bar */}
           {isProcessing && (
@@ -254,11 +260,7 @@ export default function BackgroundRemover({ lang: initialLang }: { lang?: Langua
           )}
 
           {/* Error Message */}
-          {error && (
-            <div className="p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg">
-              <p className="text-red-600 dark:text-red-400">{error}</p>
-            </div>
-          )}
+          {error && <ToolResult status="error">{error}</ToolResult>}
 
           {/* Preview */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -318,8 +320,9 @@ export default function BackgroundRemover({ lang: initialLang }: { lang?: Langua
               <h3 className="text-sm font-medium text-[var(--color-text)]">
                 {t(tt.backgroundColor)}
               </h3>
-              <div className="flex flex-wrap gap-2">
-                {backgroundOptions.map((option) => (
+              <ToolActions
+                className="flex flex-wrap gap-2"
+                primary={backgroundOptions.map((option) => (
                   <button
                     key={option.value}
                     onClick={() => setBgColor(option.value)}
@@ -343,24 +346,17 @@ export default function BackgroundRemover({ lang: initialLang }: { lang?: Langua
                     <span className="text-sm text-[var(--color-text)]">{option.label}</span>
                   </button>
                 ))}
-              </div>
+              />
 
               {/* Custom Color Picker */}
               {bgColor === 'custom' && (
-                <div className="flex items-center gap-2">
-                  <input
-                    type="color"
-                    value={customColor}
-                    onChange={(e) => setCustomColor(e.target.value)}
-                    className="w-10 h-10 rounded cursor-pointer"
-                  />
-                  <input
-                    type="text"
-                    value={customColor}
-                    onChange={(e) => setCustomColor(e.target.value)}
-                    className="px-3 py-2 rounded-lg border border-[var(--color-border)]
-                      bg-[var(--color-card)] text-[var(--color-text)] w-28"
-                  />
+                <div className="grid grid-cols-2 gap-2">
+                  <ToolField id="background-color-picker" label={t(tt.customColor)}>
+                    <input type="color" value={customColor} onChange={(e) => setCustomColor(e.target.value)} />
+                  </ToolField>
+                  <ToolField id="background-color-value" label="HEX">
+                    <input type="text" value={customColor} onChange={(e) => setCustomColor(e.target.value)} />
+                  </ToolField>
                 </div>
               )}
             </div>
@@ -368,8 +364,7 @@ export default function BackgroundRemover({ lang: initialLang }: { lang?: Langua
 
           {/* Download */}
           {result && (
-            <div className="flex gap-2">
-              <button
+            <ToolActions primary={<button
                 onClick={bgColor === 'transparent' ? downloadOriginalResult : download}
                 className="flex-1 py-3 bg-green-500 hover:bg-green-600 text-white rounded-lg
                   font-medium transition-colors flex items-center justify-center gap-2"
@@ -379,8 +374,7 @@ export default function BackgroundRemover({ lang: initialLang }: { lang?: Langua
                     d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
                 </svg>
                 {t(tc.download)} (PNG)
-              </button>
-            </div>
+              </button>} />
           )}
 
           {/* Info Note */}
@@ -391,6 +385,6 @@ export default function BackgroundRemover({ lang: initialLang }: { lang?: Langua
           </div>
         </>
       )}
-    </div>
+    </ToolPanel>
   );
 }

@@ -1,8 +1,8 @@
 # Interactive LLM Wiki Learning Experience — Design
 
-**Date:** 2026-07-17  
-**Status:** Approved  
-**Route:** `/llm-wiki/`  
+**Date:** 2026-07-17
+**Status:** Approved
+**Route:** `/llm-wiki/`
 **Language:** English
 
 ## Objective

@@ -1,48 +1,22 @@
-import { useTranslation } from '../../i18n/useTranslation';
-import { useState, useEffect } from 'react';
-import type { Language } from '../../i18n';
+import type { Language } from '../../data/tools/types';
+import { catalogUi } from '../../i18n/tool-ui';
 
-export default function ToolsPageInfo({ lang }: { lang?: Language } = {}) {
-  const { t } = useTranslation(lang);
-  const [mounted, setMounted] = useState(false);
+interface ToolsPageInfoProps {
+  lang?: Language;
+}
 
-  useEffect(() => {
-    setMounted(true);
-  }, []);
-
-  const infoItems = [
-    {
-      ko: '모든 도구는 브라우저에서 실행되며, 데이터가 서버로 전송되지 않습니다.',
-      en: 'All tools run in your browser. No data is sent to any server.',
-      ja: 'すべてのツールはブラウザで実行され、データはサーバーに送信されません。',
-    },
-    {
-      ko: '무료로 사용 가능하며, 회원가입이 필요없습니다.',
-      en: 'Free to use. No registration required.',
-      ja: '無料でご利用いただけます。会員登録は不要です。',
-    },
-    {
-      ko: '모바일과 데스크톱 모두에서 사용할 수 있습니다.',
-      en: 'Works on both mobile and desktop.',
-      ja: 'モバイルとデスクトップの両方でご利用いただけます。',
-    },
-    {
-      ko: '한국어, 영어, 일본어를 지원합니다.',
-      en: 'Supports Korean, English, and Japanese.',
-      ja: '韓国語、英語、日本語に対応しています。',
-    },
-  ];
+export default function ToolsPageInfo({ lang = 'en' }: ToolsPageInfoProps) {
+  const ui = catalogUi[lang];
+  const text = { heading: `ℹ️ ${ui.information}`, items: [ui.privacy, ui.free, ui.responsive] };
 
   return (
-    <div className="mt-8 p-6 rounded-xl bg-[var(--color-card)] border border-[var(--color-border)]">
-      <h2 className="text-xl font-semibold text-[var(--color-text)] mb-4">
-        {mounted ? t({ ko: 'ℹ️ 정보', en: 'ℹ️ Information', ja: 'ℹ️ 情報' }) : 'ℹ️ 정보'}
-      </h2>
-      <ul className="space-y-2 text-[var(--color-text-muted)]">
-        {infoItems.map((item, index) => (
-          <li key={index}>• {mounted ? t(item) : item.ko}</li>
+    <aside className="fc-surface fc-surface-soft mt-10 p-5 md:p-6">
+      <h2 className="mb-4 text-lg font-bold text-[var(--text-primary)]">{text.heading}</h2>
+      <ul className="m-0 grid list-none gap-2 p-0 text-sm text-[var(--text-primary)] md:grid-cols-3">
+        {text.items.map(item => (
+          <li key={item} className="border-l-2 border-[var(--accent)] pl-3">{item}</li>
         ))}
       </ul>
-    </div>
+    </aside>
   );
 }

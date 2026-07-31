@@ -1,5 +1,7 @@
 ---
 import MainLayout from '../../layouts/MainLayout.astro';
+import PageHeader from '../../components/ui/PageHeader.astro';
+import PageShell from '../../components/ui/PageShell.astro';
 
 // SEO optimized description
 const pageDescription = "무료 온라인 미니게임 모음 - 룰렛, 슬롯머신, 가위바위보, 숫자 맞추기, 기억력 게임, 반응속도 테스트. 설치 없이 브라우저에서 바로 플레이!";
@@ -135,42 +137,36 @@ const games = [
     title: '룰렛',
     description: '커스텀 항목으로 돌리는 랜덤 룰렛',
     icon: '🎡',
-    color: 'from-purple-500 to-pink-500',
   },
   {
     slug: 'slot-machine',
     title: '슬롯머신',
     description: '행운의 777을 노려보세요!',
     icon: '🎰',
-    color: 'from-yellow-500 to-red-500',
   },
   {
     slug: 'rock-paper-scissors',
     title: '가위바위보',
     description: 'AI와 대결하는 가위바위보',
     icon: '✊',
-    color: 'from-blue-500 to-cyan-500',
   },
   {
     slug: 'number-guess',
     title: '숫자 맞추기',
     description: '1-100 사이 숫자를 맞춰보세요',
     icon: '🔢',
-    color: 'from-green-500 to-teal-500',
   },
   {
     slug: 'memory-game',
     title: '기억력 게임',
     description: '카드 짝 맞추기 두뇌 게임',
     icon: '🧠',
-    color: 'from-indigo-500 to-purple-500',
   },
   {
     slug: 'reaction-test',
     title: '반응속도',
     description: '당신의 반응속도를 측정하세요',
     icon: '⚡',
-    color: 'from-orange-500 to-yellow-500',
   },
 ];
 ---
@@ -181,47 +177,41 @@ const games = [
   <!-- JSON-LD for FAQ -->
   <script type="application/ld+json" set:html={JSON.stringify(faqSchema)} />
 
-  <section class="py-16 px-4">
-    <div class="max-w-5xl mx-auto">
-      <!-- Header -->
-      <div class="text-center mb-12">
-        <h1 class="text-4xl font-bold mb-4">🎮 게임센터</h1>
-        <p class="text-xl text-[var(--color-text-muted)]">
-          재미있는 미니게임들을 즐겨보세요!
-        </p>
-      </div>
+  <PageShell size="content">
+    <PageHeader
+      eyebrow="Mini games"
+      title="🎮 게임센터"
+      description="재미있는 미니게임들을 즐겨보세요!"
+    />
 
-      <!-- Games Grid -->
-      <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <div class="fc-surface overflow-hidden">
+        <ul class="m-0 grid list-none p-0 md:grid-cols-2 lg:grid-cols-3">
         {games.map((game) => (
-          <a
-            href={`/projects/${game.slug}`}
-            class="group relative overflow-hidden rounded-2xl bg-[var(--color-card)] border border-[var(--color-border)] hover:border-transparent transition-all duration-300 hover:shadow-2xl hover:-translate-y-1"
-          >
-            <div class={`absolute inset-0 bg-gradient-to-br ${game.color} opacity-0 group-hover:opacity-10 transition-opacity`} />
-            <div class="p-6">
-              <div class="text-5xl mb-4 transform group-hover:scale-110 transition-transform duration-300">
+          <li class="border-b border-[var(--border-subtle)] md:border-r">
+            <a
+              href={`/projects/${game.slug}`}
+              class="group flex min-h-24 items-center gap-3 px-4 py-3 transition-colors hover:bg-[var(--surface-soft)]"
+            >
+              <span class="w-10 shrink-0 text-center text-3xl" aria-hidden="true">
                 {game.icon}
-              </div>
-              <h3 class="text-xl font-bold mb-2 group-hover:text-primary-500 transition-colors">
-                {game.title}
-              </h3>
-              <p class="text-[var(--color-text-muted)]">
-                {game.description}
-              </p>
-              <div class="mt-4 flex items-center text-sm text-primary-500 opacity-0 group-hover:opacity-100 transition-opacity">
-                <span>플레이하기</span>
-                <svg class="w-4 h-4 ml-1 transform group-hover:translate-x-1 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
-                </svg>
-              </div>
-            </div>
-          </a>
+              </span>
+              <span class="min-w-0 flex-1">
+                <span class="block font-bold text-[var(--text-primary)] group-hover:text-[var(--brand)]">
+                  {game.title}
+                </span>
+                <span class="mt-1 block text-sm text-[var(--text-muted)]">
+                  {game.description}
+                </span>
+              </span>
+              <span class="text-[var(--text-muted)]" aria-hidden="true">→</span>
+            </a>
+          </li>
         ))}
+        </ul>
       </div>
 
       <!-- Info Card -->
-      <div class="mt-12 p-6 bg-gradient-to-r from-primary-500/10 to-purple-500/10 rounded-xl border border-[var(--color-border)]">
+      <div class="fc-surface fc-surface-padding-md mt-8">
         <div class="flex items-start gap-4">
           <span class="text-3xl">💡</span>
           <div>
@@ -238,8 +228,8 @@ const games = [
       <div class="mt-16">
         <h2 class="text-2xl font-bold mb-8 text-center">자주 묻는 질문</h2>
         <div class="space-y-4">
-          {faqs.map((faq, index) => (
-            <details class="group bg-[var(--color-card)] rounded-xl border border-[var(--color-border)] overflow-hidden">
+          {faqs.map((faq) => (
+            <details class="fc-surface overflow-hidden">
               <summary class="flex items-center justify-between p-5 cursor-pointer hover:bg-[var(--color-card-hover)] transition-colors">
                 <span class="font-medium pr-4">{faq.question}</span>
                 <svg class="w-5 h-5 text-[var(--color-text-muted)] transform group-open:rotate-180 transition-transform flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -255,23 +245,22 @@ const games = [
       </div>
 
       <!-- Game Features -->
-      <div class="mt-16 grid md:grid-cols-3 gap-6">
-        <div class="text-center p-6 bg-[var(--color-card)] rounded-xl border border-[var(--color-border)]">
+      <div class="mt-12 grid md:grid-cols-3 gap-4">
+        <div class="fc-surface fc-surface-padding-md text-center">
           <div class="text-4xl mb-4">🆓</div>
           <h3 class="font-bold mb-2">100% 무료</h3>
           <p class="text-sm text-[var(--color-text-muted)]">모든 게임 무료, 광고 없음</p>
         </div>
-        <div class="text-center p-6 bg-[var(--color-card)] rounded-xl border border-[var(--color-border)]">
+        <div class="fc-surface fc-surface-padding-md text-center">
           <div class="text-4xl mb-4">📱</div>
           <h3 class="font-bold mb-2">모든 기기 지원</h3>
           <p class="text-sm text-[var(--color-text-muted)]">PC, 태블릿, 모바일 호환</p>
         </div>
-        <div class="text-center p-6 bg-[var(--color-card)] rounded-xl border border-[var(--color-border)]">
+        <div class="fc-surface fc-surface-padding-md text-center">
           <div class="text-4xl mb-4">🔒</div>
           <h3 class="font-bold mb-2">개인정보 보호</h3>
           <p class="text-sm text-[var(--color-text-muted)]">데이터 수집 없음</p>
         </div>
       </div>
-    </div>
-  </section>
+  </PageShell>
 </MainLayout>

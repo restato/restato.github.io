@@ -246,19 +246,21 @@ export default function LadderGame() {
   };
 
   return (
-    <div className="flex flex-col lg:flex-row gap-6 w-full max-w-6xl mx-auto px-4">
+    <div className="fc-game mx-auto flex w-full max-w-6xl flex-col gap-6 px-0 lg:flex-row">
       {/* Ladder Display */}
       <div className="flex-1">
         {/* Participant Labels (Top) */}
         <div className="flex mb-2">
           {participants.map((p, idx) => (
             <button
+              type="button"
+              data-contrast-target={selectedIndex === idx ? 'ladder-selected' : undefined}
               key={p.id}
               onClick={() => !isAnimating && ladderData.length > 0 && animatePath(idx)}
               disabled={isAnimating || ladderData.length === 0}
-              className={`flex-1 py-2 text-center text-sm font-medium rounded-t-lg transition-colors ${
+              className={`fc-game-cell flex-1 rounded-t-lg py-2 text-center text-sm font-medium ${
                 selectedIndex === idx
-                  ? 'bg-red-500 text-white'
+                  ? 'border border-[var(--accent)] bg-[var(--surface-soft)] text-[var(--accent)]'
                   : 'bg-[var(--color-card)] border border-[var(--color-border)] hover:bg-[var(--color-card-hover)]'
               } ${isAnimating || ladderData.length === 0 ? 'cursor-not-allowed opacity-50' : 'cursor-pointer'}`}
             >
@@ -290,19 +292,20 @@ export default function LadderGame() {
 
         {/* Generate Button */}
         <button
+          type="button"
           onClick={generateLadder}
           disabled={participants.length < 2 || results.length < participants.length}
-          className="mt-4 w-full py-3 bg-primary-500 text-white font-bold rounded-lg hover:bg-primary-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+          className="fc-button fc-button-primary mt-4 w-full"
         >
           {t({ ko: '사다리 생성', en: 'Generate Ladder', ja: 'はしご生成' })}
         </button>
 
         {/* Result Display */}
         {finalResult && (
-          <div className="mt-4 p-6 bg-gradient-to-r from-yellow-500/20 to-orange-500/20 rounded-xl border border-yellow-500 text-center">
+          <div className="fc-surface fc-surface-soft mt-4 p-6 text-center" role="status">
             <div className="text-xl font-bold">{finalResult.participant}</div>
             <div className="text-3xl mt-2">👇</div>
-            <div className="text-2xl font-bold text-primary-500 mt-2">{finalResult.result}</div>
+            <div className="mt-2 text-2xl font-bold text-[var(--accent)]">{finalResult.result}</div>
           </div>
         )}
       </div>
@@ -310,14 +313,15 @@ export default function LadderGame() {
       {/* Controls */}
       <div className="w-full lg:w-80 space-y-4">
         {/* Participants */}
-        <div className="bg-[var(--color-card)] rounded-xl p-4 border border-[var(--color-border)]">
+        <div className="fc-surface p-4">
           <div className="flex justify-between items-center mb-3">
             <h3 className="font-bold">
               {t({ ko: '참가자', en: 'Participants', ja: '参加者' })} ({participants.length})
             </h3>
             <button
+              type="button"
               onClick={() => setShowBulkInput(!showBulkInput)}
-              className="text-sm text-primary-500 hover:underline"
+              className="fc-button fc-button-quiet text-sm"
             >
               {t({ ko: '일괄 입력', en: 'Bulk Input', ja: '一括入力' })}
             </button>
@@ -328,16 +332,18 @@ export default function LadderGame() {
               <textarea
                 value={bulkInput}
                 onChange={(e) => setBulkInput(e.target.value)}
+                aria-label={t({ ko: '참가자 일괄 입력', en: 'Bulk participant input', ja: '参加者一括入力' })}
                 placeholder={t({
                   ko: '이름을 줄바꿈 또는 쉼표로 구분하여 입력\n예: 홍길동, 김철수, 이영희',
                   en: 'Enter names separated by newlines or commas\ne.g.: John, Jane, Bob',
                   ja: '名前を改行またはカンマで区切って入力\n例: 太郎, 花子, 次郎',
                 })}
-                className="w-full h-32 p-2 text-sm border border-[var(--color-border)] rounded-lg resize-none"
+                className="fc-textarea h-32 text-sm"
               />
               <button
+                type="button"
                 onClick={handleBulkAdd}
-                className="w-full py-2 bg-primary-500 text-white rounded-lg hover:bg-primary-600"
+                className="fc-button fc-button-primary w-full"
               >
                 {t({ ko: '적용', en: 'Apply', ja: '適用' })}
               </button>
@@ -349,15 +355,21 @@ export default function LadderGame() {
                   type="text"
                   value={newParticipant}
                   onChange={(e) => setNewParticipant(e.target.value)}
-                  onKeyPress={(e) => e.key === 'Enter' && addParticipant()}
+                  onKeyDown={(e) => {
+                    if (e.nativeEvent.isComposing) return;
+                    if (e.key === 'Enter') addParticipant();
+                  }}
                   placeholder={t({ ko: '이름 입력', en: 'Enter name', ja: '名前入力' })}
-                  className="flex-1 px-3 py-2 text-sm border border-[var(--color-border)] rounded-lg"
+                  aria-label={t({ ko: '이름 입력', en: 'Enter name', ja: '名前入力' })}
+                  className="fc-input flex-1 text-sm"
                   maxLength={20}
                 />
                 <button
+                  type="button"
                   onClick={addParticipant}
                   disabled={participants.length >= 10}
-                  className="px-3 py-2 bg-primary-500 text-white rounded-lg hover:bg-primary-600 disabled:opacity-50"
+                  aria-label={t({ ko: '참가자 추가', en: 'Add participant', ja: '参加者を追加' })}
+                  className="fc-button fc-button-primary px-3"
                 >
                   +
                 </button>
@@ -367,9 +379,11 @@ export default function LadderGame() {
                   <div key={p.id} className="flex items-center justify-between p-2 bg-[var(--color-bg)] rounded-lg">
                     <span className="text-sm truncate">{p.name}</span>
                     <button
+                      type="button"
                       onClick={() => removeParticipant(p.id)}
                       disabled={participants.length <= 2}
-                      className="text-red-500 hover:text-red-600 disabled:opacity-30"
+                      aria-label={`${p.name} ${t({ ko: '삭제', en: 'Remove', ja: '削除' })}`}
+                      className="fc-button fc-button-quiet min-h-11 px-3 text-[var(--accent)]"
                     >
                       ✕
                     </button>
@@ -381,7 +395,7 @@ export default function LadderGame() {
         </div>
 
         {/* Results */}
-        <div className="bg-[var(--color-card)] rounded-xl p-4 border border-[var(--color-border)]">
+        <div className="fc-surface p-4">
           <h3 className="font-bold mb-3">
             {t({ ko: '결과', en: 'Results', ja: '結果' })} ({results.length})
           </h3>
@@ -390,15 +404,21 @@ export default function LadderGame() {
               type="text"
               value={newResult}
               onChange={(e) => setNewResult(e.target.value)}
-              onKeyPress={(e) => e.key === 'Enter' && addResult()}
+              onKeyDown={(e) => {
+                if (e.nativeEvent.isComposing) return;
+                if (e.key === 'Enter') addResult();
+              }}
               placeholder={t({ ko: '결과 입력', en: 'Enter result', ja: '結果入力' })}
-              className="flex-1 px-3 py-2 text-sm border border-[var(--color-border)] rounded-lg"
+              aria-label={t({ ko: '결과 입력', en: 'Enter result', ja: '結果入力' })}
+              className="fc-input flex-1 text-sm"
               maxLength={20}
             />
             <button
+              type="button"
               onClick={addResult}
               disabled={results.length >= 10}
-              className="px-3 py-2 bg-primary-500 text-white rounded-lg hover:bg-primary-600 disabled:opacity-50"
+              aria-label={t({ ko: '결과 추가', en: 'Add result', ja: '結果を追加' })}
+              className="fc-button fc-button-primary px-3"
             >
               +
             </button>
@@ -408,9 +428,11 @@ export default function LadderGame() {
               <div key={r.id} className="flex items-center justify-between p-2 bg-[var(--color-bg)] rounded-lg">
                 <span className="text-sm truncate">{r.name}</span>
                 <button
+                  type="button"
                   onClick={() => removeResult(r.id)}
                   disabled={results.length <= 2}
-                  className="text-red-500 hover:text-red-600 disabled:opacity-30"
+                  aria-label={`${r.name} ${t({ ko: '삭제', en: 'Remove', ja: '削除' })}`}
+                  className="fc-button fc-button-quiet min-h-11 px-3 text-[var(--accent)]"
                 >
                   ✕
                 </button>

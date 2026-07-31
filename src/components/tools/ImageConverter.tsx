@@ -1,6 +1,9 @@
 import { useState, useRef, useCallback } from 'react';
 import { useTranslation } from '../../i18n/useTranslation';
-import type { Language } from '../../i18n';
+import { ToolActions } from './ui/ToolActions';
+import { ToolField } from './ui/ToolField';
+import { ToolPanel } from './ui/ToolPanel';
+import { ToolResult } from './ui/ToolResult';
 
 interface ConvertedImage {
   original: {
@@ -18,8 +21,8 @@ interface ConvertedImage {
 
 type OutputFormat = 'jpeg' | 'png' | 'webp';
 
-export default function ImageConverter({ lang: initialLang }: { lang?: Language } = {}) {
-  const { t } = useTranslation(initialLang);
+export default function ImageConverter() {
+  const { t } = useTranslation();
 
   const [images, setImages] = useState<ConvertedImage[]>([]);
   const [outputFormat, setOutputFormat] = useState<OutputFormat>('jpeg');
@@ -34,6 +37,11 @@ export default function ImageConverter({ lang: initialLang }: { lang?: Language 
     'image/jpeg', 'image/png', 'image/webp', 'image/gif', 'image/bmp',
     'image/heic', 'image/heif', 'image/avif', 'image/tiff'
   ];
+  const dropZoneLabel = t({
+    ko: '이미지를 드래그하거나 클릭하여 업로드',
+    en: 'Drag images or click to upload',
+    ja: '画像をドラッグまたはクリックしてアップロード',
+  });
 
   const formatBytes = (bytes: number): string => {
     if (bytes === 0) return '0 B';
@@ -196,7 +204,7 @@ export default function ImageConverter({ lang: initialLang }: { lang?: Language 
   };
 
   return (
-    <div className="flex flex-col gap-6">
+    <ToolPanel className="gap-6">
       {/* Hidden canvas */}
       <canvas ref={canvasRef} className="hidden" />
 
@@ -204,6 +212,7 @@ export default function ImageConverter({ lang: initialLang }: { lang?: Language 
       <input
         ref={fileInputRef}
         type="file"
+        aria-label={t({ ko: '이미지 파일 선택', en: 'Choose image files', ja: '画像ファイルを選択' })}
         accept="image/*,.heic,.heif,.raw,.cr2,.nef,.arw,.dng,.orf,.rw2"
         multiple
         onChange={handleFileChange}
@@ -212,54 +221,47 @@ export default function ImageConverter({ lang: initialLang }: { lang?: Language 
 
       {/* Settings */}
       <div className="flex flex-wrap gap-4 items-center p-4 rounded-lg bg-[var(--color-card)] border border-[var(--color-border)]">
-        <div className="flex items-center gap-2">
-          <label className="text-sm text-[var(--color-text)]">
-            {t({ ko: '출력 포맷', en: 'Output Format', ja: '出力フォーマット' })}:
-          </label>
+        <ToolField id="image-converter-format" label={`${t({ ko: '출력 포맷', en: 'Output Format', ja: '出力フォーマット' })}:`}>
           <select
             value={outputFormat}
             onChange={(e) => setOutputFormat(e.target.value as OutputFormat)}
-            className="px-3 py-2 rounded-lg border border-[var(--color-border)]
-              bg-[var(--color-bg)] text-[var(--color-text)]"
           >
             <option value="jpeg">JPEG</option>
             <option value="png">PNG</option>
             <option value="webp">WebP</option>
           </select>
-        </div>
+        </ToolField>
 
         {outputFormat !== 'png' && (
-          <div className="flex items-center gap-2">
-            <label className="text-sm text-[var(--color-text)]">
-              {t({ ko: '품질', en: 'Quality', ja: '品質' })}:
-            </label>
-            <input
-              type="range"
-              min="10"
-              max="100"
-              value={quality}
-              onChange={(e) => setQuality(Number(e.target.value))}
-              className="w-24 accent-primary-500"
-            />
+          <div className="flex items-end gap-2">
+            <ToolField id="image-converter-quality" label={`${t({ ko: '품질', en: 'Quality', ja: '品質' })}:`}>
+              <input
+                type="range"
+                min="10"
+                max="100"
+                value={quality}
+                onChange={(e) => setQuality(Number(e.target.value))}
+                className="w-24 accent-primary-500"
+              />
+            </ToolField>
             <span className="text-sm text-[var(--color-text-muted)] w-10">{quality}%</span>
           </div>
         )}
 
         {images.length > 0 && (
-          <button
-            onClick={reconvertAll}
-            disabled={isConverting}
-            className="px-3 py-2 text-sm bg-primary-500 hover:bg-primary-600 text-white rounded-lg
-              transition-colors disabled:opacity-50"
-          >
-            {t({ ko: '다시 변환', en: 'Re-convert', ja: '再変換' })}
-          </button>
+          <ToolActions primary={
+            <button onClick={reconvertAll} disabled={isConverting}>
+              {t({ ko: '다시 변환', en: 'Re-convert', ja: '再変換' })}
+            </button>
+          } />
         )}
       </div>
 
       {/* Drop Zone */}
-      <div
-        onClick={() => fileInputRef.current?.click()}
+      <ToolPanel
+        variant="drop-zone"
+        onActivate={() => fileInputRef.current?.click()}
+        aria-label={dropZoneLabel}
         onDrop={handleDrop}
         onDragOver={(e) => { e.preventDefault(); setIsDragging(true); }}
         onDragLeave={() => setIsDragging(false)}
@@ -276,48 +278,42 @@ export default function ImageConverter({ lang: initialLang }: { lang?: Language 
         </svg>
         <div className="text-center">
           <p className="text-[var(--color-text)]">
-            {t({ ko: '이미지를 드래그하거나 클릭하여 업로드', en: 'Drag images or click to upload', ja: '画像をドラッグまたはクリックしてアップロード' })}
+            {dropZoneLabel}
           </p>
           <p className="text-sm text-[var(--color-text-muted)] mt-1">
             {t({ ko: 'JPEG, PNG, WebP, GIF, BMP, HEIC, AVIF 지원', en: 'Supports JPEG, PNG, WebP, GIF, BMP, HEIC, AVIF', ja: 'JPEG, PNG, WebP, GIF, BMP, HEIC, AVIF対応' })}
           </p>
         </div>
-      </div>
+      </ToolPanel>
 
       {/* Converting indicator */}
       {isConverting && (
-        <div className="flex items-center justify-center gap-2 p-4">
+        <ToolResult status="working">
+        <div className="flex items-center justify-center gap-2">
           <div className="w-5 h-5 border-2 border-primary-500 border-t-transparent rounded-full animate-spin" />
           <span className="text-[var(--color-text)]">
             {t({ ko: '변환 중...', en: 'Converting...', ja: '変換中...' })}
           </span>
         </div>
+        </ToolResult>
       )}
 
       {/* Results */}
       {images.length > 0 && (
         <div className="space-y-4">
           {/* Actions */}
-          <div className="flex gap-2">
-            <button
-              onClick={downloadAll}
-              className="px-4 py-2 bg-green-500 hover:bg-green-600 text-white rounded-lg
-                transition-colors flex items-center gap-2"
-            >
+          <ToolActions
+            primary={<button onClick={downloadAll}>
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
                   d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
               </svg>
               {t({ ko: '모두 다운로드', en: 'Download All', ja: 'すべてダウンロード' })}
-            </button>
-            <button
-              onClick={clearAll}
-              className="px-4 py-2 bg-[var(--color-card)] hover:bg-[var(--color-card-hover)]
-                border border-[var(--color-border)] rounded-lg transition-colors"
-            >
+            </button>}
+            secondary={<button onClick={clearAll}>
               {t({ ko: '모두 삭제', en: 'Clear All', ja: 'すべて削除' })}
-            </button>
-          </div>
+            </button>}
+          />
 
           {/* Image list */}
           <div className="space-y-3">
@@ -372,11 +368,10 @@ export default function ImageConverter({ lang: initialLang }: { lang?: Language 
                 </div>
 
                 {/* Actions */}
-                <div className="flex gap-2">
-                  {image.converted && (
+                <ToolActions
+                  primary={image.converted ? (
                     <button
                       onClick={() => downloadImage(image)}
-                      className="p-2 bg-green-500 hover:bg-green-600 text-white rounded-lg transition-colors"
                       title={t({ ko: '다운로드', en: 'Download', ja: 'ダウンロード' })}
                     >
                       <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -384,18 +379,17 @@ export default function ImageConverter({ lang: initialLang }: { lang?: Language 
                           d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
                       </svg>
                     </button>
-                  )}
-                  <button
+                  ) : null}
+                  secondary={<button
                     onClick={() => removeImage(index)}
-                    className="p-2 bg-red-500 hover:bg-red-600 text-white rounded-lg transition-colors"
                     title={t({ ko: '삭제', en: 'Remove', ja: '削除' })}
                   >
                     <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
                         d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                    </svg>
-                  </button>
-                </div>
+                      </svg>
+                  </button>}
+                />
               </div>
             ))}
           </div>
@@ -412,6 +406,6 @@ export default function ImageConverter({ lang: initialLang }: { lang?: Language 
           })}
         </p>
       </div>
-    </div>
+    </ToolPanel>
   );
 }

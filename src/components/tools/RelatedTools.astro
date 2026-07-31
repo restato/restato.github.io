@@ -1,64 +1,54 @@
 ---
-import { toolsConfig, type Language } from '../../data/tools';
+import { getTool, type Language, type ToolDefinition } from '../../data/tools';
+import { relatedToolsTitle } from '../../i18n/tool-ui';
+import { getLocalizedToolHref } from './toolLinks';
 
 interface Props {
   currentSlug: string;
-  currentCategory: string;
+  currentCategory?: string;
   lang?: Language;
 }
 
-const { currentSlug, currentCategory, lang = 'ko' } = Astro.props;
+const { currentSlug, lang = 'ko' } = Astro.props;
 
-const translations = {
-  ko: '관련 도구',
-  en: 'Related Tools',
-  ja: '関連ツール',
-};
+const relatedTitle = relatedToolsTitle[lang];
 
-const relatedTitle = translations[lang] || translations.ko;
-
-// Get tools from toolsConfig and filter related ones
-const relatedTools = toolsConfig
-  .filter(tool => tool.slug !== currentSlug)
-  .sort((a, b) => {
-    if (a.category === currentCategory && b.category !== currentCategory) return -1;
-    if (a.category !== currentCategory && b.category === currentCategory) return 1;
-    return 0;
-  })
-  .slice(0, 4)
+const relatedTools = (getTool(currentSlug)?.related ?? [])
+  .map(getTool)
+  .filter((tool): tool is ToolDefinition => Boolean(tool))
   .map(tool => ({
     slug: tool.slug,
-    title: tool.seo[lang]?.title.split(' - ')[0] || tool.seo.ko.title.split(' - ')[0],
-    description: tool.seo[lang]?.description || tool.seo.ko.description,
+    title: tool.content[lang]?.name || tool.content.ko?.name || tool.slug,
+    description: tool.content[lang]?.description || tool.content.ko?.description || '',
     icon: tool.icon,
   }));
 ---
 
-<section class="mt-12 pt-8 border-t border-[var(--color-border)]">
-  <h2 class="text-xl font-bold text-[var(--color-text)] mb-6 flex items-center gap-2">
+<section class="mt-12 border-t border-[var(--border-subtle)] pt-8">
+  <h2 class="mb-5 flex items-center gap-2 text-xl font-bold text-[var(--text-primary)]">
     <span>🔧</span> {relatedTitle}
   </h2>
-  <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-    {relatedTools.map((tool) => (
-      <a
-        href={`/${lang}/tools/${tool.slug}`}
-        class="group flex items-center gap-4 p-4 rounded-xl
-          bg-[var(--color-card)] border border-[var(--color-border)]
-          hover:border-primary-500 hover:shadow-md transition-all"
-      >
-        <span class="text-2xl">{tool.icon}</span>
-        <div class="flex-1 min-w-0">
-          <h3 class="font-semibold text-[var(--color-text)] group-hover:text-primary-500 transition-colors">
-            {tool.title}
-          </h3>
-          <p class="text-sm text-[var(--color-text-muted)] truncate">
-            {tool.description}
-          </p>
-        </div>
-        <svg class="w-5 h-5 text-[var(--color-text-muted)] group-hover:text-primary-500 transition-colors flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
-        </svg>
-      </a>
-    ))}
+  <div class="fc-surface overflow-hidden">
+    <ul class="m-0 grid list-none p-0 md:grid-cols-2">
+      {relatedTools.map((tool) => (
+        <li class="border-b border-[var(--border-subtle)] md:border-r">
+          <a
+            href={getLocalizedToolHref(tool.slug, lang)}
+            class="group flex min-h-20 items-center gap-3 px-4 py-3 transition-colors hover:bg-[var(--surface-soft)]"
+          >
+            <span class="w-10 shrink-0 text-center text-2xl" aria-hidden="true">{tool.icon}</span>
+            <div class="min-w-0 flex-1">
+              <h3 class="m-0 truncate font-bold text-[var(--text-primary)] group-hover:text-[var(--brand)]">
+                {tool.title}
+              </h3>
+              <span class="mt-0.5 block truncate text-sm text-[var(--text-muted)]">
+                {tool.description}
+              </span>
+            </div>
+            <span class="shrink-0 text-[var(--text-muted)]" aria-hidden="true">→</span>
+          </a>
+        </li>
+      ))}
+    </ul>
   </div>
 </section>

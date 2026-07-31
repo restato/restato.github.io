@@ -266,9 +266,9 @@ export default function DinoRunner() {
   };
 
   return (
-    <div className="flex flex-col items-center w-full max-w-2xl lg:max-w-4xl mx-auto px-4">
+    <div className="fc-game mx-auto flex w-full max-w-2xl flex-col items-center px-0 lg:max-w-4xl">
       {/* Score */}
-      <div className="flex justify-between items-center w-full mb-4 p-4 bg-[var(--color-card)] rounded-xl border border-[var(--color-border)]">
+      <div className="fc-surface mb-4 flex w-full items-center justify-between p-4">
         <div className="text-center">
           <div className="text-2xl font-bold text-primary-500">{score}</div>
           <div className="text-sm text-[var(--color-text-muted)]">
@@ -288,6 +288,10 @@ export default function DinoRunner() {
         className="relative w-full"
         onClick={handleTouch}
         onTouchStart={handleTouch}
+        onKeyDown={event => event.key === 'Enter' && handleTouch()}
+        role="button"
+        tabIndex={0}
+        aria-label={t({ ko: '공룡 게임 시작 또는 점프', en: 'Start or jump', ja: '開始またはジャンプ' })}
       >
         <canvas
           ref={canvasRef}
@@ -301,14 +305,14 @@ export default function DinoRunner() {
         {!isPlaying && (
           <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/50 rounded-xl">
             {gameOver && (
-              <>
+              <div role="status" aria-live="assertive" className="text-center">
                 <div className="text-2xl font-bold text-white mb-2">
                   {t({ ko: '게임 오버!', en: 'Game Over!', ja: 'ゲームオーバー!' })}
                 </div>
                 <div className="text-lg text-white/80 mb-4">
                   {t({ ko: '점수', en: 'Score', ja: 'スコア' })}: {score}
                 </div>
-              </>
+              </div>
             )}
             <div className="text-5xl mb-4">🦖</div>
             <div className="text-white text-lg">

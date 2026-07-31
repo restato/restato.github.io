@@ -1,6 +1,8 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { useTranslation } from '../../i18n/useTranslation';
-import type { Language } from '../../i18n';
+import { ToolActions } from './ui/ToolActions';
+import { ToolField } from './ui/ToolField';
+import { ToolPanel } from './ui/ToolPanel';
 
 type Mode = 'timer' | 'stopwatch';
 
@@ -23,8 +25,8 @@ function formatTime(ms: number, showMs: boolean = false): string {
   return result;
 }
 
-export default function TimerStopwatch({ lang: initialLang }: { lang?: Language } = {}) {
-  const { t, translations } = useTranslation(initialLang);
+export default function TimerStopwatch() {
+  const { t, translations } = useTranslation();
   const tt = translations.tools.timer;
   const tc = translations.tools.common;
 
@@ -112,10 +114,9 @@ export default function TimerStopwatch({ lang: initialLang }: { lang?: Language 
   };
 
   return (
-    <div className="flex flex-col gap-6">
+    <ToolPanel className="gap-6">
       {/* Mode Toggle */}
-      <div className="flex rounded-lg overflow-hidden border border-[var(--color-border)]">
-        <button
+      <ToolActions className="grid grid-cols-2" primary={<button
           onClick={() => handleModeChange('stopwatch')}
           className={`flex-1 py-3 font-medium transition-colors
             ${mode === 'stopwatch'
@@ -124,8 +125,7 @@ export default function TimerStopwatch({ lang: initialLang }: { lang?: Language 
             }`}
         >
           {t(tt.stopwatchTab)}
-        </button>
-        <button
+        </button>} secondary={<button
           onClick={() => handleModeChange('timer')}
           className={`flex-1 py-3 font-medium transition-colors
             ${mode === 'timer'
@@ -134,8 +134,7 @@ export default function TimerStopwatch({ lang: initialLang }: { lang?: Language 
             }`}
         >
           {t(tt.timerTab)}
-        </button>
-      </div>
+        </button>} />
 
       {/* Timer Input (only for timer mode when not running) */}
       {mode === 'timer' && !isRunning && time === 0 && (
@@ -145,7 +144,7 @@ export default function TimerStopwatch({ lang: initialLang }: { lang?: Language 
             { key: 'minutes', label: tt.minutes, max: 59 },
             { key: 'seconds', label: tt.seconds, max: 59 },
           ].map(({ key, label, max }) => (
-            <div key={key} className="flex flex-col items-center gap-1">
+            <ToolField key={key} id={`timer-${key}`} label={t(label)}>
               <input
                 type="number"
                 min="0"
@@ -159,8 +158,7 @@ export default function TimerStopwatch({ lang: initialLang }: { lang?: Language 
                   border border-[var(--color-border)] bg-[var(--color-card)]
                   text-[var(--color-text)] focus:outline-none focus:ring-2 focus:ring-primary-500"
               />
-              <span className="text-sm text-[var(--color-text-muted)]">{t(label)}</span>
-            </div>
+            </ToolField>
           ))}
         </div>
       )}
@@ -179,30 +177,27 @@ export default function TimerStopwatch({ lang: initialLang }: { lang?: Language 
       </div>
 
       {/* Controls */}
-      <div className="flex justify-center gap-4">
-        {!isRunning ? (
+      <ToolActions
+        primary={!isRunning ? (
           <button
             onClick={start}
-            className="px-8 py-3 bg-green-500 hover:bg-green-600 text-white rounded-full
-              font-medium transition-colors text-lg"
+            className="px-8 py-3 rounded-full font-medium transition-colors text-lg"
           >
             {t(tc.start)}
           </button>
         ) : (
           <button
             onClick={pause}
-            className="px-8 py-3 bg-yellow-500 hover:bg-yellow-600 text-white rounded-full
-              font-medium transition-colors text-lg"
+            className="px-8 py-3 rounded-full font-medium transition-colors text-lg"
           >
             {t(tc.pause)}
           </button>
         )}
-
+        secondary={<>
         {mode === 'stopwatch' && isRunning && (
           <button
             onClick={lap}
-            className="px-8 py-3 bg-blue-500 hover:bg-blue-600 text-white rounded-full
-              font-medium transition-colors text-lg"
+            className="px-8 py-3 rounded-full font-medium transition-colors text-lg"
           >
             {t(tt.lap)}
           </button>
@@ -215,7 +210,8 @@ export default function TimerStopwatch({ lang: initialLang }: { lang?: Language 
         >
           {t(tc.reset)}
         </button>
-      </div>
+        </>}
+      />
 
       {/* Laps (stopwatch mode) */}
       {mode === 'stopwatch' && laps.length > 0 && (
@@ -245,6 +241,6 @@ export default function TimerStopwatch({ lang: initialLang }: { lang?: Language 
           </div>
         </div>
       )}
-    </div>
+    </ToolPanel>
   );
 }

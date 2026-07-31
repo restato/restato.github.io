@@ -1,0 +1,756 @@
+# Forest Café Tool Platform — Task 6 Report
+
+## Status
+
+**DONE.** The shared tool interface, localized detail shell, and all in-scope
+tool-control families are standardized. The exact required final verification
+chain passed from tests through the production bundle guard.
+
+Base: `08ee0fa`
+
+## Delivered
+
+### Shared tool API
+
+- Added `ToolPanel`, `ToolField`, `ToolActions`, and `ToolResult` under
+  `src/components/tools/ui/`.
+- `ToolField` owns the label and accessible hint/error relationships while
+  leaving the actual input and state with the caller.
+- `ToolActions` preserves primary-before-secondary DOM order and uses shared
+  mobile rules to stack actions full-width below 480px.
+- `ToolResult` uses `role="status"` for normal updates, `role="alert"` only for
+  errors, and exposes live/busy state.
+- `ToolPanel` provides visual framing and semantic control classes without
+  taking ownership of business state. Its drop-zone mode supports Enter and
+  Space keyboard activation.
+- Added Forest Café semantic classes for panels, fields, controls, buttons,
+  results, drop zones, route-shell landmarks, and responsive behavior.
+
+### Localized route shell
+
+- Standardized both `src/layouts/ToolLayout.astro` and
+  `src/pages/[lang]/tools/[slug].astro` around the same compact breadcrumb,
+  editorial header, favorite/share actions, work surface, privacy reassurance,
+  instructions, related tools, and FAQ treatment.
+- Preserved canonical and robots behavior, alternate URLs, FAQ and
+  WebApplication JSON-LD, ad placement, lazy island selection, bookmark prompt,
+  recent-tool tracking, and legacy redirect behavior.
+- Added static regression assertions for these route contracts.
+
+### Tool-family migrations
+
+- Standardized the 13 independently lazy-loaded additional tools through
+  `pdf/shared.tsx`, `data-text/ui.ts`, and `media-calc/ToolShell.tsx`.
+- Standardized 15 text/developer controls, including the 13 named in the brief
+  plus the existing password and diff controls.
+- Standardized 14 calculator/time controls.
+- Standardized 11 image/color controls, including the crop-capable resizers,
+  metadata/EXIF/background tools, QR, palette, gradient, box-shadow, and
+  screenshot tools.
+- Kept the 13 `AdditionalToolIsland` dynamic imports independent; no family was
+  collapsed into an eager bundle.
+- Parsing, workers, downloads, file privacy, object-URL cleanup, existing error
+  text, and other business behavior were not moved into the shared primitives.
+
+The registry's anonymous-chat entry remains on its special
+`/[lang]/anonymous-chat/` route and is explicitly excluded by the localized
+tool-detail route. Review remediation subsequently brought that route and its
+interactive workspace onto the same public tool-shell and shared-control
+contracts without moving it into the generic detail route.
+
+## Commits
+
+1. `4802b37 feat: add shared tool interface primitives`
+2. `f0b6dcc feat: redesign localized tool detail shell`
+3. `0cdc603 refactor: unify additional tool interfaces`
+4. `458cb61 refactor: unify text and developer tools`
+5. `c2a9912 refactor: unify calculator and time tools`
+6. `fee1f18 refactor: unify image and color tools`
+
+Each implementation batch was staged independently. The pre-existing local
+change to `.superpowers/sdd/rollout-task-1-report.md` was not staged or edited.
+
+## TDD evidence
+
+### Shared primitives and representative coverage
+
+RED:
+
+```sh
+npm test -- --run src/components/tools/ui/__tests__/tool-ui.test.tsx \
+  src/components/tools/__tests__/JsonFormatter.test.tsx \
+  src/components/tools/__tests__/ImageConverter.test.tsx \
+  src/components/tools/__tests__/BmiCalculator.test.tsx \
+  src/data/tools/__tests__/additionalToolsIntegration.test.ts
+```
+
+Status: failed as expected because the shared primitives were absent; the
+existing representative assertions otherwise passed.
+
+GREEN: the same command passed — 5 files, 39 tests.
+
+The primitive tests cover field label/hint/error linkage, action order,
+disabled styling, result live/error/busy semantics, and keyboard-operable drop
+zones.
+
+### Route shell
+
+RED:
+
+```sh
+npm test -- --run src/components/tools/ui/__tests__/tool-ui.test.tsx
+```
+
+Status: failed as expected — 2 route-shell landmark assertions failed while the
+preservation assertions already passed.
+
+GREEN: the same command passed — 1 file, 9 tests. `npm run check` also passed
+with 0 errors.
+
+### Additional tools
+
+RED:
+
+```sh
+npm test -- --run src/data/tools/__tests__/additionalToolsIntegration.test.ts \
+  src/components/tools/pdf/__tests__/PdfTools.test.tsx \
+  src/components/tools/data-text/__tests__/DataTextTools.test.tsx \
+  src/components/tools/media-calc/__tests__/tools.test.tsx
+```
+
+Status: failed as expected — 2 shared-interface assertions failed and 30 tests
+passed.
+
+GREEN: the same command passed — 4 files, 32 tests.
+
+### Text and developer tools
+
+RED:
+
+```sh
+npm test -- --run src/components/tools/ui/__tests__/tool-ui.test.tsx \
+  src/components/tools/__tests__/JsonFormatter.test.tsx
+```
+
+Status: failed as expected — 16 missing shared-panel/control assertions failed
+and 19 tests passed.
+
+GREEN:
+
+```sh
+npm test -- --run src/components/tools/ui/__tests__/tool-ui.test.tsx \
+  src/components/tools/__tests__/JsonFormatter.test.tsx \
+  src/components/tools/__tests__/HashGenerator.test.tsx \
+  src/components/tools/__tests__/RegexTester.test.tsx \
+  src/components/tools/__tests__/UrlEncoder.test.tsx \
+  src/components/tools/__tests__/Base64Tool.test.tsx \
+  src/components/tools/__tests__/TextCounter.test.tsx \
+  src/components/tools/__tests__/PasswordGenerator.test.tsx
+```
+
+Status: passed — 8 files, 87 tests.
+
+### Calculator and time tools
+
+RED:
+
+```sh
+npm test -- --run src/components/tools/ui/__tests__/tool-ui.test.tsx \
+  src/components/tools/__tests__/BmiCalculator.test.tsx
+```
+
+Status: failed as expected — 15 missing shared-interface assertions failed and
+31 tests passed.
+
+GREEN:
+
+```sh
+npm test -- --run src/components/tools/ui/__tests__/tool-ui.test.tsx \
+  src/components/tools/__tests__/BmiCalculator.test.tsx \
+  src/components/tools/__tests__/AgeCalculator.test.tsx \
+  src/components/tools/__tests__/DdayCalculator.test.tsx \
+  src/components/tools/__tests__/DiscountCalculator.test.tsx \
+  src/components/tools/__tests__/DutchPayCalculator.test.tsx \
+  src/components/tools/__tests__/PercentCalculator.test.tsx \
+  src/components/tools/__tests__/UnitConverter.test.tsx \
+  src/components/tools/__tests__/LlmCostCalculator.test.tsx
+```
+
+Status: passed — 9 files, 82 tests.
+
+### Image and color tools
+
+RED:
+
+```sh
+npm test -- --run src/components/tools/ui/__tests__/tool-ui.test.tsx \
+  src/components/tools/__tests__/ImageConverter.test.tsx
+```
+
+Status: failed as expected — 12 missing shared-interface/keyboard assertions
+failed and 42 tests passed.
+
+GREEN:
+
+```sh
+npm test -- --run src/components/tools/ui/__tests__/tool-ui.test.tsx \
+  src/components/tools/__tests__/ImageConverter.test.tsx \
+  src/components/tools/__tests__/ImageResizer.test.tsx \
+  src/components/tools/__tests__/ColorConverter.test.tsx \
+  src/components/tools/__tests__/AppStoreScreenshotResizer.test.tsx \
+  src/components/tools/__tests__/BackgroundRemover.test.tsx \
+  src/components/tools/__tests__/fileSelectionBehavior.test.tsx \
+  src/components/tools/__tests__/fileToolsPrivacy.test.tsx
+```
+
+Status: passed — 8 files, 98 tests.
+
+### Required per-batch regression gate
+
+After every family batch:
+
+```sh
+npm test -- --run src/components/tools/__tests__/allTools.test.tsx \
+  src/components/tools/__tests__/fileSelectionBehavior.test.tsx \
+  src/components/tools/__tests__/fileToolsPrivacy.test.tsx \
+  src/components/tools/__tests__/mobileRemainingTools.test.tsx
+```
+
+Status after every batch: passed — 4 files, 89 tests.
+
+## Final verification
+
+Exact required command:
+
+```sh
+npm test -- --run src/components/tools src/lib/pdf src/lib/data-text src/lib/media-calc \
+  && npm run check \
+  && npm run build \
+  && node scripts/check-bundles.mjs dist
+```
+
+Status: passed, exit 0.
+
+- Vitest: 42 files, 388 tests passed.
+- Astro check: 373 files, 0 errors, 0 warnings, 86 informational hints.
+- Production build: 491 client modules transformed and 1,269 pages built.
+- Sitemap: 1,121 final URLs after excluding redirect URLs.
+- Bundle guard:
+
+| Route | Gzip | Budget |
+| --- | ---: | ---: |
+| `/ko/tools` | 165.9 KB | 180 KB |
+| `/ko/tools/text-counter` | 198.9 KB | 220 KB |
+| `/ko/tools/json` | 198.9 KB | 400 KB |
+| `/ko/tools/image-resizer` | 198.9 KB | 550 KB |
+
+`git diff --check 08ee0fa..HEAD` also passed with no whitespace errors.
+
+## Scope and handoff
+
+- No registry, content, ad, deployment, registry-publish, or external-service
+  changes were made.
+- No push, merge, deploy, or worktree cleanup was performed.
+- The feature branch and worktree are intentionally preserved for controller
+  review and Tasks 7–9.
+- No known Task 6 blocker remains.
+
+## Review remediation
+
+### Batch 1 — primitive and shell contracts
+
+RED:
+
+```sh
+npm test -- --run src/components/tools/ui/__tests__/tool-ui.test.tsx
+```
+
+Status: failed as expected — 5 failures and 49 passes. The failures proved that
+`ToolField` replaced caller description tokens, `ToolActions` could leave both
+variant classes on one button, `ToolPanel` recursively mutated controls and
+added a nested raised surface, `.fc-tool-workspace` did not establish layout,
+and instruction lists lacked explicit markers/indentation.
+
+GREEN: the same command passed — 1 file, 54 tests.
+
+The remediation makes `ToolPanel` a plain visual container by default, merges
+field description tokens while preserving caller invalid state, normalizes
+action variants so they cannot conflict, establishes workspace grid layout, and
+restores localized instruction-list markers and spacing.
+
+### Batch 2A — representative real primitive adoption
+
+RED:
+
+```sh
+npm test -- --run src/components/tools/__tests__/JsonFormatter.test.tsx \
+  src/components/tools/__tests__/BmiCalculator.test.tsx \
+  src/components/tools/__tests__/ImageConverter.test.tsx \
+  src/data/tools/__tests__/additionalToolsIntegration.test.ts
+```
+
+Status: failed as expected — 7 failures and 32 passes. Rendered controls lacked
+real shared fields/actions/results after removal of the panel heuristic:
+unassociated calculator/image labels, missing action groups, incorrect JSON
+error status, and absent semantic control classes.
+
+GREEN:
+
+```sh
+npm test -- --run src/components/tools/ui/__tests__/tool-ui.test.tsx \
+  src/components/tools/__tests__/JsonFormatter.test.tsx \
+  src/components/tools/__tests__/BmiCalculator.test.tsx \
+  src/components/tools/__tests__/ImageConverter.test.tsx \
+  src/data/tools/__tests__/additionalToolsIntegration.test.ts
+```
+
+Status: passed — 5 files, 94 tests. This covers rendered text, calculator,
+image, PDF, and media controls; mobile action DOM order; success/error result
+roles; and the primary/secondary class-conflict regression. The required
+four-file regression gate also passed — 89 tests.
+
+### Batch 2B — text/developer family adoption
+
+RED:
+
+```sh
+npm test -- --run src/components/tools/__tests__/allTools.test.tsx
+```
+
+Status: failed as expected — 31 rendered family-contract failures and 74
+passes. The test renders production components and requires a real shared field
+with an accessible control plus a real action group with a conflict-free
+primary action; it replaced the prior source-import scans.
+
+GREEN:
+
+```sh
+npm test -- --run src/components/tools/__tests__/Base64Tool.test.tsx \
+  src/components/tools/__tests__/PasswordGenerator.test.tsx \
+  src/components/tools/__tests__/HashGenerator.test.tsx \
+  src/components/tools/__tests__/RegexTester.test.tsx \
+  src/components/tools/__tests__/UrlEncoder.test.tsx \
+  src/components/tools/__tests__/TextCounter.test.tsx \
+  src/components/tools/__tests__/UuidGenerator.test.tsx \
+  src/components/tools/ui/__tests__/tool-ui.test.tsx
+```
+
+Status: passed — 8 files, 74 tests. The full rendered family contract reduced
+from 31 failures to 17, with the remaining failures confined to the pending
+calculator/time and image/color batches.
+
+### Batch 2C — calculator/time family adoption
+
+RED: the rendered `allTools.test.tsx` family contract retained 12 expected
+calculator/time failures after the text batch (missing real shared fields or
+action groups).
+
+GREEN: the calculator/time-focused component tests and rendered contract passed
+for age, BMI, D-day, discount, Dutch pay, percent, unit, timestamp, timer, world
+clock, pomodoro, dice, and coin. Re-running the complete rendered contract left
+only 5 failures, all in the pending image/color family (100 of 105 tests
+passed).
+
+The migration also removes the timestamp gradient and keeps primary actions
+first in shared mobile-stacking groups.
+
+### Batch 2D — image/color primitives and visual contract
+
+RED:
+
+```sh
+npm test -- --run src/components/tools/ui/__tests__/tool-ui.test.tsx --reporter=dot
+```
+
+Status: failed as expected — 7 production-source contract failures identified
+remaining UI gradients, glass/translucent copy buttons, and hover scale
+treatments. Functional gradient strings used as color-tool output and
+checkerboard previews are intentionally not treated as UI decoration.
+
+The rendered `allTools.test.tsx` contract also retained 5 expected image/color
+failures after the calculator batch.
+
+GREEN:
+
+```sh
+npm test -- --run src/components/tools/__tests__/allTools.test.tsx \
+  src/components/tools/ui/__tests__/tool-ui.test.tsx --reporter=dot
+```
+
+Status: passed — 2 files, 189 tests. Color converter, palette, gradient,
+box-shadow, and QR controls now render real shared fields/actions, while
+prohibited timestamp/metadata/discount/JWT/palette/gradient UI treatments are
+removed.
+
+### Batch 3 — keyboard upload controls and shell ownership
+
+RED:
+
+```sh
+npm test -- --run src/components/tools/__tests__/fileSelectionBehavior.test.tsx \
+  src/components/tools/__tests__/ImageResizer.test.tsx \
+  src/data/tools/__tests__/additionalToolsIntegration.test.ts \
+  src/components/tools/media-calc/__tests__/tools.test.tsx --reporter=dot
+```
+
+Status: failed as expected — 11 failures and 36 passes exposed four
+mouse-only image drop zones, duplicate PDF picker controls/privacy copy,
+repeated media privacy rows, and reset preceding download in Image Resizer.
+
+GREEN: the same focused command passed — 4 files, 47 tests. Image upload
+surfaces now use the keyboard-operable shared drop-zone contract, PDF pickers
+have one accessible activation surface, nested tool privacy rows are removed,
+and Image Resizer presents download before reset in a shared action group.
+
+### Batch 4 — media feedback semantics
+
+RED:
+
+```sh
+npm test -- --run src/components/tools/media-calc/__tests__/tools.test.tsx --reporter=dot
+```
+
+Status: failed as expected — 8 failures and 5 passes showed empty idle result
+containers, image/audio failures announced as success, and English-only
+result headings added inside the localized loan route.
+
+GREEN:
+
+```sh
+npm test -- --run src/components/tools/media-calc/__tests__/tools.test.tsx \
+  src/data/tools/__tests__/additionalToolsIntegration.test.ts --reporter=dot
+```
+
+Status: passed — 2 files, 29 tests. Media feedback now carries explicit
+success/error state, failure paths render assertive alerts, idle tools render
+no empty result, working conversion has truthful copy, and the redundant loan
+result headings are removed.
+
+### Batch 5 — anonymous chat shared UI migration
+
+RED:
+
+```sh
+npm test -- --run src/components/__tests__/Chat.test.tsx --reporter=dot
+```
+
+Status: failed as expected — 5 failures and 21 passes showed that the chat
+container, fields, actions, error/working results, and localized route shell
+did not yet implement the shared tool UI contract.
+
+GREEN:
+
+```sh
+npm test -- --run src/components/__tests__/Chat.test.tsx \
+  src/hooks/__tests__/useChatService.test.tsx --reporter=dot
+```
+
+Status: passed — 2 files, 27 tests. The localized chat route now uses the
+standard page header/workspace/privacy/instructions structure, while chat
+controls use real shared panels, fields, actions, and result states. Existing
+room-link, messaging, reconnect, localization, and service behavior remains
+covered.
+
+## Final verification
+
+The first complete-suite pass exposed five stale PDF tests that still required
+nested privacy copy; those expectations now enforce route ownership instead.
+A subsequent complete run reached 495 of 496 before the LLM cost test's
+15-second per-test budget expired under parallel load. The same test passed
+alone in 8.6 seconds, so its load budget was widened without changing behavior.
+
+Fresh final evidence:
+
+```sh
+npm test -- --run src/components/tools \
+  src/components/__tests__/Chat.test.tsx \
+  src/hooks/__tests__/useChatService.test.tsx \
+  src/lib/pdf src/lib/data-text src/lib/media-calc --reporter=dot
+```
+
+Status: passed — 44 files, 496 tests.
+
+```sh
+npm run check
+```
+
+Status: passed — 373 files, 0 errors, 0 warnings, 86 pre-existing hints.
+
+```sh
+npm run build
+```
+
+Status: passed — 1,269 pages built; sitemap generation completed.
+
+```sh
+node scripts/check-bundles.mjs dist
+```
+
+Status: passed — all guarded routes remain below their gzip budgets
+(`/ko/tools` 165.9/180 KB; text-counter 199.9/220 KB; JSON 199.9/400 KB;
+image-resizer 199.9/550 KB).
+
+---
+
+# Second re-review remediation (2026-07-23)
+
+## Outcome by reviewer finding
+
+- A1: Added registry-equality contract coverage for every standard and
+  additional public tool. Migrated the omitted image tools, all three
+  data-text tools, every PDF/media tool, and the remaining legacy tool
+  controls to real `ToolField`, `ToolActions`, and `ToolResult`/`ToolStatus`
+  primitives. Fixed the ImageConverter range/value sibling structure.
+- A2: Every visible production input/select/textarea under
+  `src/components/tools` is now statically nested in one `ToolField`; the
+  rendered registry matrix also checks accessible association and shared
+  control classes. Discount rate and the other reviewer-named controls have
+  real labels.
+- B3: `ToolActions` is forced to one ordered grid column below 480px,
+  including caller-supplied two-column/flex classes. Background remover and
+  App Store screenshot action rows use the primitive. DOM-order tests retain
+  the primary action first for command groups.
+- B4: `ToolActions selection` derives primary/secondary treatment from
+  `aria-pressed`. Unit, Regex, Percent, Discount, and analogous selectable
+  groups use it. Behavioral tests click non-first choices and verify the
+  selected option alone receives primary treatment.
+- C5: Anonymous chat now has breadcrumb markup and `BreadcrumbList`,
+  `WebApplication`, and FAQ JSON-LD; favorite/share controls; ad placement;
+  related tools; bookmark prompt; and recent-tool tracking, while preserving
+  the existing chat island/service. Its workspace has one privacy disclosure.
+- D6: Removed all component-owned privacy rows from data-text tools and
+  deleted the unused `privacyClass`; the route remains the single owner.
+- D7: Modern image converter, EXIF remover, and favicon generator clear stale
+  feedback on every new selection. Audio replacement clears prior file state,
+  feedback, and preview immediately; empty/failed replacements remain clear,
+  and the previous object URL is revoked.
+
+## TDD evidence
+
+Initial registry RED:
+
+```sh
+npm test -- --run src/components/tools/__tests__/allTools.test.tsx \
+  src/components/tools/__tests__/additionalToolsContract.test.tsx --reporter=dot
+```
+
+Status: failed as expected — initially 47 failures/94 passes (then 46/95
+after improving diagnostics), exposing omitted tools, raw controls, missing
+associations, and raw action groups.
+
+Shared selected/mobile RED:
+
+```sh
+npm test -- --run src/components/tools/ui/__tests__/tool-ui.test.tsx \
+  src/components/tools/ui/__tests__/tool-actions-css.test.ts --reporter=dot
+```
+
+Status: failed as expected — 2 failures/84 passes: pressed non-first choices
+still received secondary treatment, and mobile CSS did not override caller
+grid/flex layouts.
+
+Shared selected/mobile GREEN:
+
+```sh
+npm test -- --run src/components/tools/ui/__tests__/tool-ui.test.tsx \
+  src/components/tools/ui/__tests__/tool-actions-css.test.ts --reporter=dot
+```
+
+Status: passed — 2 files, 86 tests.
+
+Registry adoption GREEN:
+
+```sh
+npm test -- --run src/components/tools/__tests__/allTools.test.tsx \
+  src/components/tools/__tests__/additionalToolsContract.test.tsx \
+  src/components/tools/__tests__/selectedStateContract.test.tsx --reporter=dot
+```
+
+Status: passed — 3 files, 145 tests. The standard registry matrix covers all
+registry components, the additional matrix covers all 13 additional registry
+tools, and selected-state tests exercise Unit, Regex, Percent, and Discount.
+
+Anonymous-chat shell RED/GREEN:
+
+```sh
+npm test -- --run src/components/__tests__/Chat.test.tsx \
+  src/data/tools/__tests__/pageMetadata.test.ts --reporter=dot
+```
+
+Status: RED was 2 failures/36 passes for absent application/breadcrumb schema
+and public shell integrations. GREEN passed 2 files, 38 tests.
+
+Media reselection RED/GREEN:
+
+```sh
+npm test -- --run src/components/tools/media-calc/__tests__/tools.test.tsx \
+  --reporter=dot
+```
+
+Status: RED was 4 failures/14 passes for stale feedback/preview and no URL
+revocation. GREEN passed 1 file, 18 tests.
+
+## Exhaustive production audit and classifications
+
+TypeScript-AST scans were run across production TSX under
+`src/components/tools`:
+
+- Visible `input`, `select`, and `textarea` nodes outside `ToolField`: none.
+- Tool-workspace `button` nodes outside `ToolActions`: none.
+- Nested `ToolActions`: none.
+- The only raw buttons remaining are deliberately outside tool workspaces:
+  `BookmarkPrompt`, `FavoriteButton`, `ShareButton`, `ToolSearch`, and
+  `ToolsGrid`. These are page-shell/navigation/overlay controls rather than
+  tool actions, so applying tool-workspace ordering and mobile full-width
+  semantics would be incorrect.
+- Hidden controlled file inputs remain excluded from the rendered-field
+  selector because they are implementation details activated by an accessible
+  drop-zone/button, not independently public controls.
+- No data-text/PDF/media component renders `.fc-tool-privacy`.
+- Named image tools contain no decorative gradient, shadow, hover transform,
+  or backdrop-filter effects. Remaining spinner/progress transitions convey
+  active processing state.
+
+## Commits
+
+- `8f11ac4` — registry/additional primitive adoption and shared action contract
+- `f1f7fc5` — legacy registry control migration and selected-state behavior
+- `47543c7` — anonymous-chat full public tool shell
+- `802fb52` — media replacement state reset and URL cleanup
+- `ad423e4` — exhaustive conditional-control adoption
+- `1e7a2e7` — restore required system-language font fallbacks exposed by the
+  full-suite performance gate
+
+## Fresh final verification
+
+The first full run caught the pre-existing Tailwind font-stack gate (873/874
+tests); the required Korean/Japanese/system fallbacks were restored and the
+complete suite was rerun from scratch.
+
+```sh
+npm test -- --run --reporter=dot
+```
+
+Status: passed — 86 files, 874 tests.
+
+```sh
+npm run check
+```
+
+Status: passed — 376 files, 0 errors, 0 warnings, 89 hints.
+
+```sh
+npm run build
+```
+
+Status: passed — 1,269 pages built; redirects and four split sitemaps
+generated successfully.
+
+```sh
+npm run check:bundles
+```
+
+Status: passed (exit 0) after a fresh rebuild — `/ko/tools` 165.9/180 KB,
+text-counter 200.7/220 KB, JSON 200.7/400 KB, and image-resizer
+200.7/550 KB gzip.
+
+The protected `.superpowers/sdd/rollout-task-1-report.md` was never staged or
+modified by this task; its pre-existing working-tree change remains untouched.
+
+---
+
+# Final re-review remediation (2026-07-23)
+
+## Outcome by final reviewer finding
+
+- Conditional controls: Dutch-pay participant name/payment fields, Pomodoro
+  settings, and timer duration controls now use labeled `ToolField` instances.
+  The LLM model picker uses keyboard-operable pressed buttons instead of hidden
+  checkboxes.
+- Result contract: Age and Discount calculations render success
+  `ToolResult` regions. `resultAdoption.ts` is the committed production matrix
+  for all 54 public registry tools, with an explicit `tool-result` or
+  `self-announcing` classification and rationale. Its executable contract
+  enforces exact registry equality, uniqueness, rationale completeness, and
+  primitive evidence; Age and Discount behavior tests render and assert the
+  live result regions.
+- Type-specific fields: `ToolField` assigns `fc-input` only to text-like
+  controls and uses `fc-check`, `fc-radio`, `fc-range`, `fc-color-input`, or
+  `fc-file-input` for the corresponding native types. Compact checks/radios no
+  longer inherit full width or 44px input height; their associated label row
+  retains a 44px pointer target. Render-matrix coverage includes Text Cleaner
+  and SEO checkboxes.
+- Media concurrency: Modern image conversion, EXIF removal, favicon
+  generation, and audio decoding use monotonically increasing
+  request/selection versions. Completion from an older request cannot restore
+  feedback, busy state, decoded buffers, previews, or downloads after a newer
+  selection. Deferred out-of-order tests prove the newest operation is the
+  sole owner of the published result and download.
+- Anonymous chat: the standard instruction section again includes a localized
+  `{helpUi.privacy}` heading and the route privacy text. The compact workspace
+  disclosure remains the only `.fc-tool-privacy` row.
+
+## Final re-review commits
+
+- `f5c19ea` — label conditional tool controls and replace hidden model checks
+- `f594343` — assign shared styles by native input type
+- `fb652c6` — add Age/Discount results and exhaustive result-adoption audit
+- `bbb856b` — invalidate stale media operations and previews
+- `cb13c03` — restore anonymous-chat privacy help
+
+## Final TDD and verification evidence
+
+Focused final-review gate:
+
+```sh
+npm test -- --run \
+  src/components/tools/__tests__/conditionalControlsContract.test.tsx \
+  src/components/tools/ui/__tests__/tool-ui.test.tsx \
+  src/components/tools/__tests__/AgeCalculator.test.tsx \
+  src/components/tools/__tests__/DiscountCalculator.test.tsx \
+  src/data/tools/__tests__/resultAdoptionContract.test.ts \
+  src/components/tools/media-calc/__tests__/tools.test.tsx \
+  src/data/tools/__tests__/pageMetadata.test.ts \
+  src/components/__tests__/Chat.test.tsx --reporter=dot
+```
+
+Status: passed — 8 files, 171 tests.
+
+Tool/chat/library regression gate:
+
+```sh
+npm test -- --run src/components/tools \
+  src/components/__tests__/Chat.test.tsx \
+  src/lib/pdf src/lib/data-text src/lib/media-calc --reporter=dot
+```
+
+Status: passed — 47 files, 563 tests.
+
+Complete repository gate:
+
+```sh
+npm test -- --run --reporter=dot
+```
+
+Status: passed — 88 files, 896 tests.
+
+Production gates:
+
+```sh
+npm run check
+npm run build
+node scripts/check-bundles.mjs dist
+```
+
+Status: all passed.
+
+- Astro check: 379 files, 0 errors, 0 warnings, 88 informational hints.
+- Production build: 493 client modules transformed; 1,269 pages built;
+  redirects and four split sitemaps generated; 1,121 final sitemap URLs.
+- Bundle guard: `/ko/tools` 165.9/180 KB, text-counter 201.1/220 KB,
+  JSON 201.1/400 KB, and image-resizer 201.1/550 KB gzip.
+- `git diff --check 08ee0fa..HEAD`: passed.
+
+The protected `.superpowers/sdd/rollout-task-1-report.md` remains unstaged and
+untouched by this task. No push, deployment, merge, or worktree cleanup was
+performed.

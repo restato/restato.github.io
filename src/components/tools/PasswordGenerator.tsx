@@ -1,6 +1,8 @@
 import { useState, useCallback } from 'react';
 import { useTranslation } from '../../i18n/useTranslation';
-import type { Language } from '../../i18n';
+import { ToolActions } from './ui/ToolActions';
+import { ToolField } from './ui/ToolField';
+import { ToolPanel } from './ui/ToolPanel';
 
 const CHAR_SETS = {
   uppercase: 'ABCDEFGHIJKLMNOPQRSTUVWXYZ',
@@ -28,8 +30,8 @@ function getPasswordStrength(password: string, options: { uppercase: boolean; lo
   return { level: 4, label: 'veryStrong' };
 }
 
-export default function PasswordGenerator({ lang: initialLang }: { lang?: Language } = {}) {
-  const { t, translations } = useTranslation(initialLang);
+export default function PasswordGenerator() {
+  const { t, translations } = useTranslation();
   const tt = translations.tools.password;
   const tc = translations.tools.common;
 
@@ -94,32 +96,23 @@ export default function PasswordGenerator({ lang: initialLang }: { lang?: Langua
   };
 
   return (
-    <div className="flex flex-col gap-6">
+    <ToolPanel className="gap-6">
       {/* Generated Password Display */}
-      <div className="space-y-2">
-        <label className="block text-sm font-medium text-[var(--color-text)]">
-          {t(tc.result)}
-        </label>
-        <div className="flex gap-2">
+      <div className="grid min-w-0 gap-2 sm:grid-cols-[1fr_auto] sm:items-end">
+        <ToolField id="password-result" label={t(tc.result)}>
           <input
             type="text"
             value={password}
             readOnly
             placeholder={t({ ko: '생성된 비밀번호', en: 'Generated password', ja: '生成されたパスワード' })}
-            className="flex-1 px-4 py-3 rounded-lg border border-[var(--color-border)]
+            className="min-w-0 flex-1 px-4 py-3 rounded-lg border border-[var(--color-border)]
               bg-[var(--color-card)] text-[var(--color-text)] font-mono text-lg
               focus:outline-none"
           />
-          <button
-            onClick={copyPassword}
-            disabled={!password}
-            className="px-4 py-2 bg-[var(--color-card)] hover:bg-[var(--color-card-hover)]
-              border border-[var(--color-border)] rounded-lg transition-colors
-              disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            {copied ? t(tc.copied) : t(tc.copy)}
-          </button>
-        </div>
+        </ToolField>
+        <ToolActions
+          primary={<button onClick={copyPassword} disabled={!password}>{copied ? t(tc.copied) : t(tc.copy)}</button>}
+        />
       </div>
 
       {/* Strength indicator */}
@@ -141,19 +134,19 @@ export default function PasswordGenerator({ lang: initialLang }: { lang?: Langua
       {/* Length slider */}
       <div className="space-y-2">
         <div className="flex justify-between">
-          <label className="text-sm font-medium text-[var(--color-text)]">
-            {t(tt.length)}
-          </label>
+          <span className="text-sm font-medium text-[var(--color-text)]">{t(tt.length)}</span>
           <span className="text-sm text-[var(--color-text-muted)]">{length}</span>
         </div>
-        <input
-          type="range"
-          min="8"
-          max="64"
-          value={length}
-          onChange={(e) => setLength(Number(e.target.value))}
-          className="w-full accent-primary-500"
-        />
+        <ToolField id="password-length" label={t(tt.length)}>
+          <input
+            type="range"
+            min="8"
+            max="64"
+            value={length}
+            onChange={(e) => setLength(Number(e.target.value))}
+            className="w-full accent-primary-500"
+          />
+        </ToolField>
         <div className="flex justify-between text-xs text-[var(--color-text-muted)]">
           <span>8</span>
           <span>64</span>
@@ -168,7 +161,7 @@ export default function PasswordGenerator({ lang: initialLang }: { lang?: Langua
           { key: 'numbers', label: tt.numbers },
           { key: 'symbols', label: tt.symbols },
         ].map(({ key, label }) => (
-          <label key={key} className="flex items-center gap-3 cursor-pointer">
+          <ToolField key={key} id={`password-${key}`} label={t(label)}>
             <input
               type="checkbox"
               checked={options[key as keyof typeof options]}
@@ -176,23 +169,18 @@ export default function PasswordGenerator({ lang: initialLang }: { lang?: Langua
               className="w-5 h-5 rounded border-[var(--color-border)] text-primary-500
                 focus:ring-primary-500 focus:ring-offset-0"
             />
-            <span className="text-[var(--color-text)]">{t(label)}</span>
-          </label>
+          </ToolField>
         ))}
       </div>
 
       {/* Generate button */}
-      <button
-        onClick={generatePassword}
-        className="w-full py-3 bg-primary-500 hover:bg-primary-600 text-white rounded-lg
-          font-medium transition-colors flex items-center justify-center gap-2"
-      >
+      <ToolActions primary={<button className="w-full" onClick={generatePassword}>
         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
             d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
         </svg>
         {t(tc.generate)}
-      </button>
-    </div>
+      </button>} />
+    </ToolPanel>
   );
 }

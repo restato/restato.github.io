@@ -1,6 +1,8 @@
 import { useState, useMemo } from 'react';
 import { useTranslation } from '../../i18n/useTranslation';
-import type { Language } from '../../i18n';
+import { ToolActions } from './ui/ToolActions';
+import { ToolField } from './ui/ToolField';
+import { ToolPanel } from './ui/ToolPanel';
 
 type UnitCategory = 'length' | 'weight' | 'temperature' | 'area' | 'volume';
 
@@ -161,8 +163,8 @@ const categoryLabels: Record<UnitCategory, { ko: string; en: string; ja: string 
   volume: { ko: '부피', en: 'Volume', ja: '体積' },
 };
 
-export default function UnitConverter({ lang: initialLang }: { lang?: Language } = {}) {
-  const { t, lang, translations } = useTranslation(initialLang);
+export default function UnitConverter() {
+  const { t, lang, translations } = useTranslation();
   const tt = translations.tools.unit;
 
   const [category, setCategory] = useState<UnitCategory>('length');
@@ -203,12 +205,14 @@ export default function UnitConverter({ lang: initialLang }: { lang?: Language }
   };
 
   return (
-    <div className="flex flex-col gap-6">
+    <ToolPanel className="gap-6">
       {/* Category Tabs */}
-      <div className="flex flex-wrap gap-2">
-        {(Object.keys(units) as UnitCategory[]).map((cat) => (
+      <ToolActions
+        selection
+        primary={(Object.keys(units) as UnitCategory[]).slice(0, 1).map((cat) => (
           <button
             key={cat}
+            aria-pressed={category === cat}
             onClick={() => handleCategoryChange(cat)}
             className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors
               ${category === cat
@@ -219,26 +223,23 @@ export default function UnitConverter({ lang: initialLang }: { lang?: Language }
             {t(categoryLabels[cat])}
           </button>
         ))}
-      </div>
+        secondary={(Object.keys(units) as UnitCategory[]).slice(1).map((cat) => (
+          <button key={cat} aria-pressed={category === cat} onClick={() => handleCategoryChange(cat)}>{t(categoryLabels[cat])}</button>
+        ))}
+      />
 
       {/* Converter */}
       <div className="space-y-4">
         {/* From */}
-        <div className="space-y-2">
-          <label className="text-sm font-medium text-[var(--color-text)]">{t(tt.from)}</label>
-          <div className="flex gap-2">
-            <input
-              type="number"
-              value={fromValue}
-              onChange={(e) => setFromValue(e.target.value)}
-              className="flex-1 px-4 py-3 rounded-lg border border-[var(--color-border)]
-                bg-[var(--color-card)] text-[var(--color-text)] text-lg
-                focus:outline-none focus:ring-2 focus:ring-primary-500"
-            />
+        <div className="grid min-w-0 gap-2 sm:grid-cols-[1fr_auto] sm:items-end">
+          <ToolField id="unit-from-value" label={t(tt.from)}>
+            <input type="number" value={fromValue} onChange={(e) => setFromValue(e.target.value)} className="text-lg" />
+          </ToolField>
+          <ToolField id="unit-from-unit" label={t({ ko: '변환 전 단위', en: 'From unit', ja: '変換元の単位' })}>
             <select
               value={fromUnit}
               onChange={(e) => setFromUnit(e.target.value)}
-              className="px-4 py-2 rounded-lg border border-[var(--color-border)]
+              className="max-w-[45%] px-4 py-2 rounded-lg border border-[var(--color-border)]
                 bg-[var(--color-card)] text-[var(--color-text)]
                 focus:outline-none focus:ring-2 focus:ring-primary-500"
             >
@@ -248,13 +249,13 @@ export default function UnitConverter({ lang: initialLang }: { lang?: Language }
                 </option>
               ))}
             </select>
-          </div>
+          </ToolField>
         </div>
 
         {/* Swap Button */}
-        <div className="flex justify-center">
-          <button
+        <ToolActions className="justify-center" primary={<button
             onClick={swapUnits}
+            aria-label={t({ ko: '변환 단위 맞바꾸기', en: 'Swap conversion units', ja: '変換単位を入れ替え' })}
             className="p-2 rounded-full bg-[var(--color-card)] hover:bg-[var(--color-card-hover)]
               border border-[var(--color-border)] transition-colors"
           >
@@ -262,25 +263,25 @@ export default function UnitConverter({ lang: initialLang }: { lang?: Language }
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
                 d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4" />
             </svg>
-          </button>
-        </div>
+          </button>} />
 
         {/* To */}
-        <div className="space-y-2">
-          <label className="text-sm font-medium text-[var(--color-text)]">{t(tt.to)}</label>
-          <div className="flex gap-2">
+        <div className="grid min-w-0 gap-2 sm:grid-cols-2">
+          <ToolField id="unit-result" label={t(tt.to)}>
             <input
               type="text"
               value={result}
               readOnly
-              className="flex-1 px-4 py-3 rounded-lg border border-[var(--color-border)]
+              className="min-w-0 flex-1 px-4 py-3 rounded-lg border border-[var(--color-border)]
                 bg-[var(--color-bg)] text-[var(--color-text)] text-lg font-medium
                 focus:outline-none"
             />
+          </ToolField>
+          <ToolField id="unit-to-unit" label={t({ ko: '변환 후 단위', en: 'To unit', ja: '変換先の単位' })}>
             <select
               value={toUnit}
               onChange={(e) => setToUnit(e.target.value)}
-              className="px-4 py-2 rounded-lg border border-[var(--color-border)]
+              className="max-w-[45%] px-4 py-2 rounded-lg border border-[var(--color-border)]
                 bg-[var(--color-card)] text-[var(--color-text)]
                 focus:outline-none focus:ring-2 focus:ring-primary-500"
             >
@@ -290,7 +291,7 @@ export default function UnitConverter({ lang: initialLang }: { lang?: Language }
                 </option>
               ))}
             </select>
-          </div>
+          </ToolField>
         </div>
       </div>
 
@@ -306,6 +307,6 @@ export default function UnitConverter({ lang: initialLang }: { lang?: Language }
           </p>
         </div>
       )}
-    </div>
+    </ToolPanel>
   );
 }

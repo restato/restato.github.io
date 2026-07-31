@@ -5,16 +5,16 @@ import RecentTools from '../../../components/tools/RecentTools';
 import ToolsGrid from '../../../components/tools/ToolsGrid';
 import ToolsPageHeader from '../../../components/tools/ToolsPageHeader';
 import ToolsPageInfo from '../../../components/tools/ToolsPageInfo';
-import { toolsConfig, categories, type Language } from '../../../data/tools';
-
-const languages: Language[] = ['ko', 'en', 'ja'];
+import { categories, getPublishedTools } from '../../../data/tools';
+import { supportedLanguages } from '../../../data/tools/locales';
+import type { Language } from '../../../data/tools/types';
+import { landingContent } from '../../../i18n/landing';
+import { getToolCatalogPublicationState } from '../../../data/tools/pageMetadata';
+import { getCatalogCardContent } from '../../../i18n/completeness';
+import { categoryTranslations, type ToolCategory } from '../../../i18n/tool-ui';
 
 export function getStaticPaths() {
-  return [
-    { params: { lang: 'ko' } },
-    { params: { lang: 'en' } },
-    { params: { lang: 'ja' } }
-  ];
+  return supportedLanguages.map(lang => ({ params: { lang } }));
 }
 
 const { lang } = Astro.params as { lang: Language };
@@ -35,66 +35,62 @@ const seoContent = {
   },
 };
 
-// Generate alternate URLs for hreflang
-const alternateUrls = languages.map(l => ({
-  lang: l,
-  url: `https://restato.github.io/${l}/tools`
-}));
-
-// Transform toolsConfig to the format expected by ToolsGrid
-const tools = toolsConfig.map(tool => ({
-  slug: tool.slug,
-  title: {
-    ko: tool.seo.ko.title.split(' - ')[0],
-    en: tool.seo.en.title.split(' - ')[0],
-    ja: tool.seo.ja.title.split(' - ')[0],
-  },
-  description: {
-    ko: tool.seo.ko.description,
-    en: tool.seo.en.description,
-    ja: tool.seo.ja.description,
-  },
-  icon: tool.icon,
-  category: tool.category,
-}));
-
-// Also add anonymous chat to tools list
-tools.push({
-  slug: `/${lang}/anonymous-chat`,
-  title: { ko: '익명 채팅', en: 'Anonymous Chat', ja: '匿名チャット' },
-  description: {
-    ko: '무료 익명 1:1 실시간 채팅. P2P 연결로 서버에 저장되지 않는 안전한 채팅.',
-    en: 'Free anonymous 1:1 real-time chat. Secure P2P connection, nothing stored on servers.',
-    ja: '無料匿名1:1リアルタイムチャット。P2P接続でサーバーに保存されない安全なチャット。',
-  },
-  icon: '💬',
-  category: 'productivity',
+// Transform registry entries to the format expected by ToolsGrid.
+const tools = getPublishedTools().map(tool => {
+  const resolved = getCatalogCardContent(tool, lang);
+  const content = resolved.content;
+  return {
+    slug: tool.slug,
+    title: content.name,
+    description: content.description,
+    icon: tool.icon,
+    category: tool.category,
+    fallback: resolved.usesFallback,
+    fallbackNotice: resolved.notice,
+  };
 });
 
-const seo = seoContent[lang];
+const categoryKeyById: Record<string, ToolCategory> = {
+  all: 'all', calculator: 'calculators', generators: 'generators', converters: 'converters',
+  text: 'text', developer: 'developer', designer: 'design', image: 'image', random: 'random',
+  marketer: 'marketing', productivity: 'productivity',
+};
+const localizedCategories = categories.map(category => ({
+  id: category.id,
+  label: categoryTranslations[lang][categoryKeyById[category.id] ?? 'all'],
+}));
+
+const seo = seoContent[lang as keyof typeof seoContent] ?? {
+  title: `${landingContent[lang].allTools} | Restato`,
+  description: `${landingContent[lang].description} ${landingContent[lang].intro}`,
+};
+const usesFallback = tools.some(tool => tool.fallback);
+const fallbackNotice = tools.find(tool => tool.fallback)?.fallbackNotice;
+const { robots, alternateUrls } = getToolCatalogPublicationState(lang);
 ---
 
 <MainLayout
   title={seo.title}
   description={seo.description}
   lang={lang}
+  robots={robots}
   alternateUrls={alternateUrls}
-  robots={lang === 'ko' ? 'index, follow' : 'noindex, follow'}
 >
-  <div class="max-w-6xl mx-auto px-4 py-8">
+  <div class="fc-page fc-content">
+    {usesFallback && fallbackNotice && <p class="mb-6 rounded-lg border border-amber-300 bg-amber-50 p-4 text-sm text-amber-900 dark:border-amber-700 dark:bg-amber-950/30 dark:text-amber-200">{fallbackNotice}</p>}
     <!-- Header with i18n support -->
     <ToolsPageHeader client:load lang={lang} />
 
     <!-- Search -->
-    <div class="mb-6">
-      <ToolSearch client:load basePath={`/${lang}/tools`} />
+    <div class="fc-surface fc-surface-padding-md mb-6">
+      <ToolSearch client:load lang={lang} tools={tools} />
     </div>
 
     <!-- Recent Tools -->
-    <RecentTools client:load className="mb-8" basePath={`/${lang}/tools`} />
+    <RecentTools client:load lang={lang} className="mb-8" />
 
     <!-- Tools Grid with i18n support -->
-    <ToolsGrid client:load tools={tools} categories={categories} basePath={`/${lang}/tools`} lang={lang} />
+    <ToolsGrid client:load lang={lang} tools={tools} categories={localizedCategories} />
 
     <!-- Info with i18n support -->
     <ToolsPageInfo client:load lang={lang} />

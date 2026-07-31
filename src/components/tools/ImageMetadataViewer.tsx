@@ -1,4 +1,7 @@
 import { useState, useRef } from 'react';
+import { useTranslation } from '../../i18n/useTranslation';
+import { ToolActions } from './ui/ToolActions';
+import { ToolPanel } from './ui/ToolPanel';
 
 interface ExifData {
   // Basic
@@ -318,6 +321,8 @@ function detectDevice(make?: string, model?: string): { brand: string; icon: str
 }
 
 export default function ImageMetadataViewer() {
+  const { t } = useTranslation();
+  const tr = (ko: string, en: string, ja: string) => t({ ko, en, ja });
   const [imageUrl, setImageUrl] = useState<string | null>(null);
   const [exifData, setExifData] = useState<ExifData | null>(null);
   const [isDragging, setIsDragging] = useState(false);
@@ -370,42 +375,43 @@ export default function ImageMetadataViewer() {
   const device = exifData ? detectDevice(exifData.make, exifData.model) : null;
 
   const exposurePrograms: { [key: number]: string } = {
-    0: '정의되지 않음',
-    1: '수동',
-    2: '프로그램 자동',
-    3: '조리개 우선 (A/Av)',
-    4: '셔터 우선 (S/Tv)',
-    5: '크리에이티브',
-    6: '액션',
-    7: '인물',
-    8: '풍경',
+    0: tr('정의되지 않음', 'Undefined', '未定義'),
+    1: tr('수동', 'Manual', 'マニュアル'),
+    2: tr('프로그램 자동', 'Program auto', 'プログラムAE'),
+    3: tr('조리개 우선 (A/Av)', 'Aperture priority (A/Av)', '絞り優先 (A/Av)'),
+    4: tr('셔터 우선 (S/Tv)', 'Shutter priority (S/Tv)', 'シャッター優先 (S/Tv)'),
+    5: tr('크리에이티브', 'Creative', 'クリエイティブ'),
+    6: tr('액션', 'Action', 'アクション'),
+    7: tr('인물', 'Portrait', 'ポートレート'),
+    8: tr('풍경', 'Landscape', '風景'),
   };
 
   const meteringModes: { [key: number]: string } = {
-    0: '알 수 없음',
-    1: '평균',
-    2: '중앙중점',
-    3: '스팟',
-    4: '멀티스팟',
-    5: '패턴',
-    6: '부분',
+    0: tr('알 수 없음', 'Unknown', '不明'),
+    1: tr('평균', 'Average', '平均'),
+    2: tr('중앙중점', 'Center-weighted', '中央重点'),
+    3: tr('스팟', 'Spot', 'スポット'),
+    4: tr('멀티스팟', 'Multi-spot', 'マルチスポット'),
+    5: tr('패턴', 'Pattern', 'パターン'),
+    6: tr('부분', 'Partial', '部分'),
   };
 
   const flashModes: { [key: number]: string } = {
-    0: '플래시 미발광',
-    1: '플래시 발광',
-    5: '플래시 발광 (반사광 감지 안됨)',
-    7: '플래시 발광 (반사광 감지됨)',
-    16: '플래시 미발광 (강제)',
-    24: '플래시 미발광 (자동)',
-    25: '플래시 발광 (자동)',
+    0: tr('플래시 미발광', 'Flash did not fire', 'フラッシュ未発光'),
+    1: tr('플래시 발광', 'Flash fired', 'フラッシュ発光'),
+    5: tr('플래시 발광 (반사광 감지 안됨)', 'Flash fired (return not detected)', 'フラッシュ発光（反射光未検出）'),
+    7: tr('플래시 발광 (반사광 감지됨)', 'Flash fired (return detected)', 'フラッシュ発光（反射光検出）'),
+    16: tr('플래시 미발광 (강제)', 'Flash suppressed', 'フラッシュ強制停止'),
+    24: tr('플래시 미발광 (자동)', 'Auto, flash did not fire', '自動、未発光'),
+    25: tr('플래시 발광 (자동)', 'Auto, flash fired', '自動、発光'),
   };
 
   return (
-    <div className="flex flex-col gap-6">
+    <ToolPanel className="gap-6">
       <input
         ref={fileInputRef}
         type="file"
+        aria-label={tr('이미지 파일 선택', 'Choose an image file', '画像ファイルを選択')}
         accept="image/*"
         onChange={handleFileChange}
         className="hidden"
@@ -413,8 +419,10 @@ export default function ImageMetadataViewer() {
 
       {/* Drop Zone */}
       {!imageUrl && (
-        <div
-          onClick={() => fileInputRef.current?.click()}
+        <ToolPanel
+          variant="drop-zone"
+          onActivate={() => fileInputRef.current?.click()}
+          aria-label={tr('이미지를 드래그하거나 클릭하여 업로드', 'Drag an image or click to upload', '画像をドラッグするかクリックしてアップロード')}
           onDrop={handleDrop}
           onDragOver={(e) => { e.preventDefault(); setIsDragging(true); }}
           onDragLeave={() => setIsDragging(false)}
@@ -431,20 +439,20 @@ export default function ImageMetadataViewer() {
           </svg>
           <div className="text-center">
             <p className="text-[var(--color-text)]">
-              이미지를 드래그하거나 클릭하여 업로드
+              {tr('이미지를 드래그하거나 클릭하여 업로드', 'Drag an image or click to upload', '画像をドラッグするかクリックしてアップロード')}
             </p>
             <p className="text-sm text-[var(--color-text-muted)] mt-1">
-              JPEG, PNG, HEIC 등 모든 이미지 형식 지원
+              {tr('JPEG, PNG, HEIC 등 모든 이미지 형식 지원', 'Supports common formats including JPEG, PNG, and HEIC', 'JPEG、PNG、HEICなどの一般的な形式に対応')}
             </p>
           </div>
-        </div>
+        </ToolPanel>
       )}
 
       {/* Loading */}
       {isLoading && (
         <div className="flex items-center justify-center gap-2 p-8">
           <div className="w-5 h-5 border-2 border-primary-500 border-t-transparent rounded-full animate-spin" />
-          <span className="text-[var(--color-text)]">분석 중...</span>
+          <span className="text-[var(--color-text)]">{tr('분석 중...', 'Analyzing...', '解析中…')}</span>
         </div>
       )}
 
@@ -453,7 +461,7 @@ export default function ImageMetadataViewer() {
         <div className="space-y-6">
           {/* Device Summary Card */}
           {device && (
-            <div className="p-4 rounded-xl bg-gradient-to-r from-primary-500/10 to-primary-500/5 border border-primary-500/20">
+            <div className="p-4 rounded-xl bg-[var(--surface-soft)] border border-primary-500/20">
               <div className="flex items-center gap-4">
                 <span className="text-4xl">{device.icon}</span>
                 <div className="flex-1">
@@ -461,13 +469,13 @@ export default function ImageMetadataViewer() {
                     {device.brand} {device.type}
                   </h3>
                   <p className="text-sm text-[var(--color-text-muted)]">
-                    {exifData.model || '모델 정보 없음'}
+                    {exifData.model || tr('모델 정보 없음', 'No model information', 'モデル情報なし')}
                   </p>
                 </div>
                 {exifData.gpsLatitude && exifData.gpsLongitude && (
                   <div className="flex items-center gap-2 px-3 py-1 rounded-full bg-green-500/10 text-green-600 dark:text-green-400">
                     <span>📍</span>
-                    <span className="text-sm font-medium">위치 정보 있음</span>
+                    <span className="text-sm font-medium">{tr('위치 정보 있음', 'Location data present', '位置情報あり')}</span>
                   </div>
                 )}
               </div>
@@ -483,7 +491,7 @@ export default function ImageMetadataViewer() {
               <p className="text-sm text-[var(--color-text-muted)] mt-2 text-center truncate">
                 {exifData.fileName}
               </p>
-              <button
+              <ToolActions primary={<button
                 onClick={() => {
                   setImageUrl(null);
                   setExifData(null);
@@ -491,22 +499,22 @@ export default function ImageMetadataViewer() {
                 className="w-full mt-2 px-4 py-2 bg-[var(--color-card)] hover:bg-[var(--color-card-hover)]
                   border border-[var(--color-border)] rounded-lg transition-colors text-sm"
               >
-                다른 이미지 선택
-              </button>
+                {tr('다른 이미지 선택', 'Choose another image', '別の画像を選択')}
+              </button>} />
             </div>
 
             {/* Metadata */}
             <div className="md:w-2/3 space-y-4">
               {/* Tabs */}
-              <div className="flex gap-2 border-b border-[var(--color-border)] pb-2">
-                {[
-                  { id: 'basic', label: '📋 기본' },
-                  { id: 'camera', label: '📷 카메라' },
-                  { id: 'gps', label: '📍 위치' },
-                  { id: 'all', label: '📑 전체' },
+              <ToolActions selection className="flex gap-2 border-b border-[var(--color-border)] pb-2" primary={[
+                  { id: 'basic', label: `📋 ${tr('기본', 'Basic', '基本')}` },
+                  { id: 'camera', label: `📷 ${tr('카메라', 'Camera', 'カメラ')}` },
+                  { id: 'gps', label: `📍 ${tr('위치', 'Location', '位置')}` },
+                  { id: 'all', label: `📑 ${tr('전체', 'All', 'すべて')}` },
                 ].map((tab) => (
                   <button
                     key={tab.id}
+                    aria-pressed={activeTab === tab.id}
                     onClick={() => setActiveTab(tab.id as any)}
                     className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors
                       ${activeTab === tab.id
@@ -516,8 +524,7 @@ export default function ImageMetadataViewer() {
                   >
                     {tab.label}
                   </button>
-                ))}
-              </div>
+                ))} />
 
               {/* Tab Content */}
               <div className="space-y-4">
@@ -525,14 +532,14 @@ export default function ImageMetadataViewer() {
                 {(activeTab === 'basic' || activeTab === 'all') && (
                   <div className="rounded-lg border border-[var(--color-border)] overflow-hidden">
                     <div className="px-4 py-2 bg-[var(--color-card)] border-b border-[var(--color-border)]">
-                      <h3 className="font-medium text-[var(--color-text)]">📋 파일 정보</h3>
+                      <h3 className="font-medium text-[var(--color-text)]">📋 {tr('파일 정보', 'File information', 'ファイル情報')}</h3>
                     </div>
                     <div className="divide-y divide-[var(--color-border)]">
-                      <Row label="파일명" value={exifData.fileName} />
-                      <Row label="파일 크기" value={exifData.fileSize ? formatFileSize(exifData.fileSize) : undefined} />
-                      <Row label="파일 형식" value={exifData.fileType} />
-                      <Row label="해상도" value={exifData.width && exifData.height ? `${exifData.width} × ${exifData.height}` : undefined} />
-                      <Row label="촬영 날짜" value={exifData.dateTimeOriginal || exifData.dateTime} />
+                      <Row label={tr('파일명', 'File name', 'ファイル名')} value={exifData.fileName} />
+                      <Row label={tr('파일 크기', 'File size', 'ファイルサイズ')} value={exifData.fileSize ? formatFileSize(exifData.fileSize) : undefined} />
+                      <Row label={tr('파일 형식', 'File type', 'ファイル形式')} value={exifData.fileType} />
+                      <Row label={tr('해상도', 'Resolution', '解像度')} value={exifData.width && exifData.height ? `${exifData.width} × ${exifData.height}` : undefined} />
+                      <Row label={tr('촬영 날짜', 'Date taken', '撮影日')} value={exifData.dateTimeOriginal || exifData.dateTime} />
                     </div>
                   </div>
                 )}
@@ -542,36 +549,36 @@ export default function ImageMetadataViewer() {
                   <>
                     <div className="rounded-lg border border-[var(--color-border)] overflow-hidden">
                       <div className="px-4 py-2 bg-[var(--color-card)] border-b border-[var(--color-border)]">
-                        <h3 className="font-medium text-[var(--color-text)]">📷 카메라/기기 정보</h3>
+                        <h3 className="font-medium text-[var(--color-text)]">📷 {tr('카메라/기기 정보', 'Camera and device', 'カメラ・機器情報')}</h3>
                       </div>
                       <div className="divide-y divide-[var(--color-border)]">
-                        <Row label="제조사" value={exifData.make} />
-                        <Row label="모델" value={exifData.model} />
-                        <Row label="소프트웨어" value={exifData.software} />
-                        <Row label="렌즈" value={exifData.lensModel} />
+                        <Row label={tr('제조사', 'Make', 'メーカー')} value={exifData.make} />
+                        <Row label={tr('모델', 'Model', 'モデル')} value={exifData.model} />
+                        <Row label={tr('소프트웨어', 'Software', 'ソフトウェア')} value={exifData.software} />
+                        <Row label={tr('렌즈', 'Lens', 'レンズ')} value={exifData.lensModel} />
                       </div>
                     </div>
 
                     <div className="rounded-lg border border-[var(--color-border)] overflow-hidden">
                       <div className="px-4 py-2 bg-[var(--color-card)] border-b border-[var(--color-border)]">
-                        <h3 className="font-medium text-[var(--color-text)]">⚙️ 촬영 설정</h3>
+                        <h3 className="font-medium text-[var(--color-text)]">⚙️ {tr('촬영 설정', 'Capture settings', '撮影設定')}</h3>
                       </div>
                       <div className="divide-y divide-[var(--color-border)]">
                         <Row
-                          label="노출 시간"
+                          label={tr('노출 시간', 'Exposure time', '露出時間')}
                           value={exifData.exposureTime
                             ? exifData.exposureTime >= 1
                               ? `${exifData.exposureTime}s`
                               : `1/${Math.round(1 / exifData.exposureTime)}s`
                             : undefined}
                         />
-                        <Row label="조리개" value={exifData.fNumber ? `f/${exifData.fNumber}` : undefined} />
+                        <Row label={tr('조리개', 'Aperture', '絞り')} value={exifData.fNumber ? `f/${exifData.fNumber}` : undefined} />
                         <Row label="ISO" value={exifData.iso ? `ISO ${exifData.iso}` : undefined} />
-                        <Row label="초점 거리" value={exifData.focalLength ? `${exifData.focalLength}mm` : undefined} />
-                        <Row label="35mm 환산" value={exifData.focalLength35mm ? `${exifData.focalLength35mm}mm` : undefined} />
-                        <Row label="촬영 모드" value={exifData.exposureProgram !== undefined ? exposurePrograms[exifData.exposureProgram] : undefined} />
-                        <Row label="측광 모드" value={exifData.meteringMode !== undefined ? meteringModes[exifData.meteringMode] : undefined} />
-                        <Row label="플래시" value={exifData.flash !== undefined ? flashModes[exifData.flash] || `플래시 코드: ${exifData.flash}` : undefined} />
+                        <Row label={tr('초점 거리', 'Focal length', '焦点距離')} value={exifData.focalLength ? `${exifData.focalLength}mm` : undefined} />
+                        <Row label={tr('35mm 환산', '35mm equivalent', '35mm換算')} value={exifData.focalLength35mm ? `${exifData.focalLength35mm}mm` : undefined} />
+                        <Row label={tr('촬영 모드', 'Exposure mode', '撮影モード')} value={exifData.exposureProgram !== undefined ? exposurePrograms[exifData.exposureProgram] : undefined} />
+                        <Row label={tr('측광 모드', 'Metering mode', '測光モード')} value={exifData.meteringMode !== undefined ? meteringModes[exifData.meteringMode] : undefined} />
+                        <Row label={tr('플래시', 'Flash', 'フラッシュ')} value={exifData.flash !== undefined ? flashModes[exifData.flash] || `${tr('플래시 코드', 'Flash code', 'フラッシュコード')}: ${exifData.flash}` : undefined} />
                       </div>
                     </div>
                   </>
@@ -581,14 +588,14 @@ export default function ImageMetadataViewer() {
                 {(activeTab === 'gps' || activeTab === 'all') && (
                   <div className="rounded-lg border border-[var(--color-border)] overflow-hidden">
                     <div className="px-4 py-2 bg-[var(--color-card)] border-b border-[var(--color-border)]">
-                      <h3 className="font-medium text-[var(--color-text)]">📍 위치 정보</h3>
+                      <h3 className="font-medium text-[var(--color-text)]">📍 {tr('위치 정보', 'Location information', '位置情報')}</h3>
                     </div>
                     {exifData.gpsLatitude && exifData.gpsLongitude ? (
                       <div className="p-4 space-y-4">
                         <div className="divide-y divide-[var(--color-border)] -mx-4 -mt-4 border-b border-[var(--color-border)]">
-                          <Row label="위도" value={`${exifData.gpsLatitude.toFixed(6)}°`} />
-                          <Row label="경도" value={`${exifData.gpsLongitude.toFixed(6)}°`} />
-                          {exifData.gpsAltitude && <Row label="고도" value={`${exifData.gpsAltitude.toFixed(1)}m`} />}
+                          <Row label={tr('위도', 'Latitude', '緯度')} value={`${exifData.gpsLatitude.toFixed(6)}°`} />
+                          <Row label={tr('경도', 'Longitude', '経度')} value={`${exifData.gpsLongitude.toFixed(6)}°`} />
+                          {exifData.gpsAltitude && <Row label={tr('고도', 'Altitude', '高度')} value={`${exifData.gpsAltitude.toFixed(1)}m`} />}
                         </div>
                         <div className="flex gap-2">
                           <a
@@ -597,7 +604,7 @@ export default function ImageMetadataViewer() {
                             rel="noopener noreferrer"
                             className="flex-1 px-4 py-2 bg-primary-500 hover:bg-primary-600 text-white rounded-lg text-center text-sm font-medium transition-colors"
                           >
-                            🗺️ Google Maps에서 보기
+                            🗺️ {tr('Google Maps에서 보기', 'View in Google Maps', 'Google Mapsで表示')}
                           </a>
                           <a
                             href={`https://map.naver.com/v5/search/${exifData.gpsLatitude},${exifData.gpsLongitude}`}
@@ -605,17 +612,16 @@ export default function ImageMetadataViewer() {
                             rel="noopener noreferrer"
                             className="flex-1 px-4 py-2 bg-green-500 hover:bg-green-600 text-white rounded-lg text-center text-sm font-medium transition-colors"
                           >
-                            🗺️ 네이버 지도에서 보기
+                            🗺️ {tr('네이버 지도에서 보기', 'View in Naver Map', 'NAVERマップで表示')}
                           </a>
                         </div>
                       </div>
                     ) : (
                       <div className="p-8 text-center text-[var(--color-text-muted)]">
                         <span className="text-4xl mb-2 block">📍</span>
-                        <p>위치 정보가 없습니다</p>
+                        <p>{tr('위치 정보가 없습니다', 'No location data', '位置情報はありません')}</p>
                         <p className="text-sm mt-1">
-                          사진에 GPS 데이터가 포함되어 있지 않거나,<br />
-                          개인정보 보호를 위해 제거되었을 수 있습니다.
+                          {tr('사진에 GPS 데이터가 없거나 개인정보 보호를 위해 제거되었을 수 있습니다.', 'The photo may not contain GPS data, or it may have been removed for privacy.', '写真にGPSデータがないか、プライバシー保護のため削除された可能性があります。')}
                         </p>
                       </div>
                     )}
@@ -631,10 +637,9 @@ export default function ImageMetadataViewer() {
               <div className="flex items-start gap-3">
                 <span className="text-xl">⚠️</span>
                 <div>
-                  <h4 className="font-medium text-yellow-800 dark:text-yellow-200">개인정보 주의</h4>
+                  <h4 className="font-medium text-yellow-800 dark:text-yellow-200">{tr('개인정보 주의', 'Privacy notice', 'プライバシーに関する注意')}</h4>
                   <p className="text-sm text-yellow-700 dark:text-yellow-300 mt-1">
-                    이 사진에는 촬영 위치 정보가 포함되어 있습니다.
-                    SNS나 웹에 업로드하기 전에 위치 정보를 제거하는 것을 권장합니다.
+                    {tr('이 사진에는 촬영 위치 정보가 있습니다. 공유하기 전에 위치 정보를 제거하는 것이 좋습니다.', 'This photo contains location data. Consider removing it before sharing the photo.', 'この写真には位置情報があります。共有前に削除することをおすすめします。')}
                   </p>
                 </div>
               </div>
@@ -645,15 +650,15 @@ export default function ImageMetadataViewer() {
 
       {/* Info */}
       <div className="p-4 rounded-lg bg-[var(--color-card)] border border-[var(--color-border)]">
-        <h3 className="font-medium text-[var(--color-text)] mb-2">💡 이런 정보를 확인할 수 있어요</h3>
+        <h3 className="font-medium text-[var(--color-text)] mb-2">💡 {tr('확인 가능한 정보', 'Information you can inspect', '確認できる情報')}</h3>
         <ul className="text-sm text-[var(--color-text-muted)] space-y-1">
-          <li>• <strong>기기 정보:</strong> iPhone, Galaxy, DSLR 등 촬영 기기 자동 인식</li>
-          <li>• <strong>촬영 설정:</strong> 조리개, 셔터스피드, ISO, 초점거리 등</li>
-          <li>• <strong>위치 정보:</strong> GPS 좌표 및 지도 연동 (포함된 경우)</li>
-          <li>• <strong>날짜/시간:</strong> 사진 촬영 일시</li>
+          <li>• {tr('기기 정보: 카메라와 휴대전화 모델', 'Device: camera or phone model', '機器：カメラやスマートフォンのモデル')}</li>
+          <li>• {tr('촬영 설정: 조리개, 셔터 속도, ISO, 초점 거리', 'Capture settings: aperture, shutter speed, ISO, focal length', '撮影設定：絞り、シャッター速度、ISO、焦点距離')}</li>
+          <li>• {tr('위치 정보: 포함된 경우 GPS 좌표와 지도 링크', 'Location: GPS coordinates and map links when present', '位置情報：含まれる場合はGPS座標と地図リンク')}</li>
+          <li>• {tr('날짜와 시간: 사진 촬영 시각', 'Date and time: when the photo was taken', '日時：写真の撮影時刻')}</li>
         </ul>
       </div>
-    </div>
+    </ToolPanel>
   );
 }
 

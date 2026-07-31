@@ -72,24 +72,24 @@ check(sitemapFiles.length > 0, 'No generated sitemap files were found');
 for (const excludedPath of ['/blog/tag/', '/dashboard/', '/content-os/', '/articles/admin/']) {
   check(!sitemapXml.includes(excludedPath), `Sitemaps must exclude ${excludedPath}`);
 }
-for (const excludedPath of ['/en/tools/', '/ja/tools/', '/en/games/', '/ja/games/']) {
-  check(!sitemapXml.includes(excludedPath), `Sitemaps must exclude incomplete locale section ${excludedPath}`);
-}
 check(sitemapXml.includes('/ko/tools/json/'), 'Sitemaps must retain canonical Korean tools');
 check(sitemapXml.includes('/ko/games/snake/'), 'Sitemaps must retain canonical Korean games');
+check(sitemapXml.includes('/en/tools/json/'), 'Sitemaps must include localized English tools');
+check(sitemapXml.includes('/ja/tools/json/'), 'Sitemaps must include localized Japanese tools');
+check(sitemapXml.includes('/en/games/snake/'), 'Sitemaps must include localized English games');
 
 const englishTool = read('dist/en/tools/json/index.html');
 const japaneseTool = read('dist/ja/tools/json/index.html');
 const englishGame = read('dist/en/games/snake/index.html');
-check(/<meta name="robots" content="noindex, follow"/.test(englishTool), 'English tools must be noindex until fully localized');
-check(/<meta name="robots" content="noindex, follow"/.test(japaneseTool), 'Japanese tools must be noindex until fully localized');
-check(/<meta name="robots" content="noindex, follow"/.test(englishGame), 'English games must be noindex until fully localized');
+check(/<meta name="robots" content="index, follow"/.test(englishTool), 'Localized English tools must be indexable');
+check(/<meta name="robots" content="index, follow"/.test(japaneseTool), 'Localized Japanese tools must be indexable');
+check(/<meta name="robots" content="index, follow"/.test(englishGame), 'Localized English games must be indexable');
 check(englishTool.includes('Favorite'), 'English tool controls must render in English');
 check(englishTool.includes('Share'), 'English share control must render in English');
-check(!/[즐겨찾기공유]/.test(englishTool), 'English JSON tool page contains Korean control labels');
+check(!englishTool.includes('>즐겨찾기</button>') && !englishTool.includes('>공유</button>'), 'English JSON tool page contains Korean control labels');
 check(japaneseTool.includes('お気に入り'), 'Japanese tool controls must render in Japanese');
 check(japaneseTool.includes('共有'), 'Japanese share control must render in Japanese');
-check(!/[즐겨찾기공유]/.test(japaneseTool), 'Japanese JSON tool page contains Korean control labels');
+check(!japaneseTool.includes('>즐겨찾기</button>') && !japaneseTool.includes('>공유</button>'), 'Japanese JSON tool page contains Korean control labels');
 
 if (failures.length > 0) {
   console.error('Content quality verification failed:');

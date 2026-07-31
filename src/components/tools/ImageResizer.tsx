@@ -4,6 +4,9 @@ import 'react-image-crop/dist/ReactCrop.css';
 import { useTranslation } from '../../i18n/useTranslation';
 import type { Language } from '../../i18n';
 import { IMAGE_CROP_PRESETS } from '../../lib/imageCropPresets';
+import { ToolPanel } from './ui/ToolPanel';
+import { ToolActions } from './ui/ToolActions';
+import { ToolField } from './ui/ToolField';
 
 interface ImageInfo {
   file: File;
@@ -278,6 +281,15 @@ export default function ImageResizer({ lang: initialLang }: { lang?: Language } 
     link.click();
   };
 
+  const resetImage = () => {
+    setOriginal(null);
+    setCrop(undefined);
+    setResized(null);
+    setResizedSize(null);
+    sourceImageRef.current = null;
+    setCropMode('free');
+  };
+
   const formatBytes = (bytes: number): string => {
     if (bytes === 0) return '0 Bytes';
     const k = 1024;
@@ -287,14 +299,16 @@ export default function ImageResizer({ lang: initialLang }: { lang?: Language } 
   };
 
   return (
-    <div className="flex flex-col gap-6">
+    <ToolPanel className="gap-6">
       {/* Hidden canvas for processing */}
       <canvas ref={canvasRef} className="hidden" />
 
       {/* File Input */}
       <input
+        id="image-file-input"
         ref={fileInputRef}
         type="file"
+        aria-label={t({ ko: '이미지 파일 선택', en: 'Choose an image file', ja: '画像ファイルを選択' })}
         accept="image/*"
         onChange={handleFileChange}
         className="hidden"
@@ -302,8 +316,10 @@ export default function ImageResizer({ lang: initialLang }: { lang?: Language } 
 
       {/* Drop Zone */}
       {!original && (
-        <div
-          onClick={() => fileInputRef.current?.click()}
+        <ToolPanel
+          variant="drop-zone"
+          aria-label={t(tt.dropzone)}
+          onActivate={() => fileInputRef.current?.click()}
           onDrop={handleDrop}
           onDragOver={handleDragOver}
           onDragLeave={handleDragLeave}
@@ -321,7 +337,7 @@ export default function ImageResizer({ lang: initialLang }: { lang?: Language } 
           <p className="text-[var(--color-text-muted)] text-center">
             {t(tt.dropzone)}
           </p>
-        </div>
+        </ToolPanel>
       )}
 
       {/* Image Loaded */}
@@ -330,9 +346,12 @@ export default function ImageResizer({ lang: initialLang }: { lang?: Language } 
           {/* Resize Mode */}
           <div className="space-y-2">
             <span className="text-sm text-[var(--color-text)]">{t(tt.mode)}:</span>
-            <div className="flex gap-2">
-              <button
+            <ToolActions
+              selection
+              className="fc-segmented-control"
+              primary={<button
                 onClick={() => setResizeMode('custom')}
+                aria-pressed={resizeMode === 'custom'}
                 className={`px-3 py-1 text-sm rounded-lg border transition-colors
                   ${resizeMode === 'custom'
                     ? 'bg-primary-500 text-white border-primary-500'
@@ -340,9 +359,10 @@ export default function ImageResizer({ lang: initialLang }: { lang?: Language } 
                   }`}
               >
                 {t(tt.customMode)}
-              </button>
-              <button
+              </button>}
+              secondary={<button
                 onClick={() => setResizeMode('preset')}
+                aria-pressed={resizeMode === 'preset'}
                 className={`px-3 py-1 text-sm rounded-lg border transition-colors
                   ${resizeMode === 'preset'
                     ? 'bg-primary-500 text-white border-primary-500'
@@ -350,18 +370,15 @@ export default function ImageResizer({ lang: initialLang }: { lang?: Language } 
                   }`}
               >
                 {t(tt.presetMode)}
-              </button>
-            </div>
+              </button>}
+            />
           </div>
 
           {/* Settings */}
           {resizeMode === 'custom' && (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {/* Width */}
-              <div className="space-y-2">
-                <label className="text-sm font-medium text-[var(--color-text)]">
-                  {t(tt.width)} (px)
-                </label>
+              <ToolField id="image-width" label={`${t(tt.width)} (px)`}>
                 <input
                   type="number"
                   min="1"
@@ -372,13 +389,10 @@ export default function ImageResizer({ lang: initialLang }: { lang?: Language } 
                   bg-[var(--color-card)] text-[var(--color-text)]
                   focus:outline-none focus:ring-2 focus:ring-primary-500"
                 />
-              </div>
+              </ToolField>
 
             {/* Height */}
-              <div className="space-y-2">
-                <label className="text-sm font-medium text-[var(--color-text)]">
-                  {t(tt.height)} (px)
-                </label>
+              <ToolField id="image-height" label={`${t(tt.height)} (px)`}>
                 <input
                   type="number"
                   min="1"
@@ -389,17 +403,15 @@ export default function ImageResizer({ lang: initialLang }: { lang?: Language } 
                   bg-[var(--color-card)] text-[var(--color-text)]
                   focus:outline-none focus:ring-2 focus:ring-primary-500"
                 />
-              </div>
+              </ToolField>
             </div>
           )}
 
           {/* Preset Settings */}
           {resizeMode === 'preset' && (
             <div className="space-y-3">
-              <label className="text-sm font-medium text-[var(--color-text)]">
-                {t(tt.preset)}
-              </label>
-              <select
+              <ToolField id="image-preset" label={t(tt.preset)}>
+                <select
                 value={selectedPresetId}
                 onChange={(e) => setSelectedPresetId(e.target.value)}
                 className="w-full px-4 py-2 rounded-lg border border-[var(--color-border)]
@@ -411,12 +423,13 @@ export default function ImageResizer({ lang: initialLang }: { lang?: Language } 
                     {preset.label}
                   </option>
                 ))}
-              </select>
-              <div className="grid grid-cols-2 md:grid-cols-5 gap-2">
-                {IMAGE_CROP_PRESETS.map((preset) => (
+                </select>
+              </ToolField>
+              <ToolActions selection className="grid grid-cols-2 md:grid-cols-5 gap-2" primary={IMAGE_CROP_PRESETS.map((preset) => (
                   <button
                     key={preset.id}
                     onClick={() => setSelectedPresetId(preset.id)}
+                    aria-pressed={selectedPresetId === preset.id}
                     className={`px-2 py-2 text-xs rounded-lg border transition-colors
                       ${selectedPresetId === preset.id
                         ? 'border-primary-500 bg-primary-500/10 text-primary-500'
@@ -425,8 +438,7 @@ export default function ImageResizer({ lang: initialLang }: { lang?: Language } 
                   >
                     {preset.width} x {preset.height}
                   </button>
-                ))}
-              </div>
+                ))} />
               <p className="text-xs text-[var(--color-text-muted)]">
                 {t(tt.presetHint)}
               </p>
@@ -437,7 +449,7 @@ export default function ImageResizer({ lang: initialLang }: { lang?: Language } 
           <div className="flex flex-wrap gap-4 items-center">
             {/* Keep Aspect Ratio */}
             {resizeMode === 'custom' && (
-              <label className="flex items-center gap-2 cursor-pointer">
+              <ToolField id="image-keep-aspect" label={t(tt.keepAspectRatio)}>
                 <input
                   type="checkbox"
                   checked={settings.keepAspectRatio}
@@ -445,14 +457,13 @@ export default function ImageResizer({ lang: initialLang }: { lang?: Language } 
                   className="w-4 h-4 rounded border-[var(--color-border)] text-primary-500
                   focus:ring-primary-500"
                 />
-                <span className="text-sm text-[var(--color-text)]">{t(tt.keepAspectRatio)}</span>
-              </label>
+              </ToolField>
             )}
 
             {/* Quality */}
             {settings.format !== 'png' && (
-              <div className="flex items-center gap-2">
-                <label className="text-sm text-[var(--color-text)]">{t(tt.quality)}:</label>
+              <div className="flex items-end gap-2">
+                <ToolField id="image-quality" label={`${t(tt.quality)}:`}>
                 <input
                   type="range"
                   min="10"
@@ -461,13 +472,13 @@ export default function ImageResizer({ lang: initialLang }: { lang?: Language } 
                   onChange={(e) => setSettings((prev) => ({ ...prev, quality: Number(e.target.value) }))}
                   className="w-24 accent-primary-500"
                 />
+                </ToolField>
                 <span className="text-sm text-[var(--color-text-muted)]">{settings.quality}%</span>
               </div>
             )}
 
             {/* Format */}
-            <div className="flex items-center gap-2">
-              <label className="text-sm text-[var(--color-text)]">{t(tt.format)}:</label>
+            <ToolField id="image-format" label={`${t(tt.format)}:`}>
               <select
                 value={settings.format}
                 onChange={(e) => setSettings((prev) => ({
@@ -481,15 +492,18 @@ export default function ImageResizer({ lang: initialLang }: { lang?: Language } 
                 <option value="png">PNG</option>
                 <option value="webp">WebP</option>
               </select>
-            </div>
+            </ToolField>
           </div>
 
           {/* Crop Mode */}
           <div className="space-y-2">
             <span className="text-sm text-[var(--color-text)]">{t(tt.crop)}:</span>
-            <div className="flex gap-2">
-              <button
+            <ToolActions
+              selection
+              className="fc-segmented-control"
+              primary={<button
                 onClick={() => setCropMode('free')}
+                aria-pressed={cropMode === 'free'}
                 className={`px-3 py-1 text-sm rounded-lg border transition-colors
                   ${cropMode === 'free'
                     ? 'bg-primary-500 text-white border-primary-500'
@@ -497,9 +511,10 @@ export default function ImageResizer({ lang: initialLang }: { lang?: Language } 
                   }`}
               >
                 {t(tt.cropFree)}
-              </button>
-              <button
+              </button>}
+              secondary={<button
                 onClick={() => setCropMode('output')}
+                aria-pressed={cropMode === 'output'}
                 className={`px-3 py-1 text-sm rounded-lg border transition-colors
                   ${cropMode === 'output'
                     ? 'bg-primary-500 text-white border-primary-500'
@@ -507,15 +522,14 @@ export default function ImageResizer({ lang: initialLang }: { lang?: Language } 
                   }`}
               >
                 {t(tt.cropLocked)}
-              </button>
-            </div>
+              </button>}
+            />
             <p className="text-xs text-[var(--color-text-muted)]">{t(tt.autoApplied)}</p>
           </div>
 
           {/* Quick Presets */}
           {resizeMode === 'custom' && (
-            <div className="flex flex-wrap gap-2">
-              {SCALE_PRESETS.map(({ label, factor }) => (
+            <ToolActions className="flex flex-wrap gap-2" primary={SCALE_PRESETS.map(({ label, factor }) => (
                 <button
                   key={label}
                   onClick={() => {
@@ -530,8 +544,7 @@ export default function ImageResizer({ lang: initialLang }: { lang?: Language } 
                 >
                   {label}
                 </button>
-              ))}
-            </div>
+              ))} />
           )}
 
           {/* Preview */}
@@ -595,27 +608,11 @@ export default function ImageResizer({ lang: initialLang }: { lang?: Language } 
             </div>
           </div>
 
-          {/* Actions */}
-          <button
-            onClick={() => {
-              setOriginal(null);
-              setCrop(undefined);
-              setResized(null);
-              setResizedSize(null);
-              sourceImageRef.current = null;
-              setCropMode('free');
-            }}
-            className="w-full py-3 bg-[var(--color-card)] hover:bg-[var(--color-card-hover)]
-              border border-[var(--color-border)] rounded-lg transition-colors"
-          >
-            {t(tc.reset)}
-          </button>
-
-          {/* Download */}
-          {resized && (
+          <ToolActions
+            primary={resized ? (
             <button
               onClick={download}
-              className="w-full py-3 bg-green-500 hover:bg-green-600 text-white rounded-lg
+              className="w-full py-3 bg-green-700 hover:bg-green-800 text-white rounded-lg
                 font-medium transition-colors flex items-center justify-center gap-2"
             >
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -624,9 +621,19 @@ export default function ImageResizer({ lang: initialLang }: { lang?: Language } 
               </svg>
               {t(tc.download)}
             </button>
-          )}
+            ) : (
+              <button onClick={resetImage}>
+                {t(tc.reset)}
+              </button>
+            )}
+            secondary={resized ? (
+              <button onClick={resetImage}>
+                {t(tc.reset)}
+              </button>
+            ) : undefined}
+          />
         </>
       )}
-    </div>
+    </ToolPanel>
   );
 }

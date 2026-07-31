@@ -1,6 +1,9 @@
 import { useState, useMemo } from 'react';
 import { useTranslation } from '../../i18n/useTranslation';
-import type { Language } from '../../i18n';
+import { ToolActions } from './ui/ToolActions';
+import { ToolField } from './ui/ToolField';
+import { ToolPanel } from './ui/ToolPanel';
+import { ToolResult } from './ui/ToolResult';
 
 interface Match {
   text: string;
@@ -8,8 +11,8 @@ interface Match {
   groups: string[];
 }
 
-export default function RegexTester({ lang: initialLang }: { lang?: Language } = {}) {
-  const { t, translations } = useTranslation(initialLang);
+export default function RegexTester() {
+  const { t, translations } = useTranslation();
   const tt = translations.tools.regex;
   const tc = translations.tools.common;
 
@@ -106,24 +109,21 @@ export default function RegexTester({ lang: initialLang }: { lang?: Language } =
   ];
 
   return (
-    <div className="flex flex-col gap-6">
+    <ToolPanel className="gap-6">
       {/* Pattern Input */}
-      <div className="space-y-2">
-        <label className="block text-sm font-medium text-[var(--color-text)]">
-          {t(tt.pattern)}
-        </label>
-        <div className="flex items-center gap-2">
-          <span className="text-[var(--color-text-muted)]">/</span>
+      <div className="grid min-w-0 gap-2 sm:grid-cols-[1fr_6rem]">
+          <ToolField id="regex-pattern" label={t(tt.pattern)}>
           <input
             type="text"
             value={pattern}
             onChange={(e) => setPattern(e.target.value)}
             placeholder="[a-z]+"
-            className="flex-1 px-4 py-2 rounded-lg border border-[var(--color-border)]
+            className="min-w-0 flex-1 px-4 py-2 rounded-lg border border-[var(--color-border)]
               bg-[var(--color-card)] text-[var(--color-text)] font-mono
               focus:outline-none focus:ring-2 focus:ring-primary-500"
           />
-          <span className="text-[var(--color-text-muted)]">/</span>
+          </ToolField>
+          <ToolField id="regex-flags" label={t({ ko: '플래그', en: 'Flags', ja: 'フラグ' })}>
           <input
             type="text"
             value={flags}
@@ -132,14 +132,16 @@ export default function RegexTester({ lang: initialLang }: { lang?: Language } =
               bg-[var(--color-card)] text-[var(--color-text)] font-mono text-center
               focus:outline-none focus:ring-2 focus:ring-primary-500"
           />
-        </div>
+          </ToolField>
       </div>
 
       {/* Flags */}
-      <div className="flex flex-wrap gap-2">
-        {flagOptions.map(({ value, label, desc }) => (
+      <ToolActions
+        selection
+        primary={flagOptions.slice(0, 1).map(({ value, label, desc }) => (
           <button
             key={value}
+            aria-pressed={flags.includes(value)}
             onClick={() => toggleFlag(value)}
             className={`px-3 py-1.5 rounded-lg text-sm transition-colors
               ${flags.includes(value)
@@ -151,15 +153,17 @@ export default function RegexTester({ lang: initialLang }: { lang?: Language } =
             {label}
           </button>
         ))}
-      </div>
+        secondary={flagOptions.slice(1).map(({ value, label, desc }) => (
+          <button key={value} aria-pressed={flags.includes(value)} onClick={() => toggleFlag(value)} title={t(desc)}>{label}</button>
+        ))}
+      />
 
       {/* Common Patterns */}
       <div className="space-y-2">
         <label className="text-sm text-[var(--color-text-muted)]">
           {t({ ko: '자주 사용하는 패턴', en: 'Common Patterns', ja: 'よく使うパターン' })}
         </label>
-        <div className="flex flex-wrap gap-2">
-          {commonPatterns.map(({ name, pattern: p }) => (
+        <ToolActions className="flex flex-wrap gap-2" primary={commonPatterns.map(({ name, pattern: p }) => (
             <button
               key={name}
               onClick={() => setPattern(p)}
@@ -168,32 +172,21 @@ export default function RegexTester({ lang: initialLang }: { lang?: Language } =
             >
               {name}
             </button>
-          ))}
-        </div>
+          ))} />
       </div>
 
       {/* Error */}
-      {error && (
-        <div className="p-3 rounded-lg bg-red-100 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-red-600 dark:text-red-400">
-          <code className="text-sm">{error}</code>
-        </div>
-      )}
+      {error && <ToolResult status="error"><code className="text-sm">{error}</code></ToolResult>}
 
       {/* Test String */}
-      <div className="space-y-2">
-        <label className="block text-sm font-medium text-[var(--color-text)]">
-          {t(tt.testString)}
-        </label>
+      <ToolField id="regex-test-string" label={t(tt.testString)}>
         <textarea
           value={testString}
           onChange={(e) => setTestString(e.target.value)}
           placeholder={t({ ko: '테스트할 문자열을 입력하세요...', en: 'Enter test string...', ja: 'テスト文字列を入力...' })}
           rows={4}
-          className="w-full px-4 py-3 rounded-lg border border-[var(--color-border)]
-            bg-[var(--color-card)] text-[var(--color-text)] resize-y
-            focus:outline-none focus:ring-2 focus:ring-primary-500"
         />
-      </div>
+      </ToolField>
 
       {/* Highlighted Result */}
       {testString && (
@@ -252,6 +245,6 @@ export default function RegexTester({ lang: initialLang }: { lang?: Language } =
           <span className="text-[var(--color-text-muted)]">{t(tt.noMatch)}</span>
         </div>
       )}
-    </div>
+    </ToolPanel>
   );
 }

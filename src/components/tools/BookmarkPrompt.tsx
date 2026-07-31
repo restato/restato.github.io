@@ -3,7 +3,9 @@ import type { Language } from '../../i18n';
 
 const STORAGE_KEY = 'restato_bookmark_dismissed';
 
-const copy: Record<Language, { close: string; title: string; shortcut: string; suffix: string }> = {
+type BookmarkCopyLanguage = 'ko' | 'en' | 'ja';
+
+const copy: Record<BookmarkCopyLanguage, { close: string; title: string; shortcut: string; suffix: string }> = {
   ko: {
     close: '닫기',
     title: '유용하셨다면 북마크하세요!',
@@ -29,7 +31,8 @@ interface BookmarkPromptProps {
 }
 
 export default function BookmarkPrompt({ lang = 'ko' }: BookmarkPromptProps) {
-  const text = copy[lang];
+  const copyLanguage: BookmarkCopyLanguage = lang === 'ko' || lang === 'ja' ? lang : 'en';
+  const text = copy[copyLanguage];
   const [show, setShow] = useState(false);
   const [isMac, setIsMac] = useState(false);
 

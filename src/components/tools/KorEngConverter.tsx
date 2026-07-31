@@ -1,4 +1,8 @@
 import { useState } from 'react';
+import { useTranslation } from '../../i18n/useTranslation';
+import { ToolActions } from './ui/ToolActions';
+import { ToolField } from './ui/ToolField';
+import { ToolPanel } from './ui/ToolPanel';
 
 // Korean keyboard mapping
 const engToKor: Record<string, string> = {
@@ -180,6 +184,7 @@ function korToEnglish(text: string): string {
 }
 
 export default function KorEngConverter() {
+  const { t } = useTranslation();
   const [input, setInput] = useState('');
   const [mode, setMode] = useState<'engToKor' | 'korToEng'>('engToKor');
   const [copied, setCopied] = useState(false);
@@ -202,10 +207,10 @@ export default function KorEngConverter() {
   };
 
   return (
-    <div className="flex flex-col gap-6">
+    <ToolPanel className="gap-6">
       {/* Mode Toggle */}
-      <div className="flex gap-2">
-        <button
+      <ToolActions selection className="grid grid-cols-2" primary={<button
+          aria-pressed={mode === 'engToKor'}
           onClick={() => setMode('engToKor')}
           className={`flex-1 px-4 py-3 rounded-lg font-medium transition-colors
             ${mode === 'engToKor'
@@ -213,9 +218,9 @@ export default function KorEngConverter() {
               : 'bg-[var(--color-card)] hover:bg-[var(--color-card-hover)] text-[var(--color-text)] border border-[var(--color-border)]'
             }`}
         >
-          🔤 영타 → 한글
-        </button>
-        <button
+          {t({ ko: '🔤 영타 → 한글', en: '🔤 English keys → Korean', ja: '🔤 英字キー → 韓国語' })}
+        </button>} secondary={<button
+          aria-pressed={mode === 'korToEng'}
           onClick={() => setMode('korToEng')}
           className={`flex-1 px-4 py-3 rounded-lg font-medium transition-colors
             ${mode === 'korToEng'
@@ -223,64 +228,48 @@ export default function KorEngConverter() {
               : 'bg-[var(--color-card)] hover:bg-[var(--color-card-hover)] text-[var(--color-text)] border border-[var(--color-border)]'
             }`}
         >
-          🇰🇷 한타 → 영어
-        </button>
-      </div>
+          {t({ ko: '🇰🇷 한타 → 영어', en: '🇰🇷 Korean keys → English', ja: '🇰🇷 韓国語キー → 英語' })}
+        </button>} />
 
       {/* Input */}
-      <div className="space-y-2">
-        <label className="block text-sm font-medium text-[var(--color-text)]">
-          {mode === 'engToKor' ? '영어로 입력된 텍스트' : '한글로 입력된 텍스트'}
-        </label>
+      <ToolField id="kor-eng-input" label={mode === 'engToKor' ? t({ ko: '영어로 입력된 텍스트', en: 'Text typed with English keys', ja: '英字キーで入力したテキスト' }) : t({ ko: '한글로 입력된 텍스트', en: 'Text typed with Korean keys', ja: '韓国語キーで入力したテキスト' })}>
         <textarea
           value={input}
           onChange={(e) => setInput(e.target.value)}
           placeholder={mode === 'engToKor' ? 'dkssudgktpdy (안녕하세요)' : 'ㅗ디ㅣㅐ (hello)'}
           rows={4}
-          className="w-full px-4 py-3 rounded-lg border border-[var(--color-border)]
-            bg-[var(--color-card)] text-[var(--color-text)]
-            focus:outline-none focus:ring-2 focus:ring-primary-500 resize-none"
+          className="resize-none"
         />
-      </div>
+      </ToolField>
 
       {/* Swap Button */}
-      <button
+      <ToolActions className="self-center" primary={<button
         onClick={swap}
         className="self-center p-2 rounded-full bg-[var(--color-card)] hover:bg-[var(--color-card-hover)]
           border border-[var(--color-border)] transition-colors"
       >
         🔄
-      </button>
+      </button>} />
 
       {/* Output */}
       <div className="space-y-2">
-        <label className="block text-sm font-medium text-[var(--color-text)]">
-          변환 결과
-        </label>
-        <div className="relative">
+        <ToolField id="kor-eng-result" label={t({ ko: '변환 결과', en: 'Conversion result', ja: '変換結果' })}>
           <textarea
             value={result}
             readOnly
             rows={4}
-            className="w-full px-4 py-3 rounded-lg border border-[var(--color-border)]
-              bg-[var(--color-bg)] text-[var(--color-text)] resize-none"
+            className="resize-none"
           />
-          <button
-            onClick={copy}
-            className="absolute top-2 right-2 px-3 py-1 rounded-lg text-sm
-              bg-[var(--color-card)] hover:bg-[var(--color-card-hover)]
-              border border-[var(--color-border)] transition-colors"
-          >
-            {copied ? '✓ 복사됨' : '복사'}
-          </button>
-        </div>
+        </ToolField>
+          <ToolActions primary={<button onClick={copy}>
+            {copied ? t({ ko: '✓ 복사됨', en: '✓ Copied', ja: '✓ コピー済み' }) : t({ ko: '복사', en: 'Copy', ja: 'コピー' })}
+          </button>} />
       </div>
 
       {/* Examples */}
       <div className="p-4 rounded-lg bg-[var(--color-card)] border border-[var(--color-border)]">
-        <h3 className="font-medium text-[var(--color-text)] mb-3">💡 예시</h3>
-        <div className="space-y-2 text-sm">
-          {mode === 'engToKor' ? (
+        <h3 className="font-medium text-[var(--color-text)] mb-3">💡 {t({ ko: '예시', en: 'Examples', ja: '例' })}</h3>
+        <ToolActions className="space-y-2 text-sm" primary={mode === 'engToKor' ? (
             <>
               <button
                 onClick={() => setInput('dkssudgktpdy')}
@@ -316,9 +305,8 @@ export default function KorEngConverter() {
                 ㅈㅐㅐㅇ → good
               </button>
             </>
-          )}
-        </div>
+          )} />
       </div>
-    </div>
+    </ToolPanel>
   );
 }

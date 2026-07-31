@@ -7,12 +7,16 @@ export interface GameSeoData {
   keywords: string[];
 }
 
+export const gameLanguages = ['ko', 'en', 'ja'] as const;
+export type GameLanguage = (typeof gameLanguages)[number];
+type GameSeoByLanguage = Record<GameLanguage, GameSeoData> & Partial<Record<Language, GameSeoData>>;
+
 export interface GameConfig {
   slug: string;
   icon: string;
   category: 'arcade' | 'puzzle' | 'event' | 'classic';
   featured?: boolean;
-  seo: Record<Language, GameSeoData>;
+  seo: GameSeoByLanguage;
 }
 
 // Common SEO keywords
@@ -523,6 +527,14 @@ export const gamesConfig: GameConfig[] = [
 // Helper to get game by slug
 export function getGameConfig(slug: string): GameConfig | undefined {
   return gamesConfig.find(game => game.slug === slug);
+}
+
+export function isGameLanguage(language: string): language is GameLanguage {
+  return gameLanguages.includes(language as GameLanguage);
+}
+
+export function getGameSeo(game: GameConfig, language: Language): GameSeoData {
+  return game.seo[language] ?? game.seo.en;
 }
 
 // Helper to get games by category

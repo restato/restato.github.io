@@ -1,5 +1,6 @@
 import { useRef, useEffect, useCallback } from 'react';
 import { ChatService, type ChatMessage, type ConnectionStatus } from '../lib/chatService';
+import { isFirebaseConfigured } from '../lib/firebase';
 
 interface UseChatServiceOptions {
   onMessage: (message: ChatMessage) => void;
@@ -21,6 +22,11 @@ export function useChatService(options: UseChatServiceOptions) {
       return;
     }
     isStartedRef.current = true;
+
+    if (!isFirebaseConfigured()) {
+      options.onStatusChange('error');
+      return;
+    }
 
     console.log('[useChatService] Starting chat service, roomId:', options.initialRoomId);
 
@@ -67,6 +73,11 @@ export function useChatService(options: UseChatServiceOptions) {
   }, []);
 
   const reconnect = useCallback((callbacks: Omit<UseChatServiceOptions, 'initialRoomId'>) => {
+    if (!isFirebaseConfigured()) {
+      callbacks.onStatusChange('error');
+      return null;
+    }
+
     if (chatServiceRef.current) {
       chatServiceRef.current.disconnect();
     }

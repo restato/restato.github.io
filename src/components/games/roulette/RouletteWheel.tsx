@@ -12,6 +12,8 @@ interface RouletteWheelProps {
   isSpinning: boolean;
   setIsSpinning: (spinning: boolean) => void;
   size?: number;
+  spinRequest?: number;
+  spinLabel?: string;
 }
 
 const SPIN_DURATION = 5000;
@@ -24,10 +26,13 @@ export default function RouletteWheel({
   isSpinning,
   setIsSpinning,
   size = 320,
+  spinRequest = 0,
+  spinLabel = 'Spin roulette wheel',
 }: RouletteWheelProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [rotation, setRotation] = useState(0);
   const rotationRef = useRef(0);
+  const lastSpinRequestRef = useRef(0);
 
   // Draw wheel
   useEffect(() => {
@@ -154,6 +159,13 @@ export default function RouletteWheel({
     requestAnimationFrame(animate);
   }, [isSpinning, items, onSpinEnd, setIsSpinning]);
 
+  useEffect(() => {
+    if (spinRequest > lastSpinRequestRef.current) {
+      lastSpinRequestRef.current = spinRequest;
+      spin();
+    }
+  }, [spin, spinRequest]);
+
   return (
     <div className="relative inline-block">
       {/* Pointer */}
@@ -174,7 +186,16 @@ export default function RouletteWheel({
         width={size}
         height={size}
         onClick={spin}
-        className={`cursor-pointer ${isSpinning ? 'pointer-events-none' : ''}`}
+        onKeyDown={event => {
+          if (event.key === 'Enter' || event.key === ' ') {
+            event.preventDefault();
+            spin();
+          }
+        }}
+        role="button"
+        tabIndex={0}
+        aria-label={spinLabel}
+        className={`h-auto max-w-full cursor-pointer touch-manipulation ${isSpinning ? 'pointer-events-none' : ''}`}
         style={{
           filter: 'drop-shadow(0 4px 6px rgba(0, 0, 0, 0.1))',
         }}

@@ -21,8 +21,7 @@ describe('UuidGenerator', () => {
 
     await user.click(screen.getByText('생성'));
 
-    const textarea = screen.getByRole('textbox');
-    const uuid = textarea.getAttribute('value') || '';
+    const uuid = screen.getByRole('code').textContent || '';
 
     // UUID v4 format: xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx
     expect(uuid).toMatch(/^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i);
@@ -33,16 +32,31 @@ describe('UuidGenerator', () => {
     const user = userEvent.setup();
 
     // Change count to 5
-    const countInput = screen.getByRole('spinbutton');
+    const countInput = screen.getByRole('spinbutton', { name: /개수/ });
     await user.clear(countInput);
     await user.type(countInput, '5');
 
     await user.click(screen.getByText('생성'));
 
-    const textarea = screen.getByRole('textbox');
-    const uuids = (textarea.getAttribute('value') || '').split('\n');
+    const uuids = screen.getAllByRole('code').map((code) => code.textContent || '');
 
     expect(uuids.length).toBe(5);
+  });
+
+  it('normalizes the count to the supported minimum and maximum on blur', async () => {
+    render(<UuidGenerator />);
+    const user = userEvent.setup();
+    const countInput = screen.getByRole('spinbutton', { name: /개수/ });
+
+    await user.clear(countInput);
+    await user.type(countInput, '0');
+    await user.tab();
+    expect(countInput).toHaveValue(1);
+
+    await user.clear(countInput);
+    await user.type(countInput, '101');
+    await user.tab();
+    expect(countInput).toHaveValue(100);
   });
 
   it('generates uppercase UUIDs when option is checked', async () => {
@@ -54,8 +68,7 @@ describe('UuidGenerator', () => {
 
     await user.click(screen.getByText('생성'));
 
-    const textarea = screen.getByRole('textbox');
-    const uuid = textarea.getAttribute('value') || '';
+    const uuid = screen.getByRole('code').textContent || '';
 
     expect(uuid).toMatch(/^[0-9A-F-]+$/);
   });
@@ -69,8 +82,7 @@ describe('UuidGenerator', () => {
 
     await user.click(screen.getByText('생성'));
 
-    const textarea = screen.getByRole('textbox');
-    const uuid = textarea.getAttribute('value') || '';
+    const uuid = screen.getByRole('code').textContent || '';
 
     expect(uuid).not.toContain('-');
     expect(uuid.length).toBe(32); // 32 hex chars without hyphens
@@ -93,14 +105,13 @@ describe('UuidGenerator', () => {
     render(<UuidGenerator />);
     const user = userEvent.setup();
 
-    const countInput = screen.getByRole('spinbutton');
+    const countInput = screen.getByRole('spinbutton', { name: /개수/ });
     await user.clear(countInput);
     await user.type(countInput, '10');
 
     await user.click(screen.getByText('생성'));
 
-    const textarea = screen.getByRole('textbox');
-    const uuids = (textarea.getAttribute('value') || '').split('\n');
+    const uuids = screen.getAllByRole('code').map((code) => code.textContent || '');
 
     const uniqueUuids = new Set(uuids);
     expect(uniqueUuids.size).toBe(uuids.length);

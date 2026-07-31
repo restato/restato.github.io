@@ -1,9 +1,13 @@
 import { initializeApp, type FirebaseApp } from "firebase/app";
-import { getDatabase, ref, set, get, push, onValue, remove, type Database } from "firebase/database";
+import { getDatabase, ref, set, get, push, onValue, remove, runTransaction, type Database } from "firebase/database";
 
 // Lazy initialization for Firebase (avoids build-time errors)
 let app: FirebaseApp | null = null;
 let db: Database | null = null;
+
+export function isFirebaseConfigured(): boolean {
+  return Boolean(import.meta.env.PUBLIC_FIREBASE_DATABASE_URL && import.meta.env.PUBLIC_FIREBASE_PROJECT_ID);
+}
 
 function getFirebaseApp(): FirebaseApp {
   if (!app) {
@@ -66,24 +70,22 @@ export async function createRoom(peerId: string): Promise<string> {
 // 방 참가
 export async function joinRoom(roomId: string, peerId: string): Promise<Room | null> {
   const roomRef = ref(getDb(), `rooms/${roomId}`);
-  const snapshot = await get(roomRef);
+  const transaction = await runTransaction(roomRef, (current: Room | null) => {
+    if (!current || current.expiresAt <= Date.now() || current.guestPeerId) {
+      return undefined;
+    }
+    return { ...current, guestPeerId: peerId };
+  });
 
-  if (!snapshot.exists()) {
+  if (!transaction.committed) {
+    const current = transaction.snapshot.val() as Room | null;
+    if (current && current.expiresAt <= Date.now()) {
+      await remove(roomRef);
+    }
     return null;
   }
 
-  const room = snapshot.val() as Room;
-
-  // 만료된 방
-  if (Date.now() > room.expiresAt) {
-    await remove(roomRef);
-    return null;
-  }
-
-  // 게스트로 참가
-  await set(ref(getDb(), `rooms/${roomId}/guestPeerId`), peerId);
-
-  return room;
+  return transaction.snapshot.val() as Room;
 }
 
 // 방 정보 조회

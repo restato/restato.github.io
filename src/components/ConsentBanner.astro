@@ -1,0 +1,64 @@
+---
+import type { Language } from '../data/tools/types';
+
+interface Props { lang: Language; gaId: string }
+const { lang, gaId } = Astro.props;
+
+const copy: Record<Language, { message: string; accept: string; reject: string }> = {
+  ko: { message: '서비스 개선을 위해 익명 사용 분석을 허용하시겠어요? 거부해도 모든 핵심 도구를 사용할 수 있습니다.', accept: '분석 허용', reject: '거부' },
+  en: { message: 'Allow anonymous usage analytics to improve Restato? All core tools work if you decline.', accept: 'Allow analytics', reject: 'Decline' },
+  ja: { message: 'サービス改善のため匿名の利用分析を許可しますか？拒否しても主要なツールは利用できます。', accept: '分析を許可', reject: '拒否' },
+  'zh-CN': { message: '是否允许匿名使用分析以改进 Restato？拒绝后所有核心工具仍可使用。', accept: '允许分析', reject: '拒绝' },
+  'zh-TW': { message: '是否允許匿名使用分析以改善 Restato？拒絕後所有核心工具仍可使用。', accept: '允許分析', reject: '拒絕' },
+  es: { message: '¿Permitir análisis de uso anónimos para mejorar Restato? Las herramientas esenciales funcionan si rechazas.', accept: 'Permitir análisis', reject: 'Rechazar' },
+  pt: { message: 'Permitir análise anônima de uso para melhorar o Restato? As ferramentas essenciais funcionam se você recusar.', accept: 'Permitir análise', reject: 'Recusar' },
+  de: { message: 'Anonyme Nutzungsanalyse zur Verbesserung von Restato erlauben? Alle Kernwerkzeuge funktionieren auch bei Ablehnung.', accept: 'Analyse erlauben', reject: 'Ablehnen' },
+  fr: { message: 'Autoriser l’analyse anonyme pour améliorer Restato ? Tous les outils essentiels fonctionnent en cas de refus.', accept: 'Autoriser l’analyse', reject: 'Refuser' },
+  it: { message: 'Consentire analisi anonime per migliorare Restato? Tutti gli strumenti essenziali funzionano anche rifiutando.', accept: 'Consenti analisi', reject: 'Rifiuta' },
+  id: { message: 'Izinkan analitik penggunaan anonim untuk meningkatkan Restato? Semua alat inti tetap berfungsi jika ditolak.', accept: 'Izinkan analitik', reject: 'Tolak' },
+  hi: { message: 'Restato को बेहतर बनाने के लिए गुमनाम उपयोग विश्लेषण की अनुमति दें? मना करने पर भी सभी मुख्य टूल चलते हैं।', accept: 'विश्लेषण की अनुमति दें', reject: 'मना करें' },
+};
+---
+
+{gaId && (
+  <aside
+    data-consent-banner
+    data-ga-id={gaId}
+    class="fc-surface fixed inset-x-0 bottom-0 z-50 hidden rounded-none border-x-0 border-b-0 bg-[var(--surface-raised)] p-0"
+    aria-label={copy[lang].message}
+  >
+    <div class="mx-auto flex max-w-[88rem] flex-col items-start gap-3 px-4 py-3 sm:flex-row sm:items-center sm:px-6">
+      <p class="m-0 flex-1 text-sm leading-6 text-[var(--text-primary)]">{copy[lang].message}</p>
+      <div class="flex shrink-0 flex-wrap gap-2">
+        <button data-consent="denied" type="button" class="fc-button fc-button-secondary text-sm">
+          {copy[lang].reject}
+        </button>
+        <button data-consent="granted" type="button" class="fc-button fc-button-primary text-sm">
+          {copy[lang].accept}
+        </button>
+      </div>
+    </div>
+  </aside>
+)}
+
+<script>
+  import { getAnalyticsConsent, loadGoogleAnalytics, setAnalyticsConsent } from '../lib/analytics';
+
+  const banner = document.querySelector<HTMLElement>('[data-consent-banner]');
+  if (banner) {
+    const gaId = banner.dataset.gaId ?? '';
+    const consent = getAnalyticsConsent();
+    if (consent === 'granted') loadGoogleAnalytics(gaId);
+    if (consent === 'unset') banner.classList.remove('hidden');
+
+    banner.querySelectorAll<HTMLButtonElement>('[data-consent]').forEach(button => {
+      button.addEventListener('click', () => {
+        const choice = button.dataset.consent;
+        if (choice !== 'granted' && choice !== 'denied') return;
+        setAnalyticsConsent(choice);
+        banner.classList.add('hidden');
+        if (choice === 'granted') loadGoogleAnalytics(gaId);
+      });
+    });
+  }
+</script>

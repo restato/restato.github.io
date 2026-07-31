@@ -227,11 +227,11 @@ export default function Game2048() {
   };
 
   return (
-    <div className="flex flex-col items-center w-full max-w-md lg:max-w-lg mx-auto px-4">
+    <div className="fc-game mx-auto flex w-full max-w-md flex-col items-center px-0 lg:max-w-lg">
       {/* Header */}
-      <div className="flex justify-between items-center w-full mb-4">
-        <h1 className="text-4xl font-bold text-[#776e65]">2048</h1>
-        <div className="flex gap-2">
+      <div className="fc-surface mb-4 flex w-full flex-wrap items-center justify-between gap-2 p-3">
+        <div className="text-3xl font-bold text-[#776e65]" aria-label="2048">2048</div>
+        <div className="flex min-w-0 gap-2">
           <div className="bg-[#bbada0] rounded-lg px-4 py-2 text-center">
             <div className="text-xs text-[#eee4da]">
               {t({ ko: '점수', en: 'SCORE', ja: 'スコア' })}
@@ -249,35 +249,36 @@ export default function Game2048() {
 
       {/* New Game Button */}
       <button
+        type="button"
         onClick={newGame}
-        className="mb-4 px-4 py-2 bg-[#8f7a66] text-white font-bold rounded-lg hover:bg-[#9f8b77] transition-colors"
+        className="fc-button fc-button-primary mb-4"
       >
         {t({ ko: '새 게임', en: 'New Game', ja: '新しいゲーム' })}
       </button>
 
       {/* Game Grid */}
       <div
-        className="relative bg-[#bbada0] rounded-xl p-3"
+        className="relative aspect-square w-full max-w-80 rounded-xl bg-[#bbada0] p-2 sm:max-w-96 sm:p-3"
         onTouchStart={handleTouchStart}
         onTouchEnd={handleTouchEnd}
       >
         {/* Background Grid */}
-        <div className="grid grid-cols-4 gap-3">
+        <div className="grid h-full grid-cols-4 gap-2 sm:gap-3">
           {Array(16).fill(null).map((_, i) => (
             <div
               key={i}
-              className="w-16 h-16 md:w-20 md:h-20 bg-[#cdc1b4] rounded-lg"
+              className="aspect-square w-full rounded-lg bg-[#cdc1b4]"
             />
           ))}
         </div>
 
         {/* Tiles */}
-        <div className="absolute inset-3 grid grid-cols-4 gap-3">
+        <div className="absolute inset-2 grid grid-cols-4 gap-2 sm:inset-3 sm:gap-3">
           {grid.map((row, i) =>
             row.map((cell, j) => (
               <div
                 key={`${i}-${j}`}
-                className="w-16 h-16 md:w-20 md:h-20 flex items-center justify-center rounded-lg font-bold transition-all duration-100"
+                className="flex aspect-square w-full items-center justify-center rounded-lg font-bold transition-colors duration-100"
                 style={{
                   backgroundColor: cell ? TILE_COLORS[cell]?.bg || '#3c3a32' : 'transparent',
                   color: cell ? TILE_COLORS[cell]?.text || '#f9f6f2' : 'transparent',
@@ -292,15 +293,16 @@ export default function Game2048() {
 
         {/* Game Over Overlay */}
         {gameOver && (
-          <div className="absolute inset-0 bg-black/50 rounded-xl flex flex-col items-center justify-center">
+          <div className="absolute inset-0 flex flex-col items-center justify-center rounded-xl bg-black/60" role="status">
             <div className="text-3xl font-bold text-white mb-4">
               {won
                 ? t({ ko: '성공!', en: 'You Win!', ja: '成功!' })
                 : t({ ko: '게임 오버', en: 'Game Over', ja: 'ゲームオーバー' })}
             </div>
             <button
+              type="button"
               onClick={newGame}
-              className="px-6 py-3 bg-[#8f7a66] text-white font-bold rounded-lg hover:bg-[#9f8b77] transition-colors"
+              className="fc-button bg-[#8f7a66] text-white hover:bg-[#9f8b77]"
             >
               {t({ ko: '다시 하기', en: 'Try Again', ja: 'もう一度' })}
             </button>

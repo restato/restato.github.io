@@ -1,6 +1,8 @@
 import { useState, useMemo } from 'react';
 import { useTranslation } from '../../i18n/useTranslation';
-import type { Language } from '../../i18n';
+import { ToolActions } from './ui/ToolActions';
+import { ToolField } from './ui/ToolField';
+import { ToolPanel } from './ui/ToolPanel';
 
 interface UtmParams {
   url: string;
@@ -35,8 +37,8 @@ const MEDIUMS = [
   { value: 'banner', label: 'Banner' },
 ];
 
-export default function UtmBuilder({ lang: initialLang }: { lang?: Language } = {}) {
-  const { t } = useTranslation(initialLang);
+export default function UtmBuilder() {
+  const { t } = useTranslation();
 
   const [params, setParams] = useState<UtmParams>({
     url: '',
@@ -102,48 +104,29 @@ export default function UtmBuilder({ lang: initialLang }: { lang?: Language } = 
   };
 
   return (
-    <div className="flex flex-col gap-6">
+    <ToolPanel className="gap-6">
       {/* Actions */}
-      <div className="flex gap-2">
-        <button
-          onClick={loadExample}
-          className="px-3 py-1.5 text-sm bg-[var(--color-card)] hover:bg-[var(--color-card-hover)]
-            border border-[var(--color-border)] rounded-lg transition-colors"
-        >
+      <ToolActions primary={<button onClick={loadExample}>
           {t({ ko: '예제 불러오기', en: 'Load Example', ja: 'サンプルを読み込む' })}
-        </button>
-        <button
-          onClick={clearAll}
-          className="px-3 py-1.5 text-sm bg-[var(--color-card)] hover:bg-[var(--color-card-hover)]
-            border border-[var(--color-border)] rounded-lg transition-colors"
-        >
+        </button>} secondary={<button onClick={clearAll}>
           {t({ ko: '초기화', en: 'Clear', ja: 'クリア' })}
-        </button>
-      </div>
+        </button>} />
 
       {/* URL Input */}
-      <div className="space-y-2">
-        <label className="block text-sm font-medium text-[var(--color-text)]">
-          {t({ ko: '웹사이트 URL', en: 'Website URL', ja: 'ウェブサイトURL' })} *
-        </label>
+      <ToolField id="utm-url" label={`${t({ ko: '웹사이트 URL', en: 'Website URL', ja: 'ウェブサイトURL' })} *`}>
         <input
           type="text"
           value={params.url}
           onChange={(e) => setParams({ ...params, url: e.target.value })}
           placeholder="https://example.com/page"
-          className="w-full px-4 py-2 rounded-lg border border-[var(--color-border)]
-            bg-[var(--color-card)] text-[var(--color-text)]
-            focus:outline-none focus:ring-2 focus:ring-primary-500"
         />
-      </div>
+      </ToolField>
 
       {/* Required Parameters */}
       <div className="grid md:grid-cols-3 gap-4">
         {/* Source */}
         <div className="space-y-2">
-          <label className="block text-sm font-medium text-[var(--color-text)]">
-            utm_source * <span className="text-[var(--color-text-muted)] font-normal">({t({ ko: '트래픽 소스', en: 'Traffic Source', ja: 'トラフィックソース' })})</span>
-          </label>
+          <ToolField id="utm-source-select" label={`utm_source * (${t({ ko: '트래픽 소스', en: 'Traffic Source', ja: 'トラフィックソース' })})`}>
           <select
             value={params.source}
             onChange={(e) => setParams({ ...params, source: e.target.value })}
@@ -156,6 +139,8 @@ export default function UtmBuilder({ lang: initialLang }: { lang?: Language } = 
               <option key={s.value} value={s.value}>{s.label}</option>
             ))}
           </select>
+          </ToolField>
+          <ToolField id="utm-source-custom" label={t({ ko: '사용자 지정 트래픽 소스', en: 'Custom traffic source', ja: 'カスタムトラフィックソース' })}>
           <input
             type="text"
             value={params.source}
@@ -165,13 +150,12 @@ export default function UtmBuilder({ lang: initialLang }: { lang?: Language } = 
               bg-[var(--color-card)] text-[var(--color-text)] text-sm
               focus:outline-none focus:ring-2 focus:ring-primary-500"
           />
+          </ToolField>
         </div>
 
         {/* Medium */}
         <div className="space-y-2">
-          <label className="block text-sm font-medium text-[var(--color-text)]">
-            utm_medium * <span className="text-[var(--color-text-muted)] font-normal">({t({ ko: '마케팅 매체', en: 'Marketing Medium', ja: 'マーケティング媒体' })})</span>
-          </label>
+          <ToolField id="utm-medium-select" label={`utm_medium * (${t({ ko: '마케팅 매체', en: 'Marketing Medium', ja: 'マーケティング媒体' })})`}>
           <select
             value={params.medium}
             onChange={(e) => setParams({ ...params, medium: e.target.value })}
@@ -184,6 +168,8 @@ export default function UtmBuilder({ lang: initialLang }: { lang?: Language } = 
               <option key={m.value} value={m.value}>{m.label}</option>
             ))}
           </select>
+          </ToolField>
+          <ToolField id="utm-medium-custom" label={t({ ko: '사용자 지정 마케팅 매체', en: 'Custom marketing medium', ja: 'カスタムマーケティング媒体' })}>
           <input
             type="text"
             value={params.medium}
@@ -193,13 +179,12 @@ export default function UtmBuilder({ lang: initialLang }: { lang?: Language } = 
               bg-[var(--color-card)] text-[var(--color-text)] text-sm
               focus:outline-none focus:ring-2 focus:ring-primary-500"
           />
+          </ToolField>
         </div>
 
         {/* Campaign */}
         <div className="space-y-2">
-          <label className="block text-sm font-medium text-[var(--color-text)]">
-            utm_campaign * <span className="text-[var(--color-text-muted)] font-normal">({t({ ko: '캠페인 이름', en: 'Campaign Name', ja: 'キャンペーン名' })})</span>
-          </label>
+          <ToolField id="utm-campaign" label={`utm_campaign * (${t({ ko: '캠페인 이름', en: 'Campaign Name', ja: 'キャンペーン名' })})`}>
           <input
             type="text"
             value={params.campaign}
@@ -209,6 +194,7 @@ export default function UtmBuilder({ lang: initialLang }: { lang?: Language } = 
               bg-[var(--color-card)] text-[var(--color-text)]
               focus:outline-none focus:ring-2 focus:ring-primary-500"
           />
+          </ToolField>
           <p className="text-xs text-[var(--color-text-muted)]">
             {t({ ko: '공백 대신 언더스코어(_) 사용', en: 'Use underscores instead of spaces', ja: 'スペースの代わりにアンダースコア(_)を使用' })}
           </p>
@@ -218,10 +204,7 @@ export default function UtmBuilder({ lang: initialLang }: { lang?: Language } = 
       {/* Optional Parameters */}
       <div className="grid md:grid-cols-2 gap-4">
         {/* Term */}
-        <div className="space-y-2">
-          <label className="block text-sm font-medium text-[var(--color-text)]">
-            utm_term <span className="text-[var(--color-text-muted)] font-normal">({t({ ko: '유료 검색 키워드', en: 'Paid Search Keywords', ja: '有料検索キーワード' })})</span>
-          </label>
+        <ToolField id="utm-term" label={`utm_term (${t({ ko: '유료 검색 키워드', en: 'Paid Search Keywords', ja: '有料検索キーワード' })})`}>
           <input
             type="text"
             value={params.term}
@@ -231,13 +214,10 @@ export default function UtmBuilder({ lang: initialLang }: { lang?: Language } = 
               bg-[var(--color-card)] text-[var(--color-text)]
               focus:outline-none focus:ring-2 focus:ring-primary-500"
           />
-        </div>
+        </ToolField>
 
         {/* Content */}
-        <div className="space-y-2">
-          <label className="block text-sm font-medium text-[var(--color-text)]">
-            utm_content <span className="text-[var(--color-text-muted)] font-normal">({t({ ko: '콘텐츠 식별자', en: 'Content Identifier', ja: 'コンテンツ識別子' })})</span>
-          </label>
+        <ToolField id="utm-content" label={`utm_content (${t({ ko: '콘텐츠 식별자', en: 'Content Identifier', ja: 'コンテンツ識別子' })})`}>
           <input
             type="text"
             value={params.content}
@@ -247,7 +227,7 @@ export default function UtmBuilder({ lang: initialLang }: { lang?: Language } = 
               bg-[var(--color-card)] text-[var(--color-text)]
               focus:outline-none focus:ring-2 focus:ring-primary-500"
           />
-        </div>
+        </ToolField>
       </div>
 
       {/* Generated URL */}
@@ -256,14 +236,14 @@ export default function UtmBuilder({ lang: initialLang }: { lang?: Language } = 
           <label className="block text-sm font-medium text-[var(--color-text)]">
             {t({ ko: '생성된 URL', en: 'Generated URL', ja: '生成されたURL' })}
           </label>
-          <button
+          <ToolActions primary={<button
             onClick={copyToClipboard}
             disabled={!generatedUrl}
             className="px-3 py-1 text-sm bg-primary-500 hover:bg-primary-600 text-white rounded
               transition-colors disabled:opacity-50"
           >
             {copied ? t({ ko: '복사됨!', en: 'Copied!', ja: 'コピーしました!' }) : t({ ko: '복사', en: 'Copy', ja: 'コピー' })}
-          </button>
+          </button>} />
         </div>
         <div className="p-4 rounded-lg bg-[var(--color-bg)] border border-[var(--color-border)] min-h-[60px]">
           {generatedUrl ? (
@@ -296,6 +276,6 @@ export default function UtmBuilder({ lang: initialLang }: { lang?: Language } = 
           })}
         </p>
       </div>
-    </div>
+    </ToolPanel>
   );
 }

@@ -1,5 +1,6 @@
 ---
-import BaseLayout from '../../layouts/BaseLayout.astro';
+import MainLayout from '../../layouts/MainLayout.astro';
+import PageShell from '../../components/ui/PageShell.astro';
 import { LlmWikiExperience } from '../../components/llm-wiki/LlmWikiExperience';
 import '../../styles/llm-wiki.css';
 
@@ -51,7 +52,7 @@ const learningSchema = {
 };
 ---
 
-<BaseLayout
+<MainLayout
   title={title}
   description={description}
   image="/images/llm-wiki-og.png"
@@ -62,8 +63,9 @@ const learningSchema = {
   <script type="application/ld+json" set:html={JSON.stringify(faqSchema)} />
   <script type="application/ld+json" set:html={JSON.stringify(learningSchema)} />
 
-  <main class="llmw-page" id="llm-wiki-top">
-    <header class="llmw-topbar">
+  <PageShell size="wide" class="llmw-shell">
+  <div class="llmw-page" id="llm-wiki-top">
+    <header class="llmw-topbar fc-surface">
       <a href="/" class="llmw-brand" aria-label="Restato home">
         <span aria-hidden="true">R</span>
         <span>RESTATO <small>FIELD GUIDE / 001</small></span>
@@ -88,8 +90,8 @@ const learningSchema = {
           Files can be retrieved. Knowledge should accumulate. Build a living wiki, watch OpenWiki maintain it, then move it anywhere with OKF.
         </p>
         <div class="llmw-hero-actions">
-          <a href="#lab" class="llmw-primary-link">Enter the knowledge lab <span aria-hidden="true">↘</span></a>
-          <a href="#mental-model" class="llmw-text-link">Start with the 90-second model</a>
+          <a href="#lab" class="llmw-primary-link fc-button fc-button-primary">Enter the knowledge lab <span aria-hidden="true">↘</span></a>
+          <a href="#mental-model" class="llmw-text-link fc-button fc-button-quiet">Start with the 90-second model</a>
         </div>
         <div class="llmw-hero-proof">
           <div><strong>3</strong><span>real-world missions</span></div>
@@ -98,7 +100,7 @@ const learningSchema = {
         </div>
       </div>
 
-      <div class="llmw-hero-instrument" aria-label="A visualization of scattered files becoming linked knowledge">
+      <div class="llmw-hero-instrument fc-surface" aria-label="A visualization of scattered files becoming linked knowledge">
         <div class="llmw-instrument-header"><span>KNOWLEDGE COMPILER</span><span>SIMULATION / LIVE</span></div>
         <div class="llmw-orbit">
           <span class="llmw-orbit-ring ring-one"></span>
@@ -128,7 +130,7 @@ const learningSchema = {
         </div>
       </div>
       <div class="llmw-shift-grid">
-        <article class="llmw-shift-card muted">
+        <article class="llmw-shift-card muted fc-surface">
           <span class="llmw-card-label">TODAY / RETRIEVE AGAIN</span>
           <div class="llmw-scattered-files"><i>PDF</i><i>SQL</i><i>MD</i><i>TS</i></div>
           <h3>Every question starts from fragments.</h3>
@@ -136,7 +138,7 @@ const learningSchema = {
           <footer><span>Question 01</span><span>Question 02</span><span>Question 03</span></footer>
         </article>
         <div class="llmw-shift-arrow" aria-hidden="true"><span>compile</span>→</div>
-        <article class="llmw-shift-card bright">
+        <article class="llmw-shift-card bright fc-surface">
           <span class="llmw-card-label">LLM WIKI / BUILD ONCE</span>
           <div class="llmw-linked-pages"><i></i><i></i><i></i><i></i><svg viewBox="0 0 200 80"><path d="M20 40h160M55 15l90 50M55 65l90-50" /></svg></div>
           <h3>Every answer can improve the artifact.</h3>
@@ -201,7 +203,8 @@ const learningSchema = {
 
     <footer class="llmw-footer">
       <div><span class="llmw-footer-mark">LW</span><p><strong>Make knowledge compound.</strong><br />An interactive field guide by Restato.</p></div>
-      <a href="#llm-wiki-top">Back to the beginning ↑</a>
+      <div><a href="mailto:direcision@gmail.com">Contact</a> · <a href="#llm-wiki-top">Back to the beginning ↑</a></div>
     </footer>
-  </main>
-</BaseLayout>
+  </div>
+  </PageShell>
+</MainLayout>

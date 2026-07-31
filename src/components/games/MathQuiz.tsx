@@ -150,29 +150,29 @@ export default function MathQuiz() {
   };
 
   return (
-    <div className="flex flex-col items-center w-full max-w-lg lg:max-w-xl mx-auto px-4">
+    <div className="fc-game mx-auto flex w-full max-w-lg flex-col items-center px-0 lg:max-w-xl">
       {/* Stats */}
       <div className="grid grid-cols-4 gap-3 w-full mb-6">
-        <div className="p-3 bg-[var(--color-card)] rounded-xl border border-[var(--color-border)] text-center">
-          <div className="text-2xl font-bold text-primary-500">{timeLeft}</div>
+        <div className="fc-surface p-3 text-center">
+          <div className="text-2xl font-bold text-[var(--brand)]">{timeLeft}</div>
           <div className="text-xs text-[var(--color-text-muted)]">
             {t({ ko: '초', en: 'sec', ja: '秒' })}
           </div>
         </div>
-        <div className="p-3 bg-[var(--color-card)] rounded-xl border border-[var(--color-border)] text-center">
+        <div className="fc-surface p-3 text-center">
           <div className="text-2xl font-bold text-green-500">{score}</div>
           <div className="text-xs text-[var(--color-text-muted)]">
             {t({ ko: '점수', en: 'Score', ja: 'スコア' })}
           </div>
         </div>
-        <div className="p-3 bg-[var(--color-card)] rounded-xl border border-[var(--color-border)] text-center">
-          <div className="text-2xl font-bold text-orange-500">{streak}</div>
+        <div className="fc-surface p-3 text-center">
+          <div className="text-2xl font-bold text-[var(--accent)]">{streak}</div>
           <div className="text-xs text-[var(--color-text-muted)]">
             {t({ ko: '연속', en: 'Streak', ja: '連続' })}
           </div>
         </div>
-        <div className="p-3 bg-[var(--color-card)] rounded-xl border border-[var(--color-border)] text-center">
-          <div className="text-2xl font-bold text-yellow-500">{highScore}</div>
+        <div className="fc-surface p-3 text-center">
+          <div className="text-2xl font-bold text-[var(--accent)]">{highScore}</div>
           <div className="text-xs text-[var(--color-text-muted)]">
             {t({ ko: '최고', en: 'Best', ja: '最高' })}
           </div>
@@ -184,12 +184,14 @@ export default function MathQuiz() {
         <div className="flex gap-2 mb-6">
           {(['easy', 'medium', 'hard'] as const).map((diff) => (
             <button
+              type="button"
               key={diff}
               onClick={() => setDifficulty(diff)}
-              className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+              aria-pressed={difficulty === diff}
+              className={`fc-button text-sm ${
                 difficulty === diff
-                  ? 'bg-primary-500 text-white'
-                  : 'bg-[var(--color-card)] border border-[var(--color-border)]'
+                  ? 'fc-button-primary'
+                  : 'fc-button-secondary'
               }`}
             >
               {diff === 'easy' && t({ ko: '쉬움', en: 'Easy', ja: '簡単' })}
@@ -222,6 +224,14 @@ export default function MathQuiz() {
         )}
       </div>
 
+      {feedback && (
+        <div className="sr-only" role="status" aria-live="assertive">
+          {feedback === 'correct'
+            ? t({ ko: '정답!', en: 'Correct!', ja: '正解！' })
+            : t({ ko: '오답!', en: 'Incorrect!', ja: '不正解！' })}
+        </div>
+      )}
+
       {/* Input */}
       {isPlaying && (
         <form onSubmit={handleSubmit} className="w-full mb-6">
@@ -231,14 +241,15 @@ export default function MathQuiz() {
               type="number"
               value={userAnswer}
               onChange={(e) => setUserAnswer(e.target.value)}
-              className="flex-1 px-4 py-4 text-2xl font-bold text-center bg-[var(--color-card)] border-2 border-[var(--color-border)] rounded-xl focus:border-primary-500 focus:outline-none"
+              aria-label={t({ ko: '정답', en: 'Answer', ja: '答え' })}
+              className="fc-input flex-1 py-4 text-center text-2xl font-bold"
               placeholder="?"
               autoComplete="off"
             />
             <button
               type="submit"
               disabled={!userAnswer}
-              className="px-6 py-4 bg-primary-500 text-white font-bold rounded-xl hover:bg-primary-600 disabled:opacity-50"
+              className="fc-button fc-button-primary px-6 py-4"
             >
               {t({ ko: '확인', en: 'Check', ja: '確認' })}
             </button>
@@ -246,7 +257,7 @@ export default function MathQuiz() {
           <button
             type="button"
             onClick={skipQuestion}
-            className="mt-3 w-full py-2 text-sm text-[var(--color-text-muted)] hover:text-[var(--color-text)]"
+            className="fc-button fc-button-quiet mt-3 w-full text-sm"
           >
             {t({ ko: '건너뛰기', en: 'Skip', ja: 'スキップ' })}
           </button>
@@ -257,13 +268,13 @@ export default function MathQuiz() {
       {!isPlaying && (
         <>
           {timeLeft === 0 && (
-            <div className="mb-6 p-6 bg-gradient-to-r from-primary-500/20 to-purple-500/20 rounded-xl border border-primary-500 text-center w-full">
+            <div className="fc-surface fc-surface-soft mb-6 w-full p-6 text-center" role="status">
               <div className="text-2xl font-bold mb-4">
                 {t({ ko: '게임 종료!', en: 'Game Over!', ja: 'ゲーム終了!' })}
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <div className="text-3xl font-bold text-primary-500">{score}</div>
+                  <div className="text-3xl font-bold text-[var(--brand)]">{score}</div>
                   <div className="text-sm text-[var(--color-text-muted)]">
                     {t({ ko: '점수', en: 'Score', ja: 'スコア' })}
                   </div>
@@ -278,8 +289,9 @@ export default function MathQuiz() {
             </div>
           )}
           <button
+            type="button"
             onClick={startGame}
-            className="px-8 py-4 bg-primary-500 text-white text-xl font-bold rounded-full hover:bg-primary-600 transition-colors"
+            className="fc-button fc-button-primary px-8 text-xl"
           >
             {t({ ko: '시작', en: 'Start', ja: 'スタート' })}
           </button>

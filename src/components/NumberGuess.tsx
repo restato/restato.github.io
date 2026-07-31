@@ -119,17 +119,19 @@ export default function NumberGuess() {
   };
 
   return (
-    <div className="max-w-md mx-auto">
+    <div className="fc-game mx-auto max-w-md">
       {/* 난이도 선택 */}
       <div className="flex justify-center gap-2 mb-6">
         {(['easy', 'normal', 'hard'] as const).map((diff) => (
           <button
             key={diff}
+            type="button"
             onClick={() => newGame(diff)}
-            className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+            aria-pressed={difficulty === diff}
+            className={`fc-button text-sm ${
               difficulty === diff
-                ? 'bg-primary-500 text-white'
-                : 'bg-[var(--color-card)] border border-[var(--color-border)] hover:bg-[var(--color-card-hover)]'
+                ? 'fc-button-primary'
+                : 'fc-button-secondary'
             }`}
           >
             {getDifficultySettings(diff).label}
@@ -138,14 +140,14 @@ export default function NumberGuess() {
       </div>
 
       {/* 게임 상태 */}
-      <div className="bg-[var(--color-card)] rounded-xl p-6 border border-[var(--color-border)] mb-6">
+      <div className="fc-surface mb-6 p-6">
         <div className="text-center mb-6">
           <div className="text-6xl mb-4">🔢</div>
           <h2 className="text-xl font-bold mb-2">
             1부터 {settings.max}까지의 숫자를 맞춰보세요!
           </h2>
           <p className="text-[var(--color-text-muted)]">
-            남은 기회: <span className="font-bold text-primary-500">{game.maxAttempts - game.attempts}</span>회
+            남은 기회: <span className="font-bold text-[var(--brand)]">{game.maxAttempts - game.attempts}</span>회
           </p>
         </div>
 
@@ -156,16 +158,18 @@ export default function NumberGuess() {
               type="number"
               value={input}
               onChange={(e) => setInput(e.target.value)}
-              onKeyPress={(e) => e.key === 'Enter' && makeGuess()}
+              onKeyDown={(e) => e.key === 'Enter' && makeGuess()}
               min={1}
               max={settings.max}
               placeholder={`1-${settings.max}`}
-              className="flex-1 px-4 py-3 rounded-lg border border-[var(--color-border)] bg-[var(--color-bg)] focus:outline-none focus:ring-2 focus:ring-primary-500 text-center text-xl font-bold"
+              aria-label="추측할 숫자"
+              className="fc-input flex-1 text-center text-xl font-bold"
             />
             <button
+              type="button"
               onClick={makeGuess}
               disabled={!input}
-              className="px-6 py-3 bg-primary-500 text-white rounded-lg font-bold hover:bg-primary-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              className="fc-button fc-button-primary"
             >
               확인
             </button>
@@ -175,6 +179,7 @@ export default function NumberGuess() {
         {/* 게임 오버 */}
         {game.gameOver && (
           <div
+            role="status"
             className={`text-center p-6 rounded-xl ${
               game.won
                 ? 'bg-green-500/20 border border-green-500'
@@ -191,8 +196,9 @@ export default function NumberGuess() {
                 : `정답은 ${game.target}이었어요`}
             </p>
             <button
+              type="button"
               onClick={() => newGame()}
-              className="px-6 py-3 bg-primary-500 text-white rounded-lg font-bold hover:bg-primary-600"
+              className="fc-button fc-button-primary"
             >
               다시 하기
             </button>
@@ -202,7 +208,7 @@ export default function NumberGuess() {
 
       {/* 추측 기록 */}
       {game.guesses.length > 0 && (
-        <div className="bg-[var(--color-card)] rounded-xl p-4 border border-[var(--color-border)] mb-6">
+        <div className="fc-surface mb-6 p-4">
           <h3 className="font-bold mb-4">추측 기록</h3>
           <div className="flex flex-wrap gap-2">
             {game.guesses.map((guess, index) => (
@@ -219,11 +225,11 @@ export default function NumberGuess() {
       )}
 
       {/* 통계 */}
-      <div className="bg-[var(--color-card)] rounded-xl p-4 border border-[var(--color-border)]">
+      <div className="fc-surface p-4">
         <h3 className="font-bold mb-4 text-center">📊 통계</h3>
         <div className="grid grid-cols-3 gap-4 text-center">
           <div>
-            <div className="text-2xl font-bold text-primary-500">{stats.played}</div>
+            <div className="text-2xl font-bold text-[var(--brand)]">{stats.played}</div>
             <div className="text-sm text-[var(--color-text-muted)]">플레이</div>
           </div>
           <div>
@@ -233,7 +239,7 @@ export default function NumberGuess() {
             <div className="text-sm text-[var(--color-text-muted)]">승률</div>
           </div>
           <div>
-            <div className="text-2xl font-bold text-yellow-500">
+            <div className="text-2xl font-bold text-[var(--accent)]">
               {stats.won > 0 ? stats.avgAttempts.toFixed(1) : '-'}
             </div>
             <div className="text-sm text-[var(--color-text-muted)]">평균 시도</div>

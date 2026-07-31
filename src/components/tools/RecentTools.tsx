@@ -1,4 +1,8 @@
 import { useState, useEffect } from 'react';
+import { getPublishedTools } from '../../data/tools';
+import type { Language } from '../../data/tools/types';
+import { getLocalizedToolHref } from './toolLinks';
+import { catalogUi } from '../../i18n/tool-ui';
 
 interface Tool {
   slug: string;
@@ -9,6 +13,7 @@ interface Tool {
 
 const STORAGE_KEY = 'restato_recent_tools';
 const MAX_RECENT = 5;
+const publishedToolsBySlug = new Map(getPublishedTools().map(tool => [tool.slug, tool]));
 
 export function trackToolVisit(slug: string, title: string, icon: string) {
   if (typeof window === 'undefined') return;
@@ -45,41 +50,61 @@ export function getRecentTools(): Tool[] {
 
 interface RecentToolsProps {
   className?: string;
+  lang?: Language;
 }
 
-export default function RecentTools({ className = '' }: RecentToolsProps) {
+export default function RecentTools({ className = '', lang = 'en' }: RecentToolsProps) {
   const [tools, setTools] = useState<Tool[]>([]);
 
   useEffect(() => {
     setTools(getRecentTools());
   }, []);
 
-  if (tools.length === 0) return null;
+  const toolsWithDescriptions = tools.flatMap(tool => {
+    const definition = publishedToolsBySlug.get(tool.slug);
+    if (!definition) return [];
+    const content = definition?.content[lang] ?? definition?.content.en ?? definition?.content.ko;
+    return { ...tool, description: content?.description };
+  });
+
+  if (toolsWithDescriptions.length === 0) return null;
+  const heading = catalogUi[lang].recent;
 
   return (
-    <div className={`${className}`}>
-      <h3 className="text-sm font-medium text-[var(--color-text-muted)] mb-3 flex items-center gap-2">
+    <section className={className} aria-labelledby="recent-tools-heading">
+      <h2 id="recent-tools-heading" className="mb-3 flex items-center gap-2 text-sm font-bold text-[var(--text-muted)]">
         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
             d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
           />
         </svg>
-        최근 사용
-      </h3>
-      <div className="flex flex-wrap gap-2">
-        {tools.map((tool) => (
-          <a
-            key={tool.slug}
-            href={`/tools/${tool.slug}`}
-            className="flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm
-              bg-[var(--color-card)] border border-[var(--color-border)]
-              hover:border-primary-500 hover:text-primary-500 transition-colors"
-          >
-            <span>{tool.icon}</span>
-            <span>{tool.title}</span>
-          </a>
-        ))}
+        {heading}
+      </h2>
+      <div className="fc-surface overflow-hidden">
+        <ul className="m-0 grid list-none p-0 sm:grid-cols-2 lg:grid-cols-3">
+          {toolsWithDescriptions.map((tool) => (
+            <li key={tool.slug} className="border-b border-[var(--border-subtle)] sm:border-r">
+              <a
+                href={getLocalizedToolHref(tool.slug, lang)}
+                className="group flex min-h-20 items-center gap-3 px-4 py-3 text-sm transition-colors hover:bg-[var(--surface-soft)]"
+              >
+                <span className="w-8 shrink-0 text-center" aria-hidden="true">{tool.icon}</span>
+                <span className="min-w-0 flex-1">
+                  <strong className="block truncate text-[var(--text-primary)] group-hover:text-[var(--brand)]">
+                    {tool.title}
+                  </strong>
+                  {tool.description && (
+                    <span className="mt-0.5 block truncate text-sm text-[var(--text-primary)]">
+                      {tool.description}
+                    </span>
+                  )}
+                </span>
+                <span className="text-[var(--text-muted)]" aria-hidden="true">→</span>
+              </a>
+            </li>
+          ))}
+        </ul>
       </div>
-    </div>
+    </section>
   );
 }

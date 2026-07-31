@@ -1,49 +1,148 @@
 ---
 import MainLayout from '../../layouts/MainLayout.astro';
-import Chat from '../../components/Chat.tsx';
-import { anonymousChatSeo, type Language } from '../../data/tools';
-
-const languages: Language[] = ['ko', 'en', 'ja'];
+import LocalizedChatIsland from '../../components/LocalizedChatIsland';
+import RelatedTools from '../../components/tools/RelatedTools.astro';
+import ShareButton from '../../components/tools/ShareButton';
+import FavoriteButton from '../../components/tools/FavoriteButton';
+import BookmarkPrompt from '../../components/tools/BookmarkPrompt';
+import AdSlot from '../../components/ads/AdSlot.astro';
+import { getTool } from '../../data/tools';
+import { getLocalizedToolPageMetadata } from '../../data/tools/pageMetadata';
+import { supportedLanguages } from '../../data/tools/locales';
+import type { Language } from '../../data/tools/types';
+import { getToolFallbackNotice } from '../../i18n/landing';
+import { interactiveFallbackNotice as interactiveNotices, sharedToolUi } from '../../i18n/tool-ui';
 
 export function getStaticPaths() {
-  return [
-    { params: { lang: 'ko' } },
-    { params: { lang: 'en' } },
-    { params: { lang: 'ja' } }
-  ];
+  return supportedLanguages.map(lang => ({ params: { lang } }));
 }
 
 const { lang } = Astro.params as { lang: Language };
-const seo = anonymousChatSeo[lang];
-
-// Generate alternate URLs for hreflang
-const alternateUrls = languages.map(l => ({
-  lang: l,
-  url: `https://restato.github.io/${l}/anonymous-chat`
-}));
+const tool = getTool('anonymous-chat');
+if (!tool) {
+  throw new Error('Anonymous chat is missing from the tool registry');
+}
+const { content: seo, robots, alternateUrls } = getLocalizedToolPageMetadata(tool, lang);
+const privacy = seo.privacy;
+const fallbackNotice = getToolFallbackNotice(tool, lang);
+const helpUi = sharedToolUi[lang];
+const interactiveFallbackNotice = !['ko', 'en', 'ja'].includes(lang) ? interactiveNotices[lang] : null;
 
 const pageTitle = `${seo.title} | Restato`;
+const canonicalUrl = `https://restato.github.io/${lang}/anonymous-chat/`;
+const appSchema = {
+  "@context": "https://schema.org",
+  "@type": "WebApplication",
+  "name": seo.name,
+  "description": seo.description,
+  "url": canonicalUrl,
+  "applicationCategory": "CommunicationApplication",
+  "operatingSystem": "All",
+  "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" },
+  "author": { "@type": "Person", "name": "Restato" },
+  "inLanguage": lang,
+};
+const breadcrumbSchema = {
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    { "@type": "ListItem", "position": 1, "name": helpUi.home, "item": `https://restato.github.io/${lang}/` },
+    { "@type": "ListItem", "position": 2, "name": helpUi.tools, "item": `https://restato.github.io/${lang}/tools` },
+    { "@type": "ListItem", "position": 3, "name": seo.name, "item": canonicalUrl },
+  ],
+};
+const faqSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'FAQPage',
+  mainEntity: seo.faq.map(item => ({
+    '@type': 'Question',
+    name: item.question,
+    acceptedAnswer: { '@type': 'Answer', text: item.answer },
+  })),
+};
 ---
 
 <MainLayout
   title={pageTitle}
   description={seo.description}
   lang={lang}
+  robots={robots}
+  canonical={canonicalUrl}
   alternateUrls={alternateUrls}
 >
-  <div class="chat-container px-4 py-2">
-    <Chat client:load />
+  <script type="application/ld+json" set:html={JSON.stringify(appSchema)} />
+  <script type="application/ld+json" set:html={JSON.stringify(breadcrumbSchema)} />
+  <script type="application/ld+json" set:html={JSON.stringify(faqSchema)} />
+  <div class="fc-page fc-tool-shell">
+    {fallbackNotice && <p class="fc-surface-soft fc-surface-padding-sm">{fallbackNotice}</p>}
+    {interactiveFallbackNotice && <p class="fc-surface-soft fc-surface-padding-sm">{interactiveFallbackNotice}</p>}
+    <nav class="fc-tool-breadcrumb" aria-label={helpUi.tools}>
+      <ol>
+        <li><a href={`/${lang}/`}>{helpUi.home}</a></li>
+        <li aria-hidden="true">/</li>
+        <li><a href={`/${lang}/tools`}>{helpUi.tools}</a></li>
+        <li aria-hidden="true">/</li>
+        <li aria-current="page">{seo.name}</li>
+      </ol>
+    </nav>
+    <header class="fc-tool-header">
+      <div class="fc-tool-heading">
+        <p class="fc-eyebrow">{helpUi.tools}</p>
+        <h1><span aria-hidden="true">{tool.icon}</span> {seo.name}</h1>
+        <p>{seo.description}</p>
+      </div>
+      <div class="fc-tool-header-actions">
+        <FavoriteButton client:load lang={lang} slug={tool.slug} title={seo.name} icon={tool.icon} />
+        <ShareButton client:load lang={lang} title={pageTitle} description={seo.description} />
+      </div>
+    </header>
+    <section class="fc-tool-workspace fc-surface fc-surface-padding-md" aria-label={seo.name}>
+      <p class="fc-tool-privacy"><span aria-hidden="true">🔒</span>{privacy}</p>
+      <div class="chat-container">
+        <LocalizedChatIsland client:load lang={lang} />
+      </div>
+    </section>
+    <section class="fc-tool-instructions fc-prose">
+      <div>
+        <h2>{helpUi.usageGuide}</h2>
+        <p>{seo.overview}</p>
+        <ol>{seo.steps.map(step => <li>{step}</li>)}</ol>
+      </div>
+      <div><h2>{helpUi.output}</h2><ul>{seo.examples.map(example => <li>{example}</li>)}</ul></div>
+      <div><h2>{helpUi.limitations}</h2><ul>{seo.limitations.map(limitation => <li>{limitation}</li>)}</ul></div>
+      <div><h2>{helpUi.privacy}</h2><p>{privacy}</p></div>
+      <div><h2>{helpUi.faq}</h2><div class="fc-tool-faq">{seo.faq.map(item => <details><summary>{item.question}</summary><p>{item.answer}</p></details>)}</div></div>
+    </section>
+    <AdSlot placement="tool-after-help" class="mt-8" />
+    <RelatedTools currentSlug={tool.slug} currentCategory={tool.category} lang={lang} />
   </div>
+  <BookmarkPrompt client:idle />
+  <script define:vars={{ slug: tool.slug, title: seo.name, icon: tool.icon }}>
+    const STORAGE_KEY = 'restato_recent_tools';
+    const MAX_RECENT = 5;
+
+    try {
+      const stored = localStorage.getItem(STORAGE_KEY);
+      let tools = stored ? JSON.parse(stored) : [];
+      tools = tools.filter(t => t.slug !== slug);
+      tools.unshift({ slug, title, icon, visitedAt: Date.now() });
+      tools = tools.slice(0, MAX_RECENT);
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(tools));
+    } catch (err) {
+      console.error('Failed to track tool visit:', err);
+    }
+  </script>
 </MainLayout>
 
 <style>
   .chat-container {
-    height: calc(100vh - 140px);
+    min-height: 32rem;
+    height: calc(100vh - 180px);
   }
 
   @media (max-width: 768px) {
     .chat-container {
-      height: calc(100vh - 120px);
+      height: calc(100vh - 220px);
     }
   }
 </style>

@@ -1,0 +1,49 @@
+---
+import MainLayout from '../layouts/MainLayout.astro';
+import PageShell from './ui/PageShell.astro';
+import { siteContent, type SitePageKey } from '../data/site-content';
+import type { Language } from '../data/tools/types';
+import { getAlternateUrls } from '../i18n/urlUtils';
+
+interface Props {
+  lang: Language;
+  page: SitePageKey;
+}
+
+const { lang, page } = Astro.props;
+const content = siteContent[page][lang];
+const siteUrl = 'https://restato.github.io';
+const path = `/${lang}/${page}/`;
+const alternateUrls = getAlternateUrls(path, siteUrl);
+---
+
+<MainLayout
+  title={`${content.title} | Restato`}
+  description={content.description}
+  robots="index, follow"
+  canonical={`${siteUrl}${path}`}
+  lang={lang}
+  alternateUrls={alternateUrls}
+>
+  <PageShell size="reading">
+    <article class="fc-prose">
+      <header class="fc-page-header">
+        <p class="fc-eyebrow">Restato</p>
+        <h1>{content.title}</h1>
+        <p class="fc-page-description">{content.description}</p>
+        <p class="fc-chip w-fit text-[var(--accent)]">{content.effectiveDate}</p>
+      </header>
+
+      <div class="space-y-10">
+        {content.sections.map(section => (
+          <section>
+            <h2>{section.heading}</h2>
+            {section.paragraphs.map(paragraph => (
+              <p>{paragraph}</p>
+            ))}
+          </section>
+        ))}
+      </div>
+    </article>
+  </PageShell>
+</MainLayout>

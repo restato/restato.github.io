@@ -1,5 +1,6 @@
 ---
 import MainLayout from '../../layouts/MainLayout.astro';
+import PageShell from '../../components/ui/PageShell.astro';
 
 const pageTitle = 'PasteDock | macOS Menu Bar Clipboard Manager';
 const pageDescription = 'PasteDock is a clipboard manager for macOS 14+ that lets you quickly search and restore recent clipboard history from the menu bar.';
@@ -72,43 +73,46 @@ const breadcrumbSchema = {
 };
 ---
 
-<MainLayout title={pageTitle} description={pageDescription}>
+<MainLayout title={pageTitle} description={pageDescription} lang="en" lockLanguage={true}>
   <script type="application/ld+json" set:html={JSON.stringify(appSchema)} />
   <script type="application/ld+json" set:html={JSON.stringify(breadcrumbSchema)} />
 
-  <section class="py-16 px-4 bg-gradient-to-b from-emerald-500/10 to-transparent">
-    <div class="max-w-5xl mx-auto">
-      <div class="mb-6 text-sm text-[var(--color-text-muted)] flex items-center gap-2">
-        <a href="/" class="hover:text-[var(--color-text)]">Home</a>
-        <span>/</span>
-        <a href="/projects" class="hover:text-[var(--color-text)]">Projects</a>
-        <span>/</span>
-        <span class="text-[var(--color-text)]">PasteDock</span>
-      </div>
+  <PageShell size="content">
+    <nav class="fc-tool-breadcrumb" aria-label="Breadcrumb">
+      <ol>
+        <li><a href="/">Home</a></li>
+        <li aria-hidden="true">/</li>
+        <li><a href="/projects">Projects</a></li>
+        <li aria-hidden="true">/</li>
+        <li aria-current="page">PasteDock</li>
+      </ol>
+    </nav>
 
-      <div class="max-w-3xl">
-        <span class="inline-flex items-center px-3 py-1 text-sm font-medium rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 mb-4">
+    <section class="max-w-3xl">
+      <header class="fc-page-header">
+        <span class="fc-chip w-fit text-[var(--brand)]">
           macOS Utility
         </span>
-        <h1 class="flex items-center gap-3 text-4xl md:text-5xl font-bold mb-4">
+        <h1 class="flex items-center gap-3">
           <img
             src="/images/projects/pastedock/hero.png"
             alt="PasteDock icon"
-            class="w-12 h-12 rounded-xl object-cover border border-[var(--color-border)]"
+            class="h-12 w-12 rounded-xl border border-[var(--border-subtle)] object-cover"
             loading="eager"
           />
           <span>PasteDock</span>
         </h1>
-        <p class="text-xl text-[var(--color-text-muted)] mb-8">
+        <p class="fc-page-description text-xl">
           A menu bar clipboard manager that helps you search and restore copied content in seconds.
         </p>
+      </header>
 
-        <div class="flex flex-wrap gap-4 mb-4">
+        <div class="mb-4 flex flex-wrap gap-4">
           <a
             href={dmgUrl}
             target="_blank"
             rel="noopener noreferrer"
-            class="inline-flex items-center px-6 py-3 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-medium transition-colors"
+            class="fc-button fc-button-primary"
           >
             Download DMG
             <svg class="w-5 h-5 ml-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -119,7 +123,7 @@ const breadcrumbSchema = {
             href={checksumUrl}
             target="_blank"
             rel="noopener noreferrer"
-            class="inline-flex items-center px-6 py-3 rounded-xl border border-[var(--color-border)] hover:bg-[var(--color-card-hover)] font-medium transition-colors"
+            class="fc-button fc-button-secondary"
           >
             Download SHA256
             <svg class="w-5 h-5 ml-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -128,93 +132,85 @@ const breadcrumbSchema = {
           </a>
           <a
             href={pricingUrl}
-            class="inline-flex items-center px-6 py-3 rounded-xl border border-emerald-500/40 text-emerald-700 dark:text-emerald-300 hover:bg-emerald-500/10 font-medium transition-colors"
+            class="fc-button fc-button-secondary text-[var(--brand)]"
           >
             View Pricing
           </a>
         </div>
 
-        <p class="text-sm text-[var(--color-text-muted)] mb-8">
+        <p class="mb-8 text-sm text-[var(--text-muted)]">
           Policies:
-          <a href={termsUrl} class="underline hover:text-[var(--color-text)] ml-1">Terms</a>
+          <a href={termsUrl} class="ml-1 text-[var(--brand)] underline">Terms</a>
           <span class="mx-1">·</span>
-          <a href={privacyUrl} class="underline hover:text-[var(--color-text)]">Privacy</a>
+          <a href={privacyUrl} class="text-[var(--brand)] underline">Privacy</a>
           <span class="mx-1">·</span>
-          <a href={refundUrl} class="underline hover:text-[var(--color-text)]">Refund</a>
+          <a href={refundUrl} class="text-[var(--brand)] underline">Refund</a>
           <span class="mx-2">·</span>
           Support:
-          <a href={`mailto:${supportEmail}`} class="underline hover:text-[var(--color-text)] ml-1">{supportEmail}</a>
+          <a href={`mailto:${supportEmail}`} class="ml-1 text-[var(--brand)] underline">{supportEmail}</a>
           <span class="mx-2">·</span>
-          <a href={pricingUrl} class="underline hover:text-[var(--color-text)]">{priceDisplay}</a>
+          <a href={pricingUrl} class="text-[var(--brand)] underline">{priceDisplay}</a>
         </p>
 
         <div class="grid sm:grid-cols-3 gap-3">
-          <div class="p-4 rounded-xl border border-[var(--color-border)] bg-[var(--color-card)]">
-            <p class="text-xs uppercase tracking-wide text-[var(--color-text-muted)] mb-1">Platform</p>
+          <div class="fc-surface p-4">
+            <p class="mb-1 text-xs uppercase tracking-wide text-[var(--text-muted)]">Platform</p>
             <p class="font-semibold">macOS 14+</p>
           </div>
-          <div class="p-4 rounded-xl border border-[var(--color-border)] bg-[var(--color-card)]">
-            <p class="text-xs uppercase tracking-wide text-[var(--color-text-muted)] mb-1">Release Channel</p>
+          <div class="fc-surface p-4">
+            <p class="mb-1 text-xs uppercase tracking-wide text-[var(--text-muted)]">Release Channel</p>
             <p class="font-semibold">GitHub Releases</p>
           </div>
-          <div class="p-4 rounded-xl border border-[var(--color-border)] bg-[var(--color-card)]">
-            <p class="text-xs uppercase tracking-wide text-[var(--color-text-muted)] mb-1">Source</p>
+          <div class="fc-surface p-4">
+            <p class="mb-1 text-xs uppercase tracking-wide text-[var(--text-muted)]">Source</p>
             <p class="font-semibold">Open Repository</p>
           </div>
-        </div>
-
       </div>
-    </div>
-  </section>
+    </section>
 
-  <section class="py-16 px-4">
-    <div class="max-w-5xl mx-auto">
+  <section class="py-16">
       <h2 class="text-3xl font-bold mb-8">App Screenshot</h2>
-      <div class="p-4 md:p-6 rounded-2xl border border-[var(--color-border)] bg-[var(--color-card)]">
+      <div class="fc-surface p-4 md:p-6">
         <img
           src={screenshotUrl}
           alt="PasteDock clipboard history screenshot"
-          class="w-full rounded-xl border border-[var(--color-border)]"
+          class="w-full rounded-xl border border-[var(--border-subtle)]"
           loading="lazy"
         />
       </div>
-    </div>
   </section>
 
-  <section class="py-16 px-4">
-    <div class="max-w-5xl mx-auto">
+  <section class="py-16">
       <h2 class="text-3xl font-bold mb-8">Core Features</h2>
       <div class="grid md:grid-cols-2 gap-6">
         {features.map((feature) => (
-          <div class="p-6 rounded-2xl border border-[var(--color-border)] bg-[var(--color-card)]">
+          <div class="fc-surface p-6">
             <h3 class="text-xl font-semibold mb-2">{feature.title}</h3>
-            <p class="text-[var(--color-text-muted)]">{feature.description}</p>
+            <p class="text-[var(--text-muted)]">{feature.description}</p>
           </div>
         ))}
       </div>
-    </div>
   </section>
 
-  <section class="py-16 px-4 border-t border-[var(--color-border)]">
-    <div class="max-w-5xl mx-auto">
+  <section class="border-t border-[var(--border-subtle)] py-16">
       <h2 class="text-3xl font-bold mb-8">Installation</h2>
       <ol class="grid md:grid-cols-3 gap-4">
-        <li class="p-6 rounded-2xl border border-[var(--color-border)] bg-[var(--color-card)]">
-          <p class="text-sm text-[var(--color-text-muted)] mb-2">STEP 1</p>
+        <li class="fc-surface p-6">
+          <p class="mb-2 text-sm text-[var(--accent)]">STEP 1</p>
           <p class="font-semibold mb-1">Open the release page</p>
-          <p class="text-sm text-[var(--color-text-muted)]">Download the latest DMG from GitHub Releases.</p>
+          <p class="text-sm text-[var(--text-muted)]">Download the latest DMG from GitHub Releases.</p>
         </li>
-        <li class="p-6 rounded-2xl border border-[var(--color-border)] bg-[var(--color-card)]">
-          <p class="text-sm text-[var(--color-text-muted)] mb-2">STEP 2</p>
+        <li class="fc-surface p-6">
+          <p class="mb-2 text-sm text-[var(--accent)]">STEP 2</p>
           <p class="font-semibold mb-1">Move to Applications</p>
-          <p class="text-sm text-[var(--color-text-muted)]">Drag `PasteDock.app` into the `Applications` folder.</p>
+          <p class="text-sm text-[var(--text-muted)]">Drag `PasteDock.app` into the `Applications` folder.</p>
         </li>
-        <li class="p-6 rounded-2xl border border-[var(--color-border)] bg-[var(--color-card)]">
-          <p class="text-sm text-[var(--color-text-muted)] mb-2">STEP 3</p>
+        <li class="fc-surface p-6">
+          <p class="mb-2 text-sm text-[var(--accent)]">STEP 3</p>
           <p class="font-semibold mb-1">Launch and grant permissions</p>
-          <p class="text-sm text-[var(--color-text-muted)]">Allow accessibility permissions to enable auto-paste features.</p>
+          <p class="text-sm text-[var(--text-muted)]">Allow accessibility permissions to enable auto-paste features.</p>
         </li>
       </ol>
-    </div>
   </section>
+  </PageShell>
 </MainLayout>
