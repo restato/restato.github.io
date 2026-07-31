@@ -20,7 +20,7 @@ const {
   includeAllLink = false,
   allLabel,
 } = Astro.props;
-const overflowId = `blog-tag-overflow-${currentSlug ?? 'all'}`;
+const overflowId = `blog-tag-overflow-${crypto.randomUUID()}`;
 ---
 
 <nav class="blog-tag-nav mb-10 border-b border-[var(--border-subtle)] pb-6" aria-label={label} data-blog-tag-nav>
@@ -83,8 +83,7 @@ const overflowId = `blog-tag-overflow-${currentSlug ?? 'all'}`;
 <script>
   document.querySelectorAll<HTMLElement>('[data-blog-tag-nav]').forEach(nav => {
     const button = nav.querySelector<HTMLButtonElement>('.blog-tag-toggle');
-    const overflowId = button?.getAttribute('aria-controls');
-    const overflow = overflowId ? document.getElementById(overflowId) : null;
+    const overflow = nav.querySelector<HTMLElement>('[data-blog-tag-overflow]');
 
     if (!button || !overflow) return;
 

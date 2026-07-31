@@ -15,4 +15,9 @@ describe('BlogTagNav disclosure contract', () => {
     expect(source).toContain('{entry.count}');
     expect(source).toContain('entries.length > 10');
   });
+
+  it('gives each disclosure instance a unique controlled region', () => {
+    expect(source).toContain('crypto.randomUUID()');
+    expect(source).toContain("nav.querySelector<HTMLElement>('[data-blog-tag-overflow]')");
+  });
 });
