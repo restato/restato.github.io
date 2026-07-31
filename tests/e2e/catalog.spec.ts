@@ -8,20 +8,25 @@ import {
   assertNoUnexpectedConsoleErrors,
 } from './fixtures';
 import {
-  forestCafeRequiredFamilies,
-  forestCafeRoutes,
-} from './forest-cafe-routes';
+  modernRestatoRequiredFamilies,
+  modernRestatoRoutes,
+} from './modern-restato-routes';
 
 const languages = supportedLanguages;
 
-test('forest cafe route matrix covers every required family, Korean, English, and one RTL direction audit', () => {
-  expect(forestCafeRoutes).toHaveLength(18);
-  expect(new Set(forestCafeRoutes.map(({ family }) => family)))
-    .toEqual(new Set(forestCafeRequiredFamilies));
-  expect(new Set(forestCafeRoutes.map(({ locale }) => locale))).toEqual(new Set(['ko', 'en', 'hi']));
-  expect(forestCafeRoutes.filter(({ forceDirection }) => forceDirection === 'rtl')).toHaveLength(1);
-  expect(forestCafeRoutes.every(({ path }) => path.startsWith('/') && path.endsWith('/'))).toBe(true);
-  const projectPaths = forestCafeRoutes
+test('Modern Restato route matrix covers every required family, Korean, English, and one RTL direction audit', () => {
+  expect(modernRestatoRoutes).toHaveLength(19);
+  expect(new Set(modernRestatoRoutes.map(({ family }) => family)))
+    .toEqual(new Set(modernRestatoRequiredFamilies));
+  expect(new Set(modernRestatoRoutes.map(({ locale }) => locale))).toEqual(new Set(['ko', 'en', 'hi']));
+  expect(modernRestatoRoutes.filter(({ forceDirection }) => forceDirection === 'rtl')).toHaveLength(1);
+  expect(modernRestatoRoutes.every(({ path }) => path.startsWith('/') && path.endsWith('/'))).toBe(true);
+  expect(modernRestatoRoutes).toContainEqual(expect.objectContaining({
+    id: 'blog-index',
+    family: 'blog-index',
+    path: '/blog/',
+  }));
+  const projectPaths = modernRestatoRoutes
     .filter(({ family }) => family === 'project')
     .map(({ path }) => path);
   expect(projectPaths).toHaveLength(5);

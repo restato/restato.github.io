@@ -11,7 +11,7 @@ const primaryNavStart = header.indexOf('<nav');
 const primaryNavEnd = header.indexOf('</nav>', primaryNavStart);
 const mobileDisclosure = header.indexOf('id="mobile-menu"');
 
-describe('Forest Café site chrome', () => {
+describe('Modern Restato site chrome', () => {
   it('uses the reusable brand mark in the header and footer', () => {
     expect(header).toContain("import BrandMark from './BrandMark.astro'");
     expect(footer).toContain("import BrandMark from './BrandMark.astro'");

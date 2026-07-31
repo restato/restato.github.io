@@ -8,7 +8,7 @@ async function readProjectFile(relativePath: string) {
   return readFile(path.join(projectRoot, relativePath), 'utf8');
 }
 
-describe('Forest Café deterministic browser harness', () => {
+describe('Modern Restato deterministic browser harness', () => {
   it('runs both evidence projects in the baseline timezone', async () => {
     const config = await readProjectFile('playwright.config.ts');
 
@@ -16,14 +16,14 @@ describe('Forest Café deterministic browser harness', () => {
   });
 
   it('fixes client wall-clock time before navigation and seeds seven absolute dashboard days', async () => {
-    const visualSuite = await readProjectFile('tests/e2e/forest-cafe-visual.spec.ts');
-    const fixedTimeCall = visualSuite.indexOf('await page.clock.setFixedTime(forestCafeFixedTime);');
+    const visualSuite = await readProjectFile('tests/e2e/modern-restato-visual.spec.ts');
+    const fixedTimeCall = visualSuite.indexOf('await page.clock.setFixedTime(modernRestatoFixedTime);');
     const navigationCall = visualSuite.indexOf('page.goto(route.path');
     const seedTimestamps = [...visualSuite.matchAll(/timestamp:\s*'([^']+)'/g)]
       .map((match) => match[1]);
 
     expect(visualSuite).toContain(
-      "const forestCafeFixedTime = '2026-07-20T12:00:00.000+09:00';",
+      "const modernRestatoFixedTime = '2026-07-20T12:00:00.000+09:00';",
     );
     expect(fixedTimeCall).toBeGreaterThan(-1);
     expect(fixedTimeCall).toBeLessThan(navigationCall);
@@ -48,7 +48,7 @@ describe('Forest Café deterministic browser harness', () => {
   it('keeps the server-rendered year live and masks only its marked leaf', async () => {
     const [footer, routeMatrix] = await Promise.all([
       readProjectFile('src/components/Footer.astro'),
-      readProjectFile('tests/e2e/forest-cafe-routes.ts'),
+      readProjectFile('tests/e2e/modern-restato-routes.ts'),
     ]);
 
     expect(footer).toContain('const currentYear = new Date().getFullYear();');

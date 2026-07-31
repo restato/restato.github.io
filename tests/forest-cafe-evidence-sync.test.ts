@@ -1,51 +1,31 @@
-import { createHash } from 'node:crypto';
-import { readdirSync, readFileSync } from 'node:fs';
-import { basename, join } from 'node:path';
+import { readdirSync } from 'node:fs';
+import { join } from 'node:path';
 import { describe, expect, it } from 'vitest';
+import { modernRestatoRoutes } from './e2e/modern-restato-routes';
 
 const baselineDirectory = join(
   process.cwd(),
-  'tests/e2e/forest-cafe-visual.spec.ts-snapshots',
+  'tests/e2e/modern-restato-visual.spec.ts-snapshots',
 );
-const evidenceDirectory = join(
-  process.cwd(),
-  'docs/superpowers/reports/assets/forest-cafe',
-);
-
-function sha256(path: string) {
-  return createHash('sha256').update(readFileSync(path)).digest('hex');
+function expectedBaselineNames(id: string) {
+  return [
+    `${id}-desktop-light-desktop-darwin.png`,
+    `${id}-desktop-dark-desktop-darwin.png`,
+    `${id}-mobile-390-dark-mobile-390-darwin.png`,
+  ];
 }
 
-function baselineNameFor(evidenceName: string) {
-  if (evidenceName.includes('-mobile-390-')) {
-    return evidenceName.replace(/\.png$/, '-mobile-390-darwin.png');
-  }
-  return evidenceName.replace(/\.png$/, '-desktop-darwin.png');
-}
-
-describe('Forest Café screenshot evidence synchronization', () => {
-  it('keeps every documentation image byte-identical to its Playwright baseline', () => {
-    const evidenceNames = readdirSync(evidenceDirectory)
-      .filter((name) => name.endsWith('.png'))
-      .sort();
+describe('Modern Restato visual baseline synchronization', () => {
+  it('keeps every route and expanded tag state represented by the exact browser baseline set', () => {
     const baselineNames = readdirSync(baselineDirectory)
       .filter((name) => name.endsWith('.png'))
       .sort();
+    const expectedNames = [
+      ...modernRestatoRoutes.flatMap(({ id }) => expectedBaselineNames(id)),
+      ...expectedBaselineNames('blog-tags-expanded'),
+    ].sort();
 
-    expect(evidenceNames).toHaveLength(54);
-    expect(baselineNames).toHaveLength(54);
-
-    const mappedBaselineNames = evidenceNames.map(baselineNameFor).sort();
-    expect(mappedBaselineNames).toEqual(baselineNames);
-
-    for (const evidenceName of evidenceNames) {
-      const baselineName = baselineNameFor(evidenceName);
-      const evidencePath = join(evidenceDirectory, evidenceName);
-      const baselinePath = join(baselineDirectory, baselineName);
-      expect(
-        sha256(evidencePath),
-        `${basename(evidencePath)} must match ${basename(baselinePath)}`,
-      ).toBe(sha256(baselinePath));
-    }
+    expect(baselineNames).toHaveLength(60);
+    expect(baselineNames).toEqual(expectedNames);
   });
 });

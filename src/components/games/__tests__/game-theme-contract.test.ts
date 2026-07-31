@@ -96,7 +96,7 @@ function collectElements(file: string): ElementRecord[] {
 const elements = gameFiles.flatMap(collectElements);
 const controls = elements.filter(element => ['button', 'input', 'textarea'].includes(element.tag));
 
-describe('Forest Café game structure contract', () => {
+describe('Modern Restato game structure contract', () => {
   it('styles every native control with the matching shared primitive', () => {
     const violations = controls.flatMap(element => {
       const classSource = attributeSource(element, 'className');
