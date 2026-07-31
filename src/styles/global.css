@@ -32,6 +32,7 @@
     --brand-soft: #9CC4AD;
     --accent: var(--brand);
     --focus: #2C7655;
+    --code-comment: #A7B0A8;
 
     /* Legacy aliases retained while component styles migrate to semantic tokens. */
     --color-bg: var(--surface-page);
@@ -703,7 +704,7 @@
   }
 
   /*
-   * Blog articles carry both the legacy typography class and Forest Café prose.
+   * Blog articles carry both the legacy typography class and editorial prose.
    * These combined selectors keep the editorial treatment ahead of equal-
    * specificity legacy declarations without resorting to !important.
    */
@@ -749,11 +750,11 @@
   }
 
   /*
-   * Shiki's github-dark comment token is injected inline at 3.04:1.
-   * Keep the override scoped to that generated token and code theme.
+   * Shiki's github-dark comment token is injected inline below AA contrast.
+   * Keep the semantic override scoped to that generated token and code theme.
    */
   .prose.fc-prose .astro-code.github-dark span[style*='color:#6A737D'] {
-    color: var(--text-muted) !important;
+    color: var(--code-comment) !important;
   }
 
   .prose.fc-prose blockquote {

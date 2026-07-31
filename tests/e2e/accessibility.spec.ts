@@ -104,6 +104,49 @@ for (const route of modernRestatoRoutes) {
   });
 }
 
+test('github-dark Shiki comments retain WCAG AA contrast in both site themes', async ({ page }) => {
+  const articleRoute = modernRestatoRoutes.find(({ family }) => family === 'blog-article');
+  expect(articleRoute).toBeDefined();
+
+  await page.goto(articleRoute!.path, { waitUntil: 'networkidle' });
+
+  const commentTokens = page.locator(
+    ".fc-prose pre.astro-code.github-dark span[style*='color:#6A737D']",
+  );
+  expect(await commentTokens.count()).toBeGreaterThan(0);
+
+  for (const theme of ['light', 'dark'] as const) {
+    await setTheme(page, theme);
+    const contrastRatios = await commentTokens.evaluateAll((tokens) => {
+      const relativeLuminance = (color: string) => {
+        const channels = color.match(/[\d.]+/g)?.slice(0, 3).map(Number) ?? [];
+        if (channels.length !== 3) return Number.NaN;
+        const [red, green, blue] = channels.map((channel) => {
+          const value = channel / 255;
+          return value <= 0.04045
+            ? value / 12.92
+            : ((value + 0.055) / 1.055) ** 2.4;
+        });
+        return (0.2126 * red) + (0.7152 * green) + (0.0722 * blue);
+      };
+
+      return tokens.map((token) => {
+        const foreground = relativeLuminance(getComputedStyle(token).color);
+        const codeBlock = token.closest('pre');
+        const background = relativeLuminance(getComputedStyle(codeBlock!).backgroundColor);
+        const lighter = Math.max(foreground, background);
+        const darker = Math.min(foreground, background);
+        return (lighter + 0.05) / (darker + 0.05);
+      });
+    });
+
+    expect(
+      Math.min(...contrastRatios),
+      `${theme} theme comment contrast ratios: ${contrastRatios.join(', ')}`,
+    ).toBeGreaterThanOrEqual(4.5);
+  }
+});
+
 test('keyboard navigation operates the responsive disclosure when no dialog is present', async ({ page }, testInfo) => {
   assertNoUnexpectedConsoleErrors(page);
   await page.goto('/ko/tools', { waitUntil: 'networkidle' });
