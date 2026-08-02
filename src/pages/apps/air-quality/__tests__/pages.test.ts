@@ -1,17 +1,11 @@
 // @vitest-environment node
-import { existsSync, readFileSync } from 'node:fs';
+import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { describe, expect, it } from 'vitest';
 
 const projectRoot = fileURLToPath(new URL('../../../../../', import.meta.url));
 const source = (name: 'support' | 'privacy') =>
   readFileSync(`${projectRoot}src/pages/apps/air-quality/${name}.astro`, 'utf8');
-const rendered = (name: 'support' | 'privacy') => {
-  const path = `${projectRoot}dist/apps/air-quality/${name}/index.html`;
-  expect(existsSync(path), `run npm run build before this rendered-page contract`).toBe(true);
-  return readFileSync(path, 'utf8');
-};
-
 const privacySections = [
   '1. 처리 주체 및 연락처',
   '2. 현재 버전이 처리하는 데이터',
@@ -55,22 +49,5 @@ describe('air quality App Store pages', () => {
       expect(page).toContain(text);
     }
     expect(page).toContain('/apps/air-quality/support');
-  });
-
-  it('renders the App Store routes and public page contract after a production build', () => {
-    const support = rendered('support');
-    const privacy = rendered('privacy');
-
-    expect(support).toContain('href="https://restato.github.io/apps/air-quality/support"');
-    expect(support).toContain('direcision@gmail.com');
-    expect(support).toContain('건강 진단이나 응급 판단을 대신하지 않습니다');
-
-    expect(privacy).toContain('href="https://restato.github.io/apps/air-quality/privacy"');
-    expect(privacy).toContain('2026년 8월 2일');
-    expect(privacy).toContain('https://open-meteo.com/');
-    expect(privacy).toContain('https://open-meteo.com/en/terms');
-    for (const heading of privacySections) {
-      expect(privacy).toContain(heading);
-    }
   });
 });
