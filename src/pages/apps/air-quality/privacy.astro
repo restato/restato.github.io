@@ -1,0 +1,69 @@
+---
+import MainLayout from '../../../layouts/MainLayout.astro';
+import PageShell from '../../../components/ui/PageShell.astro';
+
+const supportUrl = '/apps/air-quality/support';
+const openMeteoUrl = 'https://open-meteo.com/';
+const openMeteoTermsUrl = 'https://open-meteo.com/en/terms';
+---
+
+<MainLayout
+  title="공기 개인정보처리방침 | Restato"
+  description="공기 — 미세먼지와 예보 앱의 개인정보처리방침입니다."
+  canonical="/apps/air-quality/privacy"
+  lang="ko"
+  lockLanguage={true}
+>
+  <PageShell size="reading">
+    <article class="fc-prose">
+      <header class="fc-page-header">
+        <p class="fc-eyebrow">공기</p>
+        <h1>개인정보처리방침</h1>
+        <p class="fc-chip w-fit text-[var(--accent)]">최종 갱신일: 2026년 8월 2일</p>
+      </header>
+
+      <div class="space-y-6">
+        <section class="rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-6 shadow-sm">
+          <h2>1. 처리 주체 및 연락처</h2>
+          <p>공기 앱의 처리 주체는 개인 개발자 Restato입니다. 개인정보 관련 문의는 <a href="mailto:direcision@gmail.com">direcision@gmail.com</a>으로 보내주세요.</p>
+        </section>
+
+        <section class="rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-6 shadow-sm">
+          <h2>2. 현재 버전이 처리하는 데이터</h2>
+          <p>앱은 대기질과 예보를 표시하기 위해 사용자가 선택하거나 검색한 장소와 기기 설정에 필요한 정보를 기기 안에서 처리합니다. 계정을 사용하지 않습니다. 개발자 운영 계정 서버가 없습니다.</p>
+        </section>
+
+        <section class="rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-6 shadow-sm">
+          <h2>3. Open-Meteo로 전송되는 정보</h2>
+          <p>위치 좌표·시간대·장소 검색어가 Open-Meteo의 공기질 및 지오코딩 API로 직접 전송될 수 있습니다. 이는 대기질, 예보 및 장소 검색 결과를 제공하기 위한 목적입니다.</p>
+          <p><a href={openMeteoUrl} target="_blank" rel="noopener noreferrer">Open-Meteo</a>의 서비스 이용에는 <a href={openMeteoTermsUrl} target="_blank" rel="noopener noreferrer">약관</a>이 적용됩니다.</p>
+        </section>
+
+        <section class="rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-6 shadow-sm">
+          <h2>4. 기기 내 저장과 삭제</h2>
+          <p>저장한 장소와 앱 설정은 기기 내에 저장될 수 있습니다. 앱에서 저장 항목을 삭제하거나 앱을 삭제하면 기기 내 저장 데이터도 삭제할 수 있습니다.</p>
+        </section>
+
+        <section class="rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-6 shadow-sm">
+          <h2>5. 광고, 분석 및 추적</h2>
+          <p>현재 버전은 광고를 포함하지 않습니다. 사용자를 추적하지 않습니다. 분석 SDK를 사용하지 않습니다.</p>
+        </section>
+
+        <section class="rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-6 shadow-sm">
+          <h2>6. Apple Watch</h2>
+          <p>Apple Watch 앱은 iPhone 앱과 함께 대기질과 예보 정보를 표시합니다. CloudKit 동기화를 사용하지 않습니다.</p>
+        </section>
+
+        <section class="rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-6 shadow-sm">
+          <h2>7. 지원 문의 보관</h2>
+          <p>지원 문의를 보내면 이메일과 문의 내용이 문제 해결 및 답변을 위해 보관될 수 있습니다. 민감정보는 보내지 마세요.</p>
+        </section>
+
+        <section class="rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-6 shadow-sm">
+          <h2>8. 이용자 권리와 정책 변경</h2>
+          <p>문의 내용의 열람, 정정 또는 삭제를 원하면 <a href="mailto:direcision@gmail.com">direcision@gmail.com</a>으로 요청할 수 있습니다. 정책이 변경되면 이 페이지의 최종 갱신일을 업데이트합니다. <a href={supportUrl}>지원 페이지</a>에서도 도움을 받을 수 있습니다.</p>
+        </section>
+      </div>
+    </article>
+  </PageShell>
+</MainLayout>

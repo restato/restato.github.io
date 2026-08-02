@@ -1,0 +1,35 @@
+---
+import MainLayout from '../../../layouts/MainLayout.astro';
+import PageShell from '../../../components/ui/PageShell.astro';
+
+const privacyUrl = '/apps/air-quality/privacy';
+---
+
+<MainLayout
+  title="공기 지원 | Restato"
+  description="공기 — 미세먼지와 예보 앱의 지원 안내입니다."
+  canonical="/apps/air-quality/support"
+  lang="ko"
+  lockLanguage={true}
+>
+  <PageShell size="reading">
+    <article class="fc-prose">
+      <header class="fc-page-header">
+        <p class="fc-eyebrow">공기</p>
+        <h1>지원</h1>
+      </header>
+
+      <section class="rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-6 shadow-sm">
+        <h2>공기 — 미세먼지와 예보 지원</h2>
+        <p>위치 권한 없이도 장소를 직접 검색할 수 있습니다.</p>
+        <p>대기질 정보는 건강 진단이나 응급 판단을 대신하지 않습니다.</p>
+        <p>문의: <a href="mailto:direcision@gmail.com">direcision@gmail.com</a></p>
+        <p>
+          문의 시 앱 버전, iPhone 또는 Apple Watch 모델, OS 버전, 문제 발생 시각과 재현 단계를 알려주세요.
+          정확한 위치 좌표나 비밀번호 같은 민감정보는 보내지 마세요.
+        </p>
+        <p><a href={privacyUrl}>개인정보처리방침</a></p>
+      </section>
+    </article>
+  </PageShell>
+</MainLayout>
