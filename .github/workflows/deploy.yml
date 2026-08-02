@@ -38,8 +38,14 @@ jobs:
         run: node scripts/scrape-jobs.mjs
         continue-on-error: true
 
+      - name: Verify air quality App Store page source contract
+        run: npx vitest run src/pages/apps/air-quality/__tests__/pages.test.ts
+
       - name: Build with Astro
         run: npm run build
+
+      - name: Verify air quality App Store rendered pages
+        run: npm run verify:air-quality-app-pages
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
