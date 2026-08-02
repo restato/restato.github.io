@@ -21,7 +21,11 @@ describe('air quality App Store pages', () => {
       'Open-Meteo',
       '광고를 포함하지 않습니다',
       '추적하지 않습니다',
+      '계정을 사용하지 않습니다',
+      '분석 SDK를 사용하지 않습니다',
+      '위치 좌표·시간대·장소 검색어가 Open-Meteo의 공기질 및 지오코딩 API로 직접 전송될 수 있습니다',
       'CloudKit 동기화를 사용하지 않습니다',
+      '개발자 운영 계정 서버가 없습니다',
       'direcision@gmail.com',
     ]) {
       expect(page).toContain(text);
