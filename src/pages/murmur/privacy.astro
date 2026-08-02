@@ -1,0 +1,53 @@
+---
+import MainLayout from '../../layouts/MainLayout.astro';
+import PageShell from '../../components/ui/PageShell.astro';
+
+const issuesUrl = 'https://github.com/restato/murmur/issues';
+---
+
+<MainLayout
+  title="Murmur Privacy Policy | Restato"
+  description="Privacy policy for Murmur, the on-device voice notes app. Murmur collects no data — everything stays on your iPhone."
+  canonical="/murmur/privacy"
+  lang="en"
+  lockLanguage={true}
+>
+  <PageShell size="reading">
+    <article class="fc-prose">
+      <header class="fc-page-header rounded-2xl border border-violet-100 bg-gradient-to-br from-violet-50 via-white to-sky-50 p-6 dark:border-violet-900/50 dark:from-violet-950/30 dark:via-[var(--surface)] dark:to-sky-950/20 sm:p-8">
+        <p class="fc-eyebrow">Murmur</p>
+        <h1>Murmur Privacy Policy</h1>
+        <p class="fc-chip w-fit text-[var(--accent)]">Last updated: August 2, 2026</p>
+      </header>
+
+      <div class="space-y-6">
+        <section class="rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-6 shadow-sm">
+          <h2>1. Summary</h2>
+          <p>Murmur collects no data. All processing — voice recording, transcription, and AI refinement — happens entirely on your device using Apple Intelligence. Your audio and notes never leave your iPhone.</p>
+        </section>
+
+        <section class="rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-6 shadow-sm">
+          <h2>2. No servers, no analytics, no tracking</h2>
+          <p>Murmur has no servers of its own and sends nothing over the network. The app includes no analytics, no tracking, and no third-party SDKs. We cannot see your recordings, transcripts, or notes — they exist only on your device.</p>
+        </section>
+
+        <section class="rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-6 shadow-sm">
+          <h2>3. On-device storage and deletion</h2>
+          <p>Recordings and notes are stored only on your iPhone. Deleting a note in the app, or deleting the app itself, removes that data. There is no copy anywhere else for us to keep or delete.</p>
+        </section>
+
+        <section class="rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-6 shadow-sm">
+          <h2>4. Purchases</h2>
+          <p>Purchases are handled by Apple through the App Store. We do not receive or have access to your payment information. Payment processing is governed by Apple's terms and privacy policy.</p>
+        </section>
+
+        <section class="rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-6 shadow-sm">
+          <h2>5. Changes and contact</h2>
+          <p>If this policy changes, we will update this page and its last-updated date. Questions or requests are welcome via <a href={issuesUrl} target="_blank" rel="noopener noreferrer">GitHub issues</a> or <a href="mailto:direcision@gmail.com">direcision@gmail.com</a>.</p>
+        </section>
+      </div>
+
+      <p class="mt-10 border-t border-[var(--border)] pt-6 text-sm text-[var(--text-muted)]">Last updated: August 2, 2026</p>
+    </article>
+  </PageShell>
+</MainLayout>
