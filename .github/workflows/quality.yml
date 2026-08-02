@@ -19,4 +19,8 @@ jobs:
           cache: npm
       - run: npm ci
       - run: node scripts/test-knowledge-article-schema.mjs
+      - name: Verify air quality App Store page source contract
+        run: npx vitest run src/pages/apps/air-quality/__tests__/pages.test.ts
       - run: npm run build
+      - name: Verify air quality App Store rendered pages
+        run: npm run verify:air-quality-app-pages
