@@ -23,18 +23,54 @@ describe('privacy-safe analytics', () => {
     expect(getAnalyticsConsent()).toBe('denied');
   });
 
-  it('suppresses events and script loading before consent', () => {
+  it('loads cookieless analytics with every consent signal denied before a choice', () => {
     trackToolEvent({ name: 'tool_open', tool: 'json', locale: 'en' });
     expect((window as typeof window & { dataLayer?: unknown[] }).dataLayer).toBeUndefined();
-    expect(loadGoogleAnalytics('G-TEST123')).toBe(false);
-    expect(document.querySelector('script[src*="googletagmanager"]')).toBeNull();
+    expect(loadGoogleAnalytics('G-TEST123')).toBe(true);
+    expect(document.querySelector('script[src*="googletagmanager"]')).not.toBeNull();
+    expect((window as typeof window & { dataLayer: unknown[][] }).dataLayer[0]).toEqual([
+      'consent', 'default', {
+        ad_storage: 'denied',
+        ad_user_data: 'denied',
+        ad_personalization: 'denied',
+        analytics_storage: 'denied',
+      },
+    ]);
   });
 
-  it('loads Google Analytics once only after consent', () => {
+  it('loads Google Analytics only once', () => {
     setAnalyticsConsent('granted');
     expect(loadGoogleAnalytics('G-TEST123')).toBe(true);
     expect(loadGoogleAnalytics('G-TEST123')).toBe(true);
     expect(document.querySelectorAll('script[src*="googletagmanager"]')).toHaveLength(1);
+  });
+
+  it('keeps advertising denied when analytics consent is granted', () => {
+    setAnalyticsConsent('granted');
+    loadGoogleAnalytics('G-TEST123');
+
+    expect((window as typeof window & { dataLayer: unknown[][] }).dataLayer[0]).toEqual([
+      'consent', 'default', {
+        ad_storage: 'denied',
+        ad_user_data: 'denied',
+        ad_personalization: 'denied',
+        analytics_storage: 'granted',
+      },
+    ]);
+  });
+
+  it('updates analytics storage without enabling advertising when a choice changes', () => {
+    loadGoogleAnalytics('G-TEST123');
+    setAnalyticsConsent('granted');
+
+    expect((window as typeof window & { dataLayer: unknown[][] }).dataLayer.at(-1)).toEqual([
+      'consent', 'update', {
+        ad_storage: 'denied',
+        ad_user_data: 'denied',
+        ad_personalization: 'denied',
+        analytics_storage: 'granted',
+      },
+    ]);
   });
 
   it('sends only the allowlisted event payload', () => {

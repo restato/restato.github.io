@@ -33,6 +33,15 @@ const eventNames = new Set<ToolEventName>([
 ]);
 const eventKeys = new Set(['name', 'tool', 'locale', 'durationBucket', 'errorCategory']);
 
+function consentSettings(consent: AnalyticsConsent) {
+  return {
+    ad_storage: 'denied',
+    ad_user_data: 'denied',
+    ad_personalization: 'denied',
+    analytics_storage: consent === 'granted' ? 'granted' : 'denied',
+  } as const;
+}
+
 export function getAnalyticsConsent(): AnalyticsConsent {
   if (typeof localStorage === 'undefined') return 'unset';
   const stored = localStorage.getItem(ANALYTICS_CONSENT_KEY);
@@ -41,24 +50,33 @@ export function getAnalyticsConsent(): AnalyticsConsent {
 
 export function setAnalyticsConsent(consent: Exclude<AnalyticsConsent, 'unset'>): void {
   if (typeof localStorage !== 'undefined') localStorage.setItem(ANALYTICS_CONSENT_KEY, consent);
+  if (typeof window !== 'undefined') {
+    (window as AnalyticsWindow).gtag?.('consent', 'update', consentSettings(consent));
+  }
 }
 
 export function loadGoogleAnalytics(measurementId: string): boolean {
   if (typeof window === 'undefined' || typeof document === 'undefined') return false;
-  if (getAnalyticsConsent() !== 'granted' || !/^G-[A-Z0-9]+$/i.test(measurementId)) return false;
+  if (!/^G-[A-Z0-9]+$/i.test(measurementId)) return false;
 
   const analyticsWindow = window as AnalyticsWindow;
   analyticsWindow.dataLayer ??= [];
   analyticsWindow.gtag ??= (...args: unknown[]) => { analyticsWindow.dataLayer?.push(args); };
 
   if (!document.querySelector('script[data-restato-analytics]')) {
+    analyticsWindow.gtag('consent', 'default', consentSettings(getAnalyticsConsent()));
+    analyticsWindow.gtag('set', 'ads_data_redaction', true);
     const script = document.createElement('script');
     script.async = true;
     script.src = `https://www.googletagmanager.com/gtag/js?id=${encodeURIComponent(measurementId)}`;
     script.dataset.restatoAnalytics = 'true';
     document.head.append(script);
     analyticsWindow.gtag('js', new Date());
-    analyticsWindow.gtag('config', measurementId, { anonymize_ip: true });
+    analyticsWindow.gtag('config', measurementId, {
+      anonymize_ip: true,
+      allow_google_signals: false,
+      allow_ad_personalization_signals: false,
+    });
   }
 
   return true;
