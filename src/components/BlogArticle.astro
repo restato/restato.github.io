@@ -1,5 +1,7 @@
 ---
 import type { CollectionEntry } from 'astro:content';
+import { formatBlogArticleDate, getBlogArticleChrome } from '../lib/blogArticleChrome';
+import type { BlogLocale } from '../lib/blogTranslations';
 import PageShell from './ui/PageShell.astro';
 
 interface NavigationLabels {
@@ -13,35 +15,26 @@ interface NavigationLabels {
 
 interface Props {
   post: CollectionEntry<'blog'>;
+  lang: BlogLocale;
   indexUrl: string;
   tagUrlBuilder: (tag: string) => string;
   labels: NavigationLabels;
 }
 
-const { post, indexUrl, tagUrlBuilder, labels } = Astro.props;
+const { post, lang, indexUrl, tagUrlBuilder, labels } = Astro.props;
 const { Content } = await post.render();
-
-const formattedDate = post.data.date.toLocaleDateString('en-US', {
-  year: 'numeric',
-  month: 'long',
-  day: 'numeric',
-});
-
-const formatKnowledgeDate = (date: Date) => date.toLocaleDateString('en-US', {
-  year: 'numeric',
-  month: 'long',
-  day: 'numeric',
-});
 
 // Get reading time estimate (roughly 200 words per minute in Korean)
 const content = post.body;
 const wordCount = content.split(/\s+/).length;
 const readingTime = Math.max(1, Math.ceil(wordCount / 200));
+const chrome = getBlogArticleChrome(lang, readingTime);
+const formattedDate = formatBlogArticleDate(post.data.date, lang);
 ---
 
 <PageShell size="reading">
   <article data-blog-article data-copied-label={labels.copied}>
-    <nav class="fc-tool-breadcrumb" aria-label="Breadcrumb">
+    <nav class="fc-tool-breadcrumb" aria-label={chrome.breadcrumbLabel}>
       <ol>
         <li><a href="/">{labels.home}</a></li>
         <li aria-hidden="true">/</li>
@@ -56,7 +49,7 @@ const readingTime = Math.max(1, Math.ceil(wordCount / 200));
         <time datetime={post.data.date.toISOString()} class="fc-chip text-[var(--accent)]">
           {formattedDate}
         </time>
-        <span>{readingTime} min read</span>
+        <span aria-label={chrome.readingTimeLabel}>{chrome.readingTime}</span>
       </div>
 
       <h1>{post.data.title}</h1>
@@ -64,13 +57,15 @@ const readingTime = Math.max(1, Math.ceil(wordCount / 200));
 
       {post.data.knowledgeId && post.data.verifiedAt && (
         <p data-knowledge-id={post.data.knowledgeId} class="text-sm text-[var(--text-muted)]">
-          Verified {formatKnowledgeDate(post.data.verifiedAt)}
-          {post.data.updated && ` · Updated ${formatKnowledgeDate(post.data.updated)}`}
+          {chrome.verified} <time datetime={post.data.verifiedAt.toISOString()}>{formatBlogArticleDate(post.data.verifiedAt, lang)}</time>
+          {post.data.updated && (
+            <> · {chrome.updated} <time datetime={post.data.updated.toISOString()}>{formatBlogArticleDate(post.data.updated, lang)}</time></>
+          )}
         </p>
       )}
 
       {post.data.tags.length > 0 && (
-        <div class="flex flex-wrap gap-2">
+        <nav class="flex flex-wrap gap-2" aria-label={chrome.tagsLabel}>
           {post.data.tags.map((tag: string) => (
             post.data.draft
               ? <span class="fc-chip text-[var(--brand)]">{tag}</span>
@@ -81,7 +76,7 @@ const readingTime = Math.max(1, Math.ceil(wordCount / 200));
                   {tag}
                 </a>
           ))}
-        </div>
+        </nav>
       )}
     </header>
 
@@ -100,7 +95,7 @@ const readingTime = Math.max(1, Math.ceil(wordCount / 200));
     <footer class="mt-14 border-t border-[var(--border-subtle)] pt-8">
       <div class="flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-center">
         <a href={indexUrl} class="fc-button fc-button-quiet px-2 text-sm">
-          <svg class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+          <svg aria-hidden="true" focusable="false" class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7" />
           </svg>
           {labels.backToList}
@@ -108,13 +103,13 @@ const readingTime = Math.max(1, Math.ceil(wordCount / 200));
 
         <div class="flex flex-wrap gap-2">
           <button id="share-btn" class="fc-button fc-button-secondary text-sm">
-            <svg class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <svg aria-hidden="true" focusable="false" class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" />
             </svg>
             {labels.share}
           </button>
           <button id="copy-btn" class="fc-button fc-button-secondary text-sm">
-            <svg class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <svg aria-hidden="true" focusable="false" class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
             </svg>
             {labels.copyLink}

@@ -17,12 +17,19 @@ const readSkill = (name: RouterKind) => readFileSync(
 const parseMarkdown = (source: string) => {
   const allLines = source.split(/\r?\n/u);
   let bodyStart = 0;
+  let malformedFrontmatter = false;
+  let frontmatterLines: string[] = [];
 
   if (allLines[0]?.trim() === '---') {
     const frontmatterEnd = allLines.findIndex((line, index) => (
       index > 0 && line.trim() === '---'
     ));
-    bodyStart = frontmatterEnd >= 0 ? frontmatterEnd + 1 : 0;
+    if (frontmatterEnd >= 0) {
+      frontmatterLines = allLines.slice(1, frontmatterEnd);
+      bodyStart = frontmatterEnd + 1;
+    } else {
+      malformedFrontmatter = true;
+    }
   }
 
   const lines = allLines.slice(bodyStart);
@@ -65,7 +72,14 @@ const parseMarkdown = (source: string) => {
     ? lines.slice(title.line + 1, firstSection?.line ?? lines.length)
     : lines;
 
-  return { lines, headings, sections, preamble };
+  return {
+    lines,
+    headings,
+    sections,
+    preamble,
+    frontmatterLines,
+    malformedFrontmatter,
+  };
 };
 
 const sectionText = (section: MarkdownSection | undefined) => (
@@ -83,6 +97,20 @@ const normalizeSectionBody = (section: MarkdownSection | undefined) => sectionTe
   .filter(Boolean)
   .join(' ')
   .replace(/\s+/gu, ' ');
+
+const normalizeFrontmatter = (lines: readonly string[]) => lines
+  .map(line => line.trim())
+  .filter(Boolean)
+  .join('\n');
+
+const permittedFrontmatter: Record<RouterKind, string> = {
+  'one-click-publish': '',
+  'restato-blog-writer': [
+    'name: restato-blog-writer',
+    'description: Compatibility router for Restato technical blog publication',
+    'version: 3.0.0',
+  ].join('\n'),
+};
 
 const permittedSectionBodies: Record<RouterKind, Record<string, string>> = {
   'one-click-publish': {
@@ -138,6 +166,13 @@ const validateRouter = (source: string, kind: RouterKind): string[] => {
     ? ['트리거 예시', 'Canonical workflow', '완료 보고']
     : ['Canonical workflow', 'Completion reporting'];
   const actualSections = parsed.sections.map(({ heading }) => heading);
+
+  if (
+    parsed.malformedFrontmatter
+    || normalizeFrontmatter(parsed.frontmatterLines) !== permittedFrontmatter[kind]
+  ) {
+    errors.push('router frontmatter differs from allowlist');
+  }
 
   const titles = parsed.headings.filter(({ level }) => level === 1);
   if (titles.length !== 1 || titles[0]?.text !== expectedTitle) {
@@ -233,7 +268,7 @@ const validateRouter = (source: string, kind: RouterKind): string[] => {
     errors.push('frontmatter or schema example');
   }
 
-  const bodyText = parsed.lines.join('\n');
+  const fullSourceText = source;
   const forbiddenRules: Array<[string, RegExp]> = [
     ['frontmatter or schema example', /\b(?:frontmatter|content schema|MDX schema|MDX 형식|스키마 예시)\b/iu],
     ['public article file instruction', /src\/content\/blog/iu],
@@ -248,12 +283,12 @@ const validateRouter = (source: string, kind: RouterKind): string[] => {
     ['independent pipeline', /\b(?:publishing|publication|deployment)\s+pipeline\b|(?:독립|로컬).{0,12}(?:파이프라인|배포\s*단계)/iu],
   ];
   for (const [message, pattern] of forbiddenRules) {
-    if (pattern.test(bodyText)) errors.push(message);
+    if (pattern.test(fullSourceText)) errors.push(message);
   }
 
   const branchAction = /\b(?:commit|push|merge|checkout|switch)\b.{0,48}\b(?:main|master|default branch)\b|\b(?:main|master|default branch)\b.{0,48}\b(?:commit|push|merge|checkout|switch)\b|(?:커밋|푸시|병합|체크아웃).{0,32}기본\s*브랜치|기본\s*브랜치.{0,32}(?:커밋|푸시|병합|체크아웃)/iu;
   const negation = /\b(?:do not|don't|never|must not|cannot|can't|without|rather than|stop)\b|(?:하지\s*(?:않|말)|금지|중단)/iu;
-  for (const paragraph of bodyText.split(/\n\s*\n/u)) {
+  for (const paragraph of fullSourceText.split(/\n\s*\n/u)) {
     if (branchAction.test(paragraph) && !negation.test(paragraph)) {
       errors.push('direct default-branch action');
     }
@@ -321,6 +356,13 @@ const operationMutations: Array<[string, string]> = [
   ['independent deploy step', 'Deploy the site after the local build.'],
 ];
 
+const forbiddenFrontmatterMutation = `---
+name: one-click-publish
+description: Commit directly to master through an independent publishing pipeline.
+version: 1.0.0
+---
+${routers[0][1]}`;
+
 describe('publishing compatibility routers', () => {
   it('accepts both canonical publishing routers', () => {
     for (const [kind, source] of routers) {
@@ -379,6 +421,30 @@ describe('publishing compatibility routers', () => {
         'Default publication is an English source plus a reviewed\nKorean alternate that share one',
       );
     expect(validateRouter(reflowed, 'one-click-publish')).toEqual([]);
+  });
+
+  it('accepts exact approved metadata with harmless router-body reflow', () => {
+    const reflowed = routers[1][1]
+      .replace(
+        'This compatibility router delegates every article plan, research task, draft,\nreview, update, or publication request',
+        'This compatibility router delegates every article plan,\nresearch task, draft, review, update, or publication request',
+      )
+      .replace(
+        'Default publication is an English source plus a reviewed Korean alternate\nsharing one',
+        'Default publication is an English source plus a reviewed\nKorean alternate sharing one',
+      );
+
+    expect(validateRouter(reflowed, 'restato-blog-writer')).toEqual([]);
+  });
+
+  it('rejects forbidden direct-default and independent-workflow instructions in frontmatter', () => {
+    expect(validateRouter(forbiddenFrontmatterMutation, 'one-click-publish')).toEqual(
+      expect.arrayContaining([
+        'router frontmatter differs from allowlist',
+        'direct default-branch action',
+        'independent pipeline',
+      ]),
+    );
   });
 
   it.each(operationMutations)('rejects %s', (expectedError, instruction) => {

@@ -10,6 +10,7 @@ interface Props {
   currentSlug?: string;
   includeAllLink?: boolean;
   allLabel?: string;
+  basePath?: string;
 }
 
 const {
@@ -21,7 +22,9 @@ const {
   currentSlug,
   includeAllLink = false,
   allLabel,
+  basePath = '/blog',
 } = Astro.props;
+const normalizedBasePath = basePath.replace(/\/+$/u, '') || '/blog';
 const overflowId = `blog-tag-overflow-${crypto.randomUUID()}`;
 ---
 
@@ -30,7 +33,7 @@ const overflowId = `blog-tag-overflow-${crypto.randomUUID()}`;
     {includeAllLink && allLabel && (
       <a
         data-blog-tag-link
-        href="/blog"
+        href={normalizedBasePath}
         aria-current={!currentSlug ? 'page' : undefined}
         class="fc-chip gap-1.5 border border-transparent transition-colors hover:border-[var(--brand)] hover:text-[var(--brand)]"
       >{allLabel}</a>
@@ -38,7 +41,7 @@ const overflowId = `blog-tag-overflow-${crypto.randomUUID()}`;
     {entries.slice(0, 10).map(entry => (
       <a
         data-blog-tag-link
-        href={`/blog/tag/${entry.slug}`}
+        href={`${normalizedBasePath}/tag/${entry.slug}`}
         aria-current={entry.slug === currentSlug ? 'page' : undefined}
         class:list={[
           'fc-chip gap-1.5 border transition-colors',
@@ -55,7 +58,7 @@ const overflowId = `blog-tag-overflow-${crypto.randomUUID()}`;
         {entries.slice(10).map(entry => (
           <a
             data-blog-tag-link
-            href={`/blog/tag/${entry.slug}`}
+            href={`${normalizedBasePath}/tag/${entry.slug}`}
             aria-current={entry.slug === currentSlug ? 'page' : undefined}
             class:list={[
               'fc-chip gap-1.5 border transition-colors',

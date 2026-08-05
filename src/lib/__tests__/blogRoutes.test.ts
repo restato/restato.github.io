@@ -5,6 +5,7 @@ import { join } from 'node:path';
 import { experimental_AstroContainer as AstroContainer } from 'astro/container';
 import { beforeAll, describe, expect, it } from 'vitest';
 import BlogCard from '../../components/BlogCard.astro';
+import { getBlogAlternates } from '../blogTranslations';
 import { projectEnglishRoutes, projectKoreanRoutes } from '../blogRoutes';
 
 let astro: AstroContainer;
@@ -75,9 +76,32 @@ describe('localized blog route projections', () => {
     expect(routes.map(route => route.post)).toEqual([koreanPost]);
   });
 
-  it('does not publish either side of an incomplete prefixed pair', () => {
-    expect(projectEnglishRoutes([englishPost])).toEqual([]);
-    expect(projectKoreanRoutes([koreanPost])).toEqual([]);
+  it('projects each available incomplete side during development without alternates', () => {
+    const [englishRoute] = projectEnglishRoutes([englishPost]);
+    const [koreanRoute] = projectKoreanRoutes([koreanPost]);
+
+    expect(englishRoute).toMatchObject({
+      pathname: '/blog/opus-guide/',
+      post: englishPost,
+    });
+    expect(koreanRoute).toMatchObject({
+      pathname: '/ko/blog/opus-guide/',
+      post: koreanPost,
+    });
+    expect(getBlogAlternates(englishRoute.pair!, 'https://restato.github.io')).toEqual([]);
+    expect(getBlogAlternates(koreanRoute.pair!, 'https://restato.github.io')).toEqual([]);
+  });
+
+  it('keeps incomplete paired routes fail-closed on legacy path collisions', () => {
+    const collidingLegacyPost = {
+      slug: 'opus-guide',
+      data: {},
+    } satisfies TestPost;
+
+    expect(() => projectEnglishRoutes([
+      englishPost,
+      collidingLegacyPost,
+    ])).toThrow('blog route collision at /blog/opus-guide/');
   });
 
   it('rejects a public-path collision between a complete pair and a root legacy post', () => {

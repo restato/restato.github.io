@@ -9,8 +9,8 @@ export async function GET(context: APIContext) {
   );
 
   return rss({
-    title: 'Restato | 개발 일지',
-    description: '개발 일지 - 배우고 만들고 기록하는 공간',
+    title: 'Restato Blog',
+    description: 'Development logs, learnings, and thoughts.',
     site: context.site!,
     items: routes.map(route => ({
       title: route.post.data.title,
@@ -18,6 +18,6 @@ export async function GET(context: APIContext) {
       description: route.post.data.description,
       link: route.pathname,
     })),
-    customData: `<language>ko-kr</language>`,
+    customData: `<language>en-us</language>`,
   });
 }

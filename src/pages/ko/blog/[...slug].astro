@@ -35,7 +35,7 @@ const fallbackPair: BlogTranslationPair = {
 };
 const alternateUrls = getBlogAlternates(post.data.translationKey && pair ? pair : fallbackPair, siteUrl);
 const canonical = new URL(pathname, siteUrl).toString();
-const tagUrlBuilder = (tag: string) => `/blog/tag/${toBlogTagSlug(tag)}`;
+const tagUrlBuilder = (tag: string) => `/ko/blog/tag/${toBlogTagSlug(tag)}`;
 const navigationLabels = {
   home: '홈',
   blog: '블로그',
@@ -61,6 +61,7 @@ const navigationLabels = {
 >
   <BlogArticle
     post={post}
+    lang="ko"
     indexUrl="/ko/blog"
     tagUrlBuilder={tagUrlBuilder}
     labels={navigationLabels}

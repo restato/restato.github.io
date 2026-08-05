@@ -41,7 +41,7 @@ function projectPairedRoutes<Post extends BlogTranslationPost>(
 
     const translationKey = post.data.translationKey;
     const pair = translationKey ? pairs.get(translationKey) : undefined;
-    if (!pair?.en || !pair.ko || pair[locale] !== post) return [];
+    if (!pair || pair[locale] !== post) return [];
 
     return [{
       pathname: getBlogRoute(locale, pair.slug),
