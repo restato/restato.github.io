@@ -29,7 +29,8 @@ describe('project catalog', () => {
       badge: 'IN REVIEW',
       color: 'from-stone-500 to-amber-700',
     });
-    expect(JSON.stringify(gyeol)).not.toContain('github.com/restato/gyeol-ios');
+    expect(gyeol).not.toHaveProperty('url');
+    expect(JSON.stringify(gyeol)).not.toContain('github.com');
   });
 
   it('publishes the approved RoomFit gallery card without its private repository', () => {

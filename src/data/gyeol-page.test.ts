@@ -12,9 +12,9 @@ describe('Gyeol project page', () => {
     expect(source).toContain('Your journal stays on this iPhone');
     expect(source).toContain('7-day and 30-day patterns');
     expect(source).toContain('Korean and English');
-    expect(source).not.toContain('github.com/restato/gyeol-ios');
+    expect(source).not.toContain('github.com');
     expect(source).not.toContain('apps.apple.com');
-    expect(source).not.toContain('Submission ID');
+    expect(source.toLowerCase()).not.toContain('submission');
   });
 
   it('renders the approved icon and three English screenshots', () => {
