@@ -2,26 +2,8 @@ import { existsSync, readFileSync, readdirSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { join, relative, sep } from 'node:path';
 
-const blogDirectoryParts = ['src', 'content', 'blog'];
 const pairedDocumentPattern = /^(en|ko)\/([a-z0-9]+(?:-[a-z0-9]+)*)\.mdx$/u;
 const scalarPattern = /^(lang|translationKey):[\t ]*(.*)$/u;
-
-function listBlogDocuments(directory, entries = { documents: [], symlinks: [] }) {
-  if (!existsSync(directory)) return entries;
-
-  for (const entry of readdirSync(directory, { withFileTypes: true }).sort((left, right) => left.name.localeCompare(right.name))) {
-    const path = join(directory, entry.name);
-    if (entry.isSymbolicLink()) {
-      entries.symlinks.push(path);
-    } else if (entry.isDirectory()) {
-      listBlogDocuments(path, entries);
-    } else if (entry.isFile() && (entry.name.endsWith('.md') || entry.name.endsWith('.mdx'))) {
-      entries.documents.push(path);
-    }
-  }
-
-  return entries;
-}
 
 function parseScalar(value) {
   const trimmed = value.trim();
@@ -37,31 +19,8 @@ function parseScalar(value) {
   return { valid: true, value: trimmed };
 }
 
-function parseFrontmatter(path) {
-  const source = readFileSync(path, 'utf8').replace(/^\uFEFF/u, '');
-  const lines = source.split(/\r?\n/u);
-  if (lines[0] !== '---') return { malformed: true, data: {} };
-
-  const closingIndex = lines.indexOf('---', 1);
-  if (closingIndex === -1) return { malformed: true, data: {} };
-
-  const data = {};
-  for (const line of lines.slice(1, closingIndex)) {
-    const field = scalarPattern.exec(line);
-    if (!field) continue;
-
-    const parsed = parseScalar(field[2]);
-    if (!parsed.valid || Object.hasOwn(data, field[1])) {
-      return { malformed: true, data: {} };
-    }
-    data[field[1]] = parsed.value;
-  }
-
-  return { malformed: false, data };
-}
-
 function addError(errors, message) {
-  errors.add(message);
+  if (!errors.includes(message)) errors.push(message);
 }
 
 /**
@@ -71,9 +30,49 @@ function addError(errors, message) {
  * @returns {string[]} Deterministic, human-readable validation errors.
  */
 export function validateBlogTranslations(root) {
-  const blogDirectory = join(root, ...blogDirectoryParts);
-  const errors = new Set();
+  const blogDirectory = join(root, 'src/content/blog');
+  const errors = [];
   const pairs = new Map();
+
+  function listBlogDocuments(directory, entries = { documents: [], symlinks: [] }) {
+    if (!existsSync(directory)) return entries;
+
+    for (const entry of readdirSync(directory, { withFileTypes: true }).sort((left, right) => left.name.localeCompare(right.name))) {
+      const path = join(directory, entry.name);
+      if (entry.isSymbolicLink()) {
+        entries.symlinks.push(path);
+      } else if (entry.isDirectory()) {
+        listBlogDocuments(path, entries);
+      } else if (entry.isFile() && (entry.name.endsWith('.md') || entry.name.endsWith('.mdx'))) {
+        entries.documents.push(path);
+      }
+    }
+
+    return entries;
+  }
+
+  function parseFrontmatter(path) {
+    const source = readFileSync(path, 'utf8').replace(/^\uFEFF/u, '');
+    const lines = source.split(/\r?\n/u);
+    if (lines[0] !== '---') return { malformed: true, data: {} };
+
+    const closingIndex = lines.indexOf('---', 1);
+    if (closingIndex === -1) return { malformed: true, data: {} };
+
+    const data = {};
+    for (const line of lines.slice(1, closingIndex)) {
+      const field = scalarPattern.exec(line);
+      if (!field) continue;
+
+      const parsed = parseScalar(field[2]);
+      if (!parsed.valid || Object.hasOwn(data, field[1])) {
+        return { malformed: true, data: {} };
+      }
+      data[field[1]] = parsed.value;
+    }
+
+    return { malformed: false, data };
+  }
 
   const { documents, symlinks } = listBlogDocuments(blogDirectory);
   if (symlinks.length > 0) {
@@ -113,7 +112,7 @@ export function validateBlogTranslations(root) {
       addError(errors, `translation pair ${translationKey} uses inconsistent public slugs`);
     }
 
-    const pair = pairs.get(translationKey) ?? {};
+    const pair = pairs.get(translationKey) ?? { en: null, ko: null };
     if (pair[storageLocale]) {
       addError(errors, `translation pair ${translationKey} has duplicate ${storageLocale} documents`);
     } else {
@@ -124,12 +123,11 @@ export function validateBlogTranslations(root) {
 
   for (const translationKey of [...pairs.keys()].sort((left, right) => left.localeCompare(right))) {
     const pair = pairs.get(translationKey);
-    for (const locale of ['en', 'ko']) {
-      if (!pair[locale]) addError(errors, `translation pair ${translationKey} is missing ${locale}`);
-    }
+    if (!pair.en) errors.push(`translation pair ${translationKey} is missing en`);
+    if (!pair.ko) errors.push(`translation pair ${translationKey} is missing ko`);
   }
 
-  return [...errors].sort((left, right) => left.localeCompare(right));
+  return errors.sort((left, right) => left.localeCompare(right));
 }
 
 if (process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1]) {

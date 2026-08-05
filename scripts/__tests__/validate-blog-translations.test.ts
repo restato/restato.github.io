@@ -1,4 +1,5 @@
 import { execFile as execFileCallback } from 'node:child_process';
+import { readFileSync } from 'node:fs';
 import { mkdir, mkdtemp, rm, symlink, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
@@ -34,6 +35,20 @@ function post(lang: string, translationKey: string) {
 }
 
 describe('validateBlogTranslations', () => {
+  it('keeps explicit structural locale guards for each translation pair', () => {
+    const source = readFileSync(
+      join(process.cwd(), 'scripts/validate-blog-translations.mjs'),
+      'utf8',
+    );
+
+    expect(source).toContain('const pair = pairs.get(translationKey) ?? { en: null, ko: null };');
+    expect(source).toMatch(/if \(!pair\.en\) errors\.push\(/u);
+    expect(source).toMatch(/if \(!pair\.ko\) errors\.push\(/u);
+    expect(source).toMatch(/function validateBlogTranslations[\s\S]*readdirSync\(/u);
+    expect(source).toMatch(/function validateBlogTranslations[\s\S]*readFileSync\(/u);
+    expect(source).toContain("join(root, 'src/content/blog')");
+  });
+
   it('accepts a complete, matching translation pair', async () => {
     const root = await createFixture({
       'en/opus-guide.mdx': post('en', 'opus-guide'),
