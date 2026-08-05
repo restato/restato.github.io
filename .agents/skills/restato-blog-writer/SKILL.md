@@ -6,6 +6,8 @@ version: 3.0.0
 
 # Restato Blog Writer
 
+## Canonical workflow
+
 This compatibility router delegates every article plan, research task, draft,
 review, update, or publication request to the globally installed
 `restato-content-partner` skill. Load and follow that skill as the sole workflow.
