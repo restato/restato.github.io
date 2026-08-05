@@ -4,6 +4,7 @@ import { describe, expect, it } from 'vitest';
 
 const projectFiles = [
   'gallery.astro',
+  'gyeol.astro',
   'jobworld-kids.astro',
   'local-price-extractor.astro',
   'neighborhood-change.astro',

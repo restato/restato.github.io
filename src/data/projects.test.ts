@@ -19,6 +19,19 @@ describe('project catalog', () => {
     expect(JSON.stringify(neighborhoodChange)).not.toContain('github.com/restato/neighborhood-change');
   });
 
+  it('publishes Gyeol as an in-review private iOS project without its repository', () => {
+    const gyeol = projects.find((project) => project.slug === 'gyeol');
+
+    expect(gyeol).toMatchObject({
+      title: 'Gyeol',
+      description: 'Write one quiet entry a day and reflect with optional on-device AI, without sending your journal to a server.',
+      iconImage: '/images/projects/gyeol/app-icon.png',
+      badge: 'IN REVIEW',
+      color: 'from-stone-500 to-amber-700',
+    });
+    expect(JSON.stringify(gyeol)).not.toContain('github.com/restato/gyeol-ios');
+  });
+
   it('publishes the approved RoomFit gallery card without its private repository', () => {
     const roomfit = projects.find((project) => project.slug === 'roomfit-3d');
 
