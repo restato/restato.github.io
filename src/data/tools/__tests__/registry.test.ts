@@ -4,8 +4,8 @@ import { getIndexableLanguages, getPublishedTools, getTool, toolsRegistry } from
 import { hasLocalizedToolComponent } from '../../../components/tools/LocalizedToolIsland';
 
 describe('toolsRegistry', () => {
-  it('preserves all 54 public tool definitions', () => {
-    expect(toolsRegistry).toHaveLength(54);
+  it('preserves all 55 public tool definitions', () => {
+    expect(toolsRegistry).toHaveLength(55);
   });
 
   it('provides a localized React island for every standard tool route', () => {

@@ -7,6 +7,7 @@ import { buildLocalizedWorkflow } from './localizedWorkflows';
 import { additionalTools as pdfTools } from './additions/pdf';
 import { additionalTools as dataTextTools } from './additions/data-text';
 import { additionalTools as mediaCalcTools } from './additions/media-calc';
+import { additionalTools as randomTools } from './additions/random';
 
 export { getToolWorkflow } from './localizedWorkflows';
 
@@ -250,7 +251,7 @@ export function getEnglishProfilePhrases(slug: string): Pick<ToolProfile, 'label
   const profile = profiles[slug];
   if (profile) return { label: profile.label, input: profile.input, output: profile.output, caveat: profile.caveat };
 
-  const additional = [...pdfTools, ...dataTextTools, ...mediaCalcTools]
+  const additional = [...pdfTools, ...dataTextTools, ...mediaCalcTools, ...randomTools]
     .find(tool => tool.slug === slug)?.profiles.en;
   if (!additional) throw new Error(`Missing localized content profile for ${slug}`);
   return {

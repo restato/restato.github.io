@@ -5,6 +5,7 @@ import { isSubstantiveToolContent } from '../../i18n/completeness';
 import { additionalTools as pdfTools } from './additions/pdf';
 import { additionalTools as dataTextTools } from './additions/data-text';
 import { additionalTools as mediaCalcTools } from './additions/media-calc';
+import { additionalTools as randomTools } from './additions/random';
 
 export interface ToolSEO {
   title: string;
@@ -1097,6 +1098,7 @@ const additionalToolDefinitions: ToolDefinition[] = [
   ...pdfTools,
   ...dataTextTools,
   ...mediaCalcTools,
+  ...randomTools,
 ].map(tool => {
   const definition: ToolDefinition = {
     slug: tool.slug,

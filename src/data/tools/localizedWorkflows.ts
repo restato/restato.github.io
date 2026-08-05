@@ -68,6 +68,7 @@ const toolWorkflows = {
   'favicon-generator': ['upload', 'process', 'download'],
   'loan-calculator': ['configure', 'calculate', 'inspect'],
   'audio-trimmer': ['upload', 'configure', 'download'],
+  'ladder-game': ['configure', 'randomize', 'inspect'],
 } satisfies Record<string, ToolWorkflow>;
 
 export function getToolWorkflow(slug: string): ToolWorkflow {
