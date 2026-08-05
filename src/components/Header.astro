@@ -1,6 +1,6 @@
 ---
 import { languages, type Language } from '../i18n';
-import { getBasePathFromUrl, buildLanguageUrl, supportsLanguageRouting, localizedRouteFamilies, supportedLanguagePattern } from '../i18n/urlUtils';
+import { getBasePathFromUrl, buildLanguageUrl, supportsLanguageRouting, localizedRouteFamilies, normalizeLanguageUrls, supportedLanguagePattern } from '../i18n/urlUtils';
 import { siteChrome } from '../i18n/tool-ui';
 import BrandMark from './BrandMark.astro';
 
@@ -26,7 +26,8 @@ const navItems: NavItem[] = [
 ];
 
 const currentPath = Astro.url.pathname;
-const { lang = 'ko', lockLanguage = false, languageUrls } = Astro.props;
+const { lang = 'ko', lockLanguage = false, languageUrls: rawLanguageUrls } = Astro.props;
+const languageUrls = normalizeLanguageUrls(rawLanguageUrls);
 const showLanguageSelector = !lockLanguage || Boolean(languageUrls);
 
 const isActive = (href: string): boolean => {
@@ -372,8 +373,10 @@ const primaryNavigationTranslations = Object.fromEntries(Object.entries(primaryN
       localStorage.setItem('lang', lang);
       if (languageUrls) {
         const destination = resolveLangDestination(languageUrls, lang);
-        if (destination) window.location.assign(destination);
-        return;
+        if (destination) {
+          window.location.assign(destination);
+          return;
+        }
       }
 
       updateNavLabels(lang);

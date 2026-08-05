@@ -4,6 +4,7 @@ import Header from '../components/Header.astro';
 import Footer from '../components/Footer.astro';
 import type { Language } from '../data/tools/types';
 import { getSkipLinkLabel, skipLinkLabels } from '../i18n/skip-link';
+import { resolveLayoutLanguageUrls } from '../i18n/urlUtils';
 
 interface AlternateUrl {
   lang: string;
@@ -29,17 +30,11 @@ interface Props {
 const { title, description, image, type, publishedTime, modifiedTime, author, robots, canonical, lang, lockLanguage = false, alternateUrls, languageUrls } = Astro.props;
 const resolvedLanguage = lang ?? 'ko';
 const skipLinkLabel = getSkipLinkLabel(resolvedLanguage);
-const derivedLanguageUrls = alternateUrls?.reduce<Partial<Record<Language, string>>>((urls, alternate) => {
-  if (alternate.lang !== 'x-default') {
-    urls[alternate.lang as Language] = alternate.url;
-  }
-  return urls;
-}, {});
-const resolvedLanguageUrls = languageUrls ?? (
-  derivedLanguageUrls && Object.keys(derivedLanguageUrls).length > 0
-    ? derivedLanguageUrls
-    : undefined
-);
+const resolvedLanguageUrls = resolveLayoutLanguageUrls({
+  languageUrls,
+  alternateUrls,
+  deriveFromAlternates: lockLanguage && type === 'article',
+});
 ---
 
 <BaseLayout title={title} description={description} image={image} type={type} publishedTime={publishedTime} modifiedTime={modifiedTime} author={author} robots={robots} canonical={canonical} lang={lang} lockLanguage={lockLanguage} alternateUrls={alternateUrls}>

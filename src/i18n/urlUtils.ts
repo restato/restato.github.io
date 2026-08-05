@@ -21,6 +21,50 @@ export const localizedRouteFamilies = [
 ] as const;
 const GAME_LANGUAGES = new Set<Language>(['ko', 'en', 'ja']);
 
+export type LanguageUrls = Partial<Record<Language, string>>;
+
+export interface LanguageUrlAlternate {
+  lang: string;
+  url: unknown;
+}
+
+export function normalizeLanguageUrls(languageUrls: unknown): LanguageUrls | undefined {
+  if (!languageUrls || typeof languageUrls !== 'object' || Array.isArray(languageUrls)) {
+    return undefined;
+  }
+
+  const normalized: LanguageUrls = {};
+  for (const language of supportedLanguages) {
+    if (!Object.hasOwn(languageUrls, language)) continue;
+    const value = Reflect.get(languageUrls, language);
+    if (typeof value !== 'string') continue;
+    const destination = value.trim();
+    if (destination) normalized[language] = destination;
+  }
+
+  return Object.keys(normalized).length > 0 ? normalized : undefined;
+}
+
+export function resolveLayoutLanguageUrls({
+  languageUrls,
+  alternateUrls,
+  deriveFromAlternates,
+}: {
+  languageUrls?: unknown;
+  alternateUrls?: readonly LanguageUrlAlternate[];
+  deriveFromAlternates: boolean;
+}): LanguageUrls | undefined {
+  if (languageUrls !== undefined) return normalizeLanguageUrls(languageUrls);
+  if (!deriveFromAlternates || !Array.isArray(alternateUrls)) return undefined;
+
+  const derived: Record<string, unknown> = {};
+  for (const alternate of alternateUrls) {
+    if (!alternate || typeof alternate.lang !== 'string') continue;
+    derived[alternate.lang] = alternate.url;
+  }
+  return normalizeLanguageUrls(derived);
+}
+
 function splitPathSuffix(value: string): { path: string; suffix: string } {
   const suffixIndex = value.search(/[?#]/);
   if (suffixIndex === -1) return { path: value, suffix: '' };
