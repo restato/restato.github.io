@@ -13,6 +13,23 @@ export interface BlogRoute<Post extends BlogTranslationPost = BlogTranslationPos
   pair?: BlogTranslationPair<Post>;
 }
 
+function assertUniqueBlogRoutes<Post extends BlogTranslationPost>(
+  routes: BlogRoute<Post>[],
+): BlogRoute<Post>[] {
+  const pathCounts = new Map<string, number>();
+  for (const route of routes) {
+    pathCounts.set(route.pathname, (pathCounts.get(route.pathname) ?? 0) + 1);
+  }
+
+  const collision = [...pathCounts.entries()]
+    .filter(([, count]) => count > 1)
+    .map(([pathname]) => pathname)
+    .sort((left, right) => left.localeCompare(right))[0];
+  if (collision) throw new Error(`blog route collision at ${collision}`);
+
+  return routes;
+}
+
 function projectPairedRoutes<Post extends BlogTranslationPost>(
   posts: readonly Post[],
   locale: BlogLocale,
@@ -40,7 +57,7 @@ export function projectEnglishRoutes<Post extends BlogTranslationPost>(
   const pairedRoutes = projectPairedRoutes(posts, 'en');
   const pairedByPost = new Map(pairedRoutes.map(route => [route.post, route]));
 
-  return posts.flatMap((post) => {
+  const routes = posts.flatMap((post) => {
     const pairedRoute = pairedByPost.get(post);
     if (pairedRoute) return [pairedRoute];
     if (post.slug.includes('/')) return [];
@@ -50,10 +67,12 @@ export function projectEnglishRoutes<Post extends BlogTranslationPost>(
       post,
     }];
   });
+
+  return assertUniqueBlogRoutes(routes);
 }
 
 export function projectKoreanRoutes<Post extends BlogTranslationPost>(
   posts: readonly Post[],
 ): BlogRoute<Post>[] {
-  return projectPairedRoutes(posts, 'ko');
+  return assertUniqueBlogRoutes(projectPairedRoutes(posts, 'ko'));
 }

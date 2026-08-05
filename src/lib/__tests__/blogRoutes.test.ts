@@ -1,5 +1,7 @@
 // @vitest-environment node
 
+import { readFile } from 'node:fs/promises';
+import { join } from 'node:path';
 import { experimental_AstroContainer as AstroContainer } from 'astro/container';
 import { beforeAll, describe, expect, it } from 'vitest';
 import BlogCard from '../../components/BlogCard.astro';
@@ -78,6 +80,31 @@ describe('localized blog route projections', () => {
     expect(projectKoreanRoutes([koreanPost])).toEqual([]);
   });
 
+  it('rejects a public-path collision between a complete pair and a root legacy post', () => {
+    const collidingLegacyPost = {
+      slug: 'opus-guide',
+      data: {},
+    } satisfies TestPost;
+
+    expect(() => projectEnglishRoutes([
+      englishPost,
+      koreanPost,
+      collidingLegacyPost,
+    ])).toThrow('blog route collision at /blog/opus-guide/');
+  });
+
+  it('rejects duplicate root legacy slugs', () => {
+    const duplicateLegacyPost = {
+      ...legacyKoreanPost,
+      data: { ...legacyKoreanPost.data },
+    };
+
+    expect(() => projectEnglishRoutes([
+      legacyKoreanPost,
+      duplicateLegacyPost,
+    ])).toThrow('blog route collision at /blog/legacy-korean-post/');
+  });
+
   it('renders clean projected links while preserving the legacy card default', async () => {
     const props = {
       title: 'Opus guide',
@@ -94,5 +121,24 @@ describe('localized blog route projections', () => {
 
     expect(localizedCard).toContain('href="/ko/blog/opus-guide/"');
     expect(legacyCard).toContain('href="/blog/opus-guide"');
+  });
+
+  it('feeds home, tag, and RSS output from canonical English routes', async () => {
+    const [home, tag, rss] = await Promise.all([
+      readFile(join(process.cwd(), 'src/pages/index.astro'), 'utf8'),
+      readFile(join(process.cwd(), 'src/pages/blog/tag/[tag].astro'), 'utf8'),
+      readFile(join(process.cwd(), 'src/pages/rss.xml.ts'), 'utf8'),
+    ]);
+
+    expect(home).toContain('projectEnglishRoutes(');
+    expect(home).toContain('routes.map(({ post, pathname })');
+    expect(home).toContain('href={pathname}');
+
+    expect(tag).toContain('projectEnglishRoutes(');
+    expect(tag).toContain('routes.map(({ post, pathname })');
+    expect(tag).toContain('href={pathname}');
+
+    expect(rss).toContain('projectEnglishRoutes(');
+    expect(rss).toContain('link: route.pathname');
   });
 });

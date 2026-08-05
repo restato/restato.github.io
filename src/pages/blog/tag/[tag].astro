@@ -5,21 +5,24 @@ import BlogTagNav from '../../../components/BlogTagNav.astro';
 import PageShell from '../../../components/ui/PageShell.astro';
 import { getCollection } from 'astro:content';
 import { getBlogTagContent, selectBlogTagLanguage } from '../../../data/blog-tag-content';
+import { projectEnglishRoutes } from '../../../lib/blogRoutes';
 import { getBlogTagRouteEntries, getRankedBlogTagEntries, toBlogTagSlug } from '../../../lib/blogTags';
 
 export async function getStaticPaths() {
-  const posts = await getCollection('blog', ({ data }) => !data.draft);
+  const routes = projectEnglishRoutes(
+    await getCollection('blog', ({ data }) => !data.draft),
+  );
 
-  const tagRoutes = getBlogTagRouteEntries(posts.flatMap(post => post.data.tags));
+  const tagRoutes = getBlogTagRouteEntries(routes.flatMap(route => route.post.data.tags));
   const canonicalRoutes = tagRoutes.filter(route => route.kind === 'canonical');
 
   return canonicalRoutes.map(route => ({
     params: { tag: route.filesystemSegment },
     props: {
       tag: route.label,
-      posts: posts
-        .filter(post => post.data.tags.some(postTag => toBlogTagSlug(postTag) === route.canonicalSlug))
-        .sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf()),
+      routes: routes
+        .filter(({ post }) => post.data.tags.some(postTag => toBlogTagSlug(postTag) === route.canonicalSlug))
+        .sort((a, b) => b.post.data.date.valueOf() - a.post.data.date.valueOf()),
       legacyTagPaths: tagRoutes
         .filter(candidate => candidate.kind === 'redirect' && candidate.canonicalSlug === route.canonicalSlug)
         .map(candidate => ({
@@ -30,15 +33,17 @@ export async function getStaticPaths() {
   }));
 }
 
-const { tag, posts, legacyTagPaths = [] } = Astro.props;
+const { tag, routes, legacyTagPaths = [] } = Astro.props;
 const legacyTagPathsJson = JSON.stringify(legacyTagPaths).replace(/</g, '\\u003c');
-const tagLanguage = selectBlogTagLanguage(tag, posts);
-const tagContent = getBlogTagContent(tagLanguage, tag, posts.length);
+const tagLanguage = selectBlogTagLanguage(tag, routes.map(({ post }) => post));
+const tagContent = getBlogTagContent(tagLanguage, tag, routes.length);
 
 // Get all unique tags for the filter section
-const allPosts = await getCollection('blog', ({ data }) => !data.draft);
+const allRoutes = projectEnglishRoutes(
+  await getCollection('blog', ({ data }) => !data.draft),
+);
 const rankedTags = getRankedBlogTagEntries(
-  allPosts.map(post => post.data.tags),
+  allRoutes.map(route => route.post.data.tags),
 );
 ---
 
@@ -96,14 +101,15 @@ const rankedTags = getRankedBlogTagEntries(
         />
       )}
 
-      {posts.length > 0 ? (
+      {routes.length > 0 ? (
         <div class="grid gap-5 md:grid-cols-2">
-          {posts.map((post) => (
+          {routes.map(({ post, pathname }) => (
             <BlogCard
               title={post.data.title}
               description={post.data.description}
               date={post.data.date}
               slug={post.slug}
+              href={pathname}
               tags={post.data.tags}
               image={post.data.image}
             />
@@ -116,7 +122,7 @@ const rankedTags = getRankedBlogTagEntries(
         </div>
       )}
 
-      {posts.length > 0 && (
+      {routes.length > 0 && (
         <p class="mt-8 border-t border-[var(--border-subtle)] pt-5 text-sm text-[var(--text-muted)]">
           {tagContent.summary}
         </p>
