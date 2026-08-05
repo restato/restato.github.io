@@ -4,7 +4,7 @@ import PageHeader from '../../components/ui/PageHeader.astro';
 import PageShell from '../../components/ui/PageShell.astro';
 import { projects } from '../../data/projects';
 
-const pageDescription = "A collection of personal projects, practical apps, and tools including Arc Note, Local Price Extractor, RoomFit 3D, PasteDock, Quick Issue, and JobWorld Kids Planner.";
+const pageDescription = "A collection of personal projects, practical apps, and tools including 바른한끼, Arc Note, Local Price Extractor, RoomFit 3D, PasteDock, Quick Issue, and JobWorld Kids Planner.";
 ---
 
 <MainLayout title="Projects | Restato" description={pageDescription} lang="en" lockLanguage={true}>
@@ -20,7 +20,9 @@ const pageDescription = "A collection of personal projects, practical apps, and 
         {projects.map((project) => (
           <li class="border-b border-[var(--border-subtle)] md:border-r">
             <a
-              href={`/projects/${project.slug}`}
+              href={project.url ?? `/projects/${project.slug}`}
+              target={project.url ? '_blank' : undefined}
+              rel={project.url ? 'noreferrer' : undefined}
               class="group relative flex min-h-28 items-center gap-4 px-5 py-4 transition-colors hover:bg-[var(--surface-soft)]"
             >
               {project.badge && (
