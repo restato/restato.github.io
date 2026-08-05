@@ -20,6 +20,7 @@ const blog = defineCollection({
       'id',
       'hi',
     ]).optional(),
+    translationKey: z.string().regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/u).optional(),
     tags: z.array(z.string()).default([]),
     image: z.string().optional(),
     draft: z.boolean().default(false),
