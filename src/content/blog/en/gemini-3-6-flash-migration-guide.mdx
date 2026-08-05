@@ -1,0 +1,174 @@
+---
+title: "Gemini 3.6 Flash Migration: API Changes, Copilot, and AI Gateway"
+description: "Migrate to Gemini 3.6 Flash or 3.5 Flash-Lite by fixing deprecated sampling options, prefilled turns, thinking settings, Copilot policy, and AI Gateway IDs."
+date: 2026-07-22
+lang: en
+translationKey: gemini-3-6-flash-migration-guide
+tags: ["Gemini", "Google AI", "GitHub Copilot", "AI SDK", "Migration"]
+---
+
+Replacing a Gemini model string is the smallest part of this upgrade. **The request contract is the migration.** Remove deprecated sampling options, remove prefilled model turns, review thinking and function-response fields, and only then compare Gemini 3.6 Flash with Gemini 3.5 Flash-Lite on the same tasks.
+
+Google made both models generally available on July 21, 2026. GitHub and Vercel added their own hosted routes, but those product surfaces have separate policy names, identifiers, rollout timing, and billing. This guide reflects the official pages checked on August 5, after GitHub completed the July 31 retirement of Gemini 3 Flash and Gemini 2.5 Pro in Copilot.
+
+## Choose between two stable lanes
+
+| Model | Google model ID | Default thinking | Input / 1M | Output / 1M | Starting hypothesis |
+| --- | --- | --- | ---: | ---: | --- |
+| Gemini 3.6 Flash | `gemini-3.6-flash` | `medium` | $1.50 | $7.50 | Coding, multimodal analysis, and multi-step agent work |
+| Gemini 3.5 Flash-Lite | `gemini-3.5-flash-lite` | `minimal` | $0.30 | $2.50 | High-volume extraction, classification, and bounded subagent work |
+
+Both model pages list an input limit of 1,048,576 tokens and an output limit of 65,536 tokens. Both also list Computer Use as **Supported (Preview)**. That corrects an earlier version of this article which said Flash-Lite did not support Computer Use.
+
+“Supported” is not the same as “safe for an unattended workflow.” Preview tools still need permission boundaries, action verification, and a rollback path. Use the model page for capability eligibility and your own tests for reliability.
+
+## Prove the minimal Interactions API call first
+
+Google's current latest-model guide presents the Interactions API as the recommended path for the newest models. Begin without tools so request-shape errors are easy to isolate.
+
+```bash
+npm install @google/genai
+```
+
+```ts
+import { GoogleGenAI } from "@google/genai";
+
+const ai = new GoogleGenAI({});
+
+const interaction = await ai.interactions.create({
+  model: "gemini-3.6-flash",
+  input: `Review this TypeScript change.
+List the risky files and the tests that should run before any edit.`,
+});
+
+console.log(interaction.outputText);
+```
+
+This example was checked against Google's current JavaScript quickstart. It was not executed with a Gemini API credential.
+
+Add one capability at a time: text, structured output, function calling, state continuation, and then built-in tools. A staged call sequence makes it clear whether a failure comes from the model, request shape, tool contract, or state management.
+
+## Remove deprecated sampling options
+
+Starting with Gemini 3.6 Flash and 3.5 Flash-Lite, `temperature`, `top_p`, and `top_k` are deprecated. Google says these values are currently ignored and that future model generations will return HTTP 400 when they are supplied.
+
+Do not tune the old values. Remove them from the Gemini adapter.
+
+```ts
+// Remove this legacy configuration from Gemini 3.6 and 3.5 Flash-Lite calls.
+const legacyGenerationConfig = {
+  temperature: 0.7,
+  topP: 0.9,
+  topK: 40,
+};
+```
+
+This distinction matters during incident diagnosis. A sampling field can be silently ignored today, while another request-contract violation can fail immediately. Treat a request that returns 200 as insufficient proof that every option still has an effect.
+
+Use system instructions and structured output for stable response shape. Then enforce the result with a schema or domain validator rather than relying on sampling settings for determinism.
+
+## Remove prefilled model turns
+
+The current models reject a request whose last non-empty turn has the `model` role. This legacy prefill pattern returns HTTP 400:
+
+```json
+{
+  "contents": [
+    { "role": "user", "parts": [{ "text": "Translate Hello world to Korean." }] },
+    { "role": "model", "parts": [{ "text": "Translation:" }] }
+  ]
+}
+```
+
+Replace the prefill with an instruction or structured output contract. In the Interactions API, continue a server-side conversation using `previous_interaction_id` instead of manually appending a fake final model turn.
+
+Do not mechanically apply that field name to every SDK. Confirm whether your client uses the REST snake-case field or an SDK-specific property before editing production code.
+
+## Audit the remaining Gemini 3.x contract
+
+Google's migration checklist includes more than sampling and prefills:
+
+1. Change the model ID to `gemini-3.6-flash` or `gemini-3.5-flash-lite`.
+2. Replace `thinking_budget` with `thinking_level`; evaluate `medium` or `high` for complex work.
+3. Remove unsupported `candidate_count` from Gemini 3.x requests.
+4. Preserve thought signatures when the API returns them across tool turns.
+5. In `generateContent`, include both `call_id` and `name` on every `FunctionResponse`.
+6. Prefer server-side state through `previous_interaction_id` for Interactions API conversations.
+7. Measure tool calls, turns, tokens, latency, and unwanted edits on the same acceptance set.
+
+The last item is editorial engineering guidance built on the documented contract. Google describes 3.6 Flash as using fewer turns and unwanted edits in its evaluations, but a vendor result does not establish those gains in your repository or tool harness.
+
+## Close the Copilot retirement gap
+
+GitHub announced a gradual Gemini 3.6 Flash rollout on July 21 for Copilot Pro, Pro+, Max, Business, and Enterprise users across supported clients. Business and Enterprise administrators must enable the policy named **Gemini 3.6 Flash Preview** before members can select it.
+
+Google's API model can be stable GA while GitHub's hosted-product policy still carries a Preview label. Manage the two surfaces separately.
+
+On July 31, GitHub deprecated Gemini 3 Flash and Gemini 2.5 Pro across Copilot experiences. Gemini 3.6 Flash is the documented alternative to Gemini 3 Flash. A current migration should therefore verify completion, not repeat the old future-tense reminder:
+
+1. Search team instructions and automation for the retired model names.
+2. Confirm the organization or enterprise model policy allows 3.6 Flash.
+3. Confirm the model appears in the actual client and account used by the team.
+4. Run the same read, edit, and agent tasks on the replacement.
+5. Record output acceptance, tool behavior, latency, and usage-based cost.
+
+No application Gemini API model ID changes automatically because an administrator changes a Copilot policy.
+
+## Compare the exact Vercel AI Gateway IDs
+
+Vercel AI Gateway exposes the two routes as `google/gemini-3.6-flash` and `google/gemini-3.5-flash-lite`. A compact AI SDK comparison can keep the prompt fixed:
+
+```ts
+import { streamText } from "ai";
+
+const models = [
+  "google/gemini-3.6-flash",
+  "google/gemini-3.5-flash-lite",
+] as const;
+
+for (const model of models) {
+  const result = streamText({
+    model,
+    prompt: "Identify the deployment failure and propose one verification command.",
+  });
+
+  for await (const textPart of result.textStream) {
+    process.stdout.write(textPart);
+  }
+}
+```
+
+This syntax was checked against Vercel's release example but was not run with Gateway credentials. A gateway standardizes transport and observability; it does not erase the provider's request restrictions or make the two models behaviorally equivalent.
+
+For approval, recovery, and timeout design around AI SDK agents, see the [AI SDK 7 production agent guide](/blog/ai-sdk-7-production-agent-guide/).
+
+## Roll out against accepted outcomes
+
+Use a sequence that separates request compatibility from model quality:
+
+1. Search for sampling options, `thinking_budget`, `candidate_count`, and final model-role turns.
+2. Remove unsupported fields before changing the model ID.
+3. Prove a minimal text request and error handling.
+4. Add structured output and function calling with contract tests.
+5. Run 20–50 representative, permission-cleared cases on both model lanes.
+6. Compare accepted results, tool-call count, total tokens, latency, retries, and unwanted file changes.
+7. Shadow read-only work before enabling writes or UI automation.
+8. Roll out a small traffic percentage with explicit error, cost, and latency rollback thresholds.
+
+Use 3.6 Flash when multi-step reasoning, code work, or multimodal interpretation justifies its measured gain. Use Flash-Lite when the task is frequent, bounded, and externally verifiable. Raise Flash-Lite's thinking level only when the evaluation shows that additional work improves accepted outcomes enough to offset latency and cost.
+
+## Recommendation
+
+Fix the request contract before comparing models. Remove deprecated sampling fields and prefilled turns, update the remaining Gemini 3.x fields, and prove the smallest call. Then treat 3.6 Flash as the complex-work candidate and 3.5 Flash-Lite as the high-volume candidate—subject to the same validators.
+
+Finally, migrate Google API code, GitHub Copilot policy, and Vercel AI Gateway configuration as three separate controls. Similar names do not make them one deployment.
+
+## Primary sources
+
+- [Using the latest Gemini models](https://ai.google.dev/gemini-api/docs/latest-model)
+- [Gemini API release notes](https://ai.google.dev/gemini-api/docs/changelog)
+- [Gemini 3.6 Flash model page](https://ai.google.dev/gemini-api/docs/models/gemini-3.6-flash)
+- [Gemini 3.5 Flash-Lite model page](https://ai.google.dev/gemini-api/docs/models/gemini-3.5-flash-lite)
+- [Gemini 3.6 Flash in GitHub Copilot](https://github.blog/changelog/2026-07-21-gemini-3-6-flash-is-now-available-in-github-copilot/)
+- [GitHub's July 31 Gemini model retirement](https://github.blog/changelog/2026-07-31-gemini-2-5-pro-and-gemini-3-flash-deprecated/)
+- [Gemini 3.6 Flash and 3.5 Flash-Lite on Vercel AI Gateway](https://vercel.com/changelog/gemini-3-6-flash-3-5-flash-lite-on-ai-gateway)

@@ -1,0 +1,185 @@
+---
+title: "GPT-5.6 Sol, Terra, and Luna: API Pricing and Migration Guide"
+description: "Compare current GPT-5.6 model IDs, post-price-cut API rates, context and cache rules, then migrate with workload evaluations instead of a global model rename."
+date: 2026-07-19
+lang: en
+translationKey: gpt-5-6-sol-terra-luna-api-guide
+tags: ["OpenAI", "GPT-5.6", "API", "AI", "Migration"]
+---
+
+GPT-5.6 adoption is not a contest to put the strongest model on every request. **Routing—not a global model rename—is the migration.** Start with Terra for general workloads, promote cases to Sol only when an evaluation shows a useful gain, and send high-volume work to Luna only when a deterministic check can catch its failures.
+
+That policy matters more after OpenAI's July 30 price update. The original launch rates for Terra and Luna are no longer current. This guide uses the live model pages checked on August 5, 2026, and recalculates the example request from those rates.
+
+## Use the current model and price map
+
+OpenAI released the GPT-5.6 family for general availability on July 9, 2026. The three API tiers share a 1.05 million-token context window, a 128,000-token maximum output, and a February 16, 2026 knowledge cutoff.
+
+| Model | API model ID | Input / 1M | Cached input / 1M | Output / 1M | Starting hypothesis |
+| --- | --- | ---: | ---: | ---: | --- |
+| GPT-5.6 Sol | `gpt-5.6-sol` | $5.00 | $0.50 | $30.00 | Difficult coding, analysis, and long-running agents |
+| GPT-5.6 Terra | `gpt-5.6-terra` | $2.00 | $0.20 | $12.00 | General product features and balanced tool workflows |
+| GPT-5.6 Luna | `gpt-5.6-luna` | $0.20 | $0.02 | $1.20 | High-volume extraction, classification, and transformation |
+
+The `gpt-5.6` alias currently routes to Sol. A floating alias is convenient for interactive work that should follow OpenAI's flagship tier. A production service that requires a reviewed model change should use an explicit tier ID and keep the evaluation result beside its configuration.
+
+OpenAI positions Sol as the frontier tier, Terra as the balance of intelligence and cost, and Luna as the cost-sensitive high-volume tier. Those descriptions are useful starting hypotheses, not evidence that a model clears your workload's acceptance criteria.
+
+## Start from a documented Responses API call
+
+The current OpenAI model guide recommends the Responses API for reasoning, tool use, and multi-turn work. A minimal TypeScript request looks like this:
+
+```ts
+import OpenAI from "openai";
+
+const client = new OpenAI();
+
+const response = await client.responses.create({
+  model: "gpt-5.6-terra",
+  reasoning: { effort: "medium" },
+  input: `Review this TypeScript change.
+Return the risky files, the smallest safe fix, and the tests to run.`,
+});
+
+console.log(response.output_text);
+```
+
+This example was reviewed against the current documentation and SDK shape; it was not executed with a paid API credential.
+
+GPT-5.6 supports `none`, `low`, `medium`, `high`, `xhigh`, and `max` reasoning effort. Do not bind effort to a model name in scattered call sites. Keep both in a workload profile so a rollout changes one reviewed configuration.
+
+```ts
+type Workload = "high-stakes" | "balanced" | "high-volume";
+
+const profiles = {
+  "high-stakes": { model: "gpt-5.6-sol", effort: "high" },
+  balanced: { model: "gpt-5.6-terra", effort: "medium" },
+  "high-volume": { model: "gpt-5.6-luna", effort: "low" },
+} as const;
+
+function profileFor(workload: Workload) {
+  return profiles[workload];
+}
+```
+
+This mapping expresses a test plan, not a promise about quality. A workload moves lanes only after its output passes the same validators and review rules.
+
+## Calculate a request, not a price-table row
+
+Per-million-token prices hide the cost of an actual request. For 100,000 uncached input tokens and 10,000 output tokens, the simple token charge is:
+
+| Model | Input cost | Output cost | Total |
+| --- | ---: | ---: | ---: |
+| Sol | $0.500 | $0.300 | $0.800 |
+| Terra | $0.200 | $0.120 | $0.320 |
+| Luna | $0.020 | $0.012 | $0.032 |
+
+If all 100,000 input tokens are cache reads, the same calculation becomes $0.350 for Sol, $0.140 for Terra, and $0.014 for Luna. These are derived values from the current list prices. They exclude tool charges, cache creation, retries, regional or service-tier modifiers, and any negotiated rate.
+
+Two billing rules can change the result materially:
+
+- Cache writes cost 1.25 times the model's uncached input rate. A cache is not a free first request.
+- When input exceeds 272,000 tokens, OpenAI applies 2x input and 1.5x output rates to the entire request, not only the tokens above the threshold.
+
+A 1.05M-token context window is therefore a capacity limit, not a target. Retrieve the evidence needed for the decision, keep reusable prefixes stable, and compare retrieval or compaction with the full-request long-context premium.
+
+## Choose lanes by failure cost and verification strength
+
+### Start general workloads on Terra
+
+Terra is a sensible evaluation default when the task is important but most requests are not the hard tail:
+
+- document synthesis with source checks;
+- customer-support drafts with policy validation;
+- code review with a fixed checklist;
+- research with bounded tools;
+- structured generation with schema validation.
+
+Keep Terra only if it clears the workload's quality, latency, and cost thresholds. Its lower list price does not compensate for more retries or human repair.
+
+### Promote expensive failures to Sol
+
+Test Sol where failure costs more than the added tokens and latency:
+
+- repository-scale changes with multiple dependent decisions;
+- security or architecture analysis with named review criteria;
+- long-running work that must recover from tool errors;
+- cases that repeatedly fail Terra's external checks.
+
+Promotion should be driven by a failure slice, not by prompt length or a user asking for “the best model.” Compare the same cases on Terra and Sol, and record cost per accepted outcome.
+
+### Demote verifiable volume to Luna
+
+Luna's current price makes it a strong candidate for frequent, bounded work:
+
+- classification and routing;
+- field extraction;
+- normalization into a strict schema;
+- short transformation or summarization;
+- preprocessing before a more capable model.
+
+The safe boundary is verification. A JSON schema, allowed-value list, reconciliation total, or sampled human review makes a Luna lane easier to operate. Do not send a consequential judgment to Luna merely because it is cheap.
+
+For permission design and verifier loops after model selection, continue with the [GPT-5.6 agent engineering guide](/blog/gpt-5-6-agent-engineering-production-guide/). For a provider-neutral portfolio, see the [enterprise LLM strategy](/blog/enterprise-llm-model-selection-platform-strategy/).
+
+## Migrate from GPT-5.5 in measured stages
+
+### 1. Inventory the current contract
+
+Record the model, reasoning effort, prompt version, tools, context size, output cap, cache behavior, and fallback for each workload. A search-and-replace cannot preserve behavior you have not named.
+
+### 2. Freeze an acceptance set
+
+Use representative, permission-cleared cases and record:
+
+- required facts or fields;
+- schema and tool-call validity;
+- tests or deterministic checks;
+- median and tail latency;
+- input, output, cache, and tool cost;
+- retries and human corrections.
+
+Provider benchmarks help shortlist models. They do not replace your acceptance set.
+
+### 3. Compare one change at a time
+
+Keep the prompt and tool contract fixed while comparing the current model with a GPT-5.6 candidate. Then sweep effort separately. Changing the model, prompt, tool permissions, and evaluator together makes a regression hard to attribute.
+
+### 4. Shadow before serving
+
+Copy a small sample of production inputs to the candidate without returning the duplicate output to users. Apply the same safety and data-handling rules to shadow traffic, and store only the evidence your retention policy permits.
+
+### 5. Roll out with explicit promotion and rollback rules
+
+Start with read-only or externally verified work. Roll back when error rate, accepted-outcome cost, latency, refusal behavior, or out-of-scope tool use crosses its threshold. Alias changes should trigger the same regression gate as an application release.
+
+## Separate ChatGPT availability from API availability
+
+The name shown in a product picker is not an API contract. In standard ChatGPT conversations, eligible paid plans expose Sol through Medium and higher reasoning choices. Terra and Luna are not selectable there. OpenAI documents separate availability for ChatGPT Work, Codex, and the API.
+
+Similarly, the API model pages mark the free tier unsupported for Sol, Terra, and Luna. Check the model page and your account limits before treating a ChatGPT or Codex entitlement as API access.
+
+## Know the boundaries before rollout
+
+- The three model pages list text and image input but no audio or video support.
+- Fine-tuning is not supported on these model pages.
+- Tool calls can add charges beyond token usage.
+- More context can increase both price and latency and can reduce signal density.
+- A floating alias can change behavior without an application-code diff.
+- Vendor benchmark results describe the vendor's evaluation setup, not your production acceptance rate.
+- The current prices are a dated operational input; read the live model pages before procurement or a large rollout.
+
+## Recommendation
+
+Use Terra as the first measured candidate for ordinary product work. Move only validated high-volume tasks to Luna, and promote only the expensive failure tail to Sol. Keep the model ID and reasoning effort in one configuration, and price complete requests—including cache creation, tools, retries, and the 272K-token rule.
+
+The durable asset is not today's cheapest tier. It is the evaluation and routing policy that can absorb tomorrow's price or model change without another blind global replacement.
+
+## Primary sources
+
+- [GPT-5.6 release and July 30 pricing update](https://openai.com/index/gpt-5-6/)
+- [OpenAI GPT-5.6 model guidance](https://developers.openai.com/api/docs/guides/latest-model)
+- [GPT-5.6 Sol model page](https://developers.openai.com/api/docs/models/gpt-5.6-sol)
+- [GPT-5.6 Terra model page](https://developers.openai.com/api/docs/models/gpt-5.6-terra)
+- [GPT-5.6 Luna model page](https://developers.openai.com/api/docs/models/gpt-5.6-luna)
+- [GPT-5.6 availability in ChatGPT, Work, Codex, and the API](https://help.openai.com/en/articles/20001354-gpt-56-in-chatgpt)
