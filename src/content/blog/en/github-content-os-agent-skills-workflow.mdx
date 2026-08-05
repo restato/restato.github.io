@@ -1,0 +1,232 @@
+---
+title: "Build a GitHub Content OS for Agents: Policy, Skills, State, and Gates"
+description: "Use GitHub as an auditable control plane for agent-assisted content by separating policy, reusable skills, editorial state, public artifacts, and publication gates."
+date: 2026-07-20
+tags: ["Content OS", "GitHub", "AI Agent", "Automation", "Astro"]
+lang: en
+translationKey: github-content-os-agent-skills-workflow
+---
+
+“Write good articles consistently” is not an operating system. A chat loses decisions, a long prompt mixes policy with temporary facts, and a generated MDX file says nothing about whether its evidence, build, merge, deployment, or live page was verified.
+
+A GitHub-backed Content OS addresses that problem by making each state reviewable. The key is not to pretend Git is a database or an agent has perfect memory. The useful model is: **GitHub is an auditable control plane for policy, procedures, state transitions, public artifacts, and evidence-backed gates**.
+
+## Use GitHub as a control plane, not a memory database
+
+Git is good at named files, diffs, branches, review, and immutable history. GitHub adds pull requests, Actions, status checks, and deployment records. Those properties fit editorial operations that need traceability more than high-frequency transactions.
+
+They do not provide deterministic agent behavior. GitHub's [custom-instruction documentation](https://docs.github.com/en/copilot/concepts/prompting/response-customization) explicitly notes that an AI system may not follow instructions the same way every time. Policy text guides model behavior; executable gates enforce observable conditions.
+
+Use the repository for claims such as:
+
+- this is the current policy revision;
+- this candidate moved from research to review;
+- these sources were checked at this cutoff;
+- this public diff passed these commands;
+- this commit was deployed and this route was verified.
+
+Do not use it as a substitute for transactional locks, credential storage, or a private analytics warehouse.
+
+## Separate five kinds of state
+
+One giant prompt or `memory.md` file collapses concerns with different readers and lifetimes. Separate them.
+
+```text
+repository control plane
+├─ policy            always applicable boundaries
+├─ skills            task-triggered procedures and scripts
+├─ editorial state   candidates, briefs, evidence, decisions
+├─ public artifacts  reviewed MDX and public assets
+└─ gates              tests, builds, review, deployment, live checks
+```
+
+The boundaries matter:
+
+| Layer | Primary question | Typical change rate |
+|---|---|---|
+| Policy | What is never allowed or always required? | Low |
+| Skills | How is a recurring task performed? | Medium |
+| Editorial state | What do we know and what remains unresolved? | High |
+| Public artifacts | What may readers see? | Per publication |
+| Gates | What objective evidence permits the next transition? | Medium |
+
+Keeping these layers separate prevents a source update from silently changing publication policy and prevents private research notes from leaking into public content.
+
+## Keep always-on policy short
+
+Repository instructions should contain facts and constraints that apply to most work: project structure, required commands, security boundaries, and the rule for resolving conflicts.
+
+GitHub documents repository-wide instructions, path-specific instructions, and agent instructions such as `AGENTS.md`. Its [support matrix](https://docs.github.com/en/copilot/reference/custom-instructions-support) shows that coverage varies across GitHub.com, IDEs, code review, cloud agents, and Copilot CLI. Do not assume one file has identical behavior in every product.
+
+A compact policy might say:
+
+```md
+# Content policy
+
+- Prefer primary sources for current technical claims.
+- Never invent execution results or first-person experience.
+- Update an existing route when intent and conclusion overlap.
+- Keep private editorial evidence outside public MDX.
+- Require schema, translation, test, build, and live-route evidence.
+```
+
+This policy does not explain every research or deployment step. Loading all procedures into every request would increase context and make conflicts harder to see.
+
+## Load procedures as skills
+
+GitHub [defines agent skills](https://docs.github.com/en/copilot/how-tos/copilot-on-github/customize-copilot/customize-cloud-agent/add-skills) as directories containing `SKILL.md` and optional scripts or resources. When relevant, the skill instructions enter the agent context.
+
+Use a skill for a repeatable workflow with a clear trigger and output:
+
+```text
+.agents/skills/
+├─ research-technical-claim/
+│  ├─ SKILL.md
+│  └─ references/
+├─ review-bilingual-article/
+│  ├─ SKILL.md
+│  └─ scripts/
+└─ verify-live-publication/
+   ├─ SKILL.md
+   └─ scripts/
+```
+
+A useful skill states when to use it, what inputs to inspect, which steps are mandatory, which failures stop the workflow, and what evidence proves completion. “You are an expert editor” is a role description, not a checkable procedure.
+
+Scripts belong next to a skill when the condition is mechanical: validate frontmatter, compare translation keys, detect secret patterns, assert generated routes, or count sitemap entries. Prose should guide judgment; code should test deterministic properties.
+
+## Model content as an explicit state machine
+
+Do not infer status from the presence of a draft. Record it.
+
+```text
+proposed
+→ researched
+→ outlined
+→ review-ready
+→ committed
+→ merged
+→ deployed
+→ live-verified
+```
+
+Each transition needs evidence. “Researched” means material claims have sources or analysis labels. “Review-ready” means no hard blocker remains and the artifact meets the editorial threshold. “Deployed” identifies the exact commit. “Live-verified” checks the public response and discovery metadata.
+
+An illustrative candidate record can stay small:
+
+```json
+{
+  "id": "example-agent-guide",
+  "status": "review-ready",
+  "sourceCutoff": "2026-08-05T21:01:57Z",
+  "expectedRoutes": [
+    "/blog/example-agent-guide/",
+    "/ko/blog/example-agent-guide/"
+  ],
+  "gates": {
+    "evidence": "passed",
+    "editorial": "passed",
+    "build": "pending"
+  }
+}
+```
+
+This JSON is an engineering example, not a GitHub product schema. Use Markdown when people must review nuance and structured data when scripts must evaluate state.
+
+## Keep private evidence out of public MDX
+
+Research often includes material that must not be published: failed hypotheses, local paths, private repository details, internal URLs, credentials, personal information, and authorization records.
+
+Create an explicit editorial handoff between private state and the public article:
+
+```text
+private evidence
+→ sanitized claim-and-source handoff
+→ English source draft
+→ editorial review
+→ Korean alternate
+→ public article-only diff
+```
+
+The handoff should include the thesis, supported claims, source URLs, execution boundary, exclusions, and approved public metadata. It should not copy an entire private notebook into MDX.
+
+This boundary also makes review tractable. A public article pull request should contain public MDX and necessary public assets, not workflow policy, private notes, or unrelated site infrastructure.
+
+## Make gates executable
+
+A score helps prioritize edits, but a hard blocker must stop the transition. Examples include an unsupported current fact, a broken route, a mismatched translation key, a leaked secret, or a failed build.
+
+For an Astro bilingual article, a local gate can combine repository-specific commands:
+
+```bash
+npm run verify:translations
+npm run verify:content-quality
+npm test -- --run
+npm run check
+npm run build
+```
+
+Then assert both generated routes, language, canonical URL, reciprocal `hreflang`, English `x-default`, the expected title and body marker, and exactly one sitemap entry per URL.
+
+GitHub Actions turns those commands into shared evidence. GitHub's [status-check documentation](https://docs.github.com/en/enterprise-cloud@latest/pull-requests/reference/status-checks) states that required checks on a protected branch must pass before merge. Keep workflow permissions minimal and treat skipped or missing checks as a distinct state, not as success.
+
+## Close on the live artifact
+
+A generated file is not a publication. Neither is a local build, pushed branch, open pull request, or merge by itself.
+
+Close a publication only after observing:
+
+1. the reviewed commit merged;
+2. the deployment completed for that exact commit;
+3. the expected HTTPS route returned successfully;
+4. title and a unique body marker matched;
+5. language, canonical, and alternate links were correct;
+6. the sitemap contained the route exactly once;
+7. the private record captured the public evidence.
+
+Separating these states improves recovery. A merged article with a failed deployment needs a deployment investigation, not another writing pass. A live page with a missing sitemap entry needs a discovery fix, not a fabricated “published” status.
+
+## Prevent duplicate and conflicting work
+
+Before drafting, compare every existing title and frontmatter, then read the nearest bodies. Compare reader intent, expected action, thesis, examples, and conclusion—not only keywords.
+
+Keep one branch or worktree per authorized change. Rebase before publication, and reject unrelated diff scope. When multiple agents may update shared state, use one of these patterns:
+
+- separate records that merge without editing one central file;
+- a generated index rebuilt after merge;
+- optimistic revision checks for state updates;
+- a queue for operations that truly require serialization.
+
+Git does not prevent two agents from making individually valid but semantically conflicting decisions. Conflict-free files reduce mechanical collisions; editorial ownership resolves meaning.
+
+## Start with the minimum useful repository
+
+You do not need ten agent roles and a dashboard on day one. Begin with:
+
+```text
+AGENTS.md
+.agents/skills/research/SKILL.md
+.agents/skills/review/SKILL.md
+content/candidates/
+public-content/
+.github/workflows/content-quality.yml
+```
+
+Adapt paths to the products that must discover them; GitHub's instruction and skill support matrix is the source of truth for Copilot surfaces.
+
+Add a scoring engine only when candidate volume makes prioritization difficult. Add automation only after manual transitions have objective evidence. A calendar that publishes weak or duplicate content more reliably is not a successful Content OS.
+
+## Recommendation
+
+Store durable rules and state in reviewable files, but do not ask prose instructions to enforce what a script or protected-branch check can prove. Separate private evidence from public artifacts and make every publication transition observable.
+
+The success metric is not articles generated per day. It is the share of useful, traceable articles that pass review and the number of unsafe or unsupported publications the system correctly stops.
+
+## Primary sources
+
+- [GitHub custom-instruction support](https://docs.github.com/en/copilot/reference/custom-instructions-support)
+- [Add repository custom instructions](https://docs.github.com/en/copilot/how-tos/copilot-on-github/customize-copilot/add-custom-instructions/add-repository-instructions)
+- [Add agent skills for GitHub Copilot](https://docs.github.com/en/copilot/how-tos/copilot-on-github/customize-copilot/customize-cloud-agent/add-skills)
+- [About customizing Copilot responses](https://docs.github.com/en/copilot/concepts/prompting/response-customization)
+- [GitHub Actions quickstart](https://docs.github.com/en/actions/get-started/quickstart)
+- [GitHub status checks](https://docs.github.com/en/enterprise-cloud@latest/pull-requests/reference/status-checks)

@@ -1,0 +1,186 @@
+---
+title: "AI SDK 7 Production Agents: Choose the Right Runtime Boundary"
+description: "Choose between ToolLoopAgent, WorkflowAgent, and HarnessAgent, then add approvals, recovery, isolation, timeouts, and observability at the right production boundary."
+date: 2026-07-20
+tags: ["AI SDK", "Vercel", "AI Agent", "TypeScript", "Automation"]
+lang: en
+translationKey: ai-sdk-7-production-agent-guide
+---
+
+The important change in AI SDK 7 is not another way to call a model. It is the addition of clearer boundaries for approvals, durable execution, coding harnesses, timeouts, sandboxes, and telemetry. Those features only help when each one protects the failure mode it was designed for.
+
+The practical rule is: **choose the runtime by the state that must survive failure**. A bounded tool loop, an approval that may resume after a deployment, and a coding agent editing a repository are not the same workload.
+
+Vercel [announced AI SDK 7 on June 25, 2026](https://vercel.com/blog/ai-sdk-7). At the August 5 research cutoff, npm reported `ai` 7.0.52, `@ai-sdk/workflow` 1.0.52, and `@ai-sdk/harness` 1.0.58. This article uses the stable AI SDK 7 behavior documented at that cutoff. Experimental harness APIs still deserve exact version pins and release-note review.
+
+## Choose by the state that must survive failure
+
+Start with three questions rather than three class names.
+
+| Question | Runtime boundary | Why |
+|---|---|---|
+| Can the work finish inside one bounded request? | `ToolLoopAgent` | It provides a reusable multi-step model-and-tool loop without adding durable state. |
+| Must work resume after a restart, deployment, or delayed approval? | `WorkflowAgent` | Its execution is persisted across workflow steps. |
+| Are you running an established coding harness with sessions, skills, file edits, and commands? | `HarnessAgent` | It adapts the whole harness instead of rebuilding it around a model call. |
+
+This is narrower than an enterprise agent-platform decision. If you also need identity, a tool gateway, business context, evaluation ownership, and a registry, start with the [enterprise agent platform architecture guide](/blog/enterprise-agent-platform-architecture-guide/). AI SDK 7 fits mainly in the runtime and execution-control plane.
+
+## Keep bounded loops inside `ToolLoopAgent`
+
+Use `ToolLoopAgent` when the loop is short, the result can be retried as one operation, and no in-flight state must outlive the request. Read-only research, classification, and bounded retrieval are typical starting points.
+
+AI SDK 7 moves approval policy to the call or agent that uses a tool. That matters because risk depends on context: the same storage tool may be safe for a read and unacceptable for an unrestricted delete.
+
+```ts
+import { ToolLoopAgent, tool } from 'ai';
+import { z } from 'zod';
+
+const publishPost = tool({
+  description: 'Publish one reviewed article revision.',
+  inputSchema: z.object({
+    slug: z.string(),
+    expectedSha: z.string(),
+  }),
+  execute: async ({ slug, expectedSha }) => {
+    return publishReviewedRevision({ slug, expectedSha });
+  },
+});
+
+export const editorAgent = new ToolLoopAgent({
+  model,
+  instructions: 'Never retry a denied publication request.',
+  tools: { publishPost },
+  toolApproval: {
+    publishPost: 'user-approval',
+  },
+  timeout: {
+    totalMs: 60_000,
+    stepMs: 20_000,
+    chunkMs: 5_000,
+  },
+});
+```
+
+The code shape is based on the official AI SDK 7 release examples. It was reviewed against documentation, not executed with a model or publication credential.
+
+Do not copy older examples that put `needsApproval` on `tool()`. The [AI SDK 7 changelog](https://vercel.com/changelog/ai-sdk-7) marks tool-level `needsApproval` as deprecated and directs callers to `toolApproval` on `generateText`, `streamText`, or `ToolLoopAgent`.
+
+## Move delayed work to `WorkflowAgent`
+
+A normal server request is the wrong place to keep an approval open for hours. The process may restart, a deployment may replace the instance, or a network connection may disappear while the user is deciding.
+
+`WorkflowAgent` from `@ai-sdk/workflow` persists execution between steps. The official [WorkflowAgent overview](https://vercel.com/kb/guide/what-is-workflowagent) describes tool calls as durable steps that can retry, suspend for approval, and resume later.
+
+That does not make every job a workflow. Move a loop only when at least one state transition must survive process loss:
+
+- waiting for a person or external event;
+- a long batch with completed steps that must not repeat;
+- a side effect that needs durable idempotency evidence;
+- a stream or session that must reconnect after deployment.
+
+Persist identifiers and serializable data, not live clients or open connections. Store `tenantId`, `runId`, repository, branch, and expected revision. Recreate database or API clients inside the step that uses them.
+
+## Wrap coding harnesses instead of rebuilding them
+
+Codex, Claude Code, and Pi are more than provider wrappers. Their harnesses own sessions, permissions, compaction, skills, command execution, and repository interaction. Re-creating those features above `generateText` expands the security and maintenance surface.
+
+The experimental `HarnessAgent` adapts an established harness to the AI SDK `Agent` interface. Vercel's [harness announcement](https://vercel.com/changelog/program-agent-harnesses-with-ai-sdk) includes adapters for Claude Code, Codex, and Pi.
+
+```ts
+import { HarnessAgent } from '@ai-sdk/harness/agent';
+import { claudeCode } from '@ai-sdk/harness-claude-code';
+import { createVercelSandbox } from '@ai-sdk/sandbox-vercel';
+
+const codingAgent = new HarnessAgent({
+  harness: claudeCode,
+  sandbox: createVercelSandbox({
+    runtime: 'node24',
+    ports: [4321],
+  }),
+  instructions: 'Make small changes and verify them before reporting success.',
+});
+```
+
+This example is documentation-reviewed only. A production implementation still needs a repository allowlist, minimum credentials, outbound-network policy, command and run budgets, and a rule that protects the default branch.
+
+If your immediate problem is configuring one Claude Code environment rather than embedding a harness in an application, the [harness engineering guide](/blog/harness-engineering-guide-claude-code/) is the more direct starting point.
+
+## Treat approval as a signed state transition
+
+An approval dialog is not a control unless the user can predict the effect. The request should identify:
+
+1. the tool and exact operation;
+2. the relevant input and target revision;
+3. the external side effect;
+4. the replay and rollback behavior.
+
+“Approve publication” is weak. “Publish revision `abc123` for slug `example` to the protected branch” gives the approver a stable object to inspect.
+
+AI SDK 7 also adds replay hardening. The official release documents input and policy revalidation before continuation and opt-in HMAC-signed approval tokens for higher-risk flows. Signing does not decide whether an operation is safe; it binds the approval to the operation that was reviewed.
+
+Design denial as a terminal state for that proposal. If the model can immediately request the same effect with slightly different wording, the approval boundary has become a prompt convention rather than policy.
+
+## Budget every way an agent can stall
+
+One timeout cannot distinguish a slow provider from a stuck tool or an infinite loop. AI SDK 7 documents separate budgets for:
+
+- the whole call;
+- an individual model step;
+- time between stream chunks;
+- the default tool budget;
+- a specific tool with a known runtime profile.
+
+Approval waiting is different again. A durable workflow that is intentionally parked should not consume the same clock as a tool that stopped responding.
+
+Set each budget from the failure consequence. A search timeout can return a partial result; a build timeout may need a larger fixed window; a payment timeout must reconcile whether the provider completed the charge before a retry.
+
+## Observe the execution path, not only token totals
+
+Total tokens cannot explain why an agent failed. Join at least these identifiers across logs and traces:
+
+```text
+runId
+├─ callId
+│  ├─ stepNumber
+│  ├─ toolCallId
+│  └─ approvalId
+└─ tenantId or projectId
+```
+
+Record duration, selected model, stop reason, retry, approval outcome, and sanitized tool status. Do not copy full prompts, credentials, file contents, or tool responses into telemetry by default. Observability can become a second data leak if its payload boundary is broader than the application boundary.
+
+## Migrate in reversible stages
+
+AI SDK provides a v7 codemod and migration skill:
+
+```bash
+npx @ai-sdk/codemod v7
+npx skills add vercel/ai --skill migrate-ai-sdk-v6-to-v7
+```
+
+Treat them as a starting point. After automated changes, verify behavior that a type checker cannot prove:
+
+1. write tools still require the intended approval policy;
+2. old tool-level `needsApproval` rules were not silently lost;
+3. `maxSteps` behavior became an explicit stop condition;
+4. delayed work resumes after a process restart;
+5. workflow context remains serializable;
+6. harness and sandbox packages are pinned to reviewed versions;
+7. reconnecting streams do not duplicate side effects;
+8. denied and timed-out operations have distinct audit states.
+
+For a small service, begin with a read-only `ToolLoopAgent`. Add policy-controlled write tools next. Move only the flows that need durable recovery to `WorkflowAgent`, and introduce `HarnessAgent` only for tasks that genuinely require a coding harness.
+
+## Recommendation
+
+Do not adopt all three runtimes as a feature checklist. Keep bounded work simple, make delayed state durable, and isolate repository-changing harnesses. Then place approval, timeout, idempotency, and observability rules at those explicit boundaries.
+
+The best AI SDK 7 architecture is not the one with the most agent features. It is the one where a restart, denial, timeout, or replay has one predictable outcome.
+
+## Primary sources
+
+- [AI SDK 7 announcement](https://vercel.com/blog/ai-sdk-7)
+- [AI SDK 7 changelog](https://vercel.com/changelog/ai-sdk-7)
+- [AI SDK `ToolLoopAgent` reference](https://ai-sdk.dev/docs/reference/ai-sdk-core/tool-loop-agent)
+- [What is WorkflowAgent?](https://vercel.com/kb/guide/what-is-workflowagent)
+- [Program agent harnesses with AI SDK](https://vercel.com/changelog/program-agent-harnesses-with-ai-sdk)
