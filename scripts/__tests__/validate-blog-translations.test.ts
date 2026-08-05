@@ -1,5 +1,5 @@
 import { execFile as execFileCallback } from 'node:child_process';
-import { mkdir, mkdtemp, rm, writeFile } from 'node:fs/promises';
+import { mkdir, mkdtemp, rm, symlink, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { promisify } from 'node:util';
@@ -83,6 +83,67 @@ describe('validateBlogTranslations', () => {
 
     expect(validateBlogTranslations(rootWithRootTranslationKey)).toContain(
       'paired document must live under src/content/blog/en or src/content/blog/ko',
+    );
+  });
+
+  it('does not interpret literal backslashes in POSIX filenames as locale separators', async (context) => {
+    if (process.platform === 'win32') context.skip();
+
+    const root = await createFixture({
+      'en\\opus-guide.mdx': post('en', 'opus-guide'),
+      'ko\\opus-guide.mdx': post('ko', 'opus-guide'),
+    });
+
+    expect(validateBlogTranslations(root)).toContain(
+      'paired document must live under src/content/blog/en or src/content/blog/ko',
+    );
+  });
+
+  it('rejects nested locale documents without a translation key', async () => {
+    const root = await createFixture({
+      'en/nested/opus-guide.mdx': '---\nlang: en\n---\n# Article\n',
+    });
+
+    expect(validateBlogTranslations(root)).toContain(
+      'paired document must live under src/content/blog/en or src/content/blog/ko',
+    );
+  });
+
+  it('rejects nested locale documents with a translation key', async () => {
+    const root = await createFixture({
+      'ko/nested/opus-guide.mdx': post('ko', 'opus-guide'),
+    });
+
+    expect(validateBlogTranslations(root)).toContain(
+      'paired document must live under src/content/blog/en or src/content/blog/ko',
+    );
+  });
+
+  it('rejects symbolic links without reading their targets', async (context) => {
+    const root = await createFixture({
+      'en/opus-guide.mdx': post('en', 'opus-guide'),
+      'ko/opus-guide.mdx': post('ko', 'opus-guide'),
+    });
+    const target = join(root, 'outside.mdx');
+    const link = join(root, 'src/content/blog/en/linked.mdx');
+    await writeFile(target, post('en', 'outside-guide'));
+
+    try {
+      await symlink(target, link, 'file');
+    } catch (error: unknown) {
+      if (error && typeof error === 'object' && 'code' in error && [
+        'EACCES',
+        'EPERM',
+        'ENOSYS',
+      ].includes(String(error.code))) {
+        context.skip();
+        return;
+      }
+      throw error;
+    }
+
+    expect(validateBlogTranslations(root)).toContain(
+      'blog content must not contain symbolic links',
     );
   });
 

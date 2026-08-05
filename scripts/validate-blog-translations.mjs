@@ -1,25 +1,26 @@
 import { existsSync, readFileSync, readdirSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
-import { join, relative } from 'node:path';
+import { join, relative, sep } from 'node:path';
 
 const blogDirectoryParts = ['src', 'content', 'blog'];
 const pairedDocumentPattern = /^(en|ko)\/([a-z0-9]+(?:-[a-z0-9]+)*)\.mdx$/u;
 const scalarPattern = /^(lang|translationKey):[\t ]*(.*)$/u;
 
-function listBlogDocuments(directory) {
-  if (!existsSync(directory)) return [];
+function listBlogDocuments(directory, entries = { documents: [], symlinks: [] }) {
+  if (!existsSync(directory)) return entries;
 
-  const files = [];
   for (const entry of readdirSync(directory, { withFileTypes: true }).sort((left, right) => left.name.localeCompare(right.name))) {
     const path = join(directory, entry.name);
-    if (entry.isDirectory()) {
-      files.push(...listBlogDocuments(path));
+    if (entry.isSymbolicLink()) {
+      entries.symlinks.push(path);
+    } else if (entry.isDirectory()) {
+      listBlogDocuments(path, entries);
     } else if (entry.isFile() && (entry.name.endsWith('.md') || entry.name.endsWith('.mdx'))) {
-      files.push(path);
+      entries.documents.push(path);
     }
   }
 
-  return files;
+  return entries;
 }
 
 function parseScalar(value) {
@@ -74,8 +75,14 @@ export function validateBlogTranslations(root) {
   const errors = new Set();
   const pairs = new Map();
 
-  for (const path of listBlogDocuments(blogDirectory)) {
-    const id = relative(blogDirectory, path).split('\\').join('/');
+  const { documents, symlinks } = listBlogDocuments(blogDirectory);
+  if (symlinks.length > 0) {
+    addError(errors, 'blog content must not contain symbolic links');
+  }
+
+  for (const path of documents) {
+    const segments = relative(blogDirectory, path).split(sep);
+    const id = segments.join('/');
     const frontmatter = parseFrontmatter(path);
     if (frontmatter.malformed) {
       addError(errors, `blog document ${id} has malformed frontmatter`);
@@ -85,7 +92,7 @@ export function validateBlogTranslations(root) {
     const { lang, translationKey } = frontmatter.data;
     const pairedPath = pairedDocumentPattern.exec(id);
     if (!pairedPath) {
-      if (translationKey) {
+      if (translationKey || segments[0] === 'en' || segments[0] === 'ko') {
         addError(errors, 'paired document must live under src/content/blog/en or src/content/blog/ko');
       }
       continue;
