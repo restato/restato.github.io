@@ -1,0 +1,375 @@
+---
+title: "Operate GitHub Issues Agent Automation with Confidence, Approvals, and Safe Outputs"
+description: "Roll out GitHub Issues agent automation with confidence thresholds, approval suggestions, rationale, safe-output constraints, staged previews, and action-level calibration."
+date: 2026-07-24
+lang: en
+translationKey: github-issues-agent-automation-controls-guide
+tags: ["GitHub", "GitHub Issues", "Copilot", "Agentic Workflows", "AI Agent", "Automation", "Human in the Loop", "Security"]
+---
+
+A wrong triage label is usually cheap to reverse. A wrong assignee interrupts a person, and an incorrect close action can hide a customer request or active incident. Requiring a person to review every prediction removes much of automation's value; applying every prediction turns small model errors into workflow changes.
+
+GitHub released agent automation controls for Issues in public preview on July 23, 2026. Supported changes can carry **confidence**, **rationale**, and an **approval state**, while repository administrators choose which confidence levels apply automatically.
+
+**Do not treat confidence as the security boundary. Keep the agent runtime read-only, let validated `safe-outputs` enforce the actions it may request, and use staged mode plus observed outcomes to expand automation one action at a time.**
+
+> This capability remains a public preview at the August 5, 2026 research cutoff. Names and supported actions may change before general availability. The article uses GitHub's launch post and current GitHub Agentic Workflows documentation.
+
+## Separate the three intent controls
+
+| Control | Role | What it solves | What it does not solve |
+| --- | --- | --- | --- |
+| Confidence | Rates a supported action high, medium, or low | Helps route uncertain changes to review | Proves that the model's self-rating is calibrated |
+| Approvals | Holds a change as a suggestion instead of applying it | Gives a human a review step | Prevents a directly authorized agent from writing |
+| Rationale | Records the visible reason for a proposed or applied action | Supports audit and error analysis | Verifies that the stated reason is true |
+
+GitHub's [launch announcement](https://github.blog/changelog/2026-07-23-agent-automation-controls-in-github-issues-in-public-preview/) describes high-confidence changes as automatically applied and medium- and low-confidence changes as suggestions under the default experience. Administrators can change the automation level, and `has:suggestions` finds issues waiting for review.
+
+The release is explicit about one limitation: **approvals are workflow convenience, not a server-side security control**. An agent with direct issue write permission can apply a change without using the suggestion path.
+
+## Recommended architecture
+
+```text
+GitHub issue event
+       │
+       ▼
+read-only agent
+  - reads the issue and permitted repository context
+  - proposes action, confidence, and rationale
+       │
+       ▼
+structured safe-output request
+       │
+       ├─ schema validation
+       ├─ allowlist and blocklist
+       ├─ maximum operation count
+       ├─ target restriction
+       └─ threat detection
+       │
+       ▼
+permission-controlled write job
+       │
+       ├─ automatic application
+       └─ suggestion for review
+       │
+       ▼
+outcome measurement
+```
+
+GitHub Agentic Workflows [safe outputs](https://github.github.com/gh-aw/reference/safe-outputs/) separate model reasoning from mutation. The agent requests a structured operation without receiving write permission; a separate job validates and executes the request.
+
+This produces two independent gates:
+
+1. **May this action happen at all?** Safe-output constraints and job permissions answer that question.
+2. **May this permitted action happen automatically now?** Confidence and approval policy answer that question.
+
+High confidence must not authorize a blocked label, and a suggestion must not justify putting a write token inside the model runtime.
+
+## 1. Start in staged mode
+
+Do not let a new workflow mutate production issues immediately. With `staged: true`, agent analysis and safe-output validation still run, but writes are skipped and a preview appears in the Actions summary.
+
+```yaml
+---
+on:
+  issues:
+    types: [opened, edited, reopened]
+
+permissions:
+  contents: read
+  issues: read
+
+safe-outputs:
+  staged: true
+
+  add-labels:
+    allowed:
+      - bug
+      - feature
+      - documentation
+      - needs-info
+    blocked:
+      - "~*"
+      - "*[bot]"
+    max: 2
+    target: triggering
+    issue-intents: true
+
+  set-issue-type:
+    allowed: [Bug, Feature, Task]
+    max: 1
+    target: triggering
+    issue-intents: true
+
+  set-issue-field:
+    allowed-fields: [Priority]
+    max: 1
+    target: triggering
+    issue-intents: true
+---
+
+# Issue triage
+
+Classify only the triggering issue and use only the allowed outputs.
+For every requested action:
+
+- provide high, medium, or low confidence;
+- give a concise rationale grounded in visible issue evidence;
+- do not infer urgency or customer impact when the issue does not state it;
+- request no action when evidence is insufficient.
+```
+
+The exact issue-intent switch and supported actions come from the launch announcement; safe-output constraints come from the current reference. After changing a source workflow, compile it with the installed `gh-aw` version instead of editing generated lock files.
+
+```bash
+gh aw compile
+```
+
+Review a labeled sample of real previews before enabling writes. A sample report might look like this:
+
+```text
+label/bug:
+  correct: 41
+  wrong: 3
+  missed: 6
+
+close-issue:
+  correct: 2
+  wrong: 2
+  missed: 0
+```
+
+These numbers are illustrative, not GitHub benchmark results. In this example, `bug` labeling merits further evaluation; close actions clearly do not.
+
+## 2. Set automation policy by action
+
+One global confidence threshold treats actions with very different consequences as equivalent.
+
+| Action | Conservative starting policy | Reason |
+| --- | --- | --- |
+| Add an informational label | Auto-apply validated high-confidence results; suggest the rest | Usually reversible and low impact |
+| Set Priority or Iteration | Keep as suggestion initially | Changes planning and work order |
+| Set issue type | Consider high-confidence auto-apply only after sample review | Affects reporting and workflow rules |
+| Assign a user | Suggest | Changes ownership and sends notifications |
+| Assign a coding agent | Suggest | Can start paid work and code changes |
+| Close an issue | Suggest or human-only | Can hide active requests and records |
+
+Define confidence in the prompt as an evidence standard, not a feeling.
+
+```text
+High confidence:
+- the issue contains explicit, direct evidence for the action;
+- no contradictory evidence is present;
+- the action matches one allowed category exactly.
+
+Medium confidence:
+- the likely action is clear but one relevant fact is missing;
+- two allowed categories remain plausible.
+
+Low confidence:
+- the action depends on inferred intent, priority, ownership, or impact.
+
+When evidence is insufficient, request no action rather than inflating confidence.
+```
+
+If the prompt requires exactly one category, confidence becomes decoration on forced classification. Make `no action` a normal outcome.
+
+## 3. Apply allowlists before confidence
+
+An agent that can select any label in a large public repository has a wide prompt-injection and misclassification blast radius.
+
+```yaml
+safe-outputs:
+  add-labels:
+    allowed:
+      - area/*
+      - team-*
+      - bug
+      - feature
+      - documentation
+    blocked:
+      - "~*"
+      - "*[bot]"
+    max: 2
+    target: triggering
+    issue-intents: true
+```
+
+The current safe-output reference evaluates `blocked` patterns before `allowed` patterns. That lets an operator prohibit workflow-trigger or administrative labels even when a broad allow glob would otherwise match them.
+
+Use the other constraints where they fit:
+
+- `target: triggering` limits a write to the issue that caused the run.
+- `max` caps the number of actions in a run.
+- `allowed-fields` restricts project fields.
+- `allowed` restricts labels, issue types, users, or agents where supported.
+- `required-labels` requires a human or earlier trusted process to mark the target.
+- `required-title-prefix` confines a workflow to a named queue.
+
+Avoid `target: "*"` and cross-repository writes during initial triage. If broader scope becomes necessary, return to staged mode and validate it in a dedicated test repository.
+
+## 4. Store rationale as audit data
+
+A useful rationale is not a long transcript of hidden reasoning. It is a concise statement of observable evidence that lets a maintainer reproduce the decision.
+
+Weak rationale:
+
+```text
+This looks like a bug, so I selected the bug label.
+```
+
+Auditable rationale:
+
+```text
+The issue includes reproduction steps and expected versus actual behavior,
+and reports a repeatable 500 response after save on v3.4.1.
+```
+
+Review whether each rationale:
+
+- cites facts that actually appear in the issue;
+- avoids inventing priority, severity, or customer impact;
+- excludes unrelated explanation;
+- can be paired with a short disagreement category.
+
+If a separate warehouse stores automation outcomes, retain a bounded event instead of copying the complete issue body.
+
+```ts
+interface IssueIntentAuditEvent {
+  repository: string;
+  issueNumber: number;
+  action: "add-label" | "set-type" | "set-field" | "assign" | "close";
+  proposedValue: string;
+  confidence: "high" | "medium" | "low";
+  rationale: string;
+  disposition: "auto-applied" | "accepted" | "declined" | "expired";
+  workflowVersion: string;
+  model?: string;
+  createdAt: string;
+}
+```
+
+Keep the issue reference, requested action, and result. Return to the access-controlled source when the full text is needed, and follow the repository's retention policy.
+
+## 5. Calibrate confidence against outcomes
+
+The share of predictions labeled high confidence is not a quality metric. Calculate outcomes separately for each action.
+
+```text
+precision(high, add-labels)
+= accepted high-confidence label actions
+  / all reviewed high-confidence label actions
+
+suggestion acceptance rate
+= accepted suggestions / reviewed suggestions
+
+false auto-apply rate
+= corrected or reverted automatic actions
+  / all automatic actions
+
+review queue age
+= time from suggestion creation to accept, decline, or expiry
+```
+
+A label policy with 99% observed precision does not justify applying the same threshold to close actions with 85% precision. Compare action consequence, sample size, and rollback cost.
+
+Segment results by workflow, prompt, model, and policy version. A prompt edit or model change invalidates the assumption that an old calibration still applies.
+
+Prefer repository outcomes over the workflow's self-assessment:
+
+- Was an automatic label removed?
+- Was a suggestion accepted or declined?
+- Was a closed issue reopened?
+- Was an assignee removed?
+- Did time to first useful response improve?
+
+These metrics are an engineering measurement plan. The article does not claim that any named threshold has been measured in production.
+
+## 6. Make the suggestion queue an owned operation
+
+Suggestions that nobody reviews become a second stale backlog.
+
+```text
+repo:OWNER/REPO is:issue is:open has:suggestions
+```
+
+Define an operating policy, for example:
+
+- review medium-confidence suggestions within two business days;
+- keep low-confidence results as evaluation data rather than auto-applying them;
+- expire or re-evaluate suggestions after a defined period;
+- record a short correction category when declining;
+- review the most frequently rejected action and value each week.
+
+If review volume is too high, narrow the automation before lowering the review standard. Asking for only `needs-info` on ambiguous issues may be safer and more useful than guessing every metadata field.
+
+## 7. Roll out in stages
+
+### Stage 0: report only
+
+Write analysis to an Actions artifact or summary without issue comments or mutations. Agree on the classification standard.
+
+### Stage 1: global staged mode
+
+Preview every safe output. Confirm allowed values, blocked values, targets, operation counts, and rationale quality.
+
+### Stage 2: suggestions only
+
+Send labels, type, and fields as suggestions. Measure acceptance and queue age.
+
+### Stage 3: low-risk high-confidence automation
+
+Auto-apply only informational labels that pass the sample gate. Keep fields, assignment, and close as suggestions.
+
+### Stage 4: expand one action at a time
+
+Add type or field changes only when observed correction and reversal rates stay inside their action-specific thresholds.
+
+### Stage 5: continuous recalibration
+
+When labels, prompts, models, permissions, or workflow versions change, move the affected action back to staged or shadow evaluation.
+
+Staged mode proves what the safe-output job intends to write. A separate test repository is still useful for validating token permissions, concurrency, duplicate events, and actual API write behavior without touching production issues.
+
+## When using Copilot cloud agent automations
+
+GitHub says Copilot cloud agent automations support confidence and rationale without a workflow upgrade. Create them from the Automations pane in the repository's Agents tab.
+
+Keep the same boundaries:
+
+- do not enable close and assignment first;
+- define high, medium, low, and no-action evidence in the automation prompt;
+- start with a conservative repository automation level;
+- measure suggestion acceptance and correction or reversal outcomes;
+- do not treat the approval panel as an authorization boundary.
+
+REST and GraphQL clients can also attach intent metadata, but sending confidence and rationale does not make a broad write token safe. Keep validation and execution outside the model loop.
+
+## Pre-launch checklist
+
+- [ ] The agent runtime is read-only by default.
+- [ ] Every write is an explicitly enabled safe output.
+- [ ] Each action has an allowlist, operation cap, and target boundary where supported.
+- [ ] Supported issue-changing outputs require intent metadata.
+- [ ] A labeled real-world sample was reviewed in staged mode.
+- [ ] Close and assignment policies are stricter than label policy.
+- [ ] High-confidence precision is measured separately by action.
+- [ ] Rationale points to evidence visible in the issue.
+- [ ] The `has:suggestions` queue has an owner and response target.
+- [ ] Outcomes are segmented by workflow, prompt, model, and policy version.
+
+## Recommendation
+
+Start with a read-only agent and staged safe outputs. Allow only a short set of informational labels, keep the target on the triggering issue, and treat no action as a valid result. After people label a representative sample, auto-apply only the low-consequence action whose observed precision and rollback cost meet a written threshold.
+
+Confidence helps decide when an allowed operation may proceed. It never replaces the permission and validation layer that decides whether the operation is allowed.
+
+## Primary sources
+
+- [Agent automation controls in GitHub Issues](https://github.blog/changelog/2026-07-23-agent-automation-controls-in-github-issues-in-public-preview/)
+- [GitHub Agentic Workflows safe outputs](https://github.github.com/gh-aw/reference/safe-outputs/)
+- [GitHub Agentic Workflows staged mode](https://github.github.com/gh-aw/reference/staged-mode/)
+- [GitHub Agentic Workflows safe rollout](https://github.github.com/gh-aw/guides/organization-practices/safe-rollout/)
+- [GitHub Agentic Workflows permissions](https://github.github.com/gh-aw/reference/permissions/)
+
+Related: [Agent governance control plane](/blog/agent-governance-control-plane/) · [Copilot code review customization](/blog/github-copilot-code-review-customization-guide/) · [Copilot managed-settings governance](/blog/github-copilot-managed-settings-governance-guide/)

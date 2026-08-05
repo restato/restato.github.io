@@ -1,0 +1,226 @@
+---
+title: "Govern the GitHub Copilot App and Cloud Agent with Managed Settings"
+description: "Separate Copilot app access, enterprise managed client behavior, plugin policy, and cloud-agent repository authority with a valid managed-settings rollout."
+date: 2026-07-28
+lang: en
+translationKey: github-copilot-managed-settings-governance-guide
+tags: ["GitHub Copilot", "AI Agent", "Governance", "Enterprise", "Developer Tools"]
+---
+
+GitHub separated access to the Copilot app from its Copilot CLI policy on July 27, 2026, and extended applicable enterprise managed settings to the app and Copilot cloud agent. Enterprise teams now have to distinguish **who may open a client**, **which supported behavior that client may use**, and **what authority an agent task has inside a repository**.
+
+Those are three different control layers:
+
+- Copilot app policy decides client access.
+- `managed-settings.json` governs supported cross-client behavior such as plugins, marketplaces, bypass mode, and the default model setting.
+- Repository rules, Actions permissions, network controls, MCP configuration, and review gates constrain cloud-agent execution.
+
+**Do not treat one JSON file as universal authorization. Use access policy for entry, managed settings for supported client guardrails, and repository controls for actual change authority.**
+
+## Audit the dedicated Copilot app policy first
+
+The dedicated Copilot app policy was introduced with `Enabled everywhere` as its default. Existing Copilot CLI policy does not substitute for reviewing this new client setting.
+
+From enterprise or organization settings:
+
+1. Open `AI Controls`.
+2. Go to `Copilot Clients`.
+3. Select the Copilot app policy.
+4. Choose `Enabled everywhere`, `Disabled everywhere`, or `Let organizations decide`.
+
+| Choice | Appropriate starting condition |
+| --- | --- |
+| Enabled everywhere | The app's workspace, pull request path, support model, and audit process have been reviewed |
+| Disabled everywhere | Operational and review controls are not ready |
+| Let organizations decide | The enterprise defines a baseline while organizations control staged adoption |
+
+The [dedicated policy announcement](https://github.blog/changelog/2026-07-27-manage-github-copilot-app-access-with-a-dedicated-policy/) documents the default and all three choices. Capture the current setting before changing it. Enabling a client and tightening managed settings in the same broad rollout makes failures harder to attribute.
+
+## Define managed settings as behavior policy
+
+Enterprise managed settings do not grant access to the Copilot app. They define supported behavior for users already covered by the enterprise's Copilot plan and the relevant client policy.
+
+For server-managed deployment, place the file in the enterprise governance repository:
+
+```text
+.github-private/
+└── copilot/
+    └── managed-settings.json
+```
+
+A conservative starting point uses the current schema:
+
+```json
+{
+  "permissions": {
+    "disableBypassPermissionsMode": "disable",
+    "model": "auto"
+  },
+  "strictKnownMarketplaces": []
+}
+```
+
+The current [enterprise managed settings reference](https://docs.github.com/en/copilot/reference/enterprise-administrators/enterprise-managed-settings) nests the model default under `permissions.model`. Older examples that put `"model": "auto"` at the top level do not match the current reference.
+
+`strictKnownMarketplaces: []` means complete marketplace lockdown. Add only marketplaces whose source, ownership, update process, and plugin authority have been reviewed. This deny-by-default posture prevents a newly discovered marketplace from becoming implicitly available.
+
+`disableBypassPermissionsMode: "disable"` blocks supported allow-all behavior in Copilot CLI, VS Code, and the Copilot app. It does not turn the cloud agent into an interactive approval flow; GitHub's [July 27 managed-settings release](https://github.blog/changelog/2026-07-27-enterprise-managed-settings-now-apply-to-the-github-copilot-app/) states that bypass-prompt controls apply to interactive clients.
+
+## Document precedence and team exceptions
+
+When several deployment sources define the same supported key, GitHub's current precedence is:
+
+1. MDM-managed settings
+2. Server-managed settings
+3. File-based settings
+4. User-level settings
+
+Higher sources win. The current reference also supports controlled team-specific values for selected keys, but the enterprise remains the policy owner. Treat overrides as explicit governance decisions, not an informal escape hatch.
+
+Use one source of truth for each key where possible:
+
+- Keep the enterprise baseline in server-managed settings when Git review and audit history are the priority.
+- Use MDM when device-group targeting and device policy are required.
+- Use file-based deployment for environments where server or MDM distribution is unavailable.
+- Avoid defining the same invariant differently at several layers.
+
+An enterprise policy table should record the key, source, intended clients, exception owner, and rollback value. The JSON alone cannot explain why two teams receive different settings.
+
+## Distinguish supported behavior by client
+
+The Copilot app and cloud agent now read applicable enterprise managed settings, but not every key has the same meaning on every client.
+
+| Control | Interactive clients: app, CLI, VS Code | Copilot cloud agent |
+| --- | --- | --- |
+| Enabled and blocked plugins | Applied where supported | Applied |
+| Marketplace restrictions | Applied where supported | Applied |
+| `permissions.model` default | Sets Auto for new interactive conversations where supported | Do not assume it selects every task model |
+| Bypass-prompt restriction | Applies to supported allow-all controls | Not an interactive approval boundary |
+
+The current reference's support table is the authority for individual keys. Recheck it before adding a new setting; a key supported by one client is not automatically enforceable everywhere.
+
+Cloud-agent repository work still needs separate controls:
+
+- branch protection and required review;
+- Actions workflow approval and least-privilege job permissions;
+- network firewall and domain allowlists;
+- MCP server, secret, and credential scope;
+- repository-level agent instructions and settings;
+- security and code review of generated changes.
+
+This is the same separation described in the [agent governance control plane](/blog/agent-governance-control-plane/): policy must be enforced at the action boundary, not merely expressed in a client preference.
+
+## Review plugin source, distribution, and authority together
+
+Plugin governance needs four records:
+
+1. **Source** — the GitHub repository, Git URL, package, or directory.
+2. **Version** — the tag or commit that is admitted, rather than an unreviewed moving branch where practical.
+3. **Distribution** — required, blocked, or optional for which users and clients.
+4. **Authority** — tools, data, network destinations, credentials, and write actions exposed by the plugin.
+
+Enterprise settings can define `enabledPlugins`, `extraKnownMarketplaces`, and `strictKnownMarketplaces`. GitHub's [plugin standards documentation](https://docs.github.com/en/enterprise-cloud@latest/copilot/concepts/agents/about-enterprise-plugin-standards) describes centralized marketplace and plugin policy.
+
+Distribution policy does not grant source access. If a required plugin lives in a private repository, each user or runtime still needs authorization to retrieve it. Conversely, source access does not make every marketplace or plugin acceptable.
+
+Installing a plugin also does not approve the business operations exposed through its tools. Tool credentials, repository permissions, and human approval points remain separate.
+
+## Review policy changes through pull requests
+
+Server-managed policy lives in Git, so apply ordinary code-review controls.
+
+```text
+.github-private/CODEOWNERS
+copilot/managed-settings.json @security-team @developer-platform
+```
+
+Each policy pull request should state:
+
+- the reason and affected clients;
+- plugins or marketplaces added, removed, or restricted;
+- organizations or teams in the rollout;
+- verification steps and expected observations;
+- the exact rollback value or commit.
+
+A small deterministic check can protect organization-owned invariants.
+
+```js
+import { readFile } from "node:fs/promises";
+
+const settings = JSON.parse(
+  await readFile("copilot/managed-settings.json", "utf8"),
+);
+
+if (settings.permissions?.disableBypassPermissionsMode !== "disable") {
+  throw new Error("Required bypass-mode policy is missing");
+}
+
+if (settings.permissions?.model !== "auto") {
+  throw new Error("Required default model policy is missing");
+}
+
+if (!Array.isArray(settings.strictKnownMarketplaces)) {
+  throw new Error("Marketplace policy must be explicit");
+}
+```
+
+This script checks local invariants, not the complete GitHub schema. Validate candidate keys against the current managed-settings reference and exercise them on supported clients before broad rollout.
+
+## Verify propagation on each supported surface
+
+GitHub's [configuration guide](https://docs.github.com/en/enterprise-cloud@latest/copilot/how-tos/administer-copilot/manage-for-enterprise/manage-agents/configure-enterprise-managed-settings) says server-managed changes generally reach supported clients within about an hour, or immediately after restart or sign-in. Cloud agent observes updated settings on the next task assignment.
+
+Record client-specific evidence after merging a policy change:
+
+1. A required plugin appears on a supported, authorized client.
+2. A blocked marketplace cannot be used.
+3. The app, CLI, and VS Code enforce the intended bypass-mode behavior where supported.
+4. A newly assigned cloud-agent task does not expose a prohibited plugin or marketplace.
+5. The tested client version, policy commit, account scope, and UTC time are recorded.
+
+Do not reuse an already-running cloud task as proof of a next-task policy change. Do not treat one interactive client as evidence for every other client.
+
+Older clients may not implement a new key. Pair policy rollout with a supported-client inventory and update requirement, and classify an unsupported client as a coverage gap rather than a successful policy application.
+
+## Roll out one layer at a time
+
+1. Inventory the current Copilot app access policy and affected population.
+2. Put `copilot/managed-settings.json` under review in the enterprise `.github-private` repository.
+3. Start with marketplace lockdown and a small set of supported common settings.
+4. Validate the JSON shape and organization-owned invariants in CI.
+5. Test on a small enterprise group and current supported clients.
+6. Verify plugin source access and tool credentials separately.
+7. Expand Copilot app access in stages.
+8. Assign a new cloud-agent task and check repository permissions, network, plugins, and review gates.
+9. Observe installation failures and task failures by policy version.
+10. Exercise the rollback commit and verify clients again.
+
+If app access, marketplace restrictions, required plugins, and repository permissions all change together, a failed task has too many possible causes. Stage changes so each layer produces distinct evidence.
+
+## Operational checklist
+
+- [ ] The current Copilot app policy and its default were reviewed.
+- [ ] Client access and managed client behavior are separate decisions.
+- [ ] `managed-settings.json` uses the current documented schema.
+- [ ] MDM, server, file, user, and any team-specific precedence is documented.
+- [ ] Marketplace access is explicit and deny-by-default where appropriate.
+- [ ] Plugin source access and tool authority are reviewed separately.
+- [ ] Cloud-agent repository permissions remain independently constrained.
+- [ ] Supported client versions and observed enforcement are recorded.
+- [ ] Every policy pull request includes a rollback value and validation plan.
+
+## Recommendation
+
+Start by recording the dedicated Copilot app access policy. Put a minimal, valid `managed-settings.json` under pull-request review, lock marketplaces down, and verify each supported client separately. Then assign a fresh cloud-agent task and test repository authority through Actions, network, MCP, secret, and review controls.
+
+As Copilot gains more clients, governance is not one universal settings file. It is a set of explicit boundaries: access at the client policy, supported behavior in managed settings, and change authority at the repository execution path.
+
+## Primary sources
+
+- [Manage GitHub Copilot app access with a dedicated policy](https://github.blog/changelog/2026-07-27-manage-github-copilot-app-access-with-a-dedicated-policy/)
+- [Enterprise managed settings in the Copilot app and cloud agent](https://github.blog/changelog/2026-07-27-enterprise-managed-settings-now-apply-to-the-github-copilot-app/)
+- [Enterprise managed settings reference](https://docs.github.com/en/copilot/reference/enterprise-administrators/enterprise-managed-settings)
+- [Configuring enterprise-managed settings](https://docs.github.com/en/enterprise-cloud@latest/copilot/how-tos/administer-copilot/manage-for-enterprise/manage-agents/configure-enterprise-managed-settings)
+- [About enterprise-managed plugin standards](https://docs.github.com/en/enterprise-cloud@latest/copilot/concepts/agents/about-enterprise-plugin-standards)
+
+Related: [Agent governance control plane](/blog/agent-governance-control-plane/) · [Copilot code review customization](/blog/github-copilot-code-review-customization-guide/) · [GitHub Issues agent automation controls](/blog/github-issues-agent-automation-controls-guide/)

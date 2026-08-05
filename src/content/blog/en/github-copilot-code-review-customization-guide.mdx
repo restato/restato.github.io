@@ -1,0 +1,222 @@
+---
+title: "Customize GitHub Copilot Code Review with Instructions, Setup, and Network Controls"
+description: "Configure GitHub Copilot code review with head-branch instructions, a dedicated setup workflow, firewall rules, runner isolation, and observable review evidence."
+date: 2026-07-21
+lang: en
+translationKey: github-copilot-code-review-customization-guide
+tags: ["GitHub Copilot", "Code Review", "GitHub Actions", "AI Agent", "Security"]
+---
+
+GitHub Copilot code review is no longer limited to reading a pull request diff. Since GitHub's July 17, 2026 update, a review can use **instructions from the pull request branch, a review-specific environment, and network and runner settings that are separate from the coding agent**.
+
+That flexibility creates a configuration problem. A longer prompt cannot compensate for a missing dependency, an open network boundary, or a failed setup job. **Treat review guidance, runtime preparation, and execution authority as three separate layers, then verify each layer on the pull request.**
+
+GitHub's [July 17 changelog](https://github.blog/changelog/2026-07-17-copilot-code-review-customization-and-configurability-improvements/) introduced four relevant changes.
+
+| Change | Operational consequence |
+| --- | --- |
+| Read custom instructions from the pull request head branch | Test an instruction change before merging it |
+| Read `REVIEW.md`, `GEMINI.md`, and `CLAUDE.md` | Reuse existing repository guidance where its scope fits |
+| Support `.github/workflows/copilot-code-review.yml` | Separate the review environment from the coding-agent environment |
+| Configure firewall and runner settings for code review | Limit review network access and compute independently |
+
+## Put each rule in the file that owns its scope
+
+Copilot code review can read several instruction sources, but copying every rule into one `CLAUDE.md` makes ownership and activation harder to understand.
+
+| File | Best use |
+| --- | --- |
+| `.github/copilot-instructions.md` | Short repository-wide rules specific to Copilot |
+| `.github/instructions/**/*.instructions.md` | Rules for matching paths, languages, or subsystems |
+| `AGENTS.md` | Build, test, architecture, and working rules shared across agents |
+| `REVIEW.md` | Human-readable pull request review criteria |
+| `CLAUDE.md`, `GEMINI.md` | Existing tool-specific project context that remains useful for review |
+| `.github/skills/*/SKILL.md` | A task-specific review procedure Copilot can invoke when relevant |
+
+The current [Copilot code review documentation](https://docs.github.com/en/copilot/concepts/agents/code-review) describes the first four categories explicitly. `REVIEW.md`, `CLAUDE.md`, and `GEMINI.md` support came with the July release. Reuse guidance rather than duplicating it, but keep review-only blockers in a review-focused file.
+
+```md
+# REVIEW.md
+
+## Changes that must block the pull request
+- Astro or MDX changes that fail `npm run build`
+- Frontmatter that disagrees with `src/content/config.ts`
+- Internal links to routes that do not exist
+- Browser-only APIs called directly during server rendering
+- Secrets, tokens, or personal data in the change
+
+## Areas that need focused review
+- `src/content/blog/**`: frontmatter, MDX syntax, and public links
+- `src/pages/**`: static paths and canonical URLs
+- `.github/workflows/**`: minimum permissions and runtime versions
+- `src/components/tools/**`: mobile layout and failure handling
+
+## Review response
+- State severity and impact first.
+- Suggest the smallest safe change when one is available.
+- Do not present a style preference as a blocking defect.
+```
+
+The checklist should still make sense to a human reviewer. Repository policy expressed as ordinary engineering criteria is easier to maintain than AI-only shorthand.
+
+## Test instruction changes from the head branch
+
+Copilot code review now reads repository instructions, agent instructions, and relevant skills from the pull request's head branch. That permits a closed validation loop:
+
+1. Change `REVIEW.md`, path-specific instructions, or a review skill on a feature branch.
+2. Request Copilot review on that pull request.
+3. Check whether the new rule catches the intended fixture without creating unrelated warnings.
+4. Revise the rule and code together.
+5. Merge only the reviewed instruction set.
+
+Do not infer activation from a plausible comment. Open the linked review session and inspect which tools, skills, or MCP servers were used. GitHub's [code review usage guide](https://docs.github.com/en/copilot/how-tos/copilot-on-github/use-copilot-agents/copilot-code-review) documents those session logs.
+
+Older cached documentation may still describe base-branch instruction loading. For this behavior, use the dated changelog and current concept page, and confirm the actual review session before relying on it.
+
+## Build a dedicated setup workflow for review
+
+Copilot code review uses an ephemeral environment powered by GitHub Actions. If `.github/workflows/copilot-code-review.yml` is absent, review falls back to `copilot-setup-steps.yml`. A dedicated file lets review install only what it needs.
+
+```yaml
+name: Copilot Code Review Setup
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - .github/workflows/copilot-code-review.yml
+  pull_request:
+    paths:
+      - .github/workflows/copilot-code-review.yml
+
+jobs:
+  copilot-setup-steps:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+```
+
+The job must be named `copilot-setup-steps`. GitHub's [environment setup reference](https://docs.github.com/en/copilot/how-tos/copilot-on-github/customize-copilot/customize-cloud-agent/customize-the-agent-environment) also limits the supported job configuration and caps `timeout-minutes` at 59.
+
+Install only what changes the review:
+
+- dependencies required for type and import analysis;
+- generated code required to interpret the diff;
+- a linter or schema validator the repository actually uses;
+- narrowly scoped registry access when private packages are unavoidable.
+
+Deployment credentials, database write access, and broad production secrets do not belong in a review environment. Review needs enough context to analyze a change, not a copy of production authority.
+
+## Treat setup failure as degraded review evidence
+
+GitHub documents an important failure mode: if a setup step exits nonzero, remaining setup steps are skipped and Copilot begins with the environment that exists. More generally, if the GitHub Actions features used for agentic context fail, a more limited review can still be generated.
+
+That means a review comment is not proof that dependencies, generated types, or linters were available. A failed `npm ci` can leave Copilot reviewing only the diff while the pull request still receives a plausible response.
+
+Use the setup workflow's normal Actions result as a required check when the environment is material to review quality. Record two independent results:
+
+```text
+review setup workflow: passed
+Copilot review session: completed and used expected context
+```
+
+If setup fails, fix the environment and request a new review. Do not grade the degraded result as though the intended tools ran.
+
+## Start the firewall from the review's purpose
+
+Copilot code review runs behind a firewall by default. Repository settings under `Copilot → Internet access` let administrators configure review access separately from cloud-agent access.
+
+Decide why review needs the network before adding a domain.
+
+| Review task | Expected network need |
+| --- | --- |
+| Inspect repository code and the pull request diff | Usually none |
+| Resolve public package metadata | Registry access may be needed |
+| Read an internal schema or runbook | Allow only the named private endpoint |
+| Call an external production API | Prefer to prohibit it in review |
+| Check a public page with Playwright | Allow only the target domain and required assets |
+
+Use an allowlist for necessary destinations. Disabling the firewall because one setup step is inconvenient expands the review's authority without proving that the extra access improves findings.
+
+GitHub's integrated review firewall does not protect self-hosted runners in the same way. Current [runner documentation](https://docs.github.com/en/copilot/how-tos/copilot-on-github/set-up-copilot/configure-runners) supports ARC-managed Ubuntu x64 runners and tells operators to configure runner network controls. A runner with internal reachability needs egress and east-west restrictions outside the Copilot setting.
+
+## Separate code-writing and code-review runners
+
+Coding and review have different resource and authority profiles.
+
+- A coding agent may need a full build, tests, file writes, and a longer runtime.
+- A reviewer primarily explores context and produces advisory comments; repository writes are unnecessary.
+
+Choose runner size and network reach accordingly. A smaller hosted review runner may be enough for ordinary changes. If review requires an internal self-hosted runner, give it a label and network segment that do not inherit deployment secrets or production access from coding workloads.
+
+Organization owners can set runner defaults and control repository overrides. Because GitHub's settings and documentation are changing quickly, record the observed policy and test repository override behavior rather than assuming the UI alone proves isolation.
+
+## Make review skills narrow and observable
+
+GitHub documents agent skills and MCP support for code review as public preview. A focused directory name and description help signal when a skill is relevant.
+
+```text
+.github/skills/
+└── astro-content-review/
+    └── SKILL.md
+```
+
+```md
+---
+name: astro-content-review
+description: Review Astro MDX and content-collection changes
+---
+
+# Astro content review
+
+1. Read the active content schema first.
+2. Compare new MDX frontmatter with the schema.
+3. Confirm slugs and internal links generate real static routes.
+4. Check MDX symbols that may be parsed as JSX.
+5. Trace current dates, versions, prices, and limits to primary sources.
+```
+
+Treat skill selection as nondeterministic assistance, not a required check. If a policy must run on every pull request, implement it as a deterministic test or ruleset check and use the skill to interpret failures.
+
+## Roll out with one observable test pull request
+
+1. Write a short, human-readable `REVIEW.md` with a small number of blockers.
+2. Keep repository-wide Copilot instructions brief and move path rules to matching files.
+3. Add the dedicated setup workflow with read-only permissions and a bounded timeout.
+4. Run the workflow itself and make its success required where necessary.
+5. Keep the review firewall closed, then allow only documented dependencies.
+6. Open a fixture pull request containing one known defect and one harmless pattern.
+7. Request review and inspect the linked session log for the expected instruction, skill, and tools.
+8. Record missed defects and false positives by rule version.
+9. Promote repeated checks into deterministic tests instead of endlessly expanding prompts.
+
+Copilot always leaves a comment review rather than an approval or request-changes review, so its output does not satisfy a required human approval. The practical goal is a reviewer with clear repository context and limited authority, not an automated merge gate that pretends model feedback is complete.
+
+## Recommendation
+
+Begin with one review checklist, one minimal setup job, no unnecessary network access, and a hosted runner. Validate the setup check and session evidence on a test pull request. Add skills, MCP context, private dependencies, or self-hosted runners only when a named review need justifies the extra authority.
+
+The durable configuration is not the longest instruction file. It is a set of small controls whose activation, environment, and permissions can each be observed and rolled back.
+
+## Primary sources
+
+- [Copilot code review customization and configurability improvements](https://github.blog/changelog/2026-07-17-copilot-code-review-customization-and-configurability-improvements/)
+- [About GitHub Copilot code review](https://docs.github.com/en/copilot/concepts/agents/code-review)
+- [Using GitHub Copilot code review](https://docs.github.com/en/copilot/how-tos/copilot-on-github/use-copilot-agents/copilot-code-review)
+- [Configure the Copilot development environment](https://docs.github.com/en/copilot/how-tos/copilot-on-github/customize-copilot/customize-cloud-agent/customize-the-agent-environment)
+- [Configure runners for GitHub Copilot code review](https://docs.github.com/en/copilot/how-tos/copilot-on-github/set-up-copilot/configure-runners)
+
+Related: [Agent governance control plane](/blog/agent-governance-control-plane/) · [GitHub Issues agent automation controls](/blog/github-issues-agent-automation-controls-guide/) · [Copilot managed-settings governance](/blog/github-copilot-managed-settings-governance-guide/)
