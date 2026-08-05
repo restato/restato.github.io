@@ -10,6 +10,14 @@ export interface ProjectCard {
 
 export const projects: ProjectCard[] = [
   {
+    slug: 'neighborhood-change',
+    title: '동네변화',
+    description: 'Search official building permits, construction starts, completions, demolitions, and use changes around addresses in Seoul and Bundang.',
+    icon: '🏗️',
+    color: 'from-sky-500 to-emerald-500',
+    badge: 'NEW',
+  },
+  {
     slug: 'barunhankki',
     title: '바른한끼',
     description: 'Search official restaurant hygiene grades and designation validity periods across Gyeonggi Province.',

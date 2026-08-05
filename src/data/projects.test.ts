@@ -6,6 +6,19 @@ import { describe, expect, it } from 'vitest';
 import { projects } from './projects';
 
 describe('project catalog', () => {
+  it('publishes the approved Neighborhood Change card without its private repository', () => {
+    const neighborhoodChange = projects.find((project) => project.slug === 'neighborhood-change');
+
+    expect(neighborhoodChange).toMatchObject({
+      title: '동네변화',
+      description: 'Search official building permits, construction starts, completions, demolitions, and use changes around addresses in Seoul and Bundang.',
+      icon: '🏗️',
+      badge: 'NEW',
+      color: 'from-sky-500 to-emerald-500',
+    });
+    expect(JSON.stringify(neighborhoodChange)).not.toContain('github.com/restato/neighborhood-change');
+  });
+
   it('publishes the approved RoomFit gallery card without its private repository', () => {
     const roomfit = projects.find((project) => project.slug === 'roomfit-3d');
 
@@ -42,7 +55,7 @@ describe('project catalog', () => {
   it('includes Local Price Extractor in the project catalog metadata', () => {
     const source = readFileSync(join(process.cwd(), 'src/pages/projects/index.astro'), 'utf8');
 
-    expect(source).toContain('including Local Price Extractor');
+    expect(source).toContain('Local Price Extractor');
   });
 
   it('documents the Local Price Extractor install flow and experimental boundary', () => {

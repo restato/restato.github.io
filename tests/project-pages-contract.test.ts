@@ -6,6 +6,7 @@ const projectFiles = [
   'gallery.astro',
   'jobworld-kids.astro',
   'local-price-extractor.astro',
+  'neighborhood-change.astro',
   'quick-issue.astro',
   'roomfit-3d.astro',
 ] as const;

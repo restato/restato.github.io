@@ -1,0 +1,185 @@
+---
+import MainLayout from '../../layouts/MainLayout.astro';
+
+const pageTitle = 'Neighborhood Change | Explore Official Building Activity Nearby';
+const pageDescription = 'Search official building permits, construction starts, completions, demolitions, and use changes around addresses in Seoul and Bundang.';
+const appUrl = 'https://neighborhood-change.vercel.app';
+
+const facts = [
+  { label: 'Coverage', value: 'Seoul and Bundang' },
+  { label: 'Radius', value: '500 m · 1 km · 2 km' },
+  { label: 'Account', value: 'Not Required' },
+];
+
+const features = [
+  {
+    title: 'Address-Centered Search',
+    description: 'Search an address and explore official building activity within 500 metres, 1 kilometre, or 2 kilometres.',
+  },
+  {
+    title: 'Map-First Results',
+    description: 'Keep the surrounding map visible while reviewing distance, direction, and development stage on mobile or desktop.',
+  },
+  {
+    title: 'Plain-Language Context',
+    description: 'Turn permit stages and available scale data into concise context without presenting estimates as legal or property advice.',
+  },
+  {
+    title: 'Official Source Links',
+    description: 'Trace displayed records back to VWorld and the Ministry of Land, Infrastructure and Transport BuildingHUB source.',
+  },
+];
+
+const techStack = [
+  { label: 'Interface', value: 'Next.js, React, TypeScript' },
+  { label: 'Map', value: 'Leaflet, VWorld' },
+  { label: 'Public Data', value: 'BuildingHUB' },
+  { label: 'Testing', value: 'Vitest, Playwright' },
+];
+
+const appSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'SoftwareApplication',
+  name: '동네변화',
+  alternateName: 'Neighborhood Change',
+  description: pageDescription,
+  applicationCategory: 'UtilitiesApplication',
+  operatingSystem: 'Web Browser',
+  offers: {
+    '@type': 'Offer',
+    price: '0',
+    priceCurrency: 'KRW',
+  },
+  url: appUrl,
+};
+
+const breadcrumbSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'BreadcrumbList',
+  itemListElement: [
+    {
+      '@type': 'ListItem',
+      position: 1,
+      name: 'Home',
+      item: 'https://restato.github.io/',
+    },
+    {
+      '@type': 'ListItem',
+      position: 2,
+      name: 'Projects',
+      item: 'https://restato.github.io/projects/',
+    },
+    {
+      '@type': 'ListItem',
+      position: 3,
+      name: 'Neighborhood Change',
+      item: 'https://restato.github.io/projects/neighborhood-change',
+    },
+  ],
+};
+---
+
+<MainLayout title={pageTitle} description={pageDescription} lang="en" lockLanguage={true}>
+  <script type="application/ld+json" set:html={JSON.stringify(appSchema)} />
+  <script type="application/ld+json" set:html={JSON.stringify(breadcrumbSchema)} />
+
+  <div class="fc-page fc-content fc-section-flow">
+    <section class="fc-surface fc-surface-padding-md">
+      <nav aria-label="Breadcrumb" class="fc-tool-breadcrumb mb-8 flex items-center gap-2">
+        <a href="/">Home</a>
+        <span aria-hidden="true">/</span>
+        <a href="/projects">Projects</a>
+        <span aria-hidden="true">/</span>
+        <span aria-current="page">Neighborhood Change</span>
+      </nav>
+
+      <div class="max-w-3xl">
+        <div class="mb-5 flex flex-wrap items-center gap-2">
+          <span class="mr-1 text-4xl" aria-hidden="true">🏗️</span>
+          <span class="fc-chip">Official Public Data</span>
+          <span class="fc-chip">Map-First</span>
+          <span class="fc-chip">No Sign-Up</span>
+        </div>
+
+        <h1 class="mb-5 text-4xl font-bold tracking-tight md:text-6xl">동네변화</h1>
+        <p class="mb-8 text-xl leading-relaxed text-[var(--color-text-muted)] md:text-2xl">
+          See what is changing around an address on a map, with distance, direction, plain-language context, and links to official public data.
+        </p>
+
+        <a
+          href={appUrl}
+          target="_blank"
+          rel="noopener noreferrer"
+          class="fc-button fc-button-primary"
+        >
+          Open Live App
+          <svg class="ml-2 h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 4h6m0 0v6m0-6L10 14M5 8v11h11" />
+          </svg>
+        </a>
+
+        <div class="mt-10 grid gap-3 sm:grid-cols-3">
+          {facts.map((fact) => (
+            <div class="fc-surface p-4">
+              <p class="mb-1 text-xs uppercase tracking-wide text-[var(--color-text-muted)]">{fact.label}</p>
+              <p class="font-semibold">{fact.value}</p>
+            </div>
+          ))}
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <div class="mx-auto max-w-5xl">
+        <div class="mb-10 max-w-2xl">
+          <p class="fc-eyebrow mb-3">Official changes, close to home</p>
+          <h2 class="mb-4 text-3xl font-bold md:text-4xl">A clearer view of nearby building activity</h2>
+          <p class="text-lg text-[var(--color-text-muted)]">
+            Neighborhood Change combines address search, official permit records, and a map-first interface so nearby changes are easier to inspect.
+          </p>
+        </div>
+
+        <div class="grid gap-6 md:grid-cols-2">
+          {features.map((feature, index) => (
+            <article class="fc-surface p-6">
+              <div class="fc-chip mb-5 h-10 w-10 justify-center font-bold text-[var(--accent)]">
+                {index + 1}
+              </div>
+              <h3 class="mb-2 text-xl font-semibold">{feature.title}</h3>
+              <p class="leading-relaxed text-[var(--color-text-muted)]">{feature.description}</p>
+            </article>
+          ))}
+        </div>
+      </div>
+    </section>
+
+    <section class="fc-surface fc-surface-padding-md">
+      <div class="mx-auto max-w-5xl">
+        <h2 class="mb-8 text-3xl font-bold">Built around public-data boundaries</h2>
+        <div class="grid gap-4 sm:grid-cols-2">
+          {techStack.map((item) => (
+            <div class="fc-surface p-5">
+              <p class="mb-2 text-sm uppercase tracking-wide text-[var(--color-text-muted)]">{item.label}</p>
+              <p class="text-lg font-semibold">{item.value}</p>
+            </div>
+          ))}
+        </div>
+
+        <div class="fc-surface fc-surface-soft mt-10 flex flex-col gap-6 p-6 md:flex-row md:items-center md:justify-between md:p-8">
+          <div>
+            <h2 class="mb-2 text-2xl font-bold">Explore an address</h2>
+            <p class="text-[var(--text-muted)]">Search Seoul or Bundang without creating an account.</p>
+          </div>
+          <a
+            href={appUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            class="fc-button fc-button-secondary shrink-0"
+          >
+            Launch Neighborhood Change
+          </a>
+        </div>
+      </div>
+    </section>
+  </div>
+</MainLayout>
