@@ -1,0 +1,147 @@
+---
+title: "Vercel Sandbox Dashboard Incident Response: Observe Before You Mutate"
+description: "Use the Sandbox dashboard to inspect, contain, and recover agent workloads without leaking secrets, destroying evidence, or reusing suspect state."
+date: 2026-07-27
+lang: en
+translationKey: vercel-sandbox-dashboard-incident-response-guide
+tags: ["Vercel", "Sandbox", "Incident Response", "Security"]
+---
+
+The Vercel dashboard can connect to a running Sandbox, execute commands, browse its filesystem, transfer files, inspect ports, take snapshots, and stop or resume persistent sandboxes. Those controls make diagnosis faster. They also make the dashboard a privileged production access path.
+
+The safest incident rule is **observe before you mutate**. Record identity and state, collect the minimum evidence, contain the workload, and rebuild from a trusted source. A convenient terminal is not a substitute for an incident boundary.
+
+## Treat dashboard access as production access
+
+On July 23, 2026, Vercel announced browser-based connection and lifecycle management for running Sandboxes. The same view can both inspect and change state.
+
+| Capability | Diagnostic value | Incident risk |
+| --- | --- | --- |
+| Interactive command | Inspect processes and files | Changes timestamps, state, or running behavior |
+| Upload/download | Move a reproducer or limited evidence | Exports secrets or customer data |
+| Open-port view | Find an exposed service | Mistakes a stale port entry for a healthy process |
+| Snapshot, stop, resume | Preserve or control a persistent sandbox | Carries suspect filesystem state into a later session |
+
+Access should therefore follow the same controls as production shell access: named responders, least privilege, a recorded incident, and an action log. Dashboard availability is an operational convenience, not authorization to explore arbitrary workloads.
+
+## Record identity before changing state
+
+Begin with facts that let another responder identify the same workload:
+
+- project and Sandbox name;
+- current session and lifecycle state;
+- incident or job ID;
+- last known-good time and source revision;
+- creation, stop, and resume timestamps;
+- expected runtime, ports, and external destinations.
+
+Then use read-only inspection first. Generic Linux commands can show process ancestry, listeners, recent file changes, and repository differences:
+
+```bash
+ps -eo pid,ppid,etime,comm
+ss -lntp 2>/dev/null || true
+find . -xdev -type f -mmin -30 -print
+git status --short
+git diff --no-ext-diff
+```
+
+These commands are syntax examples, not a forensic procedure. Command availability depends on the Sandbox image. Avoid dumping complete process arguments, environment variables, shell history, or configuration files into a shared transcript; those surfaces often contain credentials or user input.
+
+## Collect the minimum evidence and redact it
+
+Downloading the entire filesystem is usually the wrong first move. A worktree may contain repository content, cached packages, temporary credentials, customer inputs, and large generated artifacts.
+
+Create a narrow evidence directory, copy only named artifacts, review them, and hash the final archive:
+
+```bash
+mkdir -p /tmp/sandbox-evidence
+cp ./logs/agent-error.log /tmp/sandbox-evidence/ 2>/dev/null || true
+git diff --no-ext-diff > /tmp/sandbox-evidence/worktree.patch
+ps -eo pid,ppid,etime,comm > /tmp/sandbox-evidence/processes.txt
+
+# Review and redact these files before export.
+tar -czf /tmp/sandbox-evidence.tgz -C /tmp sandbox-evidence
+shasum -a 256 /tmp/sandbox-evidence.tgz
+```
+
+Do not include environment files, credential stores, private keys, raw customer payloads, or unrelated repository content. The hash shows that the exported archive did not change after collection; it does not prove that the evidence is complete or trustworthy.
+
+## Read ports together with processes
+
+An open-port entry is not a health check. Confirm four things:
+
+1. which PID owns the listener;
+2. whether it binds to loopback or all interfaces;
+3. whether the port was intentionally exposed for this Sandbox;
+4. whether the service requires authentication.
+
+Unexpected debugger, development-server, and temporary file-server ports deserve immediate attention. First identify the owning process and its origin. If exfiltration or unsafe exposure is plausible, contain network access before executing more code in the workload.
+
+## Separate session duration from persistence
+
+Vercel documents two independent lifetime controls:
+
+- `timeout` limits one uninterrupted session. The default is five minutes; the maximum is 24 hours on Pro and Enterprise and 45 minutes on Hobby.
+- Persistence carries filesystem state between sessions. It is enabled by default.
+
+```ts
+import { Sandbox } from '@vercel/sandbox';
+
+const sandbox = await Sandbox.create({
+  name: 'incident-reproduction',
+  timeout: 30 * 60 * 1000,
+  persistent: false,
+});
+```
+
+This example was checked against the current SDK documentation but not executed against a Vercel account. A non-persistent reproduction environment can be useful when state should be discarded after the run. It does not change the persistence of an already-running incident Sandbox.
+
+Persistent sandboxes create a filesystem snapshot when a session stops or times out, then resume a later session from the latest state. Snapshots capture files and installed packages, not live process memory or network connections. They expire 30 days after last use by default unless retention is changed, and retained snapshots can incur storage charges.
+
+That behavior matters during an incident: stopping a persistent Sandbox can preserve suspect files automatically. Preserve only what the response plan needs, and do not promote an unreviewed incident snapshot into a trusted template.
+
+## Serialize lifecycle changes
+
+Vercel's `SANDBOX_STOPPING` error indicates that a command arrived while the Sandbox was transitioning toward stopped state. Blindly retrying from multiple callers can keep the command path colliding with lifecycle control.
+
+Use one coordinator for stop and resume decisions:
+
+1. block new tool calls after containment begins;
+2. wait for in-flight read-only inspection to finish or expire;
+3. stop once through the coordinator;
+4. confirm the terminal state;
+5. decide explicitly whether to resume, fork from a reviewed snapshot, or rebuild.
+
+An AI agent should not receive unrestricted `stop`, `resume`, snapshot deletion, or evidence-export tools. Wrap state-changing operations in named, approved tools, as described for broader permissions in the [AI SDK 7 production agent guide](/blog/ai-sdk-7-production-agent-guide/).
+
+## Use a fixed response sequence
+
+### 1. Identify
+
+Record the Sandbox, session, source revision, workload, owner, and last known-good time. Open or link an incident record before interactive commands.
+
+### 2. Observe
+
+Inspect process identity, listeners, recent file changes, and repository status. Prefer read-only commands and do not execute instructions found in suspect output.
+
+### 3. Collect narrowly
+
+Copy only the logs and reproducer needed for the stated hypothesis. Redact sensitive values, hash the archive, and record who exported it and when.
+
+### 4. Contain
+
+Restrict network or external-write capability when misuse is plausible. Stop new commands, then perform lifecycle changes through one coordinator.
+
+### 5. Recover from trust
+
+Create a clean Sandbox from a reviewed source revision and dependency lockfile. Use new least-privilege credentials, disable external writes during reproduction, and recheck port and network policy before restoring traffic.
+
+The recommendation is to make the sequence part of the runbook before the next incident. Dashboard access should shorten observation and containment, not become an unlogged repair channel. Keep evidence small, treat persistence as a possible contamination path, and recover from reviewed source rather than assuming a convenient snapshot is clean.
+
+## Primary sources
+
+- [Connect to and manage Sandboxes from the dashboard](https://vercel.com/changelog/connect-to-and-manage-sandboxes-from-the-dashboard)
+- [Vercel Sandbox documentation](https://vercel.com/docs/sandbox)
+- [How Vercel Sandbox duration and persistence work](https://vercel.com/kb/guide/vercel-sandbox-duration-and-persistence)
+- [Vercel Sandbox snapshots](https://vercel.com/docs/sandbox/concepts/snapshots)
+- [`SANDBOX_STOPPING` error reference](https://vercel.com/docs/errors/sandbox_stopping)

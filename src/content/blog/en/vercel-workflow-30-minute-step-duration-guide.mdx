@@ -1,0 +1,153 @@
+---
+title: "Vercel Workflow 30-Minute Steps: Design for Retry, Cancellation, and Cost"
+description: "Enable 1,800-second Workflow steps safely by choosing recoverable boundaries, idempotent effects, cooperative cancellation, and bounded retry budgets."
+date: 2026-07-26
+lang: en
+translationKey: vercel-workflow-30-minute-step-duration-guide
+tags: ["Vercel", "Workflow", "AI Agent", "Operations"]
+---
+
+A Vercel Workflow step can now run for up to 30 minutes on eligible projects. That does not make a 30-minute step a good default. It gives one Function invocation more headroom; it does not remove retries, duplicate side effects, cancellation, or billing from the design.
+
+The right unit is still the smallest cohesive operation that can recover safely. Use the extended ceiling when an external operation cannot checkpoint cheaply. Keep independent work in separate durable steps.
+
+## Separate workflow lifetime from step duration
+
+A workflow can suspend between steps and resume later. A step is the Function invocation that runs code now. These two timelines solve different problems.
+
+| Boundary | What it controls | Example |
+| --- | --- | --- |
+| Workflow lifetime | The complete durable flow, including waits and resumptions | Human approval, scheduled continuation, webhook wait |
+| Step duration | One active Function invocation | One model call, OCR job, browser session, or media transformation |
+
+Waiting a day for approval does not require a 30-minute step. Suspend the workflow and resume after the event. A single upstream operation that streams for 18 minutes may need the extended duration because splitting it would discard its session.
+
+This is also why durable agent tools should not be collapsed into one giant loop. The [AI SDK 7 production agent guide](/blog/ai-sdk-7-production-agent-guide/) explains how independently retryable tool calls create better recovery boundaries.
+
+## Enable the 1,800-second ceiling explicitly
+
+Vercel announced the Workflow-specific opt-in on July 24, 2026. It applies to Pro and Enterprise projects, is beta, requires Fluid compute and a supported Node.js or Python runtime, and raises the Workflow step ceiling from 800 to 1,800 seconds. Hobby remains at 300 seconds.
+
+Set this project environment variable and redeploy:
+
+```text
+VERCEL_ENABLE_WORKFLOW_EXTENDED_MAX_DURATION=1
+```
+
+The underlying supported Function limit can also be expressed as `maxDuration` for an ordinary route:
+
+```ts
+// app/api/long-task/route.ts
+export const maxDuration = 1800;
+
+export async function POST() {
+  return Response.json({ ok: true });
+}
+```
+
+That route example describes a general Function. Workflow steps use the environment-variable opt-in documented for Workflow. In both cases, the maximum is a termination ceiling, not the application's desired runtime.
+
+## Choose a failure boundary, not a larger bucket
+
+A single long step is a reasonable candidate when the work is one cohesive external operation:
+
+- a model or provider session whose intermediate state cannot be resumed;
+- OCR or media processing for one object;
+- a browser automation sequence that must keep one authenticated session;
+- one synchronous external job that returns only at completion.
+
+Split the work when units can succeed and retry independently:
+
+- hundreds of files or URLs;
+- tenant-by-tenant processing;
+- separate fetch, transform, validate, and persist phases;
+- a loop that can checkpoint after each accepted result.
+
+The engineering test is concrete: if the invocation dies at minute 29, how much correct work must run again? If the answer is “the entire batch,” the step is probably too large.
+
+## Make external effects idempotent
+
+Retries are part of durable execution. A retryable step that sends a payment, email, deployment, or database mutation needs a stable operation key. The key must describe the logical action, not the attempt.
+
+```ts
+type PublishInput = {
+  documentId: string;
+  revision: string;
+};
+
+async function publishDocument(input: PublishInput) {
+  'use step';
+
+  const operationKey = `publish:${input.documentId}:${input.revision}`;
+
+  return publishingClient.publish({
+    documentId: input.documentId,
+    revision: input.revision,
+    idempotencyKey: operationKey,
+  });
+}
+```
+
+This pattern is application logic, not a universal Vercel SDK API. It assumes the destination honors an idempotency key or that the application stores and reconciles the key itself. The example was syntax-reviewed, not executed against an external service.
+
+Do not derive the key from a random value generated inside the attempt. A new key on every retry makes every attempt look like a new write.
+
+## Keep application timeouts below the platform ceiling
+
+The platform should not be the first component to notice a stuck dependency. Put a shorter timeout around the model, browser, database, or external job so the step has time to record failure and release resources.
+
+Use durable cancellation when the workflow races alternatives or receives a user stop request. Vercel documents `AbortController` and `AbortSignal` support across workflow and step boundaries, but cancellation is cooperative: the step must inspect the signal or pass it to an API that supports it.
+
+An application timeout answers “when should this operation stop?” The 1,800-second platform maximum answers “when will Vercel terminate the invocation?” Keep those controls separate.
+
+## Budget the whole retry envelope
+
+A 20-minute application timeout with three permitted attempts can consume up to 60 minutes of active attempt time before backoff and queueing. This is a derived upper bound, not a claim about Vercel's default retry count.
+
+Calculate the envelope from your actual configuration:
+
+```text
+worst-case attempt time
+  = application timeout × maximum attempts
+  + retry backoff
+  + expected queue delay
+```
+
+Then estimate cost with the workload's CPU, provisioned memory, downstream API, and model-token charges. Fluid compute pauses active CPU billing while code waits on I/O, but long invocations can still accumulate memory and external-service costs. Do not infer a bill from duration alone.
+
+## Observe the run at workflow and step levels
+
+Record enough identifiers to connect the durable flow with the active invocation:
+
+- workflow run ID, step ID, and attempt number;
+- start, completion, application-timeout, and cancellation timestamps;
+- external operation key and remote job ID;
+- input size and output size, without logging sensitive payloads;
+- model tokens, downstream charges, and terminal classification;
+- whether a retry reused or duplicated an external effect.
+
+Longer steps reduce the number of boundaries but increase the value of each boundary's telemetry. A final timeout with no remote job ID is much harder to reconcile than a short, identified failure.
+
+## Validate failure behavior before production
+
+Use staging to exercise the recovery path rather than waiting 30 minutes only for a happy result. Include:
+
+1. an upstream timeout shorter than the Function limit;
+2. a transient error followed by a successful retry;
+3. a permanent validation error that does not retry;
+4. cancellation while an external request is in flight;
+5. process or deployment interruption followed by workflow recovery;
+6. the same logical input delivered twice;
+7. a near-limit run in the actual hosted runtime.
+
+Short clocks and injected timeouts can test application logic quickly. They do not prove the platform's hosted limit, so keep one staging check for the real environment and record its date while the feature is beta.
+
+The recommendation is to enable extended duration only for named steps that need it. Keep independently recoverable work separate, use stable idempotency keys for writes, cancel cooperatively below the platform ceiling, and approve rollout only after the complete retry envelope fits the time and cost budget.
+
+## Primary sources
+
+- [Workflow steps now support extended function durations](https://vercel.com/changelog/workflow-steps-now-support-extended-function-durations)
+- [Vercel Functions can now run up to 30 minutes](https://vercel.com/changelog/vercel-functions-can-now-run-up-to-30-minutes)
+- [Configuring maximum duration for Vercel Functions](https://vercel.com/docs/functions/configuring-functions/duration)
+- [Workflow SDK in-flight cancellation](https://vercel.com/changelog/workflow-sdk-now-supports-inflight-cancellation)
+- [Workflow logs filtering](https://vercel.com/changelog/logs-filtering-for-vercel-workflows-now-available)

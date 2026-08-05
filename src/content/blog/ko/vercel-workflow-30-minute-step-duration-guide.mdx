@@ -1,0 +1,153 @@
+---
+title: "Vercel Workflow 30분 Step 운영 가이드: 재시도·취소·비용 경계 설계"
+description: "복구 가능한 경계, 멱등한 외부 변경, 협력적 취소, 제한된 재시도 예산으로 1,800초 Workflow step을 안전하게 활성화합니다."
+date: 2026-07-26
+lang: ko
+translationKey: vercel-workflow-30-minute-step-duration-guide
+tags: ["Vercel", "Workflow", "AI Agent", "Operations"]
+---
+
+적격 프로젝트의 Vercel Workflow step은 이제 최대 30분 동안 실행될 수 있습니다. 그렇다고 30분 step이 좋은 기본값이 되는 것은 아닙니다. 한 Function invocation에 더 큰 여유를 줄 뿐, 재시도·중복 외부 변경·취소·청구를 설계에서 없애지 않습니다.
+
+적절한 단위는 여전히 안전하게 복구할 수 있는 가장 작은 하나의 작업입니다. 중간 저장이 어려운 외부 작업에 extended ceiling을 사용하고, 독립적인 작업은 별도 durable step으로 유지하세요.
+
+## Workflow 수명과 step duration을 구분합니다
+
+Workflow는 step 사이에서 suspend되고 나중에 resume할 수 있습니다. Step은 지금 코드를 실행하는 Function invocation입니다. 두 시간축은 다른 문제를 풉니다.
+
+| 경계 | 제어하는 것 | 예시 |
+| --- | --- | --- |
+| Workflow lifetime | 대기와 재개를 포함한 전체 durable flow | 사용자 승인, 예약된 계속 실행, webhook 대기 |
+| Step duration | 하나의 활성 Function invocation | 하나의 모델 호출, OCR job, browser session, media transformation |
+
+승인을 하루 기다리는 데 30분 step은 필요하지 않습니다. Workflow를 suspend하고 event 뒤에 resume하세요. 반면 18분 동안 streaming하는 하나의 upstream 작업은 나누면 session을 잃으므로 extended duration이 필요할 수 있습니다.
+
+Durable agent tool도 하나의 거대한 loop로 합치지 말아야 하는 이유가 같습니다. [AI SDK 7 프로덕션 에이전트 가이드](/blog/ai-sdk-7-production-agent-guide/)는 독립적으로 retry할 수 있는 tool call이 더 좋은 복구 경계를 만드는 방법을 설명합니다.
+
+## 1,800초 ceiling을 명시적으로 활성화합니다
+
+Vercel은 2026년 7월 24일 Workflow 전용 opt-in을 발표했습니다. Pro와 Enterprise 프로젝트에 적용되는 beta 기능이며 Fluid compute와 지원되는 Node.js 또는 Python runtime이 필요합니다. Workflow step ceiling은 800초에서 1,800초로 늘고 Hobby는 300초를 유지합니다.
+
+다음 project environment variable을 설정하고 다시 배포합니다.
+
+```text
+VERCEL_ENABLE_WORKFLOW_EXTENDED_MAX_DURATION=1
+```
+
+기반이 되는 지원 Function limit은 일반 route에서 `maxDuration`으로 표현할 수도 있습니다.
+
+```ts
+// app/api/long-task/route.ts
+export const maxDuration = 1800;
+
+export async function POST() {
+  return Response.json({ ok: true });
+}
+```
+
+이 route 예제는 일반 Function을 설명합니다. Workflow step은 Workflow에 문서화된 environment-variable opt-in을 사용합니다. 두 경우 모두 최대값은 종료 ceiling이지 애플리케이션이 목표로 삼을 실행 시간이 아닙니다.
+
+## 더 큰 상자가 아니라 실패 경계를 선택합니다
+
+작업이 하나의 응집된 외부 operation일 때 단일 long step을 후보로 둘 수 있습니다.
+
+- 중간 상태를 resume할 수 없는 model 또는 provider session
+- 하나의 object를 처리하는 OCR 또는 media job
+- 하나의 인증 session을 유지해야 하는 browser automation sequence
+- 완료 시점에만 반환되는 하나의 synchronous external job
+
+각 단위가 독립적으로 성공하고 retry할 수 있다면 작업을 나눕니다.
+
+- 수백 개의 file 또는 URL
+- tenant 단위 처리
+- 분리 가능한 fetch, transform, validate, persist phase
+- 승인된 결과마다 checkpoint할 수 있는 loop
+
+판단 기준은 구체적입니다. Invocation이 29분에 죽으면 얼마나 많은 정상 작업을 다시 실행해야 합니까? 답이 “전체 batch”라면 step이 너무 클 가능성이 높습니다.
+
+## 외부 변경을 멱등하게 만듭니다
+
+Retry는 durable execution의 일부입니다. 결제, email, deployment, database mutation을 수행하는 retryable step에는 안정적인 operation key가 필요합니다. Key는 attempt가 아니라 논리적 action을 설명해야 합니다.
+
+```ts
+type PublishInput = {
+  documentId: string;
+  revision: string;
+};
+
+async function publishDocument(input: PublishInput) {
+  'use step';
+
+  const operationKey = `publish:${input.documentId}:${input.revision}`;
+
+  return publishingClient.publish({
+    documentId: input.documentId,
+    revision: input.revision,
+    idempotencyKey: operationKey,
+  });
+}
+```
+
+이 pattern은 애플리케이션 로직이며 모든 곳에 적용되는 Vercel SDK API가 아닙니다. 대상 서비스가 idempotency key를 지원하거나 애플리케이션이 직접 key를 저장·reconcile한다고 가정합니다. 예제는 syntax를 검토했지만 외부 서비스에서 실행하지 않았습니다.
+
+Attempt 내부에서 만든 random value로 key를 구성하지 마세요. Retry마다 새 key가 생기면 모든 attempt가 새로운 write로 보입니다.
+
+## Application timeout을 platform ceiling보다 짧게 둡니다
+
+멈춘 dependency를 platform이 가장 먼저 알아차리게 하지 마세요. Model, browser, database, external job에 더 짧은 timeout을 두어 step이 실패를 기록하고 resource를 해제할 시간을 남깁니다.
+
+Workflow가 여러 대안을 race하거나 user stop 요청을 받으면 durable cancellation을 사용합니다. Vercel은 workflow와 step 경계를 통과하는 `AbortController`와 `AbortSignal`을 문서화하지만 취소는 cooperative입니다. Step이 signal을 검사하거나 이를 지원하는 API에 전달해야 합니다.
+
+Application timeout은 “언제 이 operation을 멈출까?”에 답합니다. 1,800초 platform maximum은 “Vercel이 언제 invocation을 종료할까?”에 답합니다. 두 제어를 분리하세요.
+
+## 전체 retry envelope를 계산합니다
+
+20분 application timeout과 허용된 세 attempt는 backoff와 queueing 전에도 최대 60분의 활성 attempt 시간을 소비할 수 있습니다. 이는 계산된 상한이며 Vercel의 기본 retry 횟수에 대한 주장이 아닙니다.
+
+실제 configuration으로 envelope를 계산합니다.
+
+```text
+worst-case attempt time
+  = application timeout × maximum attempts
+  + retry backoff
+  + expected queue delay
+```
+
+그다음 workload의 CPU, provisioned memory, downstream API, model-token 비용으로 cost를 추정합니다. Fluid compute는 코드가 I/O를 기다리는 동안 active CPU billing을 멈추지만 long invocation에는 memory와 외부 서비스 비용이 계속 생길 수 있습니다. Duration만으로 bill을 추론하지 마세요.
+
+## Workflow와 step 수준에서 run을 관찰합니다
+
+Durable flow와 활성 invocation을 연결할 수 있는 identifier를 기록합니다.
+
+- workflow run ID, step ID, attempt number
+- 시작, 완료, application-timeout, cancellation timestamp
+- external operation key와 remote job ID
+- 민감 payload를 제외한 input/output size
+- model token, downstream charge, terminal classification
+- retry가 외부 변경을 재사용했는지 중복했는지
+
+Long step은 경계 수를 줄이지만 각 경계의 telemetry 가치를 키웁니다. Remote job ID가 없는 최종 timeout은 식별된 짧은 실패보다 reconcile하기 훨씬 어렵습니다.
+
+## Production 전에 실패 동작을 검증합니다
+
+정상 결과를 위해 30분만 기다리지 말고 staging에서 복구 경로를 실행합니다.
+
+1. Function limit보다 짧은 upstream timeout
+2. transient error 뒤 성공하는 retry
+3. retry하지 않는 permanent validation error
+4. 외부 요청 진행 중 cancellation
+5. process 또는 deployment interruption 뒤 workflow recovery
+6. 같은 논리적 input이 두 번 전달되는 경우
+7. 실제 hosted runtime에서 limit에 가까운 run
+
+짧은 clock과 주입한 timeout으로 application logic을 빠르게 시험할 수 있습니다. 이는 platform hosted limit을 증명하지 않으므로 실제 환경의 staging check를 하나 유지하고 beta 기간에는 검증 날짜를 기록하세요.
+
+권고는 extended duration이 필요한 이름이 정해진 step에만 활성화하는 것입니다. 독립적으로 복구할 수 있는 작업은 나누고, write에는 안정적인 idempotency key를 사용하며, platform ceiling 아래에서 cooperative cancellation을 적용하세요. 전체 retry envelope가 시간·비용 예산 안에 들어올 때만 rollout을 승인합니다.
+
+## Primary sources
+
+- [Workflow steps now support extended function durations](https://vercel.com/changelog/workflow-steps-now-support-extended-function-durations)
+- [Vercel Functions can now run up to 30 minutes](https://vercel.com/changelog/vercel-functions-can-now-run-up-to-30-minutes)
+- [Configuring maximum duration for Vercel Functions](https://vercel.com/docs/functions/configuring-functions/duration)
+- [Workflow SDK in-flight cancellation](https://vercel.com/changelog/workflow-sdk-now-supports-inflight-cancellation)
+- [Workflow logs filtering](https://vercel.com/changelog/logs-filtering-for-vercel-workflows-now-available)
