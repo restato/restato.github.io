@@ -77,8 +77,54 @@ const paragraphs = (section: MarkdownSection | undefined) => sectionText(section
   .map((paragraph) => paragraph.replace(/\s*\n\s*/gu, ' ').trim())
   .filter(Boolean);
 
+const normalizeSectionBody = (section: MarkdownSection | undefined) => sectionText(section)
+  .split(/\r?\n/u)
+  .map((line) => line.trim())
+  .filter(Boolean)
+  .join(' ')
+  .replace(/\s+/gu, ' ');
+
+const permittedSectionBodies: Record<RouterKind, Record<string, string>> = {
+  'one-click-publish': {
+    '트리거 예시': [
+      '- "이 주제로 글 써서 올려"',
+      '- "1, 3번 발행해"',
+      '- "최근 커밋으로 개발일지 올려"',
+      '- "기존 Claude Code 글 업데이트해"',
+    ].join(' '),
+    'Canonical workflow': [
+      'This is a compatibility router. For every planning, research, writing, review, publication, or update request, load the globally installed `restato-content-partner` skill and follow it as the sole workflow. If that skill is unavailable, stop and report the blocker; do not revive local publishing instructions.',
+      'Default publication is an English source plus a reviewed Korean alternate that share one `translationKey`. A user may explicitly request a single language only when the canonical workflow records the override.',
+      'Public MDX is created only after the canonical private editorial handoff and safety gates pass. Do not copy private knowledge or credentials into public MDX.',
+      'Never use a direct commit to `master` or another default branch; never use a direct push there either. The canonical workflow owns isolated worktrees, PR review, merge, deployment, and live-page verification.',
+    ].join(' '),
+    '완료 보고': [
+      "Report the canonical workflow's publication evidence, not local-build success:",
+      '- English/Korean URLs, or the recorded single-language override URL',
+      '- PR/merge/deployment status',
+      '- live verification result',
+      '- any canonical blocker or incomplete verification',
+    ].join(' '),
+  },
+  'restato-blog-writer': {
+    'Canonical workflow': [
+      'This compatibility router delegates every article plan, research task, draft, review, update, or publication request to the globally installed `restato-content-partner` skill. Load and follow that skill as the sole workflow. If it is unavailable, stop and report the blocker rather than recreating a local publishing process.',
+      'Default publication is an English source plus a reviewed Korean alternate sharing one `translationKey`. A user may explicitly request a single language only when the canonical workflow records the override.',
+      'Public MDX is created only after the canonical private editorial handoff and safety gates pass. Do not copy private knowledge or credentials into public MDX.',
+      'Never use a direct commit to `master` or another default branch; never use a direct push there either. The canonical workflow owns isolated worktrees, PR review, merge, deployment, and live-page verification.',
+    ].join(' '),
+    'Completion reporting': [
+      "Defer completion to the canonical workflow's publication evidence. Report:",
+      '- English/Korean URLs, or the recorded single-language override URL',
+      '- PR/merge/deployment status',
+      '- live verification result',
+      '- any canonical blocker or incomplete verification',
+    ].join(' '),
+  },
+};
+
 const injectCanonicalInstruction = (source: string, instruction: string) => source.replace(
-  /\n## (?:완료 보고|Completion reporting)\n/u,
+  /\n## (완료 보고|Completion reporting)\n/u,
   `\n${instruction}\n\n## $1\n`,
 );
 
@@ -108,6 +154,14 @@ const validateRouter = (source: string, kind: RouterKind): string[] => {
   }
   if (parsed.preamble.some((line) => line.trim())) {
     errors.push('content outside an allowed section');
+  }
+  for (const [heading, permittedBody] of Object.entries(permittedSectionBodies[kind])) {
+    const section = parsed.sections.find((candidate) => candidate.heading === heading);
+    if (normalizeSectionBody(section) !== permittedBody) {
+      errors.push(heading === 'Canonical workflow'
+        ? 'canonical workflow body differs from allowlist'
+        : `${heading} body differs from allowlist`);
+    }
   }
 
   const canonical = parsed.sections.find(({ heading }) => heading === 'Canonical workflow');
@@ -302,6 +356,29 @@ describe('publishing compatibility routers', () => {
       'delegation missing: planning',
       'delegation missing: live verification',
     ]));
+  });
+
+  it('rejects unlisted workflow prose even when it avoids known action terms', () => {
+    const mutation = injectCanonicalInstruction(
+      routers[0][1],
+      'Gather sources, compose the post, assess quality, and release it to production.',
+    );
+    expect(validateRouter(mutation, 'one-click-publish')).toContain(
+      'canonical workflow body differs from allowlist',
+    );
+  });
+
+  it('ignores harmless prose reflow and repeated spaces', () => {
+    const reflowed = routers[0][1]
+      .replace(
+        'This is a compatibility router. For every planning, research, writing, review,\npublication, or update request',
+        'This is a compatibility router.   For every planning,\nresearch, writing, review, publication, or update request',
+      )
+      .replace(
+        'Default publication is an English source plus a reviewed Korean alternate that\nshare one',
+        'Default publication is an English source plus a reviewed\nKorean alternate that share one',
+      );
+    expect(validateRouter(reflowed, 'one-click-publish')).toEqual([]);
   });
 
   it.each(operationMutations)('rejects %s', (expectedError, instruction) => {
