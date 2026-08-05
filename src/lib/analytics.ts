@@ -23,7 +23,7 @@ export interface ToolEvent {
 }
 
 type AnalyticsWindow = Window & {
-  dataLayer?: unknown[][];
+  dataLayer?: IArguments[];
   gtag?: (...args: unknown[]) => void;
 };
 
@@ -61,7 +61,9 @@ export function loadGoogleAnalytics(measurementId: string): boolean {
 
   const analyticsWindow = window as AnalyticsWindow;
   analyticsWindow.dataLayer ??= [];
-  analyticsWindow.gtag ??= (...args: unknown[]) => { analyticsWindow.dataLayer?.push(args); };
+  analyticsWindow.gtag ??= function (..._args: unknown[]) {
+    analyticsWindow.dataLayer?.push(arguments);
+  };
 
   if (!document.querySelector('script[data-restato-analytics]')) {
     analyticsWindow.gtag('consent', 'default', consentSettings(getAnalyticsConsent()));

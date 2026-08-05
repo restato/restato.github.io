@@ -28,7 +28,7 @@ describe('privacy-safe analytics', () => {
     expect((window as typeof window & { dataLayer?: unknown[] }).dataLayer).toBeUndefined();
     expect(loadGoogleAnalytics('G-TEST123')).toBe(true);
     expect(document.querySelector('script[src*="googletagmanager"]')).not.toBeNull();
-    expect((window as typeof window & { dataLayer: unknown[][] }).dataLayer[0]).toEqual([
+    expect(Array.from((window as typeof window & { dataLayer: IArguments[] }).dataLayer[0])).toEqual([
       'consent', 'default', {
         ad_storage: 'denied',
         ad_user_data: 'denied',
@@ -45,11 +45,18 @@ describe('privacy-safe analytics', () => {
     expect(document.querySelectorAll('script[src*="googletagmanager"]')).toHaveLength(1);
   });
 
+  it('queues gtag commands as Arguments objects required by the Google tag runtime', () => {
+    loadGoogleAnalytics('G-TEST123');
+
+    const firstCommand = (window as typeof window & { dataLayer: unknown[] }).dataLayer[0];
+    expect(Object.prototype.toString.call(firstCommand)).toBe('[object Arguments]');
+  });
+
   it('keeps advertising denied when analytics consent is granted', () => {
     setAnalyticsConsent('granted');
     loadGoogleAnalytics('G-TEST123');
 
-    expect((window as typeof window & { dataLayer: unknown[][] }).dataLayer[0]).toEqual([
+    expect(Array.from((window as typeof window & { dataLayer: IArguments[] }).dataLayer[0])).toEqual([
       'consent', 'default', {
         ad_storage: 'denied',
         ad_user_data: 'denied',
@@ -63,7 +70,7 @@ describe('privacy-safe analytics', () => {
     loadGoogleAnalytics('G-TEST123');
     setAnalyticsConsent('granted');
 
-    expect((window as typeof window & { dataLayer: unknown[][] }).dataLayer.at(-1)).toEqual([
+    expect(Array.from((window as typeof window & { dataLayer: IArguments[] }).dataLayer.at(-1)!)).toEqual([
       'consent', 'update', {
         ad_storage: 'denied',
         ad_user_data: 'denied',
