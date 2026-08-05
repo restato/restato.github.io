@@ -1,0 +1,90 @@
+---
+import { getCollection } from 'astro:content';
+import BlogCard from '../../../components/BlogCard.astro';
+import BlogTagNav from '../../../components/BlogTagNav.astro';
+import PageShell from '../../../components/ui/PageShell.astro';
+import { getBlogTagContent } from '../../../data/blog-tag-content';
+import MainLayout from '../../../layouts/MainLayout.astro';
+import { getRankedBlogTagEntries } from '../../../lib/blogTags';
+import { projectKoreanRoutes } from '../../../lib/blogRoutes';
+
+const routes = projectKoreanRoutes(
+  await getCollection('blog', ({ data }) => !data.draft),
+).sort((a, b) => b.post.data.date.valueOf() - a.post.data.date.valueOf());
+
+const rankedTags = getRankedBlogTagEntries(
+  routes.map(route => route.post.data.tags),
+);
+const tagNavContent = getBlogTagContent('ko', '', 0);
+const siteUrl = Astro.site ?? Astro.url.origin;
+const englishUrl = new URL('/blog/', siteUrl).toString();
+const canonical = new URL('/ko/blog/', siteUrl).toString();
+const alternateUrls = [
+  { lang: 'en', url: englishUrl },
+  { lang: 'ko', url: canonical },
+  { lang: 'x-default', url: englishUrl },
+];
+---
+
+<MainLayout
+  title="블로그 | Restato"
+  description="개발 기록과 배운 점, 생각을 공유합니다."
+  canonical={canonical}
+  alternateUrls={alternateUrls}
+  lang="ko"
+>
+  <PageShell size="content">
+    <header class="fc-page-header max-w-2xl">
+      <p class="fc-eyebrow">Restato 저널</p>
+      <h1>블로그</h1>
+      <p class="fc-page-description">
+        개발 기록과 배운 점, 생각, 코딩 여정을 공유합니다.
+      </p>
+    </header>
+
+    {rankedTags.length > 0 && (
+      <BlogTagNav
+        entries={rankedTags}
+        label="블로그 태그"
+        showMoreLabel="더보기"
+        showLessLabel="접기"
+        formatCountLabel={tagNavContent.formatTagCount}
+        basePath="/ko/blog"
+      />
+    )}
+
+    {routes.length > 0 ? (
+      <div class="grid gap-5 md:grid-cols-2">
+        {routes.map(({ post, pathname }) => (
+          <BlogCard
+            title={post.data.title}
+            description={post.data.description}
+            date={post.data.date}
+            slug={post.slug}
+            href={pathname}
+            tags={post.data.tags}
+            image={post.data.image}
+          />
+        ))}
+      </div>
+    ) : (
+      <div class="fc-empty-state">
+        <h2>한국어 글을 준비하고 있습니다</h2>
+        <p>
+          이 페이지에는 영어 원문과 함께 편집 검토를 마친 한국어 번역만 표시됩니다.
+          영어 원문을 기준 문서로 유지해 번역의 내용과 이후 업데이트를 분명하게 연결합니다.
+        </p>
+        <p>
+          번역이 제공되는 글에서는 언어 선택기를 이용해 한국어 글과 영어 원문 사이를 이동할 수 있습니다.
+          아직 번역되지 않은 글과 기존 영어 글은 <a href="/blog/" class="font-medium text-[var(--brand)] underline underline-offset-4">영어 블로그</a>에서 계속 읽을 수 있습니다.
+        </p>
+      </div>
+    )}
+
+    {routes.length > 0 && (
+      <p class="mt-8 border-t border-[var(--border-subtle)] pt-5 text-sm text-[var(--text-muted)]">
+        글 {routes.length}개
+      </p>
+    )}
+  </PageShell>
+</MainLayout>

@@ -39,7 +39,10 @@ try {
 
   const html = await readFile(outputPath, 'utf8');
   assert.match(html, /data-knowledge-id="solutions\/contract\.md"/);
-  assert.match(html, />\s*Verified July 20, 2026(?:\s|<)/);
+  assert.match(
+    html,
+    /data-knowledge-id="solutions\/contract\.md"[^>]*>[\s\S]*?Verified\s*<time datetime="2026-07-20T00:00:00\.000Z">July 20, 2026<\/time>/,
+  );
 } finally {
   if (fixtureCreated) {
     await rm(fixturePath, { force: true });

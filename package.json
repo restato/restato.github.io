@@ -4,7 +4,7 @@
   "version": "1.0.0",
   "scripts": {
     "dev": "astro dev",
-    "build": "astro build && node scripts/generate-tag-redirects.mjs && node scripts/generate-sitemaps.mjs",
+    "build": "npm run verify:translations && astro build && node scripts/generate-tag-redirects.mjs && node scripts/generate-sitemaps.mjs",
     "build:astro": "astro build",
     "build:sitemaps": "node scripts/generate-sitemaps.mjs",
     "verify:air-quality-app-pages": "node scripts/verify-air-quality-app-pages.mjs",
@@ -20,9 +20,10 @@
     "test:e2e": "npm run build && playwright test",
     "check:bundles": "npm run build && node scripts/check-bundles.mjs dist",
     "lighthouse": "npm run build && lhci autorun",
+    "verify:translations": "node scripts/validate-blog-translations.mjs",
     "validate:site": "node scripts/validate-site.mjs dist",
     "audit:content": "node scripts/audit-content.mjs dist",
-    "verify": "npm test -- --run && npm run check && npm run build && npm run validate:site && npm run audit:content"
+    "verify": "npm run verify:translations && npm test -- --run && npm run check && npm run build && npm run validate:site && npm run audit:content"
   },
   "dependencies": {
     "@astrojs/mdx": "^4.0.0",

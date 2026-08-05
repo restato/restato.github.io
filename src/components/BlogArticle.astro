@@ -1,0 +1,156 @@
+---
+import type { CollectionEntry } from 'astro:content';
+import { formatBlogArticleDate, getBlogArticleChrome } from '../lib/blogArticleChrome';
+import type { BlogLocale } from '../lib/blogTranslations';
+import PageShell from './ui/PageShell.astro';
+
+interface NavigationLabels {
+  home: string;
+  blog: string;
+  backToList: string;
+  share: string;
+  copyLink: string;
+  copied: string;
+}
+
+interface Props {
+  post: CollectionEntry<'blog'>;
+  lang: BlogLocale;
+  indexUrl: string;
+  tagUrlBuilder: (tag: string) => string;
+  labels: NavigationLabels;
+}
+
+const { post, lang, indexUrl, tagUrlBuilder, labels } = Astro.props;
+const { Content } = await post.render();
+
+// Get reading time estimate (roughly 200 words per minute in Korean)
+const content = post.body;
+const wordCount = content.split(/\s+/).length;
+const readingTime = Math.max(1, Math.ceil(wordCount / 200));
+const chrome = getBlogArticleChrome(lang, readingTime);
+const formattedDate = formatBlogArticleDate(post.data.date, lang);
+---
+
+<PageShell size="reading">
+  <article data-blog-article data-copied-label={labels.copied}>
+    <nav class="fc-tool-breadcrumb" aria-label={chrome.breadcrumbLabel}>
+      <ol>
+        <li><a href="/">{labels.home}</a></li>
+        <li aria-hidden="true">/</li>
+        <li><a href={indexUrl}>{labels.blog}</a></li>
+        <li aria-hidden="true">/</li>
+        <li aria-current="page">{post.data.title}</li>
+      </ol>
+    </nav>
+
+    <header class="fc-page-header">
+      <div class="flex flex-wrap items-center gap-3 text-sm text-[var(--text-muted)]">
+        <time datetime={post.data.date.toISOString()} class="fc-chip text-[var(--accent)]">
+          {formattedDate}
+        </time>
+        <span aria-label={chrome.readingTimeLabel}>{chrome.readingTime}</span>
+      </div>
+
+      <h1>{post.data.title}</h1>
+      <p class="fc-page-description">{post.data.description}</p>
+
+      {post.data.knowledgeId && post.data.verifiedAt && (
+        <p data-knowledge-id={post.data.knowledgeId} class="text-sm text-[var(--text-muted)]">
+          {chrome.verified} <time datetime={post.data.verifiedAt.toISOString()}>{formatBlogArticleDate(post.data.verifiedAt, lang)}</time>
+          {post.data.updated && (
+            <> · {chrome.updated} <time datetime={post.data.updated.toISOString()}>{formatBlogArticleDate(post.data.updated, lang)}</time></>
+          )}
+        </p>
+      )}
+
+      {post.data.tags.length > 0 && (
+        <nav class="flex flex-wrap gap-2" aria-label={chrome.tagsLabel}>
+          {post.data.tags.map((tag: string) => (
+            post.data.draft
+              ? <span class="fc-chip text-[var(--brand)]">{tag}</span>
+              : <a
+                  href={tagUrlBuilder(tag)}
+                  class="fc-chip border border-transparent text-[var(--brand)] transition-colors hover:border-[var(--brand)]"
+                >
+                  {tag}
+                </a>
+          ))}
+        </nav>
+      )}
+    </header>
+
+    {post.data.image && (
+      <img
+        src={post.data.image}
+        alt={post.data.title}
+        class="mb-12 w-full rounded-2xl border border-[var(--border-subtle)]"
+      />
+    )}
+
+    <div class="fc-prose prose prose-lg dark:prose-invert">
+      <Content />
+    </div>
+
+    <footer class="mt-14 border-t border-[var(--border-subtle)] pt-8">
+      <div class="flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-center">
+        <a href={indexUrl} class="fc-button fc-button-quiet px-2 text-sm">
+          <svg aria-hidden="true" focusable="false" class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7" />
+          </svg>
+          {labels.backToList}
+        </a>
+
+        <div class="flex flex-wrap gap-2">
+          <button id="share-btn" class="fc-button fc-button-secondary text-sm">
+            <svg aria-hidden="true" focusable="false" class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" />
+            </svg>
+            {labels.share}
+          </button>
+          <button id="copy-btn" class="fc-button fc-button-secondary text-sm">
+            <svg aria-hidden="true" focusable="false" class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+            </svg>
+            {labels.copyLink}
+          </button>
+        </div>
+      </div>
+    </footer>
+  </article>
+</PageShell>
+
+<script>
+  const shareBtn = document.getElementById('share-btn');
+  const copyBtn = document.getElementById('copy-btn');
+  const article = document.querySelector<HTMLElement>('[data-blog-article]');
+  const copiedLabel = article?.dataset.copiedLabel || 'Link copied!';
+  const url = window.location.href;
+  const title = document.title;
+
+  shareBtn?.addEventListener('click', async () => {
+    if (navigator.share) {
+      try {
+        await navigator.share({ title, url });
+      } catch (err) {
+        // User cancelled
+      }
+    } else {
+      await navigator.clipboard.writeText(url);
+      showToast(copiedLabel);
+    }
+  });
+
+  copyBtn?.addEventListener('click', async () => {
+    await navigator.clipboard.writeText(url);
+    showToast(copiedLabel);
+  });
+
+  function showToast(message: string) {
+    const toast = document.createElement('div');
+    toast.className = 'fc-surface fixed bottom-4 left-1/2 z-50 -translate-x-1/2 bg-[var(--text-primary)] px-4 py-2 text-sm font-medium text-[var(--surface-page)]';
+    toast.textContent = message;
+    document.body.appendChild(toast);
+    setTimeout(() => toast.remove(), 2000);
+  }
+</script>

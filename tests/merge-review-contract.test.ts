@@ -7,17 +7,23 @@ const read = (path: string) => readFileSync(path, 'utf8');
 describe('merge-review locale contracts', () => {
   it('uses one shared localized-route family list for server and header runtime routing', () => {
     expect(localizedRouteFamilies).toEqual(expect.arrayContaining([
-      '/', '/tools', '/anonymous-chat', '/games',
+      '/', '/tools', '/anonymous-chat', '/games', '/blog',
       '/about', '/contact', '/privacy', '/terms', '/disclaimer',
     ]));
-    for (const family of localizedRouteFamilies) {
+    for (const family of localizedRouteFamilies.filter(family => family !== '/blog')) {
       expect(supportsLanguageRouting(family)).toBe(true);
       expect(buildLanguageUrl(family, 'fr')).toBe(family === '/games' ? '/en/games' : `/fr${family}`);
     }
+    expect(supportsLanguageRouting('/blog')).toBe(true);
+    expect(buildLanguageUrl('/blog', 'fr')).toBe('/blog');
+    expect(buildLanguageUrl('/blog', 'en')).toBe('/blog');
+    expect(buildLanguageUrl('/blog', 'ko')).toBe('/ko/blog');
 
     const header = read('src/components/Header.astro');
     expect(header).toContain('localizedRouteFamilies');
     expect(header).not.toContain("const langSupportedPaths = ['/', '/tools', '/anonymous-chat', '/games']");
+    expect(header).toContain("if (pathOnly === '/blog' || pathOnly.startsWith('/blog/'))");
+    expect(header).toContain("return lang === 'ko' ? '/ko' + basePath : basePath;");
   });
 
   it('locks all English-only Quick Issue and PasteDock pages', () => {

@@ -1,0 +1,139 @@
+import { existsSync, readFileSync, readdirSync } from 'node:fs';
+import { fileURLToPath } from 'node:url';
+import { join, relative, sep } from 'node:path';
+
+const pairedDocumentPattern = /^(en|ko)\/([a-z0-9]+(?:-[a-z0-9]+)*)\.mdx$/u;
+const scalarPattern = /^(lang|translationKey):[\t ]*(.*)$/u;
+
+function parseScalar(value) {
+  const trimmed = value.trim();
+  if (!trimmed || /^[\[{|>&*!]/u.test(trimmed)) return { valid: false };
+
+  if (trimmed.startsWith('"') || trimmed.startsWith("'")) {
+    const quote = trimmed[0];
+    if (trimmed.length < 2 || !trimmed.endsWith(quote)) return { valid: false };
+    return { valid: true, value: trimmed.slice(1, -1) };
+  }
+
+  if (/[\t ]#|[\r\n]/u.test(trimmed)) return { valid: false };
+  return { valid: true, value: trimmed };
+}
+
+function addError(errors, message) {
+  if (!errors.includes(message)) errors.push(message);
+}
+
+/**
+ * Validates the bilingual blog document layout without loading MDX modules.
+ *
+ * @param {string} root Repository root.
+ * @returns {string[]} Deterministic, human-readable validation errors.
+ */
+export function validateBlogTranslations(root) {
+  const blogDirectory = join(root, 'src/content/blog');
+  const errors = [];
+  const pairs = new Map();
+
+  function listBlogDocuments(directory, entries = { documents: [], symlinks: [] }) {
+    if (!existsSync(directory)) return entries;
+
+    for (const entry of readdirSync(directory, { withFileTypes: true }).sort((left, right) => left.name.localeCompare(right.name))) {
+      const path = join(directory, entry.name);
+      if (entry.isSymbolicLink()) {
+        entries.symlinks.push(path);
+      } else if (entry.isDirectory()) {
+        listBlogDocuments(path, entries);
+      } else if (entry.isFile() && (entry.name.endsWith('.md') || entry.name.endsWith('.mdx'))) {
+        entries.documents.push(path);
+      }
+    }
+
+    return entries;
+  }
+
+  function parseFrontmatter(path) {
+    const source = readFileSync(path, 'utf8').replace(/^\uFEFF/u, '');
+    const lines = source.split(/\r?\n/u);
+    if (lines[0] !== '---') return { malformed: true, data: {} };
+
+    const closingIndex = lines.indexOf('---', 1);
+    if (closingIndex === -1) return { malformed: true, data: {} };
+
+    const data = {};
+    for (const line of lines.slice(1, closingIndex)) {
+      const field = scalarPattern.exec(line);
+      if (!field) continue;
+
+      const parsed = parseScalar(field[2]);
+      if (!parsed.valid || Object.hasOwn(data, field[1])) {
+        return { malformed: true, data: {} };
+      }
+      data[field[1]] = parsed.value;
+    }
+
+    return { malformed: false, data };
+  }
+
+  const { documents, symlinks } = listBlogDocuments(blogDirectory);
+  if (symlinks.length > 0) {
+    addError(errors, 'blog content must not contain symbolic links');
+  }
+
+  for (const path of documents) {
+    const segments = relative(blogDirectory, path).split(sep);
+    const id = segments.join('/');
+    const frontmatter = parseFrontmatter(path);
+    if (frontmatter.malformed) {
+      addError(errors, `blog document ${id} has malformed frontmatter`);
+      continue;
+    }
+
+    const { lang, translationKey } = frontmatter.data;
+    const pairedPath = pairedDocumentPattern.exec(id);
+    if (!pairedPath) {
+      if (translationKey || segments[0] === 'en' || segments[0] === 'ko') {
+        addError(errors, 'paired document must live under src/content/blog/en or src/content/blog/ko');
+      }
+      continue;
+    }
+
+    const [, storageLocale, leaf] = pairedPath;
+    if (!translationKey) {
+      addError(errors, `paired document ${id} is missing translationKey`);
+      continue;
+    }
+
+    if (lang !== storageLocale) {
+      const state = lang ? 'invalid' : 'missing';
+      addError(errors, `translation pair ${translationKey} has ${state} ${storageLocale} lang`);
+    }
+
+    if (translationKey !== leaf || !/^[a-z0-9]+(?:-[a-z0-9]+)*$/u.test(translationKey)) {
+      addError(errors, `translation pair ${translationKey} uses inconsistent public slugs`);
+    }
+
+    const pair = pairs.get(translationKey) ?? { en: null, ko: null };
+    if (pair[storageLocale]) {
+      addError(errors, `translation pair ${translationKey} has duplicate ${storageLocale} documents`);
+    } else {
+      pair[storageLocale] = true;
+    }
+    pairs.set(translationKey, pair);
+  }
+
+  for (const translationKey of [...pairs.keys()].sort((left, right) => left.localeCompare(right))) {
+    const pair = pairs.get(translationKey);
+    if (!pair.en) errors.push(`translation pair ${translationKey} is missing en`);
+    if (!pair.ko) errors.push(`translation pair ${translationKey} is missing ko`);
+  }
+
+  return errors.sort((left, right) => left.localeCompare(right));
+}
+
+if (process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1]) {
+  const errors = validateBlogTranslations(process.cwd());
+  if (errors.length > 0) {
+    console.error(errors.join('\n'));
+    process.exitCode = 1;
+  }
+}

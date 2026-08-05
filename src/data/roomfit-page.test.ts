@@ -2,6 +2,7 @@ import { existsSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 
 import { describe, expect, it } from 'vitest';
+import { resolveLayoutLanguageUrls } from '../i18n/urlUtils';
 
 const pagePath = join(process.cwd(), 'src/pages/projects/roomfit-3d.astro');
 const mainLayoutPath = join(process.cwd(), 'src/layouts/MainLayout.astro');
@@ -45,18 +46,32 @@ describe('RoomFit project detail page', () => {
     expect(source).not.toContain('View on GitHub');
   });
 
-  it('allows an English project page to keep its language metadata locked', () => {
+  it('keeps English project metadata locked without deriving article navigation', () => {
+    const page = readFileSync(pagePath, 'utf8');
     const source = readFileSync(mainLayoutPath, 'utf8');
 
+    expect(page).toContain('<MainLayout title={pageTitle} description={pageDescription} lang="en" lockLanguage={true}>');
+    expect(page).not.toContain('languageUrls=');
     expect(source).toContain('lockLanguage?: boolean');
+    expect(source).toContain('languageUrls?: Partial<Record<Language, string>>');
     expect(source).toContain('lockLanguage={lockLanguage}');
-    expect(source).toContain('<Header lang={lang} lockLanguage={lockLanguage} />');
+    expect(source).toContain("deriveFromAlternates: lockLanguage && type === 'article'");
+    expect(source).toContain('<Header lang={lang} lockLanguage={lockLanguage} languageUrls={resolvedLanguageUrls} />');
+    expect(resolveLayoutLanguageUrls({ deriveFromAlternates: false })).toBeUndefined();
   });
 
-  it('keeps the shared navigation in English when the page language is locked', () => {
+  it('keeps locked English navigation selector-free without a usable map', () => {
     const source = readFileSync(headerPath, 'utf8');
+    const languageUrls = resolveLayoutLanguageUrls({
+      languageUrls: { en: '   ', unsupported: '/unsupported/' },
+      deriveFromAlternates: false,
+    });
 
-    expect(source).toContain("const { lang = 'ko', lockLanguage = false } = Astro.props");
+    expect(languageUrls).toBeUndefined();
+    expect(!true || Boolean(languageUrls)).toBe(false);
+    expect(source).toContain("const { lang = 'ko', lockLanguage = false, languageUrls: rawLanguageUrls } = Astro.props");
+    expect(source).toContain('const languageUrls = normalizeLanguageUrls(rawLanguageUrls);');
+    expect(source).toContain('const showLanguageSelector = !lockLanguage || Boolean(languageUrls);');
     expect(source).toContain('{chrome.nav[item.labelKey]}');
     expect(source).toContain('if (lockLanguage) return lang;');
   });

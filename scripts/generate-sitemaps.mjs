@@ -56,9 +56,9 @@ function isNoindexUrl(pathname) {
 /**
  * Categorize a URL based on its path
  */
-function categorizeUrl(pathname) {
+export function categorizeUrl(pathname) {
   // Blog posts
-  if (pathname.startsWith('/blog/')) return 'blog';
+  if (/^\/(?:ko\/)?blog(?:\/|$)/u.test(pathname)) return 'blog';
 
   // Tools with language prefix (canonical URLs)
   if (localizedToolsPattern.test(pathname)) return 'tools';
@@ -76,7 +76,7 @@ function categorizeUrl(pathname) {
 /**
  * Get priority based on content type and path
  */
-function getPriority(category, pathname) {
+export function getPriority(category, pathname) {
   // Home page
   if (pathname === '/' || pathname === '') return 1.0;
 
@@ -88,7 +88,7 @@ function getPriority(category, pathname) {
 
   if (category === 'blog') {
     // Blog index
-    if (pathname === '/blog/' || pathname === '/blog') return 0.8;
+    if (/^\/(?:ko\/)?blog\/?$/u.test(pathname)) return 0.8;
     return 0.7;
   }
 
@@ -113,28 +113,43 @@ function getChangefreq(category) {
 
 /**
  * Extract blog post dates from MDX files
- * Returns a map of slug -> date
+ * Returns a map of storage key -> date
  */
-function getBlogPostDates() {
+export function getBlogPostDates(contentDirectory = CONTENT_DIR) {
   const dates = new Map();
 
-  if (!fs.existsSync(CONTENT_DIR)) {
+  if (!fs.existsSync(contentDirectory)) {
     console.warn('Blog content directory not found');
     return dates;
   }
 
-  const files = fs.readdirSync(CONTENT_DIR).filter((f) => f.endsWith('.mdx'));
+  function visit(directory, segments = []) {
+    const entries = fs.readdirSync(directory, { withFileTypes: true });
 
-  for (const file of files) {
-    const content = fs.readFileSync(path.join(CONTENT_DIR, file), 'utf-8');
-    const dateMatch = content.match(/^date:\s*(\d{4}-\d{2}-\d{2})/m);
+    for (const entry of entries) {
+      const entryPath = path.join(directory, entry.name);
+      if (entry.isDirectory()) {
+        visit(entryPath, [...segments, entry.name]);
+        continue;
+      }
+      if (!entry.isFile() || !entry.name.endsWith('.mdx')) continue;
 
-    if (dateMatch) {
-      const slug = file.replace('.mdx', '');
-      // Convert to ISO format with time
-      dates.set(slug, `${dateMatch[1]}T00:00:00.000Z`);
+      const slug = entry.name.replace(/\.mdx$/u, '');
+      const storageSegments = [...segments, slug];
+      const isLegacyDocument = storageSegments.length === 1;
+      const isLocalizedDocument = storageSegments.length === 2
+        && (storageSegments[0] === 'en' || storageSegments[0] === 'ko');
+      if (!isLegacyDocument && !isLocalizedDocument) continue;
+
+      const content = fs.readFileSync(entryPath, 'utf-8');
+      const dateMatch = content.match(/^date:\s*(\d{4}-\d{2}-\d{2})/m);
+      if (dateMatch) {
+        dates.set(storageSegments.join('/'), `${dateMatch[1]}T00:00:00.000Z`);
+      }
     }
   }
+
+  visit(contentDirectory);
 
   return dates;
 }
@@ -142,16 +157,21 @@ function getBlogPostDates() {
 /**
  * Get lastmod date for a URL
  */
-function getLastmod(pathname, blogDates, buildDate) {
-  // For blog posts, use the actual post date
-  if (pathname.startsWith('/blog/') && pathname !== '/blog/') {
-    const slug = pathname.replace('/blog/', '').replace(/\/$/, '');
-    if (blogDates.has(slug)) {
-      return blogDates.get(slug);
-    }
+export function getLastmod(pathname, blogDates, buildDate) {
+  if (/^\/(?:ko\/)?blog\/tag(?:\/|$)/u.test(pathname)) return buildDate;
+
+  const koreanArticle = /^\/ko\/blog\/([^/]+)\/?$/u.exec(pathname);
+  if (koreanArticle) {
+    return blogDates.get(`ko/${koreanArticle[1]}`) ?? buildDate;
   }
 
-  // For everything else, use build date
+  const englishArticle = /^\/blog\/([^/]+)\/?$/u.exec(pathname);
+  if (englishArticle) {
+    return blogDates.get(`en/${englishArticle[1]}`)
+      ?? blogDates.get(englishArticle[1])
+      ?? buildDate;
+  }
+
   return buildDate;
 }
 

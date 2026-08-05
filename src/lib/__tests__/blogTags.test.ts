@@ -1,6 +1,10 @@
+// @vitest-environment node
+
 import { readFile } from 'node:fs/promises';
 import { join } from 'node:path';
-import { describe, expect, it } from 'vitest';
+import { experimental_AstroContainer as AstroContainer } from 'astro/container';
+import { beforeAll, describe, expect, it } from 'vitest';
+import BlogTagNav from '../../components/BlogTagNav.astro';
 import {
   getBlogTagEntries,
   getRankedBlogTagEntries,
@@ -9,7 +13,13 @@ import {
   toLegacyBlogTagPath,
 } from '../blogTags';
 
+let astro: AstroContainer;
+
 describe('blog tag URLs', () => {
+  beforeAll(async () => {
+    astro = await AstroContainer.create();
+  });
+
   it('creates lowercase URL-safe slugs', () => {
     expect(toBlogTagSlug('AI Agent')).toBe('ai-agent');
     expect(toBlogTagSlug('개발 도구')).toBe('%EA%B0%9C%EB%B0%9C-%EB%8F%84%EA%B5%AC');
@@ -103,11 +113,13 @@ describe('blog tag URLs', () => {
   });
 
   it('uses canonical slugs for generated tag routes and every tag link', async () => {
-    const [tagRoute, blogIndex, blogTagNav, blogPost] = await Promise.all([
+    const [tagRoute, blogIndex, blogTagNav, blogPost, koreanBlogPost, blogArticle] = await Promise.all([
       readFile(join(process.cwd(), 'src/pages/blog/tag/[tag].astro'), 'utf8'),
       readFile(join(process.cwd(), 'src/pages/blog/index.astro'), 'utf8'),
       readFile(join(process.cwd(), 'src/components/BlogTagNav.astro'), 'utf8'),
       readFile(join(process.cwd(), 'src/pages/blog/[...slug].astro'), 'utf8'),
+      readFile(join(process.cwd(), 'src/pages/ko/blog/[...slug].astro'), 'utf8'),
+      readFile(join(process.cwd(), 'src/components/BlogArticle.astro'), 'utf8'),
     ]);
 
     expect(tagRoute).toContain('getBlogTagRouteEntries');
@@ -118,7 +130,60 @@ describe('blog tag URLs', () => {
     expect(tagRoute).toContain('data-canonical-slug={toBlogTagSlug(tag)}');
     expect(tagRoute).toContain('toBlogTagSlug(postTag) === route.canonicalSlug');
     expect(blogIndex).toContain('BlogTagNav');
-    expect(blogTagNav).toContain('href={`/blog/tag/${entry.slug}`}');
-    expect(blogPost).toContain('href={`/blog/tag/${toBlogTagSlug(tag)}`}');
+    expect(blogTagNav).toContain("basePath = '/blog'");
+    expect(blogTagNav).toContain('`${normalizedBasePath}/tag/${entry.slug}`');
+    expect(blogPost).toContain('`/blog/tag/${toBlogTagSlug(tag)}`');
+    expect(koreanBlogPost).toContain('`/ko/blog/tag/${toBlogTagSlug(tag)}`');
+    expect(koreanBlogPost).toContain('indexUrl="/ko/blog"');
+    expect(blogArticle).toContain('href={tagUrlBuilder(tag)}');
+  });
+
+  it('keeps Korean tag navigation inside the Korean blog route family', async () => {
+    const html = await astro.renderToString(BlogTagNav, {
+      props: {
+        entries: [{ label: '개발 도구', slug: '%EA%B0%9C%EB%B0%9C-%EB%8F%84%EA%B5%AC', count: 2 }],
+        label: '블로그 태그',
+        showMoreLabel: '더보기',
+        showLessLabel: '접기',
+        formatCountLabel: (count: number) => `글 ${count}개`,
+        includeAllLink: true,
+        allLabel: '전체',
+        basePath: '/ko/blog',
+      },
+    });
+
+    expect(html).toContain('href="/ko/blog"');
+    expect(html).toContain('href="/ko/blog/tag/%EA%B0%9C%EB%B0%9C-%EB%8F%84%EA%B5%AC"');
+    expect(html).not.toContain('href="/blog/tag/');
+  });
+
+  it('preserves the English blog route family as the tag navigation default', async () => {
+    const html = await astro.renderToString(BlogTagNav, {
+      props: {
+        entries: [{ label: 'Astro', slug: 'astro', count: 1 }],
+        label: 'Blog tags',
+        showMoreLabel: 'Show more',
+        showLessLabel: 'Show less',
+        formatCountLabel: (count: number) => `${count} post`,
+        includeAllLink: true,
+        allLabel: 'All',
+      },
+    });
+
+    expect(html).toContain('href="/blog"');
+    expect(html).toContain('href="/blog/tag/astro"');
+  });
+
+  it('generates Korean tag archives from Korean route projection', async () => {
+    const koreanTagRoute = await readFile(
+      join(process.cwd(), 'src/pages/ko/blog/tag/[tag].astro'),
+      'utf8',
+    );
+
+    expect(koreanTagRoute).toContain('projectKoreanRoutes(');
+    expect(koreanTagRoute).toContain('href={pathname}');
+    expect(koreanTagRoute).toContain('basePath="/ko/blog"');
+    expect(koreanTagRoute).toContain('canonical={canonical}');
+    expect(koreanTagRoute).toContain('lang="ko"');
   });
 });

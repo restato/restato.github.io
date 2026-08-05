@@ -1,0 +1,120 @@
+---
+import { getCollection } from 'astro:content';
+import BlogCard from '../../../../components/BlogCard.astro';
+import BlogTagNav from '../../../../components/BlogTagNav.astro';
+import PageShell from '../../../../components/ui/PageShell.astro';
+import { getBlogTagContent } from '../../../../data/blog-tag-content';
+import MainLayout from '../../../../layouts/MainLayout.astro';
+import { projectKoreanRoutes } from '../../../../lib/blogRoutes';
+import {
+  getBlogTagRouteEntries,
+  getRankedBlogTagEntries,
+  toBlogTagSlug,
+} from '../../../../lib/blogTags';
+
+export async function getStaticPaths() {
+  const routes = projectKoreanRoutes(
+    await getCollection('blog', ({ data }) => !data.draft),
+  );
+  const tagRoutes = getBlogTagRouteEntries(routes.flatMap(route => route.post.data.tags));
+
+  return tagRoutes
+    .filter(route => route.kind === 'canonical')
+    .map(route => ({
+      params: { tag: route.filesystemSegment },
+      props: {
+        tag: route.label,
+        routes: routes
+          .filter(({ post }) => post.data.tags.some(
+            postTag => toBlogTagSlug(postTag) === route.canonicalSlug,
+          ))
+          .sort((left, right) => right.post.data.date.valueOf() - left.post.data.date.valueOf()),
+      },
+    }));
+}
+
+const { tag, routes } = Astro.props;
+const tagContent = getBlogTagContent('ko', tag, routes.length);
+const allRoutes = projectKoreanRoutes(
+  await getCollection('blog', ({ data }) => !data.draft),
+);
+const rankedTags = getRankedBlogTagEntries(
+  allRoutes.map(route => route.post.data.tags),
+);
+const siteUrl = Astro.site ?? Astro.url.origin;
+const canonical = new URL(`/ko/blog/tag/${toBlogTagSlug(tag)}/`, siteUrl).toString();
+---
+
+<MainLayout
+  title={`${tag} | 블로그 | Restato`}
+  description={tagContent.metaDescription}
+  canonical={canonical}
+  lang="ko"
+  lockLanguage={true}
+>
+  <PageShell size="content">
+    <header class="fc-page-header max-w-2xl">
+      <a href="/ko/blog" class="fc-button fc-button-quiet w-fit px-2 text-sm">
+        <svg aria-hidden="true" class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7" />
+        </svg>
+        블로그
+      </a>
+      <h1><span class="text-[var(--brand)]">#</span>{tag}</h1>
+      <p class="fc-page-description">{tagContent.summary}</p>
+    </header>
+
+    <section
+      class="fc-surface fc-surface-soft mb-10 p-5 sm:p-6"
+      aria-labelledby="tag-introduction-title"
+    >
+      <h2 id="tag-introduction-title" class="mb-3 text-xl">
+        {tagContent.introductionTitle}
+      </h2>
+      <p class="m-0 leading-7 text-[var(--text-muted)]">
+        {tagContent.introduction}
+      </p>
+    </section>
+
+    {rankedTags.length > 0 && (
+      <BlogTagNav
+        entries={rankedTags}
+        label={tagContent.tagsLabel}
+        showMoreLabel={tagContent.showMoreLabel}
+        showLessLabel={tagContent.showLessLabel}
+        formatCountLabel={tagContent.formatTagCount}
+        currentSlug={toBlogTagSlug(tag)}
+        includeAllLink={true}
+        allLabel={tagContent.allLabel}
+        basePath="/ko/blog"
+      />
+    )}
+
+    {routes.length > 0 ? (
+      <div class="grid gap-5 md:grid-cols-2">
+        {routes.map(({ post, pathname }) => (
+          <BlogCard
+            title={post.data.title}
+            description={post.data.description}
+            date={post.data.date}
+            slug={post.slug}
+            href={pathname}
+            tags={post.data.tags}
+            image={post.data.image}
+          />
+        ))}
+      </div>
+    ) : (
+      <div class="fc-empty-state">
+        <h2>{tagContent.noPostsTitle}</h2>
+        <p>{tagContent.noPostsDescription}</p>
+      </div>
+    )}
+
+    {routes.length > 0 && (
+      <p class="mt-8 border-t border-[var(--border-subtle)] pt-5 text-sm text-[var(--text-muted)]">
+        {tagContent.summary}
+      </p>
+    )}
+  </PageShell>
+</MainLayout>

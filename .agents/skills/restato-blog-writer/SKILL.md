@@ -1,178 +1,36 @@
 ---
 name: restato-blog-writer
-description: Restato GitHub Pages 블로그에 개발·AI·자동화 글을 조사하고 검증하여 MDX로 작성·배포할 때 사용하는 스킬
-version: 2.0.0
+description: Compatibility router for Restato technical blog publication
+version: 3.0.0
 ---
 
 # Restato Blog Writer
 
-## 목적
+## Canonical workflow
 
-`restato/restato.github.io`에 검색 가치와 실행 가능성이 있는 개발 글을 발행합니다. 단순한 릴리스 번역, 근거 없는 경험담, 키워드 채우기 글은 작성하지 않습니다.
+This compatibility router delegates every article plan, research task, draft,
+review, update, or publication request to the globally installed
+`restato-content-partner` skill. Load and follow that skill as the sole workflow.
+If it is unavailable, stop and report the blocker rather than
+recreating a local publishing process.
 
-## 적용 범위
+Default publication is an English source plus a reviewed Korean alternate
+sharing one `translationKey`. A user may explicitly request a single language
+only when the canonical workflow records the override.
 
-- `src/content/blog/*.mdx` 새 글 작성 또는 업데이트
-- 사용자가 직접 지정한 주제의 즉시 발행
-- 관심 주제의 정기 탐색과 자동 발행
-- 저장소 커밋을 기반으로 한 개발기
-- 기존 글의 버전·가격·호환성 업데이트
+Public MDX is created only after the canonical private editorial handoff and
+safety gates pass. Do not copy private knowledge or credentials into public
+MDX.
 
-## 우선순위와 충돌 해결
+Never use a direct commit to `master` or another default branch; never use a
+direct push there either. The canonical workflow owns isolated worktrees, PR
+review, merge, deployment, and live-page verification.
 
-규칙이 충돌하면 다음 순서를 따릅니다.
+## Completion reporting
 
-1. 사용자의 현재 명시적 요청
-2. 실제 `src/content/config.ts` 스키마와 저장소 구현
-3. `.agents/CONTENT_POLICY.md`
-4. `.agents/WORKFLOW.md`
-5. 이 스킬
-6. 과거 memory 기록
+Defer completion to the canonical workflow's publication evidence. Report:
 
-사용자가 직접 지정한 주제는 자동 탐색의 점수 임계값을 적용하지 않지만, 사실 검증·중복 검사·리뷰와 빌드 기준은 유지합니다.
-
-## 작업 전 조사
-
-1. `topics.md`, `published.md`, `ideas.md`, `keywords.md`, `style.md`를 읽습니다.
-2. `src/content/blog/`의 제목·설명·태그·본문 검색 의도를 비교합니다.
-3. 동일한 독자 질문을 해결하는 글이 있으면 새 글보다 업데이트를 우선합니다.
-4. 최신 제품·API·버전·가격·정책은 공식 문서, 릴리스 노트, 원본 저장소를 확인합니다.
-5. 핵심 주장별 출처와 확인 날짜를 연구 노트에 남깁니다.
-6. 직접 확인하지 못한 사용 경험·성과·성능 수치는 제거합니다.
-7. 실행 가능한 코드, 절차, 비교표, 실패 조건 또는 체크리스트를 최소 하나 확보합니다.
-
-## 주제 선정
-
-우선순위는 다음과 같습니다.
-
-1. 기존 구현이나 운영 방식을 바꾸는 공식 변경
-2. 실제 저장소에서 구현하거나 해결한 문제
-3. AI agent, MCP, Codex, Claude Code, OpenAI·Anthropic·Google API의 실전 운영
-4. GitHub Actions·Pages, Astro, React, TypeScript, Vercel AI SDK 운영
-5. 자동화·생산성·소규모 사업에 개발을 적용한 사례
-
-제외하거나 보류합니다.
-
-- 공식 출처가 없는 소식
-- 제목만 바꾼 기존 글
-- 기능 소개 외에 독자 행동으로 이어질 내용이 없는 발표
-- 재현할 수 없는 관리자 전용 기능
-- 확인하지 않은 벤치마크·비용·사용 후기
-- 의미 없는 Top N 목록과 과장된 전망
-
-## Gap Finder 결과 반영
-
-글은 최소 하나의 구체적인 콘텐츠 공백을 해결해야 합니다.
-
-- 설치법은 많지만 운영 방법이 없음
-- 기능 소개는 많지만 마이그레이션 절차가 없음
-- 정상 경로는 있지만 실패·복구·보안 조건이 없음
-- API 예제는 있지만 테스트·관측·비용·배포가 연결되지 않음
-- 기존 Restato 글은 있으나 새 버전에 맞지 않음
-
-“한국어 자료가 적다”만으로는 발행하지 않습니다.
-
-## 문체
-
-- 한국어 존댓말을 기본으로 합니다.
-- 첫 문단에서 문제와 핵심 판단을 바로 말합니다.
-- 짧고 자연스러운 문장을 사용합니다.
-- 번역투, 상투적인 AI 서론과 홍보성 표현을 피합니다.
-- 코드와 실제 절차를 중심에 둡니다.
-- 직접 하지 않은 일을 해본 것처럼 쓰지 않습니다.
-- 실패·제약·트레이드오프를 숨기지 않습니다.
-- 결론은 핵심 판단과 다음 행동으로 끝냅니다.
-
-## 권장 구조
-
-주제에 필요한 부분만 사용합니다.
-
-1. 독자가 겪는 문제와 핵심 결론
-2. 변경 사항 또는 선택지 비교
-3. 권장 아키텍처와 의사결정 기준
-4. 단계별 구현·마이그레이션 절차
-5. 코드·설정 예제
-6. 실패 조건, 보안과 운영 주의점
-7. 검증·관측·rollback 기준
-8. 체크리스트와 결론
-9. 공식 자료
-
-본문에서 H1을 반복하지 않습니다.
-
-## 현재 MDX 형식
-
-실제 `src/content/config.ts`를 항상 먼저 확인합니다. 2026-07-24 기준 형식은 다음과 같습니다.
-
-```mdx
----
-title: "구체적인 결과가 드러나는 제목"
-description: "독자가 얻게 될 결과를 설명"
-date: 2026-07-24
-verifiedAt: 2026-07-24
-tags: ["AI", "Automation"]
----
-```
-
-규칙:
-
-- 날짜 필드는 `date`를 사용합니다. `pubDate`를 사용하지 않습니다.
-- 최신성에 민감한 글은 `verifiedAt`을 추가합니다.
-- 파일명은 영문 소문자 kebab-case로 작성합니다.
-- 제목은 기존 글과 검색 의도가 겹치지 않게 합니다.
-- 태그는 관련 기존 태그를 우선 재사용하고 필요한 만큼만 사용합니다.
-- 코드 블록에는 언어를 지정합니다.
-- MDX가 JSX로 해석할 수 있는 기호는 코드 블록 또는 escape를 사용합니다.
-- 존재하지 않는 component·import·경로를 추가하지 않습니다.
-
-## SEO 기준
-
-- 제목에서 핵심 문제, 버전 또는 결과가 드러나야 합니다.
-- description은 독자가 해결할 일을 구체적으로 설명합니다.
-- 첫 150자 안에 문제와 결론을 배치합니다.
-- 관련 기존 글이 있으면 자연스러운 내부 링크를 추가합니다.
-- 외부 링크는 공식 문서와 1차 자료를 우선합니다.
-- 키워드를 억지로 반복하지 않습니다.
-- 새 정보가 release candidate·beta·preview라면 상태와 검증 날짜를 표시합니다.
-
-## 발행 수량
-
-- 고정된 하루 최대 발행 수는 없습니다.
-- 한 실행에서 서로 다른 검색 의도를 가진 고품질 후보가 여러 개면 여러 편 발행할 수 있습니다.
-- 같은 발표를 잘게 나눈 유사 글은 한 편으로 합칩니다.
-- 각 글은 독립적으로 점수·사실 검증·리뷰 기준을 통과해야 합니다.
-- 적절한 후보가 없으면 발행하지 않습니다.
-
-## 발행 전 체크리스트
-
-- [ ] 기존 글과 검색 의도가 겹치지 않거나 업데이트로 처리했다.
-- [ ] 공식 1차 출처와 날짜·버전을 확인했다.
-- [ ] `title`, `description`, `date`, `tags`가 실제 스키마와 일치한다.
-- [ ] 최신성에 민감하면 `verifiedAt`이 있다.
-- [ ] 첫 문단에 문제와 결론이 있다.
-- [ ] 고유한 코드·절차·판단 기준이 있다.
-- [ ] 확인하지 않은 경험·성과·가격·성능을 단정하지 않는다.
-- [ ] beta·preview·release candidate 상태를 명시했다.
-- [ ] MDX 코드 fence, 표, 링크와 JSX 문법을 확인했다.
-- [ ] 가능한 환경에서 `npm run build`를 실행했다.
-- [ ] 실행하지 못했다면 완료 보고에 미검증이라고 썼다.
-- [ ] 후보 JSON과 memory를 갱신했다.
-
-## 배포
-
-1. 대상은 `restato/restato.github.io`입니다.
-2. 저장소 메타데이터와 workflow에서 실제 대상 브랜치를 확인합니다.
-3. 새 글은 `src/content/blog/<english-kebab-case>.mdx`에 추가합니다.
-4. 변경을 작은 의미 단위의 커밋으로 남깁니다.
-5. `src/data/contentCandidates.json`에 점수·상태·경로·글 커밋을 기록합니다.
-6. `published.md`, `ideas.md`, 필요하면 `keywords.md`를 갱신합니다.
-7. GitHub Pages workflow 또는 build 상태를 확인합니다.
-
-## 완료 보고
-
-- 새 글 또는 업데이트 여부
-- 제목과 점수
-- 파일 경로
-- 글 커밋 SHA
-- 예상 게시 URL
-- 후보·memory 갱신 커밋
-- build 검증 여부와 확인하지 못한 사항
+- English/Korean URLs, or the recorded single-language override URL
+- PR/merge/deployment status
+- live verification result
+- any canonical blocker or incomplete verification

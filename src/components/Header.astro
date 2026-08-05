@@ -1,6 +1,6 @@
 ---
 import { languages, type Language } from '../i18n';
-import { getBasePathFromUrl, buildLanguageUrl, supportsLanguageRouting, localizedRouteFamilies, supportedLanguagePattern } from '../i18n/urlUtils';
+import { getBasePathFromUrl, buildLanguageUrl, supportsLanguageRouting, localizedRouteFamilies, normalizeLanguageUrls, supportedLanguagePattern } from '../i18n/urlUtils';
 import { siteChrome } from '../i18n/tool-ui';
 import BrandMark from './BrandMark.astro';
 
@@ -12,6 +12,7 @@ interface NavItem {
 interface Props {
   lang?: Language;
   lockLanguage?: boolean;
+  languageUrls?: Partial<Record<Language, string>>;
 }
 
 const navItems: NavItem[] = [
@@ -25,7 +26,9 @@ const navItems: NavItem[] = [
 ];
 
 const currentPath = Astro.url.pathname;
-const { lang = 'ko', lockLanguage = false } = Astro.props;
+const { lang = 'ko', lockLanguage = false, languageUrls: rawLanguageUrls } = Astro.props;
+const languageUrls = normalizeLanguageUrls(rawLanguageUrls);
+const showLanguageSelector = !lockLanguage || Boolean(languageUrls);
 
 const isActive = (href: string): boolean => {
   const normalizedCurrent = getBasePathFromUrl(currentPath);
@@ -98,7 +101,7 @@ const primaryNavigationTranslations = Object.fromEntries(Object.entries(primaryN
       </ul>
 
       <div class="ml-auto flex shrink-0 items-center gap-1">
-        {!lockLanguage && <div class="relative hidden lg:block" id="lang-selector">
+        {showLanguageSelector && <div class="relative hidden lg:block" id="lang-selector">
           <button
             id="lang-trigger"
             type="button"
@@ -189,7 +192,7 @@ const primaryNavigationTranslations = Object.fromEntries(Object.entries(primaryN
             </li>
           ))}
         </ul>
-        {!lockLanguage && <div class="mt-3 border-t border-[var(--border-subtle)] pt-3">
+        {showLanguageSelector && <div class="mt-3 border-t border-[var(--border-subtle)] pt-3">
           <p id="mobile-language-label" class="mb-2 text-sm font-bold text-[var(--text-primary)]">{chrome.selectLanguage}</p>
           <div class="grid max-h-56 grid-cols-2 gap-1 overflow-y-auto sm:grid-cols-3">
             {(Object.entries(languages) as [Language, string][]).map(([code, name]) => (
@@ -213,7 +216,7 @@ const primaryNavigationTranslations = Object.fromEntries(Object.entries(primaryN
   </nav>
 </header>
 
-<script define:vars={{ navTranslations, darkModeTranslations, selectLanguageTranslations, toggleMenuTranslations, primaryNavigationTranslations, languages, lang, lockLanguage, localizedRouteFamilies, supportedLanguagePattern }} is:inline>
+<script define:vars={{ navTranslations, darkModeTranslations, selectLanguageTranslations, toggleMenuTranslations, primaryNavigationTranslations, languages, lang, lockLanguage, languageUrls, localizedRouteFamilies, supportedLanguagePattern }} is:inline>
   (() => {
     const gameLanguages = new Set(['ko', 'en', 'ja']);
     const languagePrefixPattern = new RegExp('^/(' + supportedLanguagePattern + ')(?=/|$|[?#])');
@@ -235,10 +238,17 @@ const primaryNavigationTranslations = Object.fromEntries(Object.entries(primaryN
       const basePath = getBasePath(pathname);
       if (!supportsLangRouting(basePath)) return basePath;
       const pathOnly = basePath.split(/[?#]/, 1)[0];
+      if (pathOnly === '/blog' || pathOnly.startsWith('/blog/')) {
+        return lang === 'ko' ? '/ko' + basePath : basePath;
+      }
       const routeLang = (pathOnly === '/games' || pathOnly.startsWith('/games/')) && !gameLanguages.has(lang)
         ? 'en'
         : lang;
       return '/' + routeLang + basePath;
+    }
+
+    function resolveLangDestination(urls, lang) {
+      return urls[lang] || urls.en || '';
     }
 
     function getCurrentLanguage() {
@@ -361,6 +371,14 @@ const primaryNavigationTranslations = Object.fromEntries(Object.entries(primaryN
 
     function applyLanguage(lang) {
       localStorage.setItem('lang', lang);
+      if (languageUrls) {
+        const destination = resolveLangDestination(languageUrls, lang);
+        if (destination) {
+          window.location.assign(destination);
+          return;
+        }
+      }
+
       updateNavLabels(lang);
       updateNavHrefs(lang);
       updateLanguageUi(lang);
