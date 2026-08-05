@@ -1,0 +1,92 @@
+---
+title: 'Building Arc Note: An Ad-Supported AI Tarot Reflection Product'
+description: 'How Arc Note separates a useful free tarot reflection from optional ad-unlocked AI detail while protecting private reading URLs.'
+date: 2026-08-05
+lang: en
+tags:
+  - product-engineering
+  - ai
+  - nextjs
+  - advertising
+  - case-study
+---
+
+[Arc Note](https://arc-note.vercel.app) is a mobile-first tarot experience built as a reflection product rather than a prediction engine. A user chooses a topic, writes a question, selects three face-down cards, and receives a concise interpretation. An optional rewarded ad can then unlock a deeper AI-generated reading.
+
+That simple description hides the most important product decision: **the experience must remain useful when the ad network or the language model is unavailable.** The free reading, the ad exchange, and the AI result are separate capabilities with separate failure modes.
+
+## Start with the ritual, not the model
+
+The four-step flow is intentionally slower than a chat box:
+
+1. Choose a reflection topic.
+2. Write a question and optional context.
+3. Select three face-down cards for the current situation, unseen influence, and next action.
+4. Reveal the cards and read the result.
+
+Face-down selection matters. Showing every card face before the choice would turn the interaction into deliberate content selection. Keeping the deck hidden preserves chance and anticipation. The interface supports removing a mistaken choice, and small sound and vibration cues acknowledge selection without turning the page into a game.
+
+The cards are not sent as image pixels for a model to guess. Each selection has structured data: card identity, Korean name, orientation, position, and a versioned meaning snapshot. The question, optional context, and those card fields become the interpretation input. This makes the reading reproducible and prevents visual recognition errors from entering the core path.
+
+## Make the free result a complete product
+
+Arc Note does not spend a model call merely to display the first result. The basic reading is composed on the server from bounded headline, synthesis, action, caveat, and card-meaning templates. It still reflects the selected cards, but its output space is controlled and predictable.
+
+This boundary has three advantages:
+
+- a no-fill ad response does not make the original reading disappear;
+- a model outage does not break the entire session;
+- the model budget is reserved for users who explicitly ask for more depth.
+
+The detailed path can use structured AI generation to connect the question with relationships among the three cards, likely obstacles, cautions, and practical next steps. Safety rules frame the content as reflection, avoid certainty, and route high-stakes health, legal, or financial decisions back to qualified professionals.
+
+The broader lesson is not that templates always beat models. It is that a model should own the part of the product that genuinely benefits from synthesis. Everything else can remain deterministic.
+
+## Treat a rewarded ad as an entitlement event
+
+The interface asks the user to start the ad; it does not interrupt the reading automatically. The client listens for Google Publisher Tag rewarded-ad events, and the server unlock request happens only after the reward is granted. Dismissing the ad or receiving no inventory leaves the free reading intact.
+
+Google's [rewarded-ad example](https://developers.google.com/publisher-tag/samples/display-rewarded-ad) documents the same event boundary and warns that a rewarded slot may not be available on every page or device. That means “no ad available” is a normal product state, not an exceptional crash.
+
+The unlock endpoint still validates the private reading token and eligibility on the server. A client event alone is not treated as durable authorization. Analytics records request, unavailable, completed, and unlocked states separately so the funnel can distinguish an integration failure from a lack of inventory or a user dismissal.
+
+## Keep personal reading URLs out of search
+
+A tarot question may contain relationship, work, or financial context. Public marketing pages should be discoverable, but an individual reading URL should not be.
+
+Arc Note keeps reading, result, checkout, administration, recovery, and deletion paths out of its sitemap and applies indexing restrictions to those routes. Google documents that a [`noindex` directive](https://developers.google.com/search/docs/crawling-indexing/robots-meta-tag) prevents an accessible page from appearing in Search results. The product also uses private session tokens and avoids putting question text into public metadata.
+
+This is not a substitute for authentication when a page contains truly confidential data. It is a layered boundary for a link-based private experience: minimize what is exposed, keep it out of discovery surfaces, and give the user a deletion route.
+
+## Separate deployment from advertising approval
+
+The application is deployed on Vercel. Google Analytics is consent-gated, the public pages are registered in Search Console, and the publisher declaration is available through `ads.txt`.
+
+Those technical steps do not equal final advertising approval. Google treats site approval and `ads.txt` as separate statuses. Its [AdSense site-status guide](https://support.google.com/adsense/answer/12170222) describes “Getting ready” as the period when checks are still running, and its [site connection guide](https://support.google.com/adsense/answer/7584263) says ads cannot be shown through AdSense until the site is approved.
+
+At publication time, Arc Note's publisher declaration had been recognized and site review had been requested, but final AdSense site approval had not been independently confirmed. The product therefore exposes ad unavailability honestly and never promises an impression.
+
+## What I would measure next
+
+The implementation is ready to measure a small, useful funnel without inventing success metrics:
+
+- reading creation to three-card completion;
+- basic report views;
+- rewarded-ad requests, grants, dismissals, and no-fill outcomes;
+- detailed-reading unlocks and successful generations;
+- completion time and retry rate on mobile;
+- AI cost per completed detailed reading compared with realized ad revenue.
+
+The unit that matters is not the cheapest token. It is the contribution margin of a successfully unlocked reading after no-fill, generation failure, and user abandonment are included.
+
+## Reusable product lessons
+
+Arc Note produced five rules that apply to other small AI products:
+
+1. Design a complete baseline experience before adding a monetized upgrade.
+2. Send structured domain facts to the model instead of asking it to infer them from decoration.
+3. Grant rewards from verified lifecycle events, then authorize the resulting capability on the server.
+4. Treat ad inventory, model availability, analytics consent, and search indexing as independent systems.
+5. Report external approval gates as pending until the provider confirms them.
+
+You can try the live product at [arc-note.vercel.app](https://arc-note.vercel.app) or view the condensed [Arc Note project page](/projects/arc-note/).
