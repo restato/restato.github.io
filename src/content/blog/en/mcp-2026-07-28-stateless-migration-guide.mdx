@@ -1,0 +1,354 @@
+---
+title: "MCP 2026-07-28 Migration Guide: Stateless Requests and Conformance CI"
+description: "Migrate MCP clients and servers to stateless requests, explicit state handles, MRTR, subscriptions, cache metadata, and versioned conformance tests."
+date: 2026-07-24
+tags: ["MCP", "Model Context Protocol", "AI Agent", "GitHub", "Protocol", "Migration", "Conformance Test"]
+lang: en
+translationKey: mcp-2026-07-28-stateless-migration-guide
+---
+
+MCP `2026-07-28` is not an SDK-only update. The dated specification removes the `initialize` lifecycle and protocol sessions, moves version and capability metadata onto each request, and changes how clients handle server input, notifications, caching, and broken streams.
+
+That does not mean an MCP application must be stateless. Long-running jobs, approvals, OAuth progress, and user-specific resources still need state. The difference is ownership: the protocol no longer hides that state inside a connection or `Mcp-Session-Id`.
+
+**SDK consumers should pin versions and add compatibility tests first. Teams that implement transports or lifecycle behavior directly must migrate state, retries, streaming, and observability as explicit application contracts.**
+
+This guide was rechecked against the final `2026-07-28` specification and the official conformance repository at a 2026-08-05 UTC cutoff. SDK release status can differ by language, so confirm the selected SDK's release notes and conformance results before a production rollout.
+
+## Understand the protocol boundary that moved
+
+| Area | Through `2025-11-25` | In `2026-07-28` | Operational consequence |
+| --- | --- | --- | --- |
+| Lifecycle | `initialize`, then `notifications/initialized` | Handshake removed | Validate metadata per request |
+| Session | `Mcp-Session-Id` can bind calls to connection state | Protocol session removed | Pass explicit, authorized handles |
+| Version selection | Negotiated once during initialization | Per-request `_meta`, with optional `server/discover` | Gate each request and preserve legacy fallback while needed |
+| Server input | Server-initiated request on the connection | Multi Round-Trip Request (MRTR) | Persist request state across a retry |
+| List changes | HTTP GET and subscribe/unsubscribe behavior | `subscriptions/listen` POST-response stream | Operate notification streams separately from ordinary calls |
+| Cache policy | Implementation-specific polling | Required `ttlMs` and `cacheScope` on selected results | Cache with explicit freshness and isolation |
+| Broken stream | SSE event IDs could support replay | Resumability removed | Reissue with a new request ID and control side effects |
+| Verification | SDK-specific test coverage | Official conformance framework | Make protocol compatibility a CI artifact |
+
+The [final key changes](https://modelcontextprotocol.io/specification/2026-07-28/changelog) are normative for this migration. The practical theme is consistent: information that once lived in a connection must be visible in the request, result, or application state model.
+
+## Replace initialization state with request metadata
+
+Every request carries the protocol version and client capabilities in `_meta`. Clients should also identify themselves. This shortened JSON-RPC example shows the shape:
+
+```json
+{
+  "jsonrpc": "2.0",
+  "id": "req-42",
+  "method": "tools/call",
+  "params": {
+    "name": "deploy_preview",
+    "arguments": {
+      "project": "docs"
+    },
+    "_meta": {
+      "io.modelcontextprotocol/protocolVersion": "2026-07-28",
+      "io.modelcontextprotocol/clientCapabilities": {
+        "elicitation": {
+          "form": {},
+          "url": {}
+        }
+      },
+      "io.modelcontextprotocol/clientInfo": {
+        "name": "example-client",
+        "version": "1.4.0"
+      }
+    }
+  }
+}
+```
+
+Ordinary results require `resultType: "complete"`, and servers should identify themselves in result `_meta`:
+
+```json
+{
+  "jsonrpc": "2.0",
+  "id": "req-42",
+  "result": {
+    "resultType": "complete",
+    "content": [
+      {
+        "type": "text",
+        "text": "Preview deployment created"
+      }
+    ],
+    "_meta": {
+      "io.modelcontextprotocol/serverInfo": {
+        "name": "example-deploy-server",
+        "version": "2.0.0"
+      }
+    }
+  }
+}
+```
+
+A direct protocol implementation should answer these questions:
+
+- Does every request validate the version and capabilities it actually uses?
+- Does an unsupported version return `UnsupportedProtocolVersionError`?
+- Are client and server identities present in logs and traces?
+- Does a legacy result without `resultType` become `complete`, as required for backward compatibility?
+- Has initialization data been removed from globals, connection objects, or shared session stores?
+
+If an official SDK owns this serialization, use its compatibility layer rather than constructing protocol JSON throughout application code. Keep raw protocol handling at one boundary so future specification changes do not spread across business logic.
+
+## Discover support without assuming one lifecycle
+
+Servers must implement `server/discover` for supported versions, capabilities, and identity. A client may call another RPC directly and handle version errors, but discovery is useful for up-front selection and STDIO compatibility probes.
+
+A transition flow can be:
+
+```text
+1. Attempt server/discover.
+2. Select a mutually supported dated version.
+3. If a legacy STDIO server returns Method not found (-32601), fall back to initialize.
+4. Record the selected lifecycle and protocol version in telemetry.
+5. Remove the legacy path only after supported-client and supported-server traffic proves it is unused.
+```
+
+Test STDIO and remote HTTP separately. “Works with the new SDK” does not prove that older clients still connect or that a gateway forwards the required metadata.
+
+GitHub described this distinction when it [updated GitHub MCP Server](https://github.blog/changelog/2026-07-23-github-mcp-server-supports-the-next-mcp-specification/): its implementation removed Redis-backed protocol sessions and could read routing and logging information from protocol headers. That is evidence about GitHub's server architecture, not a performance promise for every MCP deployment.
+
+## Move connection state into authorized handles
+
+A session ID often became a convenient key for unrelated state:
+
+```text
+Mcp-Session-Id
+  ├─ user
+  ├─ current repository
+  ├─ pending approval
+  └─ long-running operation
+```
+
+In the new model, make each dependency explicit:
+
+```text
+request
+  ├─ authenticated subject
+  ├─ explicit operation handle
+  ├─ idempotency key
+  └─ tool arguments
+       └─ durable application state
+```
+
+A tool that starts a deployment can return an application-defined handle, then require that handle on later status or approval calls. The specification does not design that domain model for you.
+
+Treat handles as access-bearing references:
+
+- make them unpredictable;
+- authorize the current subject on every lookup;
+- bind them to a tenant and operation type;
+- expire completed or abandoned operations;
+- store audit history separately from mutable execution state;
+- use an independent idempotency key for side-effecting retries.
+
+Stateless protocol behavior can make horizontal routing easier. It does not remove the need for durable state, authorization, or concurrency control.
+
+## Convert server input to MRTR
+
+The previous pattern could send a server-initiated request over the active connection. MCP `2026-07-28` introduces Multi Round-Trip Requests instead. A server returns an `input_required` result with one or more `inputRequests`; the client gathers input and retries the original request with `inputResponses`.
+
+```json
+{
+  "resultType": "input_required",
+  "inputRequests": [
+    {
+      "method": "elicitation/create",
+      "params": {
+        "mode": "form",
+        "message": "Choose a deployment environment",
+        "requestedSchema": {
+          "type": "object",
+          "properties": {
+            "environment": {
+              "type": "string",
+              "enum": ["preview", "production"]
+            }
+          },
+          "required": ["environment"]
+        }
+      }
+    }
+  ]
+}
+```
+
+The client must preserve enough request state to repeat the business operation safely, but the retry receives a new JSON-RPC request ID. Do not use that transport ID as the business-operation identity.
+
+Elicitation remains a user-control boundary:
+
+- do not request passwords, API keys, access tokens, or payment credentials in form mode;
+- use URL mode for sensitive authentication or payment flows;
+- show the server identity and destination domain before navigation;
+- allow the user to edit, decline, or cancel;
+- reauthorize the resumed operation rather than trusting an earlier connection.
+
+## Combine cache metadata with subscriptions
+
+Results from `tools/list`, `prompts/list`, `resources/list`, `resources/read`, and `resources/templates/list` use a cache contract with `ttlMs` and `cacheScope`.
+
+```json
+{
+  "resultType": "complete",
+  "tools": [],
+  "ttlMs": 300000,
+  "cacheScope": "private"
+}
+```
+
+Use three controls together:
+
+1. `ttlMs` is the freshness hint.
+2. `cacheScope` decides whether a shared intermediary may reuse the result.
+3. `subscriptions/listen` can invalidate list state before the TTL expires.
+
+If tools or resources vary by user, role, repository, or tenant, use a private cache boundary. Deterministic ordering also matters: a stable list reduces noisy cache misses, diffs, and agent-plan changes.
+
+`subscriptions/listen` is a long-lived POST-response stream for opted-in change notifications. Request-scoped progress and logging notifications remain on the response stream of the request they describe. Operate those streams with separate timeouts, cancellation, and observability.
+
+## Treat a broken response as a new operation attempt
+
+Streamable HTTP no longer supports SSE event-ID replay through `Last-Event-ID`. When a response stream breaks, the in-flight request is lost and the client must issue a new request with a new request ID.
+
+Read-only calls may be safe to retry with backoff. Side effects need an application-level contract:
+
+```ts
+interface DeployInput {
+  repository: string;
+  ref: string;
+  idempotencyKey: string;
+}
+
+async function deploy(input: DeployInput) {
+  const previous = await deploymentStore.findByKey(input.idempotencyKey);
+  if (previous) return previous;
+
+  return deploymentStore.createAndStart(input);
+}
+```
+
+| Operation | Automatic retry | Required control |
+| --- | --- | --- |
+| List or read | Usually acceptable | Timeout, backoff, and cache policy |
+| Search | Often acceptable | Confirm duplicate work is harmless |
+| File modification | Conditional | Idempotency and current-state check |
+| Deploy, pay, or delete | Off by default | Operation status or renewed user confirmation |
+
+Do not equate a new JSON-RPC ID with a new business operation. The application idempotency key must survive transport retries and process restarts.
+
+## Put dated conformance evidence in CI
+
+The official [MCP conformance framework](https://github.com/modelcontextprotocol/conformance) can test clients and servers. Pin the package or action version, select the dated protocol deliberately, and review scenario applicability when the repository changes.
+
+Run current active server scenarios:
+
+```bash
+npx @modelcontextprotocol/conformance \
+  server \
+  --url http://localhost:3000/mcp \
+  --suite active \
+  --verbose
+```
+
+Run client scenarios with the dated version:
+
+```bash
+npx @modelcontextprotocol/conformance \
+  client \
+  --command "node ./dist/client.js" \
+  --suite all \
+  --spec-version 2026-07-28
+```
+
+The repository also provides a composite action:
+
+```yaml
+name: MCP conformance
+
+on:
+  pull_request:
+
+jobs:
+  server-conformance:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: npm ci
+      - run: |
+          npm run start:mcp -- --port 3001 &
+          timeout 20 bash -c 'until curl -fsS http://localhost:3001/mcp; do sleep 0.5; done'
+      - uses: modelcontextprotocol/conformance@v0.1.11
+        with:
+          mode: server
+          url: http://localhost:3001/mcp
+          suite: active
+          verbose: true
+```
+
+These commands were checked against the official repository but were not executed against a real MCP implementation for this article. The action tag is a reproducible example from the repository at the research cutoff, not a promise that it remains the newest release.
+
+Expected-failure baselines can make an incremental migration visible. Baseline individual check IDs, assign an owner and removal date, and fail CI when a fixed check remains in the file. Do not exclude a whole scenario to make the dashboard green.
+
+## Avoid new dependencies on deprecated features
+
+The final [deprecated-feature registry](https://modelcontextprotocol.io/specification/2026-07-28/deprecated) includes explicit migration paths:
+
+| Deprecated feature | Migration direction |
+| --- | --- |
+| Roots | Pass directories or files through tool parameters, resource URIs, or server configuration |
+| Sampling | Integrate with model-provider APIs directly |
+| Logging | Use `stderr` for STDIO and OpenTelemetry for remote observability |
+| Dynamic Client Registration | Use Client ID Metadata Documents |
+| HTTP+SSE | Move to Streamable HTTP |
+
+Deprecated does not mean removed. Existing implementations can maintain compatibility within the documented lifecycle, but new code should not deepen the dependency. Record which client and server versions still require each feature before removing it.
+
+## Migration plan by implementation role
+
+For an application that only consumes an SDK:
+
+1. Pin the SDK and transport versions.
+2. Read that SDK's `2026-07-28` support and compatibility notes.
+3. Add contracts against both supported legacy and final-version peers.
+4. Record selected protocol versions and fallback rates.
+5. Roll out through a canary before removing the legacy lifecycle.
+
+For a server implementation:
+
+1. Inventory initialization and session-ID dependencies.
+2. Move cross-call state to authorized handles and idempotency keys.
+3. Implement `server/discover` and per-request metadata validation.
+4. Add required `resultType` fields.
+5. Convert server-initiated requests to MRTR.
+6. Add cache metadata and deterministic list ordering.
+7. Implement `subscriptions/listen` where change notifications are needed.
+8. Revisit retry safety after resumability removal.
+9. Add dated conformance evidence to CI.
+
+For a client implementation:
+
+1. Discover or select a version and retain a measured legacy fallback.
+2. Send version, capabilities, and identity on every request.
+3. Map `input_required` into a safe user-input and retry flow.
+4. Separate transport request IDs from business-operation IDs.
+5. Distinguish retryable reads from side effects.
+6. Operate subscription and request streams independently.
+
+MCP `2026-07-28` does not remove state. It makes state ownership visible. That visibility is valuable only if the application also makes authorization, idempotency, retry policy, and compatibility evidence explicit. Begin with an inventory and conformance CI, then retire the legacy lifecycle when telemetry proves it is safe.
+
+## Official resources
+
+- [MCP 2026-07-28 specification](https://modelcontextprotocol.io/specification/2026-07-28)
+- [MCP 2026-07-28 key changes](https://modelcontextprotocol.io/specification/2026-07-28/changelog)
+- [MCP discovery](https://modelcontextprotocol.io/specification/2026-07-28/server/discover)
+- [MCP deprecated-feature registry](https://modelcontextprotocol.io/specification/2026-07-28/deprecated)
+- [MCP conformance framework](https://github.com/modelcontextprotocol/conformance)
+- [GitHub MCP Server implementation announcement](https://github.blog/changelog/2026-07-23-github-mcp-server-supports-the-next-mcp-specification/)

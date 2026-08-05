@@ -1,12 +1,13 @@
 ---
-title: "GitHub Models 종료 전 마이그레이션 가이드: 7월 30일까지 API와 BYOK 옮기기"
-description: "2026년 7월 30일 종료되는 GitHub Models의 inference API, 모델 카탈로그와 BYOK 의존성을 찾아 Microsoft Foundry 또는 다른 모델 제공자로 안전하게 전환하는 절차를 설명합니다."
+title: "GitHub Models 종료 후 마이그레이션: 추론 경로와 권한 정리"
+description: "이미 종료된 GitHub Models의 inference API, 모델 카탈로그와 BYOK 의존성을 찾아 Microsoft Foundry 또는 다른 제공자로 옮기고 레거시 권한을 제거하는 절차입니다."
 date: 2026-07-28
-verifiedAt: 2026-07-28
 tags: ["GitHub", "AI API", "Microsoft Foundry", "Migration", "LLM"]
+lang: ko
+translationKey: github-models-retirement-migration-guide
 ---
 
-GitHub Models는 **2026년 7월 30일에 완전히 종료**됩니다. Playground만 사라지는 것이 아닙니다. 모델 카탈로그, inference API와 BYOK까지 모두 중단됩니다. 지금 필요한 일은 새 모델을 고르는 것이 아니라, 코드와 운영 환경에 숨어 있는 GitHub Models 의존성을 찾아 이틀 안에 제거하는 것입니다.
+GitHub Models는 **2026년 7월 30일에 완전히 종료됐습니다.** Playground만 사라진 것이 아닙니다. 모델 카탈로그, inference API와 BYOK까지 모든 고객에게 중단됐습니다. 이제 `models.github.ai` 오류는 일시 장애가 아닙니다. 코드와 운영 환경에 남은 의존성을 찾아 대체 호출 경로를 복구하고, 죽은 fallback과 권한을 제거해야 합니다.
 
 핵심 판단은 간단합니다.
 
@@ -14,9 +15,9 @@ GitHub Models는 **2026년 7월 30일에 완전히 종료**됩니다. Playground
 - 애플리케이션이 직접 모델을 호출한다면 Microsoft Foundry나 별도의 모델 제공자로 옮깁니다.
 - 어떤 대안을 선택하든 endpoint와 model ID를 코드 곳곳에서 직접 사용하지 않도록 얇은 provider adapter를 먼저 만듭니다.
 
-## 정확히 무엇이 종료되나요
+## 정확히 무엇이 종료됐나요
 
-GitHub의 공식 공지에 따르면 7월 30일 이후에는 기존 고객도 다음 기능을 사용할 수 없습니다.
+GitHub의 7월 30일 최종 공지에 따르면 기존 고객을 포함한 모든 고객이 다음 기능을 더 이상 사용할 수 없습니다.
 
 | 종료 대상 | 애플리케이션에 미치는 영향 |
 | --- | --- |
@@ -33,7 +34,7 @@ GitHub의 공식 공지에 따르면 7월 30일 이후에는 기존 고객도 �
 
 ```bash
 rg -n \
-  'models\.github\.ai|models: read|github-models|openai/gpt-4\.1|marketplace/models' \
+  'models\.github\.ai|models: read|github-models|marketplace/models' \
   . \
   --glob '!node_modules' \
   --glob '!dist'
@@ -48,14 +49,13 @@ rg -n \
 - 장애 시 GitHub Models로 전환하는 fallback
 - 테스트 fixture와 문서의 예제 endpoint
 
-기존 호출은 대략 다음 형태입니다.
+기존 호출은 대략 다음 형태였습니다. 아래 코드는 의존성 식별용 역사적 예시이며 더 이상 실행 가능한 API 예제가 아닙니다.
 
 ```bash
 curl -L \
   -X POST \
   -H "Authorization: Bearer $GITHUB_TOKEN" \
   -H "Content-Type: application/json" \
-  -H "X-GitHub-Api-Version: 2026-03-10" \
   https://models.github.ai/inference/chat/completions \
   -d '{
     "model": "openai/gpt-4.1",
@@ -93,15 +93,13 @@ export type ChatMessage = {
 
 export type ChatRequest = {
   messages: ChatMessage[];
-  temperature?: number;
   maxOutputTokens?: number;
 };
 
 export type ChatResult = {
   text: string;
   provider: string;
-  model: string;
-  requestId?: string;
+  deployment: string;
 };
 
 export interface ModelProvider {
@@ -129,29 +127,26 @@ export class FoundryProvider implements ModelProvider {
   }
 
   async chat(request: ChatRequest): Promise<ChatResult> {
-    const response = await this.client.chat.completions.create({
+    const response = await this.client.responses.create({
       model: this.deployment,
-      messages: request.messages,
-      temperature: request.temperature,
-      max_tokens: request.maxOutputTokens,
+      input: request.messages,
+      max_output_tokens: request.maxOutputTokens,
     });
 
-    const text = response.choices[0]?.message?.content;
-    if (!text) {
-      throw new Error('Foundry returned an empty completion');
+    if (!response.output_text) {
+      throw new Error('Foundry returned an empty response');
     }
 
     return {
-      text,
+      text: response.output_text,
       provider: 'microsoft-foundry',
-      model: this.deployment,
-      requestId: response._request_id,
+      deployment: this.deployment,
     };
   }
 }
 ```
 
-`endpoint`와 deployment name은 실제 Foundry 리소스에서 확인한 값을 사용해야 합니다. 모델 이름과 deployment name이 같다고 가정하면 안 됩니다.
+`endpoint`와 deployment name은 실제 Foundry 리소스에서 확인한 값을 사용해야 합니다. 모델 이름과 deployment name이 같다고 가정하면 안 됩니다. 또한 모든 deployment가 Responses API를 지원하는 것은 아닙니다. Microsoft 문서에 따르면 지원하지 않는 deployment는 `400 Model not supported`를 반환할 수 있으며, 이 경우 Chat Completions 지원 여부를 별도로 확인해야 합니다. 이 예제는 공식 문서와 비교했지만 credential로 실행하지 않았습니다. production에서는 조직이 지원할 수 있다면 broad resource API key보다 Microsoft Entra ID 기반 keyless 인증을 검토하세요.
 
 ## 4단계: 기능 호환성을 표로 확인합니다
 
@@ -174,11 +169,12 @@ GitHub Models 카탈로그에서 보던 capability를 새 제공자의 deploymen
 const cases = [
   { id: 'short-summary', input: 'Summarize this change in three sentences.' },
   { id: 'json-output', input: 'Return {"risk":"low|medium|high"} only.' },
-  { id: 'long-context', input: loadLargeFixture() },
+  { id: 'long-context', input: loadSanitizedLargeFixture() },
 ];
 
 for (const testCase of cases) {
   const startedAt = performance.now();
+
   try {
     const result = await provider.chat({
       messages: [{ role: 'user', content: testCase.input }],
@@ -190,7 +186,7 @@ for (const testCase of cases) {
       latencyMs: Math.round(performance.now() - startedAt),
       outputLength: result.text.length,
       provider: result.provider,
-      model: result.model,
+      deployment: result.deployment,
     });
   } catch (error) {
     console.error({ id: testCase.id, ok: false, error });
@@ -198,16 +194,16 @@ for (const testCase of cases) {
 }
 ```
 
-## 5단계: shadow traffic 뒤에 전환합니다
+## 5단계: 저장된 기준선으로 검증한 뒤 단계적으로 복구합니다
 
-7월 30일까지 시간이 짧더라도 바로 100% 전환하는 것은 위험합니다.
+이미 종료된 GitHub Models에 shadow traffic을 보낼 수는 없습니다. 종료 전에 저장한 승인 응답이나 평가 결과가 있다면 그것을 기준선으로 사용하고, 없다면 제품 요구사항에서 최소 평가셋을 다시 만드세요.
 
 1. 새 provider를 production credential과 분리된 환경에 연결합니다.
-2. 개인정보와 secret을 제거한 대표 요청을 두 provider에 동시에 보냅니다.
-3. 응답 품질, 구조 준수율, latency, 오류율과 비용을 비교합니다.
+2. 개인정보와 secret을 제거한 대표 요청을 새 provider에 보냅니다.
+3. 저장된 승인 결과나 명시적 rubric으로 품질, 구조 준수율, latency, 오류율과 비용을 확인합니다.
 4. 읽기 전용 또는 내부 사용자 요청부터 새 provider로 보냅니다.
 5. 비율을 점진적으로 늘립니다.
-6. GitHub Models fallback은 7월 30일 이전에 제거합니다.
+6. 새 경로가 안정되면 GitHub Models fallback을 제거합니다.
 
 종료된 서비스를 fallback으로 남기면 장애 시 복구 경로가 아니라 추가 오류만 만듭니다.
 
@@ -235,23 +231,25 @@ const provider = process.env.MODEL_PROVIDER === 'foundry'
 
 ## 마감 전 체크리스트
 
+- [ ] retired endpoint 오류를 transient error가 아니라 migration incident로 분류했습니다.
 - [ ] 코드와 workflow에서 `models.github.ai`를 모두 찾았습니다.
 - [ ] 모델 카탈로그 조회와 BYOK 경유 호출을 확인했습니다.
 - [ ] GitHub-native 작업과 제품 inference를 분리했습니다.
 - [ ] provider adapter를 만들어 endpoint 차이를 격리했습니다.
+- [ ] 선택한 deployment와 지원 API surface를 기록했습니다.
 - [ ] streaming, tools, JSON, embeddings와 오류 동작을 다시 평가했습니다.
-- [ ] shadow traffic과 점진적 rollout을 수행했습니다.
+- [ ] 저장된 기준선이나 명시적 rubric으로 검증하고 점진적 rollout을 수행했습니다.
 - [ ] 종료된 GitHub Models를 fallback에서 제거했습니다.
-- [ ] `models: read` 권한과 legacy secret을 정리할 계획이 있습니다.
+- [ ] `models: read` 권한, legacy secret, allowlist, job, dashboard와 runbook을 정리했습니다.
+- [ ] 정리 이후 log에서 `models.github.ai` 호출이 사라졌습니다.
 
-GitHub Models 종료는 단순한 endpoint 변경이 아닙니다. 인증 경계, model ID, capability와 운영 지표가 함께 바뀝니다. **7월 30일 전에 호출 경로를 옮기고, 그 직후 legacy 권한과 secret을 제거하는 두 단계 배포**가 가장 안전합니다.
+GitHub Models 종료는 단순한 endpoint 변경이 아닙니다. 인증 경계, model ID, capability와 운영 지표가 함께 바뀝니다. **대체 호출 경로를 먼저 복구하고, 검증이 끝난 직후 legacy 권한과 secret을 제거하는 두 단계 배포**가 가장 안전합니다.
 
 ## 공식 자료
 
-- [GitHub Models is being fully retired on July 30, 2026](https://github.blog/changelog/2026-07-01-github-models-is-being-fully-retired-on-july-30-2026/)
-- [GitHub Models inference REST API](https://docs.github.com/en/rest/models/inference)
-- [GitHub Models catalog REST API](https://docs.github.com/en/rest/models/catalog)
+- [GitHub Models is now retired](https://github.blog/changelog/2026-07-30-github-models-is-now-retired/)
+- [GitHub Models retirement timeline](https://github.blog/changelog/2026-07-01-github-models-is-being-fully-retired-on-july-30-2026/)
 - [Microsoft Foundry model endpoints](https://learn.microsoft.com/en-us/azure/foundry/foundry-models/concepts/endpoints)
 - [Microsoft Foundry OpenAI v1 REST reference](https://learn.microsoft.com/en-us/rest/api/microsoft-foundry/azureopenai/responses)
 
-함께 읽기: [AI SDK 7 프로덕션 에이전트 가이드](/blog/ai-sdk-7-production-agent-guide/) · [GPT-5.6 모델 선택 가이드](/blog/gpt-5-6-sol-terra-luna-api-guide/)
+함께 읽기: [AI SDK 7 프로덕션 에이전트 가이드](/blog/ai-sdk-7-production-agent-guide/) · [GPT-5.6 모델 선택 가이드](/blog/gpt-5-6-sol-terra-luna-api-guide/) · [엔터프라이즈 LLM 플랫폼 전략](/blog/enterprise-llm-model-selection-platform-strategy/)

@@ -1,0 +1,281 @@
+---
+title: "After GitHub Models Retirement: Migrate Inference and Remove Legacy Access"
+description: "Recover from GitHub Models retirement by finding dependencies, choosing a replacement, validating provider behavior, and removing dead fallbacks and permissions."
+date: 2026-07-28
+tags: ["GitHub", "AI API", "Microsoft Foundry", "Migration", "LLM"]
+lang: en
+translationKey: github-models-retirement-migration-guide
+---
+
+GitHub Models was fully retired on July 30, 2026. The playground, model catalog, inference API, and bring-your-own-key endpoints are no longer available to any customer. A failure from `models.github.ai` is therefore not a transient outage that a retry can repair.
+
+The immediate work is to restore the required inference path. The migration is not finished, however, until dead fallbacks, token permissions, secrets, allowlists, cached catalog assumptions, and runbooks are removed.
+
+**Recover the model call through a narrow provider adapter first, validate representative behavior, and revoke legacy GitHub Models access in a second deployment.** This keeps the recovery reversible while preventing a retired service from remaining in the control plane.
+
+## Confirm the retired surface
+
+GitHub's [final retirement notice](https://github.blog/changelog/2026-07-30-github-models-is-now-retired/) closes the entire product, not just its UI.
+
+| Retired surface | Operational impact |
+| --- | --- |
+| Playground | Manual prompt experiments and comparisons stop |
+| Model catalog | Runtime or build jobs cannot discover models there |
+| Inference API | Requests to `models.github.ai` fail |
+| BYOK | External-provider access routed through GitHub Models stops |
+
+The [July 1 timeline announcement](https://github.blog/changelog/2026-07-01-github-models-is-being-fully-retired-on-july-30-2026/) also documented brownouts on July 16 and July 23. Those events are useful incident context, but the current state is final retirement. Do not keep a retry loop or circuit-breaker recovery path that eventually returns to the same endpoint.
+
+## Inventory code, configuration, and access
+
+Start with identifiers that are difficult to hide:
+
+```bash
+rg -n \
+  'models\.github\.ai|models: read|github-models|marketplace/models' \
+  . \
+  --glob '!node_modules' \
+  --glob '!dist'
+```
+
+Then search for provider and model values that wrappers may have separated from the endpoint:
+
+- `publisher/model_name` identifiers used by GitHub Models;
+- environment variables such as `GITHUB_MODELS_TOKEN`;
+- GitHub App or fine-grained PAT permissions for `models: read`;
+- GitHub Actions secrets and environment-scoped credentials;
+- jobs that cached model-catalog responses;
+- fallback branches or feature flags that select GitHub Models;
+- outbound-network allowlists for the retired hostname;
+- test fixtures, examples, dashboards, and on-call runbooks.
+
+An old request may have looked like this:
+
+```bash
+curl -L \
+  -X POST \
+  -H "Authorization: Bearer $GITHUB_TOKEN" \
+  -H "Content-Type: application/json" \
+  https://models.github.ai/inference/chat/completions \
+  -d '{
+    "model": "openai/gpt-4.1",
+    "messages": [{"role": "user", "content": "Summarize this pull request"}]
+  }'
+```
+
+This is a historical dependency pattern for search and review, not an executable API example. The endpoint, GitHub token permission, and model identifier are all migration inputs.
+
+If production is failing, add a specific retirement signature to incident classification. It should route to migration or feature-disable logic, not exponential retry against an endpoint that is gone.
+
+## Choose a replacement by workload
+
+GitHub's announcement points to two different product paths. They are not interchangeable.
+
+### GitHub-native development workflows
+
+If the goal is pull-request assistance, code review, issue handling, or another workflow centered on GitHub, evaluate GitHub Copilot capabilities. The important architectural question is whether the application still needs to own a general inference call.
+
+Copilot is not a drop-in inference endpoint for arbitrary product traffic. A backend generating customer responses, an internal data pipeline, or a product API still needs a model provider with the required runtime contract.
+
+### Application-owned inference
+
+GitHub recommends Microsoft Foundry as a model-access alternative. Foundry exposes models through deployments. A request uses the deployment name, which may differ from the underlying model name, and the deployment also carries capacity, filtering, version, and rate-limit configuration.
+
+Microsoft's current [Foundry endpoint guidance](https://learn.microsoft.com/en-us/azure/foundry/foundry-models/concepts/endpoints) recommends stable OpenAI SDKs with the generally available OpenAI v1 API. The Azure AI Inference beta SDK is deprecated and scheduled for retirement on August 26, 2026. Do not recover from one retirement by adopting another dependency with a near removal date.
+
+Foundry is one option, not a universal answer. A different provider may be appropriate when data residency, model availability, contract, latency, cost, or existing platform controls require it. Use the same adapter and evaluation boundary either way.
+
+## Put the provider difference behind one adapter
+
+Changing only an endpoint string preserves too many assumptions. Authentication, model identifiers, supported APIs, error shapes, usage fields, safety responses, and limits can all differ.
+
+Define the application contract first:
+
+```ts
+export type ChatMessage = {
+  role: 'system' | 'user' | 'assistant';
+  content: string;
+};
+
+export type ChatRequest = {
+  messages: ChatMessage[];
+  maxOutputTokens?: number;
+};
+
+export type ChatResult = {
+  text: string;
+  provider: string;
+  deployment: string;
+};
+
+export interface ModelProvider {
+  chat(request: ChatRequest): Promise<ChatResult>;
+}
+```
+
+For a Foundry deployment that supports the Responses API, the documented JavaScript shape is:
+
+```ts
+import OpenAI from 'openai';
+
+export class FoundryProvider implements ModelProvider {
+  private readonly client: OpenAI;
+
+  constructor(
+    private readonly deployment: string,
+    endpoint: string,
+    apiKey: string,
+  ) {
+    this.client = new OpenAI({
+      apiKey,
+      baseURL: `${endpoint.replace(/\/$/, '')}/openai/v1/`,
+    });
+  }
+
+  async chat(request: ChatRequest): Promise<ChatResult> {
+    const response = await this.client.responses.create({
+      model: this.deployment,
+      input: request.messages,
+      max_output_tokens: request.maxOutputTokens,
+    });
+
+    if (!response.output_text) {
+      throw new Error('Foundry returned an empty response');
+    }
+
+    return {
+      text: response.output_text,
+      provider: 'microsoft-foundry',
+      deployment: this.deployment,
+    };
+  }
+}
+```
+
+This example was checked against Microsoft documentation but was not executed with a credential. Supply the exact resource endpoint and deployment name from your Foundry resource. For production, Microsoft recommends keyless Microsoft Entra ID authentication over broad resource API keys when the organization can support it.
+
+Not every deployment supports the Responses API. Microsoft documents a `400 Model not supported` response for unsupported deployments; in that case, verify whether the deployment supports Chat Completions instead. Do not silently fall back to a different API shape without recording the capability decision.
+
+Keep provider-specific SDK objects and errors inside the adapter. Return a stable application result and normalize only the fields the product actually needs.
+
+## Re-evaluate behavior, not just connectivity
+
+A successful `200` response proves authentication and routing. It does not prove the replacement matches product behavior.
+
+| Capability | What to compare |
+| --- | --- |
+| Streaming | Chunk shape, terminal event, cancellation, and broken connections |
+| Tool calling | Tool schema, parallel calls, invalid argument handling |
+| Structured output | JSON Schema support and validation failure behavior |
+| Vision or audio | Input types, size limits, region and deployment support |
+| Embeddings | Vector dimensions, distance assumptions, and index compatibility |
+| Safety | Blocked outputs versus transport or provider errors |
+| Rate limits | Status codes, retry headers, burst and concurrency behavior |
+| Usage and cost | Input/output units, cached usage, and billing dimensions |
+| Observability | Request IDs, latency, model/deployment identity, and error taxonomy |
+
+Model names do not establish feature parity. A deployment can expose a different version, filter, quota, or API surface even when its underlying model family looks familiar.
+
+Build a small evaluation set from real product requirements after removing secrets and personal data:
+
+```ts
+const cases = [
+  { id: 'short-summary', input: 'Summarize this change in three sentences.' },
+  { id: 'json-output', input: 'Return {"risk":"low|medium|high"} only.' },
+  { id: 'long-context', input: loadSanitizedLargeFixture() },
+];
+
+for (const testCase of cases) {
+  const startedAt = performance.now();
+
+  try {
+    const result = await provider.chat({
+      messages: [{ role: 'user', content: testCase.input }],
+    });
+
+    console.log({
+      id: testCase.id,
+      ok: true,
+      latencyMs: Math.round(performance.now() - startedAt),
+      outputLength: result.text.length,
+      provider: result.provider,
+      deployment: result.deployment,
+    });
+  } catch (error) {
+    console.error({ id: testCase.id, ok: false, error });
+  }
+}
+```
+
+Evaluate task success, schema adherence, error handling, latency, and cost. Do not log full prompts or outputs when they may contain customer or proprietary data.
+
+## Validate against a stored baseline
+
+Before retirement, shadow traffic could compare GitHub Models and a replacement concurrently. That path no longer exists. Sending production requests to the retired endpoint only adds failures.
+
+Use one of these baselines instead:
+
+- accepted outputs and metrics stored before retirement;
+- deterministic fixtures with expected schemas or decisions;
+- human-reviewed examples with a written rubric;
+- downstream business checks that define a successful result.
+
+Then restore traffic in stages:
+
+1. Connect the new provider in an environment isolated from production credentials.
+2. Run sanitized representative cases and record capability failures.
+3. Fix prompts, adapters, schemas, or timeouts until required cases pass.
+4. Start with internal users or read-only, low-risk requests.
+5. Increase traffic while watching task success, latency, errors, and cost.
+6. Keep rollback within the new provider boundary, not back to GitHub Models.
+
+If the feature can be disabled safely while migration is incomplete, an explicit unavailable state is better than an invisible retry storm or a switch to an unevaluated model.
+
+## Remove the dead path after recovery
+
+A feature flag alone does not close the migration. Once the replacement is stable, remove the legacy branch and its access in a separate, reviewable change.
+
+```ts
+const provider = process.env.MODEL_PROVIDER === 'foundry'
+  ? createFoundryProvider()
+  : createLegacyGitHubModelsProvider();
+```
+
+Delete the legacy branch rather than leaving it dormant. A dead provider path can be accidentally re-enabled during an incident months later.
+
+The cleanup should cover:
+
+- GitHub App and PAT `models: read` permissions;
+- `GITHUB_MODELS_TOKEN` and related secrets;
+- BYOK provider-key links through GitHub Models;
+- outbound allowlists and proxy routes for the retired host;
+- cached catalog data and scheduled refresh jobs;
+- dashboards, alerts, budgets, and error taxonomies;
+- runbooks that still recommend retry or fallback;
+- test fixtures and documentation with active-looking endpoint examples.
+
+Separating recovery from revocation protects rollback while the new provider is being validated. Set a short deadline for the second change so temporary access does not become permanent residue.
+
+## Post-retirement checklist
+
+- [ ] Production failures from the retired endpoint are classified as migration incidents, not transient errors.
+- [ ] Code, workflows, secrets, permissions, cached catalog data, and runbooks have been inventoried.
+- [ ] GitHub-native workflows and application-owned inference have been separated.
+- [ ] Provider-specific behavior is isolated behind an application adapter.
+- [ ] The selected deployment and supported API surface are recorded.
+- [ ] Representative evaluations cover streaming, tools, schemas, safety, limits, usage, and errors as applicable.
+- [ ] Rollout uses stored evidence or an explicit rubric, not calls to the retired provider.
+- [ ] The GitHub Models fallback is removed after the new path stabilizes.
+- [ ] Legacy permissions, secrets, allowlists, jobs, dashboards, and runbooks are deleted or updated.
+- [ ] Logs show no attempted calls to `models.github.ai` after cleanup.
+
+GitHub Models retirement changed more than a hostname. It changed the authentication boundary, model/deployment identifier, capability contract, and operational evidence. Restore the required call through a narrow provider boundary, then remove every path that can still select the retired service.
+
+## Official resources
+
+- [GitHub Models is now retired](https://github.blog/changelog/2026-07-30-github-models-is-now-retired/)
+- [GitHub Models retirement timeline](https://github.blog/changelog/2026-07-01-github-models-is-being-fully-retired-on-july-30-2026/)
+- [Microsoft Foundry model endpoints](https://learn.microsoft.com/en-us/azure/foundry/foundry-models/concepts/endpoints)
+- [Microsoft Foundry OpenAI v1 Responses reference](https://learn.microsoft.com/en-us/rest/api/microsoft-foundry/azureopenai/responses)
+
+Related: [AI SDK 7 production agent guide](/blog/ai-sdk-7-production-agent-guide/) · [GPT-5.6 model selection guide](/blog/gpt-5-6-sol-terra-luna-api-guide/) · [enterprise LLM platform strategy](/blog/enterprise-llm-model-selection-platform-strategy/)
