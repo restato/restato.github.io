@@ -5,9 +5,19 @@ export interface ProjectCard {
   icon: string;
   color: string;
   badge?: string;
+  url?: string;
 }
 
 export const projects: ProjectCard[] = [
+  {
+    slug: 'barunhankki',
+    title: '바른한끼',
+    description: 'Search official restaurant hygiene grades and designation validity periods across Gyeonggi Province.',
+    icon: '🛡️',
+    color: 'from-green-500 to-emerald-500',
+    badge: 'NEW',
+    url: 'https://barunhankki.vercel.app',
+  },
   {
     slug: 'arc-note',
     title: 'Arc Note',
