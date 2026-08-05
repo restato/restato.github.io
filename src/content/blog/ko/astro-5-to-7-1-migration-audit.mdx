@@ -3,6 +3,8 @@ title: "Astro 5에서 7.1로 올리기 전 점검할 것: Content Layer, Node 22
 description: "Astro 5 기반 GitHub Pages 블로그를 7.1로 올릴 때 실제로 빌드를 막는 Content Collections, Node 버전, slug·render API와 Tailwind 전환 순서를 정리합니다."
 date: 2026-07-21
 tags: ["Astro", "GitHub Pages", "MDX", "Tailwind CSS", "Migration"]
+lang: ko
+translationKey: astro-5-to-7-1-migration-audit
 ---
 
 Astro 7.1이 나왔다고 `npx @astrojs/upgrade`부터 실행하면, Restato 같은 오래된 Astro 5 블로그는 패키지보다 **콘텐츠 API와 배포 환경**에서 먼저 막힐 가능성이 높습니다. 현재 저장소를 기준으로 확인하면 핵심 작업은 네 가지입니다. GitHub Actions의 Node를 22.12 이상으로 올리고, 레거시 Content Collections를 Content Layer로 옮기고, `post.slug`와 `post.render()`를 새 API로 바꾸고, Tailwind 4 전환은 별도 작업으로 분리해야 합니다.
@@ -11,27 +13,17 @@ Astro는 2026년 6월 22일 [Astro 7](https://astro.build/blog/astro-7/)을 공�
 
 ## 현재 저장소에서 바로 걸리는 항목
 
-| 점검 대상 | 현재 상태 | Astro 6·7에서 필요한 변화 | 위험도 |
+| 점검 대상 | 일반적인 Astro 5 상태 | 필요한 변화 | 위험도 |
 |---|---|---|---|
-| Node.js | GitHub Actions에서 Node 20 | Node 22.12 이상 | 높음 |
+| Node.js | 로컬이나 CI의 Node 20 | Astro 6 이상에서 Node 22.12 이상 | 높음 |
 | 콘텐츠 설정 | `src/content/config.ts`, `type: 'content'` | `src/content.config.ts`와 `glob()` loader | 높음 |
 | 콘텐츠 API | `post.slug`, `post.render()` | `post.id`, `render(post)` | 높음 |
-| Tailwind | Tailwind 3 + `@astrojs/tailwind` | 당장은 유지 가능, Tailwind 4는 별도 전환 | 중간 |
-| Vite 설정 | 별도 Vite 플러그인 없음 | Vite 8 영향이 비교적 작음 | 낮음 |
+| Vite 설정 | Vite 5 계열 plugin이나 설정 | custom integration을 Vite 8 기준으로 검토 | 중간 |
+| Tailwind | Tailwind 3 + `@astrojs/tailwind` | 당장은 유지 가능, Tailwind 4는 `@tailwindcss/vite` 사용 | 중간 |
 
-[Astro 6 업그레이드 가이드](https://docs.astro.build/en/guides/upgrade-to/v6/)에서 가장 중요한 변경은 Node 22 요구사항과 레거시 Content Collections 제거입니다. Astro 7은 다시 Vite 8로 올라가지만, 일반적인 Astro 프로젝트는 커스텀 Vite 플러그인을 사용하지 않는 한 변경량이 비교적 작습니다.
+[Astro 6 업그레이드 가이드](https://docs.astro.build/en/guides/upgrade-to/v6/)에서 가장 중요한 변경은 Node 22 요구사항과 레거시 Content Collections 제거입니다. [Astro 7 업그레이드 가이드](https://docs.astro.build/en/guides/upgrade-to/v7/)는 Vite 8 영향을 Vite 내부에 의존하는 integration과 plugin 중심으로 설명합니다. 이를 모든 Vite 설정을 다시 작성하라는 의미로 확대하면 안 됩니다.
 
 ## 1단계: 패키지보다 Node 버전을 먼저 맞춥니다
-
-현재 배포 워크플로는 다음과 같이 Node 20을 사용합니다.
-
-```yaml
-- name: Setup Node.js
-  uses: actions/setup-node@v4
-  with:
-    node-version: "20"
-    cache: npm
-```
 
 Astro 6부터는 Node `22.12.0` 이상이 필요합니다. 로컬과 GitHub Actions 버전을 동시에 고정하는 편이 안전합니다.
 
@@ -49,6 +41,13 @@ Astro 6부터는 Node `22.12.0` 이상이 필요합니다. 로컬과 GitHub Acti
 ```
 
 이 변경은 Astro 버전을 올리기 전에 먼저 적용할 수 있습니다. 기존 Astro 5 빌드가 Node 22에서 통과하는지 확인하면, 이후 오류가 런타임 변경 때문인지 Astro 변경 때문인지 구분하기 쉬워집니다.
+
+```bash
+node -v
+npm ci
+npm test -- --run
+npm run build
+```
 
 ## 2단계: 레거시 Content Collections부터 제거합니다
 
@@ -87,30 +86,10 @@ const blog = defineCollection({
     tags: z.array(z.string()).default([]),
     image: z.string().optional(),
     draft: z.boolean().default(false),
-    knowledgeId: z.string().optional(),
-    verifiedAt: z.coerce.date().optional(),
-    updated: z.coerce.date().optional(),
   }),
 });
 
-const projects = defineCollection({
-  loader: glob({
-    pattern: '**/*.{md,mdx}',
-    base: './src/content/projects',
-  }),
-  schema: z.object({
-    title: z.string(),
-    description: z.string(),
-    image: z.string().optional(),
-    url: z.string().optional(),
-    github: z.string().optional(),
-    tags: z.array(z.string()).default([]),
-    featured: z.boolean().default(false),
-    order: z.number().default(0),
-  }),
-});
-
-export const collections = { blog, projects };
+export const collections = { blog };
 ```
 
 여기서 `z.date()` 대신 `z.coerce.date()`를 사용한 이유는 MDX frontmatter의 날짜가 문자열로 읽힌 뒤 Date 객체로 변환되기 때문입니다. 실제 스키마를 기준으로 작성해야 한다는 원칙은 [MDX frontmatter와 라이브 스키마를 맞춘 과정](/blog/align-astro-mdx-frontmatter-with-the-live-schema/)에서도 다뤘습니다.
@@ -119,19 +98,6 @@ export const collections = { blog, projects };
 
 Content Layer로 옮기면 콘텐츠 엔트리의 식별자는 `slug`가 아니라 `id`가 됩니다. 또한 엔트리 메서드였던 `post.render()` 대신 `astro:content`의 `render()` 함수를 사용해야 합니다.
 
-현재 블로그 상세 페이지의 핵심 코드는 다음 형태입니다.
-
-```ts
-const posts = await getCollection('blog');
-
-return posts.map((post) => ({
-  params: { slug: post.slug },
-  props: { post },
-}));
-
-const { Content } = await post.render();
-```
-
 마이그레이션 후에는 다음처럼 바뀝니다.
 
 ```ts
@@ -139,7 +105,7 @@ import { getCollection, render } from 'astro:content';
 
 const posts = await getCollection('blog');
 
-return posts.map((post) => ({
+const paths = posts.map((post) => ({
   params: { slug: post.id },
   props: { post },
 }));
@@ -147,21 +113,10 @@ return posts.map((post) => ({
 const { Content } = await render(post);
 ```
 
-RSS도 같은 영향을 받습니다.
-
-```ts
-items: posts.map((post) => ({
-  title: post.data.title,
-  pubDate: post.data.date,
-  description: post.data.description,
-  link: `/blog/${post.id}/`,
-})),
-```
-
 Restato 저장소에서는 홈, 블로그 목록, 태그 목록, 상세 페이지, RSS가 `post.slug`를 사용합니다. 한 파일만 고친 뒤 빌드가 성공하길 기대하면 안 됩니다.
 
 ```bash
-rg 'post\.slug|\.render\(\)' src
+rg 'post\.slug|entry\.slug|\.render\(\)' src
 ```
 
 이 검색 결과를 0건으로 만든 뒤 빌드하는 것이 안전합니다.
@@ -172,11 +127,13 @@ rg 'post\.slug|\.render\(\)' src
 
 한 번에 다음을 모두 바꾸면 오류 원인을 분리하기 어려워집니다.
 
-- Astro 5 → 7
-- Vite 5 계열 → Vite 8
-- Content Collections → Content Layer
-- Tailwind 3 → 4
-- Astro Tailwind integration → `@tailwindcss/vite`
+```text
+Astro 5 → 7.1
+Vite 5-era stack → Vite 8
+legacy collections → Content Layer
+entry.slug/render() → entry.id/render(entry)
+Tailwind 3 integration → Tailwind 4 Vite plugin
+```
 
 권장 순서는 다음과 같습니다.
 
@@ -189,25 +146,17 @@ Tailwind 4 전환 단계에서는 `@astrojs/tailwind`를 제거하고 `@tailwind
 
 ## 가장 안전한 실제 작업 순서
 
-```bash
-# 1. 별도 브랜치
- git switch -c chore/astro-7-upgrade
+1. 로컬과 CI를 Node 22.12 이상으로 고정합니다.
+2. 이 runtime에서 기존 Astro 5 build와 test를 통과시킵니다.
+3. 모든 collection을 Content Layer config와 loader로 옮깁니다.
+4. legacy entry identifier와 rendering API를 바꿉니다.
+5. article, tag, RSS, sitemap URL을 확인합니다.
+6. `npx @astrojs/upgrade`로 Astro와 공식 integration을 올립니다.
+7. custom Vite plugin과 설정을 Vite 8 기준으로 검토합니다.
+8. test, type check, production build, route assertion을 다시 실행합니다.
+9. 대표 page를 배포 검증한 뒤 Tailwind 4 작업을 시작합니다.
 
-# 2. Node 22에서 현재 상태 확인
-node -v
-npm ci
-npm run build
-
-# 3. Content Layer와 slug/render API를 먼저 수정
-npm run build
-
-# 4. Astro와 공식 integration 업그레이드
-npx @astrojs/upgrade
-
-# 5. 다시 검증
-npm run build
-npm test
-```
+같은 이유로 [PR을 이용한 안전한 글 발행](/blog/safer-blog-publishing-with-prs/)처럼 각 변경에서 독립적인 evidence와 rollback 경계를 남기는 편이 좋습니다.
 
 업그레이드 CLI가 패키지 버전을 바꿔주더라도 애플리케이션 코드의 `slug`, `render()`, 콘텐츠 loader까지 자동으로 정확히 고쳐준다고 가정하면 안 됩니다. Git diff를 기능 단위로 나눠 검토해야 합니다.
 
@@ -228,8 +177,6 @@ const blog = defineCollection({
 
 다만 MDX는 원래 지연 렌더링 방식으로 처리되는 부분이 있고, 작은 컬렉션에서는 빌드 캐시를 포기하는 비용이 더 클 수 있습니다. 메모리 문제가 실제로 확인되지 않았다면 바로 켜지 않는 편이 좋습니다.
 
-`experimental.collectionStorage: 'chunked'` 역시 데이터 저장 파일이 커지는 대형 사이트를 위한 옵션입니다. 현재 단계에서는 안정적인 Content Layer 전환이 먼저입니다.
-
 ## 발행 전에 확인할 체크리스트
 
 - [ ] 로컬과 GitHub Actions가 Node 22.12 이상을 사용한다.
@@ -244,3 +191,11 @@ const blog = defineCollection({
 - [ ] `npm run build`와 테스트가 통과한다.
 
 Astro 7.1의 성능 개선은 매력적이지만, 이 저장소에서 진짜 마이그레이션 작업은 패키지 업데이트가 아닙니다. **Node, Content Layer, 엔트리 식별자와 렌더링 API를 먼저 바꾸는 것**이 핵심입니다. 이 네 경계를 분리해서 처리하면 업그레이드는 큰 재작성보다 검증 가능한 여러 개의 작은 변경으로 바뀝니다.
+
+## 공식 자료
+
+- [Astro 7.0 릴리스](https://astro.build/blog/astro-7/)
+- [Astro 7.1 릴리스](https://astro.build/blog/astro-710/)
+- [Astro v6 업그레이드](https://docs.astro.build/en/guides/upgrade-to/v6/)
+- [Astro v7 업그레이드](https://docs.astro.build/en/guides/upgrade-to/v7/)
+- [Astro 스타일과 Tailwind 가이드](https://docs.astro.build/en/guides/styling/#tailwind)

@@ -1,0 +1,217 @@
+---
+title: "Astro 5 to 7.1 Migration Audit: Content Layer, Node 22, and Tailwind"
+description: "Audit an Astro 5 GitHub Pages site for Node 22, Content Layer, entry API, route, and Tailwind changes before upgrading to Astro 7.1."
+date: 2026-07-21
+tags: ["Astro", "GitHub Pages", "MDX", "Tailwind CSS", "Migration"]
+lang: en
+translationKey: astro-5-to-7-1-migration-audit
+---
+
+Running `npx @astrojs/upgrade` first is an attractive way to start an Astro 7.1 migration. On an older Astro 5 content site, it is also likely to hide the work that matters most: the runtime, content APIs, and deployment routes.
+
+Astro 6 requires Node 22.12 or newer and removes automatic support for legacy content collections. A site that still uses `src/content/config.ts`, `type: 'content'`, `post.slug`, and `post.render()` must cross that boundary before the upgrade is routine. Astro 7 then moves to Vite 8, while a Tailwind 3 site has a separate choice about when to adopt Tailwind 4.
+
+**The safe sequence is to move the runtime and content boundaries first, upgrade Astro second, and migrate Tailwind separately.** That sequence turns one large rewrite into changes with observable failure causes and reversible checkpoints.
+
+## Audit the blockers before changing packages
+
+For an Astro 5 content site, start with five boundaries.
+
+| Audit area | Typical Astro 5 state | Required or likely change | Risk |
+| --- | --- | --- | --- |
+| Node.js | Node 20 in local or CI environments | Node 22.12.0 or newer for Astro 6+ | High |
+| Content configuration | `src/content/config.ts` and `type: 'content'` | `src/content.config.ts` plus an explicit loader | High |
+| Entry API | `entry.slug` and `entry.render()` | `entry.id` and `render(entry)` | High |
+| Vite | Vite 5-era plugins or configuration | Review custom integrations against Vite 8 | Medium |
+| Tailwind | Tailwind 3 plus `@astrojs/tailwind` | May remain temporarily; Tailwind 4 uses `@tailwindcss/vite` | Medium |
+
+The [Astro 6 upgrade guide](https://docs.astro.build/en/guides/upgrade-to/v6/) is the decisive reference for the first three rows. The [Astro 7 upgrade guide](https://docs.astro.build/en/guides/upgrade-to/v7/) says most projects can move to Vite 8 without application-code changes, but integrations and plugins that depend on Vite internals need review. Treat that as a scoped risk, not a reason to rewrite every Vite setting.
+
+## Move the runtime before the framework
+
+Astro 6 requires Node `22.12.0` or higher. Change the local and deployment runtime while the application is still on Astro 5, then run the existing gates. That gives a Node-only checkpoint.
+
+```text
+# .nvmrc
+22.12.0
+```
+
+```yaml
+- name: Setup Node.js
+  uses: actions/setup-node@v4
+  with:
+    node-version: "22.12.0"
+    cache: npm
+```
+
+Use the same version in local development, CI, and the production build. If the Astro 5 build fails after this change, the failure belongs to the runtime stage rather than the framework upgrade.
+
+```bash
+node -v
+npm ci
+npm test -- --run
+npm run build
+```
+
+Do not combine this checkpoint with a lockfile refresh, integration upgrade, and CSS migration. A green Node-only build is useful evidence during every later stage.
+
+## Replace legacy content collections
+
+Astro 5 could keep an older content collection working through compatibility behavior. Astro 6 removes that automatic path. A legacy configuration such as this is a migration signal:
+
+```ts
+import { defineCollection, z } from 'astro:content';
+
+const blog = defineCollection({
+  type: 'content',
+  schema: z.object({
+    title: z.string(),
+    description: z.string(),
+    date: z.date(),
+    tags: z.array(z.string()).default([]),
+  }),
+});
+```
+
+Move the configuration to `src/content.config.ts`, define a loader, and import Zod from `astro/zod`:
+
+```ts
+import { defineCollection } from 'astro:content';
+import { glob } from 'astro/loaders';
+import { z } from 'astro/zod';
+
+const blog = defineCollection({
+  loader: glob({
+    pattern: '**/*.{md,mdx}',
+    base: './src/content/blog',
+  }),
+  schema: z.object({
+    title: z.string(),
+    description: z.string(),
+    date: z.coerce.date(),
+    tags: z.array(z.string()).default([]),
+    image: z.string().optional(),
+    draft: z.boolean().default(false),
+  }),
+});
+
+export const collections = { blog };
+```
+
+The schema above is an example, not a replacement for the live project schema. Copy every field and constraint that the site actually uses. `z.coerce.date()` is appropriate when frontmatter supplies a date string that the schema should convert to a `Date`.
+
+If the project has multiple collections, migrate all of them in the same content-layer stage. A build that reads the blog but fails on a project or data collection is not a completed migration.
+
+For a deeper schema-focused example, see [aligning Astro MDX frontmatter with the live schema](/blog/align-astro-mdx-frontmatter-with-the-live-schema/).
+
+## Find every legacy entry API call
+
+Content Layer entries use `id` rather than the reserved legacy `slug`, and rendering moves from an entry method to the imported `render()` function.
+
+```ts
+import { getCollection, render } from 'astro:content';
+
+const posts = await getCollection('blog');
+
+const paths = posts.map((post) => ({
+  params: { slug: post.id },
+  props: { post },
+}));
+
+const { Content } = await render(post);
+```
+
+Search the whole source tree instead of updating one detail route:
+
+```bash
+rg 'post\.slug|entry\.slug|\.render\(\)' src
+```
+
+Check every place that derives a URL or renders an entry:
+
+- home and blog indexes;
+- dynamic article routes;
+- tag and category routes;
+- RSS item links;
+- related-post components;
+- sitemap or redirect generators;
+- tests and fixtures that encode entry IDs.
+
+The filename-backed `id` may include nested directories. If the site has moved content under language folders, verify how route code strips or preserves those segments. A successful MDX compilation does not prove that a stable public slug survived.
+
+## Keep Tailwind 4 in a separate change
+
+Astro's current [Tailwind guidance](https://docs.astro.build/en/guides/styling/#tailwind) supports two paths:
+
+- Tailwind 3 can remain through the deprecated `@astrojs/tailwind` integration for legacy compatibility.
+- Tailwind 4 uses the `@tailwindcss/vite` plugin and requires its own stylesheet and configuration migration.
+
+That makes Tailwind 4 important, but it does not make it part of the minimum Astro 7.1 recovery path. Combining all of these changes at once makes a CSS regression difficult to separate from a Content Layer, Vite, or MDX failure:
+
+```text
+Astro 5 → 7.1
+Vite 5-era stack → Vite 8
+legacy collections → Content Layer
+entry.slug/render() → entry.id/render(entry)
+Tailwind 3 integration → Tailwind 4 Vite plugin
+```
+
+Keep Tailwind 3 through the framework migration if it still builds. After routes and visual snapshots are stable, migrate Tailwind in a dedicated branch and verify generated CSS, typography, dark mode, responsive layouts, and any custom plugins.
+
+## Use Astro 7.1 options only for measured problems
+
+Astro 7.1 adds `deferRender` to the `glob()` loader. It can lower sync-time memory use for a large collection by delaying Markdown rendering:
+
+```ts
+const blog = defineCollection({
+  loader: glob({
+    pattern: '**/*.{md,mdx}',
+    base: './src/content/blog',
+    deferRender: true,
+  }),
+  schema: blogSchema,
+});
+```
+
+The option trades rendered-HTML cache reuse for lower sync-time memory. The Astro release notes also state that MDX already renders on demand. Enable it because a measured collection or build has memory pressure, not because it is new in 7.1.
+
+Apply the same rule to experimental or storage options: record the observed problem, change one behavior, and compare build memory and duration before keeping it.
+
+## Use a migration sequence with explicit gates
+
+A practical sequence is:
+
+1. Pin Node 22.12.0 or newer locally and in CI.
+2. Prove the existing Astro 5 build and tests pass on that runtime.
+3. Move every collection to the Content Layer configuration and loaders.
+4. Replace legacy entry identifiers and rendering APIs.
+5. Verify existing article, tag, RSS, and sitemap URLs.
+6. Run `npx @astrojs/upgrade` for Astro and official integrations.
+7. Review custom Vite plugins or settings against Vite 8.
+8. Re-run tests, type checks, production build, and route assertions.
+9. Deploy and verify representative pages before starting Tailwind 4 work.
+
+Use [an article-scoped PR workflow](/blog/safer-blog-publishing-with-prs/) for the same reason: each change should expose its own evidence and rollback boundary.
+
+## Migration checklist
+
+- [ ] Local, CI, and deployment builds use Node 22.12.0 or newer.
+- [ ] `src/content.config.ts` exists and the legacy config path is gone.
+- [ ] Every collection has an explicit loader.
+- [ ] Zod imports and date coercion match current Astro guidance.
+- [ ] Legacy `slug` and entry `render()` calls are gone.
+- [ ] English, localized, tag, RSS, and sitemap routes remain stable.
+- [ ] Custom Vite integrations have been reviewed for Vite 8.
+- [ ] The Astro 7.1 build and test suite pass before CSS changes.
+- [ ] Representative pages have visual and link regression evidence.
+- [ ] Tailwind 4 is tracked as a separate migration unless a documented constraint requires otherwise.
+
+Astro 7.1 can improve build performance, but a durable migration is not defined by the package version. It is defined by a supported runtime, explicit content loading, stable entry identifiers, and unchanged public routes. Establish those boundaries first, then upgrade the framework with evidence you can interpret.
+
+## Official resources
+
+- [Astro 7.0 release](https://astro.build/blog/astro-7/)
+- [Astro 7.1 release](https://astro.build/blog/astro-710/)
+- [Upgrade to Astro v6](https://docs.astro.build/en/guides/upgrade-to/v6/)
+- [Upgrade to Astro v7](https://docs.astro.build/en/guides/upgrade-to/v7/)
+- [Astro styles and Tailwind guidance](https://docs.astro.build/en/guides/styling/#tailwind)
