@@ -6,6 +6,7 @@ import {
   categorizeUrl,
   getBlogPostDates,
   getLastmod,
+  getPriority,
   isNoindexHtml,
 } from '../generate-sitemaps.mjs';
 
@@ -50,6 +51,17 @@ describe('localized blog sitemap metadata', () => {
     '/ko/blog/localized-post/',
   ])('categorizes %s as blog content', pathname => {
     expect(categorizeUrl(pathname)).toBe('blog');
+  });
+
+  it.each([
+    ['/blog', 0.8],
+    ['/blog/', 0.8],
+    ['/ko/blog', 0.8],
+    ['/ko/blog/', 0.8],
+    ['/blog/localized-post/', 0.7],
+    ['/ko/blog/localized-post/', 0.7],
+  ])('assigns %s priority %s', (pathname, priority) => {
+    expect(getPriority('blog', pathname)).toBe(priority);
   });
 
   it('uses each localized document date and preserves legacy root dates', async () => {

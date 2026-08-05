@@ -76,7 +76,7 @@ export function categorizeUrl(pathname) {
 /**
  * Get priority based on content type and path
  */
-function getPriority(category, pathname) {
+export function getPriority(category, pathname) {
   // Home page
   if (pathname === '/' || pathname === '') return 1.0;
 
@@ -88,7 +88,7 @@ function getPriority(category, pathname) {
 
   if (category === 'blog') {
     // Blog index
-    if (pathname === '/blog/' || pathname === '/blog') return 0.8;
+    if (/^\/(?:ko\/)?blog\/?$/u.test(pathname)) return 0.8;
     return 0.7;
   }
 
