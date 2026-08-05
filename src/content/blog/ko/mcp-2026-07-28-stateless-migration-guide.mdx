@@ -21,7 +21,7 @@ MCP 서버를 운영하고 있다면 2026년 7월 28일 공개된 명세를 SDK 
 | --- | --- | --- | --- |
 | 연결 수명주기 | `initialize` 후 `notifications/initialized` | handshake 제거 | 요청마다 독립적으로 검증해야 함 |
 | 세션 | `Mcp-Session-Id`와 연결별 상태 | 프로토콜 세션 제거 | 상태는 명시적인 handle로 전달 |
-| 버전 협상 | 초기화 시 한 번 협상 | 요청별 `_meta`와 `server/discover` | 중간 프록시와 병렬 연결이 쉬워짐 |
+| 버전 협상 | 초기화 시 한 번 협상 | 요청별 `_meta`와 `server/discover` | 요청마다 metadata와 version selection을 검증 |
 | 서버→클라이언트 입력 요청 | 연결 안에서 server-initiated request | Multi Round-Trip Request | 원 요청을 입력과 함께 다시 전송 |
 | 목록 변경 알림 | HTTP GET, subscribe/unsubscribe | `subscriptions/listen` | 별도 POST response stream 운영 |
 | 캐시 정책 | 구현별 polling | 선택된 result의 `ttlMs`와 `cacheScope` | freshness와 isolation을 명시 |
@@ -93,7 +93,7 @@ MCP 서버를 운영하고 있다면 2026년 7월 28일 공개된 명세를 SDK 
 - 오래된 서버가 `resultType`을 생략하면 클라이언트가 `complete`로 처리하는가
 - 클라이언트와 서버 identity가 로그와 trace에 남는가
 
-공식 SDK를 사용한다면 이 필드를 직접 구성하기보다 SDK beta 버전의 호환 계층을 사용해야 합니다. 프로토콜 JSON을 애플리케이션 코드 곳곳에서 직접 만들면 최종 명세 변경에 취약해집니다.
+공식 SDK를 사용한다면 protocol JSON을 직접 구성하지 말고, 선택한 SDK가 문서화한 `2026-07-28` 호환 계층과 version-selection 경로를 사용하세요. 프로토콜 JSON을 애플리케이션 코드 곳곳에서 직접 만들면 명세 변경에 취약해집니다.
 
 ## 2. `server/discover`로 두 lifecycle을 구분하기
 
@@ -143,13 +143,13 @@ Stateless protocol은 stateless application을 의미하지 않습니다. 상태
 
 ## 4. Elicitation을 Multi Round-Trip Request로 바꾸기
 
-서버가 사용자 입력을 더 필요로 할 때 연결 안에서 별도 요청을 밀어 넣는 대신, `input_required` 결과를 반환합니다. 클라이언트는 사용자 응답을 받은 뒤 원래 요청을 다시 보냅니다.
+서버가 사용자 입력을 더 필요로 할 때 연결 안에서 별도 요청을 밀어 넣는 대신, `input_required` 결과를 반환합니다. 이때 `inputRequests` 객체는 request ID를 key로 사용합니다. 클라이언트는 사용자 응답을 받은 뒤 같은 key의 `inputResponses` 객체와 함께 원래 요청을 다시 보냅니다.
 
 ```json
 {
   "resultType": "input_required",
-  "inputRequests": [
-    {
+  "inputRequests": {
+    "deployment_environment": {
       "method": "elicitation/create",
       "params": {
         "mode": "form",
@@ -166,11 +166,37 @@ Stateless protocol은 stateless application을 의미하지 않습니다. 상태
         }
       }
     }
-  ]
+  },
+  "requestState": "opaque-server-minted-state"
 }
 ```
 
-입력이 준비되면 같은 업무 요청을 새 request ID로 재전송하고 `inputResponses`를 포함합니다. 서버는 `requestState`나 자체 operation handle로 이전 단계와 연결합니다.
+서버가 `requestState`를 제공했다면 재시도에서 byte 단위로 그대로 돌려보내야 합니다. 아래 예시는 MRTR에 집중하기 위해 모든 요청에 필요한 `_meta` 필드를 생략했습니다.
+
+```json
+{
+  "jsonrpc": "2.0",
+  "id": 43,
+  "method": "tools/call",
+  "params": {
+    "name": "deploy_preview",
+    "arguments": {
+      "project": "docs"
+    },
+    "inputResponses": {
+      "deployment_environment": {
+        "action": "accept",
+        "content": {
+          "environment": "preview"
+        }
+      }
+    },
+    "requestState": "opaque-server-minted-state"
+  }
+}
+```
+
+입력이 준비되면 같은 업무 요청을 새 JSON-RPC request ID로 재전송합니다. 이 transport ID를 업무 operation identity로 사용해서는 안 됩니다.
 
 보안 규칙도 분명합니다.
 
@@ -331,7 +357,7 @@ jobs:
 
 ## 결론
 
-이번 MCP 릴리스의 목적은 연결을 없애는 것이 아니라 **연결에 숨어 있던 상태와 capability를 요청 단위의 명시적인 계약으로 바꾸는 것**입니다. 서버는 수평 확장이 쉬워지고, 클라이언트는 병렬 handshake와 명확한 버전 협상을 얻습니다. 대신 구현자는 상태 handle, idempotency, 사용자 입력, 재시도와 인증을 더 분명하게 설계해야 합니다.
+이번 MCP 릴리스의 목적은 연결을 없애는 것이 아니라 **연결에 숨어 있던 상태와 capability를 요청 단위의 명시적인 계약으로 바꾸는 것**입니다. 서버는 수평 확장이 쉬워지고, 클라이언트는 요청 단위 metadata와 명시적인 version selection을 얻습니다. 대신 구현자는 상태 handle, idempotency, 사용자 입력, 재시도와 인증을 더 분명하게 설계해야 합니다.
 
 SDK를 무작정 올리는 대신 conformance suite를 CI에 넣고 session 의존성을 목록화하세요. 구형과 신형 protocol path를 같은 contract test로 검증한 뒤 fallback telemetry를 기준으로 legacy lifecycle을 제거하는 편이 안전합니다.
 

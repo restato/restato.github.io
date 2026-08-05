@@ -151,13 +151,13 @@ Stateless protocol behavior can make horizontal routing easier. It does not remo
 
 ## Convert server input to MRTR
 
-The previous pattern could send a server-initiated request over the active connection. MCP `2026-07-28` introduces Multi Round-Trip Requests instead. A server returns an `input_required` result with one or more `inputRequests`; the client gathers input and retries the original request with `inputResponses`.
+The previous pattern could send a server-initiated request over the active connection. MCP `2026-07-28` introduces Multi Round-Trip Requests instead. A server returns an `input_required` result whose `inputRequests` object is keyed by request ID. The client gathers input and retries the original request with an `inputResponses` object that uses the same keys.
 
 ```json
 {
   "resultType": "input_required",
-  "inputRequests": [
-    {
+  "inputRequests": {
+    "deployment_environment": {
       "method": "elicitation/create",
       "params": {
         "mode": "form",
@@ -174,7 +174,33 @@ The previous pattern could send a server-initiated request over the active conne
         }
       }
     }
-  ]
+  },
+  "requestState": "opaque-server-minted-state"
+}
+```
+
+The retry echoes `requestState` byte-for-byte when the server supplied it. In this focused example, the required per-request `_meta` fields are omitted for brevity.
+
+```json
+{
+  "jsonrpc": "2.0",
+  "id": 43,
+  "method": "tools/call",
+  "params": {
+    "name": "deploy_preview",
+    "arguments": {
+      "project": "docs"
+    },
+    "inputResponses": {
+      "deployment_environment": {
+        "action": "accept",
+        "content": {
+          "environment": "preview"
+        }
+      }
+    },
+    "requestState": "opaque-server-minted-state"
+  }
 }
 ```
 
