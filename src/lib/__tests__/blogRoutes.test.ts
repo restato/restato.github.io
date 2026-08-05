@@ -141,4 +141,24 @@ describe('localized blog route projections', () => {
     expect(rss).toContain('projectEnglishRoutes(');
     expect(rss).toContain('link: route.pathname');
   });
+
+  it('explains the Korean translation policy in the no-pair empty state', async () => {
+    const koreanIndex = await readFile(
+      join(process.cwd(), 'src/pages/ko/blog/index.astro'),
+      'utf8',
+    );
+    const emptyState = koreanIndex.match(
+      /\)\s*:\s*\(\s*(<div class="fc-empty-state">[\s\S]*?<\/div>)\s*\)\}/u,
+    )?.[1] ?? '';
+
+    expect(emptyState).toContain('검토를 마친 한국어 번역');
+    expect(emptyState).toContain('영어 원문을 기준 문서');
+    expect(emptyState).toContain('언어 선택기');
+    expect(emptyState).toContain('아직 번역되지 않은 글');
+    expect(emptyState).toContain('href="/blog/"');
+    expect(emptyState.match(/[가-힣]/gu)?.length ?? 0).toBeGreaterThan(80);
+
+    expect(koreanIndex).toContain('routes.map(({ post, pathname })');
+    expect(koreanIndex).toContain('href={pathname}');
+  });
 });
