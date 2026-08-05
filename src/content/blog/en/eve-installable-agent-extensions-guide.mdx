@@ -1,0 +1,233 @@
+---
+title: "Build eve Extensions as Versioned Capability Boundaries"
+description: "Package eve tools, connections, skills, instructions, and hooks without losing control of namespaces, secrets, approvals, runtime policy, or upgrade risk."
+date: 2026-07-23
+tags: ["AI Agent", "Vercel", "eve", "Agent Skills", "TypeScript"]
+lang: en
+translationKey: eve-installable-agent-extensions-guide
+---
+
+Reusable agent code usually starts as copied files: one tool, one `SKILL.md`, one connection, and one audit hook copied into another project. The first copy is cheap. The fifth creates a version, permission, and security problem.
+
+An eve extension packages tools, connections, skills, instructions, and hooks as one installable dependency. The useful boundary is not “code we can reuse.” It is **a versioned capability and permission contract that the consuming agent can inspect, constrain, and remove**.
+
+Vercel [announced installable eve extensions on July 22, 2026](https://vercel.com/changelog/eve-extensions). The public eve changelog records mounted extensions and their ownership and peer-range contract in 0.22.4, then adds the dedicated `eve extension init` and `eve extension build` commands in 0.22.5. At the August 5 research cutoff, npm reported eve 0.30.8, and mounted extensions remained supported.
+
+## Package a capability boundary, not a copied folder
+
+A real agent capability is wider than one function.
+
+```text
+CRM capability
+├─ connection and authentication contract
+├─ read tools
+├─ write tools
+├─ task-specific SKILL.md
+├─ shared instructions
+└─ audit and redaction hooks
+```
+
+A normal library can share HTTP clients and schemas, but each consumer still has to register the agent-facing pieces. An extension distributes the pieces together and mounts them under one namespace.
+
+| Distribution choice | Good fit | Operational boundary |
+|---|---|---|
+| Copied files | One short experiment | No shared upgrade or provenance path |
+| Normal npm library | Pure functions and SDK clients | Consumer wires agent capabilities itself |
+| MCP server | Remote, cross-language tools | Adds network, service, and authentication operations |
+| eve extension | Reusable capabilities among eve agents | Follows eve package and mount contracts |
+
+MCP and extensions can be combined. An extension can package a connection, the instructions for using it, and local hooks around its tools. The extension does not remove the need to authorize the remote service.
+
+## Know what an extension may own
+
+The extension boundary is intentionally narrower than an entire agent. According to the public [eve changelog](https://github.com/vercel/eve/blob/main/packages/eve/CHANGELOG.md), an extension may contribute tools, connections, skills, instructions, hooks, libraries, and extension-scoped state.
+
+It cannot declare:
+
+- the agent configuration;
+- a sandbox;
+- schedules;
+- runtime limits;
+- another nested extension.
+
+Those controls remain with the consuming agent. This prevents a reusable capability package from silently replacing runtime-wide isolation or resource policy.
+
+eve is also a peer dependency. The declared peer range is checked when the extension mounts, which turns runtime compatibility into an explicit package constraint instead of a late execution surprise.
+
+## Scaffold and build the package
+
+The official CLI can create an extension project:
+
+```bash
+npx eve@latest extension init crm
+```
+
+The generated package follows agent-like conventions:
+
+```text
+@acme/crm/
+├─ package.json
+└─ extension/
+   ├─ extension.ts
+   ├─ tools/
+   ├─ connections/
+   ├─ skills/
+   ├─ instructions.md
+   ├─ hooks/
+   └─ lib/
+```
+
+`extension.ts` defines the consumer configuration contract. The official announcement allows a Standard Schema implementation such as Zod.
+
+```ts
+import { defineExtension } from 'eve/extension';
+import { z } from 'zod';
+
+export default defineExtension({
+  config: z.object({
+    apiBaseUrl: z.string().url(),
+    readOnly: z.boolean().default(true),
+  }),
+});
+```
+
+When the capability is ready, build the publishable package:
+
+```bash
+eve extension build
+```
+
+These commands and the configuration shape were reviewed against official documentation. No package was scaffolded or published for this article.
+
+## Keep tools narrow enough to govern
+
+Do not combine search and mutation in one tool. A consumer should be able to allow reads while requiring approval for writes.
+
+```text
+crm__search_contacts     read
+crm__read_contact       read
+crm__add_note           write
+crm__delete_contact     destructive write
+```
+
+Narrow tools improve more than approval prompts. They make least-privilege credentials, audit events, retries, evaluation cases, and deprecation decisions easier to define.
+
+A `SKILL.md` can then explain sequence and judgment: search before creating, stop on ambiguous identity, avoid sensitive fields, and require approval before external state changes. The tool schema describes valid input; the skill describes when the tool should be considered.
+
+## Mount through a namespace
+
+Install the package and import it from `agent/extensions/`:
+
+```ts
+// agent/extensions/crm.ts
+import crm from '@acme/crm';
+
+export default crm({
+  apiBaseUrl: process.env.CRM_API_BASE_URL!,
+  readOnly: process.env.NODE_ENV !== 'production',
+});
+```
+
+The filename becomes the namespace. A `search` tool from `crm.ts` appears as `crm__search`.
+
+That prefix has operational value:
+
+- tools from two packages do not collide;
+- logs show which capability produced an action;
+- approval and evaluation rules can target one namespace;
+- removing the mount removes a predictable set of capabilities.
+
+Namespace is not isolation. It identifies the package; the consuming agent still owns credentials, network policy, sandboxing, and approval.
+
+## Keep authority and secrets with the consumer
+
+The extension author should provide safe defaults, but the consuming agent knows the actual tenant, environment, and risk.
+
+The official announcement says consumers can require approval before an extension tool runs, replace a tool with a local implementation, or remove it with `disableTool()`. Use those controls to enforce a consumer-side policy:
+
+1. enable read-only tools by default;
+2. require approval for writes;
+3. disable destructive tools unless the use case needs them;
+4. redact sensitive input and output before audit logging;
+5. review newly added tools on every dependency update.
+
+Do not put API keys in extension defaults or committed configuration. Pass non-secret behavior settings through the config schema and resolve credentials through environment or connection boundaries.
+
+For each external service, document:
+
+- required environment variables or connection;
+- minimum OAuth scopes or API permissions;
+- user-level versus shared application identity;
+- allowed network destinations;
+- data retention and log-redaction behavior;
+- tools that can run without approval.
+
+## Use agent-browser as a concrete boundary
+
+The maintained [`@agent-browser/eve` documentation](https://agent-browser.dev/eve) shows how a capability package can preserve a useful boundary. It mounts browser tools under a namespace while running browser state inside the agent sandbox.
+
+```ts
+// agent/extensions/browser.ts
+import browser from '@agent-browser/eve';
+
+export default browser({
+  allowedDomains: ['example.com', '*.example.com'],
+  maxOutputChars: 50_000,
+});
+```
+
+The agent receives tools such as `browser__navigate`, `browser__snapshot`, and `browser__click`. The package documents domain restriction and output truncation, and it intentionally omits cookie, storage, and saved-auth-state commands that could expose credential material to the model.
+
+This is a stronger contract than “the package contains browser automation.” It states where the browser runs, which destinations are allowed, how much output can enter context, and which sensitive abilities are absent.
+
+## Review every upgrade as an authority diff
+
+Semantic versioning describes API compatibility; it does not fully describe agent authority. A backward-compatible release can add a new tool, connection, hook, or instruction that changes what the model can do.
+
+Review extension upgrades on two axes:
+
+| Change | API review | Authority review |
+|---|---|---|
+| Internal bug fix | Regression risk | Did error handling or logging expose more data? |
+| New read tool | Usually additive | Does it access a new dataset or scope? |
+| New write tool | Usually additive | Is it disabled or approval-gated by default? |
+| Input-schema change | Potentially breaking | Can broader input reach a larger target set? |
+| Hook change | May be invisible to callers | Does it modify, retain, or transmit more content? |
+| Connection-scope change | May not break types | Does it require renewed authorization? |
+
+Pin dependencies and commit the lockfile. In the update pull request, inspect the package contents and the capability diff, not only the TypeScript compile result.
+
+## Test package and consumer separately
+
+The extension package should prove:
+
+- invalid configuration is rejected;
+- tool schemas and error paths behave as documented;
+- hooks redact the intended fields;
+- skills and instructions are included in the artifact;
+- the package does not contain source secrets or unintended files;
+- the declared eve peer range matches supported runtimes.
+
+The consuming agent should prove:
+
+- the expected namespace and tool set appear;
+- write and destructive tools have the intended approval rules;
+- disabled tools are unavailable to the model;
+- credentials have minimum scope;
+- sandbox and network controls remain consumer-owned;
+- an upgrade does not regress representative model behavior.
+
+Type checks cannot detect every behavior change caused by a revised tool description or skill. Keep scenario evaluations for high-risk selection and sequencing rules.
+
+## Recommendation
+
+Start with one capability whose tools share a permission boundary and release cadence. Keep its configuration typed, its secrets external, its writes approval-gated, and its dependency pinned.
+
+An eve extension succeeds when consumers can answer four questions from the package and mount diff: what capability was added, what authority it needs, where it runs, and how to remove it.
+
+## Primary sources
+
+- [Extend eve agents with installable extensions](https://vercel.com/changelog/eve-extensions)
+- [eve framework overview](https://eve.dev/)
+- [eve public changelog](https://github.com/vercel/eve/blob/main/packages/eve/CHANGELOG.md)
+- [agent-browser eve extension](https://agent-browser.dev/eve)

@@ -1,0 +1,232 @@
+---
+title: "에이전트를 위한 GitHub Content OS: 정책, 스킬, 상태, 게이트"
+description: "정책, 재사용 skill, editorial state, public artifact, publication gate를 분리해 GitHub를 agent-assisted content의 audit 가능한 control plane으로 사용하는 방법을 설명합니다."
+date: 2026-07-20
+tags: ["Content OS", "GitHub", "AI Agent", "Automation", "Astro"]
+lang: ko
+translationKey: github-content-os-agent-skills-workflow
+---
+
+“좋은 글을 일관되게 작성하라”는 운영체제가 아닙니다. 대화에서는 결정이 사라지고, 긴 prompt에는 정책과 임시 사실이 섞이며, 생성된 MDX 파일만으로 evidence, build, merge, deployment, live page가 검증됐는지 알 수 없습니다.
+
+GitHub 기반 Content OS는 각 상태를 review 가능한 형태로 만들어 이 문제를 해결합니다. 핵심은 Git을 database처럼 취급하거나 agent가 완벽한 memory를 가졌다고 가정하는 것이 아닙니다. 유용한 모델은 **GitHub를 정책, 절차, 상태 전이, public artifact, evidence-backed gate를 위한 audit 가능한 control plane으로 사용하는 것**입니다.
+
+## GitHub를 memory database가 아니라 control plane으로 사용합니다
+
+Git은 이름 있는 file, diff, branch, review, immutable history에 강합니다. GitHub는 pull request, Actions, status check, deployment record를 더합니다. 이 속성은 high-frequency transaction보다 traceability가 중요한 editorial operation에 적합합니다.
+
+그러나 deterministic agent behavior를 제공하지는 않습니다. GitHub의 [custom instruction 문서](https://docs.github.com/en/copilot/concepts/prompting/response-customization)는 AI system이 매번 같은 방식으로 instruction을 따르지 않을 수 있다고 명시합니다. policy text는 model behavior를 안내하고 executable gate는 관측 가능한 조건을 강제합니다.
+
+repository는 다음과 같은 주장을 기록하기에 적합합니다.
+
+- 이것이 현재 policy revision입니다.
+- 이 candidate가 research에서 review로 이동했습니다.
+- 이 source를 이 cutoff에 확인했습니다.
+- 이 public diff가 이 command를 통과했습니다.
+- 이 commit이 deploy됐고 이 route를 검증했습니다.
+
+transactional lock, credential storage, private analytics warehouse의 대체재로 사용하지 마세요.
+
+## 다섯 종류의 상태를 분리합니다
+
+하나의 거대한 prompt 또는 `memory.md`는 독자와 수명이 다른 concern을 합칩니다. 분리하세요.
+
+```text
+repository control plane
+├─ policy            always applicable boundaries
+├─ skills            task-triggered procedures and scripts
+├─ editorial state   candidates, briefs, evidence, decisions
+├─ public artifacts  reviewed MDX and public assets
+└─ gates              tests, builds, review, deployment, live checks
+```
+
+경계가 중요합니다.
+
+| layer | 주요 질문 | 일반적인 변경 속도 |
+|---|---|---|
+| policy | 절대 허용하지 않거나 항상 요구하는 것은 무엇인가? | 낮음 |
+| skill | 반복 작업을 어떻게 수행하는가? | 중간 |
+| editorial state | 무엇을 알고 무엇이 unresolved인가? | 높음 |
+| public artifact | 독자가 볼 수 있는 것은 무엇인가? | publication마다 |
+| gate | 다음 transition을 허용하는 객관적 evidence는 무엇인가? | 중간 |
+
+이 layer를 분리하면 source update가 publication policy를 조용히 바꾸지 못하고 private research note가 public content에 새지 않습니다.
+
+## always-on policy를 짧게 유지합니다
+
+repository instruction에는 대부분의 작업에 적용되는 사실과 constraint를 둡니다. project structure, required command, security boundary, conflict 해결 규칙입니다.
+
+GitHub는 repository-wide instruction, path-specific instruction, `AGENTS.md` 같은 agent instruction을 문서화합니다. [지원 matrix](https://docs.github.com/en/copilot/reference/custom-instructions-support)는 GitHub.com, IDE, code review, cloud agent, Copilot CLI에 따라 범위가 다르다는 것을 보여 줍니다. 하나의 file이 모든 product에서 동일하게 동작한다고 가정하지 마세요.
+
+간결한 policy는 다음과 같을 수 있습니다.
+
+```md
+# Content policy
+
+- Prefer primary sources for current technical claims.
+- Never invent execution results or first-person experience.
+- Update an existing route when intent and conclusion overlap.
+- Keep private editorial evidence outside public MDX.
+- Require schema, translation, test, build, and live-route evidence.
+```
+
+이 policy는 모든 research 또는 deployment step을 설명하지 않습니다. 모든 절차를 모든 요청에 넣으면 context가 늘고 conflict를 보기 어려워집니다.
+
+## 절차를 skill로 불러옵니다
+
+GitHub는 [agent skill](https://docs.github.com/en/copilot/how-tos/copilot-on-github/customize-copilot/customize-cloud-agent/add-skills)을 `SKILL.md`와 optional script 또는 resource가 있는 directory로 정의합니다. 관련 있을 때 skill instruction이 agent context에 들어갑니다.
+
+명확한 trigger와 output이 있는 반복 workflow에 skill을 사용하세요.
+
+```text
+.agents/skills/
+├─ research-technical-claim/
+│  ├─ SKILL.md
+│  └─ references/
+├─ review-bilingual-article/
+│  ├─ SKILL.md
+│  └─ scripts/
+└─ verify-live-publication/
+   ├─ SKILL.md
+   └─ scripts/
+```
+
+유용한 skill은 언제 쓰는지, 어떤 input을 검사하는지, 어떤 step이 필수인지, 어떤 실패가 workflow를 멈추는지, 어떤 evidence가 completion을 증명하는지 설명합니다. “당신은 expert editor다”는 role description이지 검사 가능한 절차가 아닙니다.
+
+조건이 mechanical하면 script를 skill 옆에 둡니다. frontmatter validation, translation key 비교, secret pattern detection, generated route assertion, sitemap entry count가 예입니다. prose는 judgment를 안내하고 code는 deterministic property를 테스트해야 합니다.
+
+## content를 명시적인 state machine으로 모델링합니다
+
+draft가 존재한다는 사실로 status를 추론하지 마세요. 기록하세요.
+
+```text
+proposed
+→ researched
+→ outlined
+→ review-ready
+→ committed
+→ merged
+→ deployed
+→ live-verified
+```
+
+각 transition에는 evidence가 필요합니다. “researched”는 material claim에 source 또는 analysis label이 있다는 뜻입니다. “review-ready”는 hard blocker가 없고 artifact가 editorial threshold를 충족한다는 뜻입니다. “deployed”는 정확한 commit을 식별합니다. “live-verified”는 public response와 discovery metadata를 확인합니다.
+
+illustrative candidate record는 작게 유지할 수 있습니다.
+
+```json
+{
+  "id": "example-agent-guide",
+  "status": "review-ready",
+  "sourceCutoff": "2026-08-05T21:01:57Z",
+  "expectedRoutes": [
+    "/blog/example-agent-guide/",
+    "/ko/blog/example-agent-guide/"
+  ],
+  "gates": {
+    "evidence": "passed",
+    "editorial": "passed",
+    "build": "pending"
+  }
+}
+```
+
+이 JSON은 engineering example이며 GitHub product schema가 아닙니다. 사람이 nuance를 review해야 하면 Markdown을 사용하고 script가 state를 평가해야 하면 structured data를 사용하세요.
+
+## private evidence를 public MDX 밖에 둡니다
+
+research에는 failed hypothesis, local path, private repository detail, internal URL, credential, personal information, authorization record처럼 발행하면 안 되는 material이 자주 들어 있습니다.
+
+private state와 public article 사이에 명시적인 editorial handoff를 만드세요.
+
+```text
+private evidence
+→ sanitized claim-and-source handoff
+→ English source draft
+→ editorial review
+→ Korean alternate
+→ public article-only diff
+```
+
+handoff에는 thesis, supported claim, source URL, execution boundary, exclusion, approved public metadata가 들어가야 합니다. private notebook 전체를 MDX에 복사해서는 안 됩니다.
+
+이 경계는 review도 다루기 쉽게 만듭니다. public article pull request에는 public MDX와 필요한 public asset만 포함해야 합니다. workflow policy, private note, unrelated site infrastructure를 포함하지 않습니다.
+
+## gate를 executable하게 만듭니다
+
+score는 edit 우선순위를 정하는 데 도움이 되지만 hard blocker는 transition을 멈춰야 합니다. unsupported current fact, broken route, mismatched translation key, leaked secret, failed build가 예입니다.
+
+Astro bilingual article의 local gate는 repository-specific command를 결합할 수 있습니다.
+
+```bash
+npm run verify:translations
+npm run verify:content-quality
+npm test -- --run
+npm run check
+npm run build
+```
+
+그런 다음 두 generated route, language, canonical URL, reciprocal `hreflang`, English `x-default`, expected title과 body marker, URL마다 정확히 하나의 sitemap entry를 assert합니다.
+
+GitHub Actions는 이 command를 shared evidence로 바꿉니다. GitHub의 [status check 문서](https://docs.github.com/en/enterprise-cloud@latest/pull-requests/reference/status-checks)는 protected branch의 required check가 merge 전에 통과해야 한다고 설명합니다. workflow permission을 최소화하고 skipped 또는 missing check를 success가 아닌 별도 state로 취급하세요.
+
+## live artifact에서 완료합니다
+
+생성된 file은 publication이 아닙니다. local build, pushed branch, open pull request, merge도 각각 그 자체로 publication이 아닙니다.
+
+다음을 관측한 뒤 publication을 완료하세요.
+
+1. reviewed commit이 merge됐습니다.
+2. 정확한 commit의 deployment가 완료됐습니다.
+3. expected HTTPS route가 성공적으로 응답했습니다.
+4. title과 unique body marker가 일치했습니다.
+5. language, canonical, alternate link가 올바릅니다.
+6. sitemap에 route가 정확히 한 번 들어 있습니다.
+7. private record에 public evidence가 기록됐습니다.
+
+이 state를 분리하면 recovery가 개선됩니다. deployment가 실패한 merged article은 writing pass가 아니라 deployment investigation이 필요합니다. sitemap entry가 빠진 live page에는 조작된 “published” status가 아니라 discovery fix가 필요합니다.
+
+## 중복되고 충돌하는 작업을 막습니다
+
+drafting 전에 모든 existing title과 frontmatter를 비교한 다음 가장 가까운 body를 읽습니다. keyword만 보지 말고 reader intent, expected action, thesis, example, conclusion을 비교하세요.
+
+authorized change마다 branch 또는 worktree 하나를 사용합니다. publication 전에 rebase하고 unrelated diff scope를 거부합니다. 여러 agent가 shared state를 갱신할 수 있다면 다음 pattern 중 하나를 사용하세요.
+
+- 하나의 central file을 함께 수정하지 않는 separate record
+- merge 뒤 다시 만드는 generated index
+- state update를 위한 optimistic revision check
+- 실제 serialization이 필요한 operation용 queue
+
+Git은 두 agent가 각각 유효하지만 의미상 충돌하는 결정을 내리는 것을 막지 못합니다. conflict-free file은 mechanical collision을 줄이고 editorial ownership은 의미를 해결합니다.
+
+## 최소한의 유용한 repository에서 시작합니다
+
+첫날부터 agent role 열 개와 dashboard가 필요하지는 않습니다. 다음으로 시작하세요.
+
+```text
+AGENTS.md
+.agents/skills/research/SKILL.md
+.agents/skills/review/SKILL.md
+content/candidates/
+public-content/
+.github/workflows/content-quality.yml
+```
+
+경로는 이를 발견해야 하는 product에 맞게 조정하세요. Copilot surface에서는 GitHub instruction과 skill support matrix가 source of truth입니다.
+
+candidate volume 때문에 prioritization이 어려워질 때 scoring engine을 추가합니다. manual transition에 객관적 evidence가 생긴 뒤에 automation을 추가하세요. 약하거나 중복된 content를 일정에 맞춰 더 안정적으로 발행하는 calendar는 성공한 Content OS가 아닙니다.
+
+## 권고
+
+durable rule과 state를 review 가능한 file에 저장하되 prose instruction이 script 또는 protected-branch check로 증명할 수 있는 것을 강제한다고 기대하지 마세요. private evidence와 public artifact를 분리하고 모든 publication transition을 관측 가능하게 만드세요.
+
+성공 metric은 하루에 생성한 article 수가 아닙니다. review를 통과한 유용하고 traceable한 article의 비율과 system이 올바르게 중단한 unsafe 또는 unsupported publication 수입니다.
+
+## Primary sources
+
+- [GitHub custom instruction 지원](https://docs.github.com/en/copilot/reference/custom-instructions-support)
+- [repository custom instruction 추가](https://docs.github.com/en/copilot/how-tos/copilot-on-github/customize-copilot/add-custom-instructions/add-repository-instructions)
+- [GitHub Copilot agent skill 추가](https://docs.github.com/en/copilot/how-tos/copilot-on-github/customize-copilot/customize-cloud-agent/add-skills)
+- [Copilot response customization 개요](https://docs.github.com/en/copilot/concepts/prompting/response-customization)
+- [GitHub Actions quickstart](https://docs.github.com/en/actions/get-started/quickstart)
+- [GitHub status check](https://docs.github.com/en/enterprise-cloud@latest/pull-requests/reference/status-checks)
