@@ -1,0 +1,213 @@
+---
+title: "Vercel Blob WAF: Traffic Controls, Private Storage, and Safe Rollout"
+description: "Protect public Blob traffic with shared WAF rules while keeping identity-based access in Private Blob, then roll out deny, rate limit, and challenge without breaking clients."
+date: 2026-07-26
+lang: en
+translationKey: vercel-blob-waf-security-guide
+tags: ["Vercel", "Security", "WAF", "Blob Storage", "Web Development"]
+---
+
+Vercel WAF can now protect Blob stores in production, but it does not turn a public object into a private one. WAF decides whether traffic may reach a public URL. Private Blob and your application decide whether a particular user may read a file.
+
+Vercel moved WAF for Blob from beta on July 24 to general availability on August 3, 2026. The beta rules and setup carried over unchanged. **Use WAF for public-object traffic policy; use Private Blob for data authorization.**
+
+## Choose the control from the data requirement
+
+Public Blob URLs are readable by anyone who has the URL. A WAF rule can inspect properties such as IP address, country, and path, but it does not know that one application user owns a file and another does not.
+
+| Requirement | Appropriate control |
+| --- | --- |
+| Reduce scraping or hotlink traffic to public media | Public Blob + WAF |
+| Limit repeated downloads of a public release | Public Blob + WAF rate limit |
+| Block public objects from selected traffic regions | Public Blob + WAF deny |
+| Allow only an authenticated user to read a file | Private Blob + route authorization |
+| Prevent one user from reading another user's object | Private Blob + ownership check |
+| Store invoices, contracts, or personal data | Private Blob |
+
+WAF and private storage can both improve security, but they enforce different identities. An IP, country, path, or browser challenge is not a substitute for the authenticated subject in your application.
+
+## Understand the WAF action boundary
+
+Blob protection attaches the store to Vercel's firewall rather than adding an application proxy. Existing Blob URLs and `@vercel/blob` code do not change.
+
+| Action | Result | Suitable use |
+| --- | --- | --- |
+| Deny | Return `403` and stop the request | Known abusive sources or disallowed regions |
+| Challenge | Require the browser challenge | Human-operated public download paths |
+| Rate limit | Return `429` above the configured rate | Repeated public downloads and scraping |
+| Log | Observe without blocking | Baseline and rule validation |
+| Redirect | Send traffic elsewhere | Retired public asset paths |
+
+Vercel says a denied request is rejected at the edge before data transfer, so that request does not create a Blob data-transfer bill. That does not make every deny rule economical: a false positive can still break a legitimate download.
+
+The Blob integration does not support the OWASP Core Ruleset. Those managed application rules address dynamic request attacks, while Blob delivery serves stored objects.
+
+## Account for one shared rule set
+
+Enable protection from the Blob store's **Settings** page in the **Firewall** section. Vercel connects the store to a dedicated team-wide project where Blob firewall rules live.
+
+Every protected store on the team shares that rule set. This makes path design part of the control plane:
+
+```text
+/public-images/...
+/public-downloads/...
+/release-artifacts/...
+/marketing-video/...
+```
+
+Before adding a rule, inventory every protected store and prefix that could match it.
+
+```yaml
+# Governance inventory, not Vercel configuration syntax.
+stores:
+  marketing-assets:
+    prefixes:
+      - /public-images/
+      - /marketing-video/
+  product-downloads:
+    prefixes:
+      - /public-downloads/
+      - /release-artifacts/
+```
+
+If two teams use overlapping paths, a rule intended for one store can affect the other. Give the shared project an owner, reviewer, rollback record, and naming convention.
+
+## Begin with observation
+
+Applying deny or challenge immediately can block customers, search crawlers, social previews, server rendering, and image optimization. Start with Log and capture representative traffic across ordinary and peak periods.
+
+Inspect:
+
+- path and file type;
+- IP, country, and user agent;
+- request rate and burst size;
+- cache hit and miss behavior;
+- high-transfer objects;
+- expected bots and machine clients.
+
+Then narrow enforcement to a prefix and client behavior. Measure `403`, `429`, challenge success, download completion, and support reports before expanding.
+
+## Size rate limits around client behavior
+
+A thumbnail and a multi-gigabyte release should not inherit the same traffic expectation.
+
+```text
+/public-images/thumbnails/*
+└─ higher request rate; one page can fetch many objects
+
+/public-downloads/releases/*
+└─ lower request rate; each successful request can transfer more data
+
+/marketing-video/previews/*
+└─ account for range requests, reconnects, and multiple renditions
+```
+
+An IP-only limit can group an office, school, carrier network, or corporate NAT into one client. Review normal users per IP, browser concurrency, range requests, retries, and resume behavior before choosing a threshold.
+
+## Keep machine clients out of browser challenges
+
+The browser challenge is designed for an interactive browser. A server-side fetch, build job, webhook consumer, CLI, or image pipeline cannot necessarily solve it.
+
+Do not put these paths behind Challenge without an explicit compatibility test:
+
+- Blob objects fetched by a server;
+- build-time assets;
+- webhook-consumed files;
+- release artifacts downloaded by automation;
+- source images fetched by an optimization service.
+
+Use Log, a narrow deny condition, or rate limiting for non-browser traffic. Reserve Challenge for public paths that people are expected to open in a browser.
+
+## Put sensitive data in Private Blob
+
+A Blob store's public/private access mode is chosen when the store is created. Separate stores by data sensitivity instead of building an increasingly complex WAF rule around a public URL.
+
+```text
+public-assets
+├─ product images
+├─ public videos
+└─ release downloads
+
+private-user-files
+├─ user uploads
+├─ invoices and contracts
+└─ internal reports
+```
+
+Private Blob requires authenticated reads. Authorize next to the `get()` call so the data access does not depend only on distant middleware.
+
+```ts
+import { get } from '@vercel/blob';
+import { NextResponse } from 'next/server';
+
+export async function GET(request: Request) {
+  const user = await requireUser(request);
+  const pathname = new URL(request.url).searchParams.get('pathname');
+
+  if (!pathname) {
+    return new Response('Missing pathname', { status: 400 });
+  }
+
+  await assertCanReadBlob(user.id, pathname);
+
+  const result = await get(pathname, { access: 'private' });
+
+  if (!result || result.statusCode !== 200) {
+    return new Response('Not found', { status: 404 });
+  }
+
+  return new NextResponse(result.stream, {
+    headers: {
+      'Content-Type': result.blob.contentType,
+      'X-Content-Type-Options': 'nosniff',
+      'Cache-Control': 'private, no-store',
+    },
+  });
+}
+```
+
+`requireUser` and `assertCanReadBlob` are application functions. This example was reviewed against Vercel's current Private Blob delivery shape; it was not executed with a store credential.
+
+For less sensitive private content, Vercel documents `private, no-cache` with ETag revalidation. For tokens, banking data, or personally identifiable information, its guidance uses `private, no-store`.
+
+## Roll rules out as a controlled change
+
+Use the shared-rule constraint to define a review process:
+
+1. Save the current rules and affected prefix inventory.
+2. Add the new condition as Log.
+3. Compare normal, peak, bot, and machine-client traffic.
+4. Apply deny or rate limit to one narrow prefix.
+5. Watch legitimate success alongside blocked traffic and transfer.
+6. Expand only after the rollback owner accepts the evidence.
+
+Rules take effect without a code deployment. That shortens response time, but it also means a firewall change can break several stores without a repository diff.
+
+## Measure protection and user success together
+
+Track at least:
+
+- requests and Blob data transfer by prefix;
+- `403` and `429` rates;
+- challenge attempts and failures;
+- cache misses and Simple Operations;
+- top IPs, countries, and user agents;
+- download completion and broken-asset rate;
+- customer reports after each rule change.
+
+A rule that lowers traffic while repeatedly breaking legitimate downloads is not a successful control.
+
+## Recommendation
+
+Keep public media public only when broad URL access is acceptable. Introduce WAF rules through Log, then narrow deny or rate limits by prefix and observed behavior. Use Challenge only for browser-operated paths, and govern the team-wide shared rule set as production infrastructure.
+
+When access depends on a user's identity or ownership, stop tuning public-traffic rules and use Private Blob with an authorization check at delivery.
+
+## Primary sources
+
+- [Vercel WAF for Blob is generally available](https://vercel.com/changelog/vercel-waf-for-blob-is-now-generally-available)
+- [Vercel WAF for Blob beta behavior and constraints](https://vercel.com/changelog/vercel-waf-for-blob-is-now-in-beta)
+- [Vercel Blob overview](https://vercel.com/docs/vercel-blob)
+- [Private Blob storage](https://vercel.com/docs/vercel-blob/private-storage)
+- [Vercel Blob security](https://vercel.com/docs/vercel-blob/security)
+- [Vercel WAF custom rules](https://vercel.com/docs/vercel-firewall/vercel-waf/custom-rules)
