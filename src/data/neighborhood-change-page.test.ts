@@ -22,5 +22,6 @@ describe('Neighborhood Change project page', () => {
   it('publishes SoftwareApplication structured data', () => {
     expect(source).toContain("'@type': 'SoftwareApplication'");
     expect(source).toContain("applicationCategory: 'UtilitiesApplication'");
+    expect(source).not.toContain("'@type': 'Offer'");
   });
 });
