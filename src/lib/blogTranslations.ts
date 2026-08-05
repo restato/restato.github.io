@@ -44,7 +44,7 @@ export function groupBlogTranslations<Post extends BlogTranslationPost>(
   for (const post of posts) {
     const locale = getStoredBlogLocale(post.slug, post.data);
     const translationKey = post.data.translationKey;
-    if (!locale || !translationKey) continue;
+    if (!locale || !translationKey || getPublicBlogSlug(post.slug) !== translationKey) continue;
 
     const pair = pairs.get(translationKey) ?? {
       translationKey,

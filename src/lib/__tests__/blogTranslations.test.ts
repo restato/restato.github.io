@@ -71,7 +71,7 @@ describe('blog translation pairs', () => {
     });
   });
 
-  it('leaves missing and mismatched translation keys incomplete', () => {
+  it('excludes documents with missing or storage-mismatched translation keys', () => {
     const missingKey = {
       slug: 'en/no-key',
       data: { lang: 'en' },
@@ -83,11 +83,29 @@ describe('blog translation pairs', () => {
 
     const pairs = groupBlogTranslations([missingKey, englishPost, mismatchedKey]);
 
-    expect(pairs.size).toBe(2);
+    expect(pairs.size).toBe(1);
     expect(pairs.get('claude-opus-5-migration-copilot-guide')).toMatchObject({
       en: englishPost,
     });
-    expect(pairs.get('other-key')).toMatchObject({ ko: mismatchedKey });
+    expect(pairs.has('other-key')).toBe(false);
+  });
+
+  it('does not complete a pair when counterpart storage leaves differ', () => {
+    const mismatchedKoreanPost = {
+      slug: 'ko/korean-storage-slug',
+      data: {
+        lang: 'ko',
+        translationKey: 'claude-opus-5-migration-copilot-guide',
+      },
+    } satisfies TestPost;
+
+    const pair = groupBlogTranslations([englishPost, mismatchedKoreanPost]).get(
+      'claude-opus-5-migration-copilot-guide',
+    );
+
+    expect(pair).toMatchObject({ en: englishPost });
+    expect(pair).not.toHaveProperty('ko');
+    expect(getBlogAlternates(pair!, 'https://restato.github.io')).toEqual([]);
   });
 
   it('does not group root-level legacy posts even when they have translationKey', () => {
@@ -102,7 +120,6 @@ describe('blog translation pairs', () => {
   it('rejects duplicate documents for the same translation locale', () => {
     const duplicateEnglish = {
       ...englishPost,
-      slug: 'en/duplicate-filename',
     };
 
     expect(() => groupBlogTranslations([englishPost, duplicateEnglish])).toThrow(
