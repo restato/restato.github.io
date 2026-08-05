@@ -1,0 +1,164 @@
+---
+title: "Vercel AI Gateway Service Tier 운영 가이드: 지연을 라우팅하고 실제 적용을 검증하기"
+description: "default, priority, flex를 작업 유형별로 선택하고 applied-tier 메타데이터와 승인된 결과당 비용으로 운영 결과를 검증합니다."
+date: 2026-07-22
+lang: ko
+translationKey: vercel-ai-gateway-service-tiers-guide
+tags: ["Vercel", "AI Gateway", "AI SDK", "Operations"]
+---
+
+사용자가 기다리는 AI 요청과 야간 배치 작업은 같은 지연·비용 정책을 쓸 이유가 없습니다. Vercel AI Gateway service tier는 이 둘을 나누는 공통 제어를 제공합니다. `priority`는 더 빠른 처리를 요청하고, `flex`는 더 긴 지연 가능성을 낮은 요금과 교환합니다.
+
+중요한 단어는 **요청**입니다. service tier는 SLA가 아니라 best-effort routing hint입니다. 지원하지 않는 provider는 설정을 무시하고, 용량이 없는 provider는 standard service로 downgrade할 수 있습니다. 요청은 계속 성공하며 AI Gateway는 실제 처리에 사용된 tier로 청구합니다.
+
+따라서 운영 원칙도 달라집니다. 워크로드로 tier를 라우팅하되 요청값이 아니라 실제 적용 tier를 측정해야 합니다.
+
+## Tier는 보장이 아니라 요청으로 다룹니다
+
+Vercel은 지원되는 OpenAI, Google AI Studio, Google Vertex AI 모델에 세 값을 문서화합니다.
+
+| Tier | 문서화된 동작 | 적절한 평가 후보 |
+| --- | --- | --- |
+| `default` | 표준 처리 | 일반 트래픽과 실험 기준선 |
+| `priority` | 더 높은 가용성과 빠른 처리, 더 높은 비용 | 명시적인 지연 목표가 있는 사용자 대면 작업 |
+| `flex` | 더 낮은 비용과 더 긴 지연 가능성 | 지연 가능하고 대량이며 재실행 가능한 작업 |
+
+출시 시점에 Vercel은 `priority`를 default 가격의 약 1.8~2배, `flex`를 약 절반으로 제시했습니다. 이는 모든 모델에 적용되는 가격표가 아니라 방향을 보여주는 출시 범위입니다. 지원 여부와 요금은 모델·provider에 따라 다르고, 청구는 실제로 처리한 tier를 따릅니다.
+
+잘못된 `gateway.serviceTier` 값은 요청을 실패시킵니다. 유효하지만 지원되지 않거나 사용할 수 없는 tier는 실패하지 않고 default service로 내려갑니다. 이 downgrade를 애플리케이션 오류나 재시도 폭증으로 바꾸지 마세요.
+
+## 먼저 통합 AI SDK 옵션을 사용합니다
+
+AI SDK v6와 v7은 `providerOptions.gateway.serviceTier`를 받습니다. 애플리케이션에 provider별 동작이 필요해질 때까지 이 옵션을 사용합니다.
+
+```ts
+import { generateText } from 'ai';
+
+const requestedTier = 'priority' as const;
+
+const result = await generateText({
+  model: 'openai/gpt-5.6-sol',
+  prompt: 'Summarize the user-visible risks in this deployment.',
+  providerOptions: {
+    gateway: {
+      serviceTier: requestedTier,
+    },
+  },
+});
+
+const appliedTier =
+  result.providerMetadata?.gateway?.serviceTier ?? 'default';
+
+console.log({ requestedTier, appliedTier, usage: result.usage });
+```
+
+이 예제는 현재 Vercel reference와 대조했으며 유료 credential로 실행하지 않았습니다. AI Gateway는 `priority`나 `flex`가 실제로 처리했을 때만 `providerMetadata.gateway.serviceTier`를 제공합니다. 값이 없으면 standard service와 default billing을 뜻합니다.
+
+두 값을 모두 보관하세요. `requestedTier`는 정책 의도를, `appliedTier`는 지연·비용 분석에 넣어야 할 실제 결과를 설명합니다.
+
+## 라우팅에 필요할 때만 provider 옵션을 사용합니다
+
+통합 옵션은 AI Gateway가 provider를 바꾸어도 요청과 함께 이동합니다. 특정 provider에 다른 tier를 보내야 하거나 provider routing을 의도적으로 고정할 때 namespace 옵션을 사용합니다.
+
+현재 키는 다음과 같습니다.
+
+- OpenAI: `openai.serviceTier`
+- Google AI Studio: `google.serviceTier`
+- Google Vertex AI: `vertex.sharedRequestType`
+
+예를 들어 Vertex AI는 `serviceTier`가 아니라 `sharedRequestType`을 사용합니다.
+
+```ts
+import { generateText } from 'ai';
+
+const result = await generateText({
+  model: 'google/gemini-3.5-flash-lite',
+  prompt: 'Classify these deferred records by support queue.',
+  providerOptions: {
+    gateway: {
+      only: ['vertex'],
+    },
+    vertex: {
+      sharedRequestType: 'flex',
+    },
+  },
+});
+
+console.log(result.providerMetadata?.gateway?.serviceTier ?? 'default');
+```
+
+Provider pinning은 AI Gateway의 라우팅 유연성을 일부 없앱니다. provider 예제를 복사한 우연한 결과가 아니라 명시적인 요구사항으로 결정하세요.
+
+## Streaming metadata는 완료 뒤 읽습니다
+
+AI SDK stream의 최종 metadata는 text stream이 끝난 뒤 awaited result에서 얻습니다.
+
+```ts
+import { streamText } from 'ai';
+
+const result = streamText({
+  model: 'openai/gpt-5.6-sol',
+  prompt: 'Write a concise incident update.',
+  providerOptions: {
+    gateway: {
+      serviceTier: 'priority',
+    },
+  },
+});
+
+for await (const textPart of result.textStream) {
+  process.stdout.write(textPart);
+}
+
+const { usage, providerMetadata } = await result;
+console.log({
+  usage,
+  appliedTier: providerMetadata?.gateway?.serviceTier ?? 'default',
+});
+```
+
+권위 있는 applied-tier 필드가 완료 시점에 오는데 중간 event만 보고 streaming 요청을 분류하지 마세요.
+
+## 워크로드로 라우팅하고 default 대조군을 유지합니다
+
+첫 정책은 단순할수록 좋습니다.
+
+- 제품에 측정 가능한 tail-latency 목표가 있을 때만 interactive 작업에 `priority`를 요청합니다.
+- Queueing과 retry를 허용하는 idempotent background 작업에 `flex`를 요청합니다.
+- 일반 트래픽과 두 실험의 대조군에는 `default`를 유지합니다.
+
+모델 선택과 tier 선택은 서로 다른 축입니다. 출력 품질과 도구 동작으로 모델을 선택하고, 허용 가능한 지연과 처리 가격으로 tier를 선택합니다. 저렴한 모델의 `priority`가 더 강한 모델의 `default`보다 승인된 결과당 항상 빠르거나 싸다고 단정할 수 없습니다.
+
+모델 라우팅은 [GPT-5.6 API 마이그레이션 가이드](/blog/gpt-5-6-sol-terra-luna-api-guide/)와 [Gemini 3.6 Flash 마이그레이션 가이드](/blog/gemini-3-6-flash-migration-guide/)를 참고하세요. 요청 주변의 retry와 승인 경계는 [AI SDK 7 프로덕션 에이전트 가이드](/blog/ai-sdk-7-production-agent-guide/)에서 이어집니다.
+
+## 요청 label이 아니라 승인된 결과를 측정합니다
+
+각 tier 실험에서 최소한 다음 값을 기록합니다.
+
+- 모델 ID와 실제 provider
+- 요청 tier와 적용 tier
+- input, output, cached token
+- 첫 token과 전체 완료 지연
+- retry, fallback, terminal status
+- 출력 승인 또는 수정 결과
+
+그다음 실제 priority로 처리된 트래픽을 default 대조군과 비교합니다. 높은 downgrade 비율은 사용자 요청 실패가 아니라 운영 신호입니다. 유료 경로가 워크로드에 필요한 usable capacity를 제공하지 못하거나 다른 모델/provider 경로를 평가해야 한다는 뜻일 수 있습니다.
+
+`flex`도 승인된 출력당 비용으로 비교합니다. Queueing 때문에 deadline을 놓치거나 retry가 중복 작업을 만들면 낮은 token 가격의 이점이 사라질 수 있습니다.
+
+## 명시적인 중단 조건으로 rollout합니다
+
+작은 cohort로 시작하고 rollback 조건을 미리 정합니다. 예시는 다음과 같습니다.
+
+- 실제 `priority`로 처리된 요청의 tail latency가 개선되지 않음
+- 적용 tier 비율이 제품에 필요한 capacity 아래로 내려감
+- `flex`가 background job deadline을 넘김
+- retry나 중복 작업이 예상 절감액을 지움
+- 모델과 tier 비용을 합친 승인된 출력당 비용이 증가함
+
+권고는 간단합니다. `priority`와 `flex`를 전역 default가 아니라 워크로드별 실험으로 사용하세요. Provider 동작 때문에 pinning이 필요해질 때까지 통합 옵션을 쓰고, 완료 뒤 applied tier를 기록하며, 전체 요청이 더 나은 승인 결과를 만들 때만 tier를 유지하세요.
+
+## Primary sources
+
+- [Service tiers now available on AI Gateway](https://vercel.com/changelog/service-tiers-now-available-on-ai-gateway)
+- [AI Gateway service tiers reference](https://vercel.com/docs/ai-gateway/models-and-providers/service-tiers)

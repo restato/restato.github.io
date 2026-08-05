@@ -1,0 +1,164 @@
+---
+title: "Vercel AI Gateway Service Tiers: Route for Latency, Verify What You Bought"
+description: "Choose default, priority, and flex by workload, then use applied-tier metadata and accepted-outcome cost to verify the operational result."
+date: 2026-07-22
+lang: en
+translationKey: vercel-ai-gateway-service-tiers-guide
+tags: ["Vercel", "AI Gateway", "AI SDK", "Operations"]
+---
+
+Interactive AI requests and overnight batch jobs should not share one latency and cost policy. Vercel AI Gateway service tiers provide a common control for that split: `priority` asks for faster processing, while `flex` trades more potential delay for a lower rate.
+
+The important word is **asks**. A service tier is a best-effort routing hint, not an SLA. Unsupported providers ignore it, and a provider without capacity can downgrade the request to standard service. The request still succeeds and AI Gateway bills the tier that actually served it.
+
+That changes the operating rule: route by workload, but measure the applied tier rather than trusting the requested value.
+
+## Treat a tier as a request, not a guarantee
+
+Vercel documents three values for supported OpenAI, Google AI Studio, and Google Vertex AI models.
+
+| Tier | Documented behavior | Sensible evaluation candidate |
+| --- | --- | --- |
+| `default` | Standard processing | Ordinary traffic and an experiment baseline |
+| `priority` | Higher availability and faster processing at increased cost | User-facing work with a defined latency target |
+| `flex` | Lower cost with potentially higher latency | Deferred, bulk, and replayable work |
+
+At launch, Vercel estimated `priority` at roughly 1.8–2 times default pricing and `flex` at roughly half of default pricing. Those are directional launch ranges, not a universal price table. Availability and rates vary by model and provider, and billing follows the tier actually served.
+
+An invalid `gateway.serviceTier` value fails the request. A valid tier that is unsupported or unavailable does not: it falls back to default service. Do not turn that downgrade into an application error or retry storm.
+
+## Start with the unified AI SDK option
+
+AI SDK v6 and v7 accept `providerOptions.gateway.serviceTier`. Use it until the application needs provider-specific behavior.
+
+```ts
+import { generateText } from 'ai';
+
+const requestedTier = 'priority' as const;
+
+const result = await generateText({
+  model: 'openai/gpt-5.6-sol',
+  prompt: 'Summarize the user-visible risks in this deployment.',
+  providerOptions: {
+    gateway: {
+      serviceTier: requestedTier,
+    },
+  },
+});
+
+const appliedTier =
+  result.providerMetadata?.gateway?.serviceTier ?? 'default';
+
+console.log({ requestedTier, appliedTier, usage: result.usage });
+```
+
+This example was checked against the current Vercel reference; it was not executed with a paid credential. AI Gateway emits `providerMetadata.gateway.serviceTier` only when `priority` or `flex` actually served the request. A missing value means standard service and default billing.
+
+Keep both values. `requestedTier` describes policy intent; `appliedTier` describes the result that belongs in latency and cost analysis.
+
+## Use provider options only when routing requires them
+
+The unified option travels with the request when AI Gateway changes providers. Use a provider namespace when a particular provider must receive a different tier or when provider routing is deliberately pinned.
+
+The current keys are:
+
+- OpenAI: `openai.serviceTier`
+- Google AI Studio: `google.serviceTier`
+- Google Vertex AI: `vertex.sharedRequestType`
+
+For example, Vertex AI uses `sharedRequestType`, not `serviceTier`:
+
+```ts
+import { generateText } from 'ai';
+
+const result = await generateText({
+  model: 'google/gemini-3.5-flash-lite',
+  prompt: 'Classify these deferred records by support queue.',
+  providerOptions: {
+    gateway: {
+      only: ['vertex'],
+    },
+    vertex: {
+      sharedRequestType: 'flex',
+    },
+  },
+});
+
+console.log(result.providerMetadata?.gateway?.serviceTier ?? 'default');
+```
+
+Provider pinning removes some of AI Gateway's routing flexibility. Make it an explicit requirement, not an incidental consequence of copying a provider-specific example.
+
+## Read streaming metadata after completion
+
+For an AI SDK stream, the final metadata is available from the awaited result after the text stream completes.
+
+```ts
+import { streamText } from 'ai';
+
+const result = streamText({
+  model: 'openai/gpt-5.6-sol',
+  prompt: 'Write a concise incident update.',
+  providerOptions: {
+    gateway: {
+      serviceTier: 'priority',
+    },
+  },
+});
+
+for await (const textPart of result.textStream) {
+  process.stdout.write(textPart);
+}
+
+const { usage, providerMetadata } = await result;
+console.log({
+  usage,
+  appliedTier: providerMetadata?.gateway?.serviceTier ?? 'default',
+});
+```
+
+Do not classify a streaming request from an intermediate event when the authoritative applied-tier field arrives at completion.
+
+## Route by workload, then keep a default control group
+
+A useful first policy is simple:
+
+- Request `priority` for interactive work only when the product has a measured tail-latency target.
+- Request `flex` for idempotent background work that can tolerate queueing and retries.
+- Keep `default` for ordinary traffic and as the control group for both experiments.
+
+Model choice and tier choice are separate axes. Select the model for output quality and tool behavior; select the tier for latency tolerance and processing price. A cheaper model on `priority` is not automatically faster or cheaper per accepted result than a stronger model on `default`.
+
+For model routing, see the [GPT-5.6 API migration guide](/blog/gpt-5-6-sol-terra-luna-api-guide/) and [Gemini 3.6 Flash migration guide](/blog/gemini-3-6-flash-migration-guide/). For retry and approval boundaries around those requests, continue with the [AI SDK 7 production agent guide](/blog/ai-sdk-7-production-agent-guide/).
+
+## Measure accepted outcomes, not requested labels
+
+For every tier experiment, record at least:
+
+- model ID and actual provider;
+- requested and applied tier;
+- input, output, and cached tokens;
+- time to first token and completion latency;
+- retries, fallbacks, and terminal status;
+- output acceptance or repair result.
+
+Then compare applied-priority traffic with the default control. A high downgrade rate is an operational signal, not a failed user request. It may mean the paid route does not provide enough usable capacity for that workload, or that a different model/provider route deserves evaluation.
+
+Likewise, compare `flex` on cost per accepted output. Lower per-token pricing can lose its advantage if queueing causes deadline misses or retries create duplicate work.
+
+## Roll out with explicit stop conditions
+
+Start with a small cohort and predefine rollback conditions. Reasonable examples include:
+
+- tail latency does not improve on requests actually served at `priority`;
+- applied-tier coverage falls below the capacity required by the product;
+- `flex` exceeds the background job deadline;
+- retry or duplicate-work rates erase the expected saving;
+- accepted-output cost increases after model and tier charges are combined.
+
+The recommendation is straightforward: use `priority` and `flex` as workload-specific experiments, not global defaults. Keep the unified option until provider behavior requires pinning, record the applied tier after completion, and retain the tier only when the full request produces a better accepted outcome.
+
+## Primary sources
+
+- [Service tiers now available on AI Gateway](https://vercel.com/changelog/service-tiers-now-available-on-ai-gateway)
+- [AI Gateway service tiers reference](https://vercel.com/docs/ai-gateway/models-and-providers/service-tiers)
