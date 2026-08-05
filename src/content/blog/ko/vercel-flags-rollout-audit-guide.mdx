@@ -1,0 +1,239 @@
+---
+title: "Vercel Flags Rollout 감사: Evaluation Metrics와 Version Diff 연결하기"
+description: "Vercel Flags revision history, semantic diff, evaluation 차원과 application outcome을 검토 가능한 rollout·rollback 근거로 연결하는 방법을 설명합니다."
+date: 2026-07-27
+lang: ko
+translationKey: vercel-flags-rollout-audit-guide
+tags: ["Vercel Flags", "Feature Flags", "Observability", "Vercel CLI", "DevOps"]
+---
+
+Flag를 10%로 설정했다고 해서 요청의 10%가 새 variant를 받았다는 뜻은 아닙니다. Direct target, 순서가 있는 rule, 불완전한 evaluation context, fallback, 환경별 SDK key와 traffic 구성이 관측 결과를 바꿀 수 있습니다.
+
+Vercel은 2026년 7월 23일 두 가지 유용한 감사 기능을 추가했습니다. Flags dashboard의 evaluation metrics와 CLI의 revision history·semantic diff입니다. **안전한 rollout은 무엇을 변경했는지, evaluator가 무엇을 제공했는지, application에 어떤 결과가 생겼는지 세 시간축을 맞춥니다.**
+
+## Percentage는 설정이지 노출 증거가 아닙니다
+
+Release owner는 모든 변경 뒤 세 질문에 답해야 합니다.
+
+1. 어느 environment에서 누가 어떤 configuration을 바꿨는가?
+2. 각 client population은 실제로 어떤 variant를 받았고 이유는 무엇인가?
+3. Application reliability와 product behavior가 rollout threshold 안에 있었는가?
+
+Version history는 첫 번째 질문에 답합니다. Evaluation metrics는 두 번째 질문에 도움을 줍니다. Log, trace, error budget, latency와 product analytics는 세 번째 질문에 답합니다. 어느 하나만으로는 충분하지 않습니다.
+
+## Revision timeline을 수집합니다
+
+`vercel flags versions` 명령은 각 revision의 author, message, timestamp와 변경된 environment를 출력합니다.
+
+```bash
+vercel flags versions checkout-redesign
+vercel flags versions checkout-redesign --environment production
+```
+
+감사 artifact에는 JSON을 요청하고 pagination을 명시적으로 처리합니다.
+
+```bash
+mkdir -p audit/flags/checkout-redesign
+
+vercel flags versions checkout-redesign \
+  --environment production \
+  --limit 100 \
+  --json \
+  > audit/flags/checkout-redesign/before-versions.json
+```
+
+현재 CLI는 추가 page를 위한 cursor도 받습니다. 첫 page가 전체 history라고 가정하지 마세요.
+
+Semantic diff 명령으로 revision과 바로 앞 revision을 비교합니다.
+
+```bash
+vercel flags versions diff checkout-redesign --revision 42 \
+  > audit/flags/checkout-redesign/revision-42.diff
+```
+
+Diff는 targeting rule, rollout percentage와 condition의 field-level 추가, 제거, 수정을 보여줍니다. 이 명령은 Vercel의 현재 문서에 맞춰 확인했으며 연결된 production project에서 실행하지 않았습니다.
+
+## Flag 변경 전에 예상 결과를 정의합니다
+
+"10%로 확대"보다 많은 정보를 기록합니다.
+
+```yaml
+# Vercel 설정 문법이 아닌 change record 예시입니다.
+flag: checkout-redesign
+environment: production
+revision_before: 41
+target_variant: new-checkout
+expected_population: users not directly targeted or excluded by earlier rules
+target_weight: 10
+fallback_variant: old-checkout
+stop_when:
+  error_rate_delta_pp: 1
+  fallback_rate: 0.5
+owner: checkout-oncall
+```
+
+Percentage는 split까지 도달한 population에만 적용됩니다. Record에는 direct target, 앞선 rule, 필요한 context, fallback과 application stop criteria를 명시해야 합니다.
+
+## Evaluation metrics를 차원별로 읽습니다
+
+Vercel evaluation chart는 evaluations per minute을 보고하고 flag version 변경을 표시합니다. 다음 기준으로 group 또는 filter할 수 있습니다.
+
+- Variant
+- Reason
+- Environment
+- SDK key
+- Client
+- Reporting project
+
+변경 marker를 찾을 때만 넓게 보고 곧바로 범위를 줄입니다.
+
+### Environment
+
+Production, Preview, Development를 나눕니다. 애플리케이션이 잘못된 environment의 SDK key를 사용하면 rollout drift처럼 보일 수 있습니다.
+
+### SDK key와 Reporting project
+
+여러 애플리케이션이 한 source project의 flag를 평가하면 SDK key와 reporting project로 traffic을 분리합니다. 어떤 consumer가 예상하지 않은 evaluation을 만들었는지 확인할 수 있습니다.
+
+SDK key는 flag configuration을 읽는 environment-scoped secret입니다. Client code에 노출하거나 audit artifact에 넣지 마세요.
+
+### Client
+
+Web, API, worker 또는 custom client를 나눕니다. 오래된 dependency나 누락된 context attribute가 하나의 integration에만 영향을 줄 수 있습니다.
+
+### Reason
+
+Evaluation reason으로 targeting, rule outcome과 fallback path를 구분합니다. Revision 직후 fallback이 늘었다면 무작위 percentage 변동보다 누락된 context나 바뀐 condition을 먼저 의심할 수 있습니다.
+
+### Variant
+
+앞선 차원이 올바른지 확인한 뒤 variant distribution을 비교합니다. 작은 sample이 설정 percentage와 정확히 같을 필요는 없습니다.
+
+## Evaluation order로 분포 차이를 설명합니다
+
+Vercel은 다음 evaluation order를 문서화합니다.
+
+1. Environment configuration 선택
+2. 일치하는 direct target 반환
+3. Rule을 위에서 아래로 평가
+4. 일치하지 않으면 fallback outcome 반환
+
+Direct targeting은 rule을 건너뜁니다. 처음 일치한 rule에서 평가가 끝납니다. Weighted split은 선택한 base attribute가 필요하며 값이 없거나 string이 아니면 split의 fallback을 반환합니다.
+
+| 관측 패턴 | 가능한 설명 | 먼저 볼 근거 |
+| --- | --- | --- |
+| 예상보다 direct-target outcome이 많음 | Direct assignment가 split보다 먼저 적용 | Target list와 reason |
+| Revision 뒤 fallback 증가 | 필요한 context 누락 또는 condition 변경 | Reason, client, diff |
+| 한 project가 이전 variant 유지 | 잘못된 environment key 또는 오래된 consumer deployment | SDK key, reporting project |
+| Evaluation volume 급증 | 중복 호출 또는 새 worker/client | Client와 application trace |
+| Revision 없이 distribution 변경 | Traffic 구성 또는 context 변경 | Deployment, segment, request mix |
+
+이 표는 조사를 좁히지만 자체적으로 인과관계를 증명하지 않습니다.
+
+## Semantic diff를 Release artifact로 검토합니다
+
+Dashboard screenshot은 신뢰성 있게 비교하기 어렵습니다. Semantic diff에서 다음을 검토하세요.
+
+- 의도하지 않은 environment 변경
+- 제거되거나 추가된 direct target
+- 바뀐 rule 순서
+- 변경된 weight 또는 served variant
+- 모든 condition의 entity, attribute, operator, value
+- Fallback 변경
+- 승인된 변경과 연결된 revision message
+
+Before-history와 revision diff를 release record 옆에 저장합니다. SDK key, 개인정보를 포함한 evaluation context 또는 불필요한 identity가 담긴 dashboard export는 저장하지 마세요.
+
+## Audit 접근과 변경 접근을 분리합니다
+
+Audit bot은 flag 변경 권한이 필요하지 않습니다.
+
+```text
+Read-only audit job
+├─ versions JSON 수집
+├─ revision diff 생성
+├─ evaluation dimension 요약
+└─ 판단 제안
+
+Human 또는 policy approval
+└─ environment, revision, threshold 확인
+
+Permissioned write job
+└─ 승인된 rollout 또는 rollback만 적용
+```
+
+Evaluation SDK key와 CLI management credential을 분리합니다. Environment configuration을 읽는 key도 secret이지만 Flags를 변경하는 account 권한과 같지는 않습니다.
+
+## Rollback과 원인 진단을 별도 작업으로 봅니다
+
+Rollout이 stop threshold를 넘으면 다음 순서로 대응합니다.
+
+1. Environment, client, SDK key, reason, variant로 영향을 좁힙니다.
+2. 현재 revision과 이전에 승인된 revision을 비교합니다.
+3. Known-good configuration을 복원하거나 승인된 kill switch를 사용합니다.
+4. Evaluation distribution과 application metric이 회복되는지 확인합니다.
+5. Application code, context generation과 client deployment 원인을 별도로 진단합니다.
+
+Configuration 복원은 노출을 줄입니다. Configuration이 root cause였다는 증거는 아니며, 오래된 client나 깨진 context는 복원 뒤에도 실패할 수 있습니다.
+
+## Evaluation count를 Business metric으로 바꾸지 않습니다
+
+Evaluations per minute은 flag evaluation 횟수입니다. 자동으로 다음과 같지 않습니다.
+
+- Unique user
+- Page view
+- Conversion
+- 성공한 request
+- Variant별 revenue
+
+하나의 request가 같은 flag를 여러 번 평가할 수 있고 background worker가 page view 없이 evaluation을 만들 수도 있습니다. Privacy review를 거친 variant marker 또는 request correlation 방식으로 flag timeline을 application telemetry와 연결하세요.
+
+| 근거 | 답하는 질문 |
+| --- | --- |
+| Version history | 누가 어떤 environment를 언제 바꿨는가? |
+| Semantic diff | 어떤 rule, condition, variant, percentage가 바뀌었는가? |
+| Evaluation metrics | 각 client population이 무엇을 받았고 이유는 무엇인가? |
+| Application log와 trace | Evaluation 뒤 request에 어떤 일이 생겼는가? |
+| Reliability와 product metrics | Release가 outcome threshold 안에 있었는가? |
+
+## 모든 단계에 근거를 남기는 Rollout을 실행합니다
+
+### Preview
+
+- Preview SDK key와 reporting project를 확인합니다.
+- 내부 entity를 direct target으로 지정합니다.
+- 예상 variant와 reason을 검증합니다.
+
+### 소규모 Production population
+
+- 현재 production history를 수집합니다.
+- 승인된 direct target, weighted split 또는 progressive rollout을 적용합니다.
+- 새 revision diff를 저장합니다.
+- Version marker, reason, client, variant와 application outcome을 관측합니다.
+
+### 확대
+
+- `user.id` 또는 `team.id` 같은 stable하고 high-cardinality인 bucketing attribute를 유지합니다.
+- 모든 단계에서 같은 reliability와 product window를 비교합니다.
+- Fallback, stale-client, error threshold를 통과할 때만 확대합니다.
+
+### 완료
+
+- 승인된 최종 revision을 기록합니다.
+- History를 유지할 수 있도록 사용하지 않는 flag는 파괴적으로 삭제하기 전에 archive합니다.
+- Code의 dead flag branch는 별도의 검토된 변경에서 제거합니다.
+
+## 권고
+
+Evidence bundle을 사고 뒤 작업이 아니라 rollout의 일부로 만드세요. 변경 전 history를 수집하고 semantic diff를 검토하며, reason과 client별 served variant를 관측하고, 명시적인 stop condition과 application outcome을 비교합니다.
+
+유지할 원칙은 간단합니다. **Configuration은 의도를 보여주고, evaluation metrics는 노출을 보여주며, application metrics가 계속 진행할지 결정합니다.**
+
+## 공식 자료
+
+- [Vercel Flags evaluation metrics](https://vercel.com/changelog/evaluation-metrics-for-vercel-flags)
+- [Vercel CLI로 feature flag history 검사](https://vercel.com/changelog/inspect-feature-flag-history-with-vercel-cli)
+- [Vercel Flags CLI](https://vercel.com/docs/cli/flags)
+- [Vercel Flags evaluation 방식](https://vercel.com/kb/guide/how-vercel-flags-are-evaluated)
+- [Vercel Flags split 동작](https://vercel.com/kb/guide/how-splits-work-in-vercel-flags)
+- [Vercel Flags observability](https://vercel.com/docs/flags/observability)

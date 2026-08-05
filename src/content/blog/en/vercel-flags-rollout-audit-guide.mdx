@@ -1,0 +1,239 @@
+---
+title: "Audit Vercel Flags Rollouts with Evaluation Metrics and Version Diffs"
+description: "Join Vercel Flags revision history, semantic diffs, evaluation dimensions, and application outcomes into a reviewable rollout and rollback evidence trail."
+date: 2026-07-27
+lang: en
+translationKey: vercel-flags-rollout-audit-guide
+tags: ["Vercel Flags", "Feature Flags", "Observability", "Vercel CLI", "DevOps"]
+---
+
+Configuring a flag to 10% does not prove that 10% of requests received the new variant. Direct targets, ordered rules, incomplete evaluation context, fallback behavior, environment-specific SDK keys, and the traffic mix can all change the observed result.
+
+Vercel added two useful audit surfaces on July 23, 2026: evaluation metrics in the Flags dashboard and revision history with semantic diffs in the CLI. **A safe rollout aligns three timelines: what configuration changed, what the evaluator served, and what happened to the application.**
+
+## A percentage is configuration, not exposure proof
+
+A release owner should answer three questions after every change:
+
+1. What configuration changed, in which environment, and who changed it?
+2. Which variant did each client population actually receive, and why?
+3. Did application reliability or product behavior remain inside the rollout thresholds?
+
+Version history answers the first question. Evaluation metrics help answer the second. Your logs, traces, error budget, latency, and product analytics answer the third. None of the three is sufficient alone.
+
+## Capture the revision timeline
+
+The `vercel flags versions` command prints each revision's author, message, timestamp, and changed environments.
+
+```bash
+vercel flags versions checkout-redesign
+vercel flags versions checkout-redesign --environment production
+```
+
+For an audit artifact, request JSON and paginate deliberately:
+
+```bash
+mkdir -p audit/flags/checkout-redesign
+
+vercel flags versions checkout-redesign \
+  --environment production \
+  --limit 100 \
+  --json \
+  > audit/flags/checkout-redesign/before-versions.json
+```
+
+The current CLI also accepts a cursor for additional pages. Do not assume the first page is the complete history.
+
+Compare a revision with the one before it using the semantic diff command:
+
+```bash
+vercel flags versions diff checkout-redesign --revision 42 \
+  > audit/flags/checkout-redesign/revision-42.diff
+```
+
+The diff reports field-level additions, removals, and modifications to targeting rules, rollout percentages, and conditions. These commands were checked against Vercel's current documentation; they were not executed against a linked production project.
+
+## Define the expected result before changing the flag
+
+Record more than "increase to 10%."
+
+```yaml
+# Change record example, not Vercel configuration syntax.
+flag: checkout-redesign
+environment: production
+revision_before: 41
+target_variant: new-checkout
+expected_population: users not directly targeted or excluded by earlier rules
+target_weight: 10
+fallback_variant: old-checkout
+stop_when:
+  error_rate_delta_pp: 1
+  fallback_rate: 0.5
+owner: checkout-oncall
+```
+
+The percentage applies only to the population that reaches that split. The record must name direct targets, preceding rules, required context, fallback, and the application stop criteria.
+
+## Read evaluation metrics by dimension
+
+Vercel's evaluation chart reports evaluations per minute and marks flag version changes. It can group or filter by:
+
+- variant;
+- reason;
+- environment;
+- SDK key;
+- client;
+- reporting project.
+
+Start broad only long enough to locate the change marker, then narrow the view.
+
+### Environment
+
+Separate Production, Preview, and Development. An application using the wrong environment's SDK key can look like rollout drift.
+
+### SDK key and reporting project
+
+If several applications evaluate one source project's flag, split the traffic by SDK key and reporting project. This identifies which consumer contributed the unexpected evaluations.
+
+SDK keys are environment-scoped secrets with read access to the flag configuration. Do not expose them to client code or put them in the audit artifact.
+
+### Client
+
+Separate web, API, worker, or custom clients. A stale dependency or a missing context attribute may affect only one integration.
+
+### Reason
+
+Use the evaluation reason to distinguish targeting, rule outcomes, and fallback paths. A fallback increase immediately after a revision often points to missing context or a changed condition, not to random percentage variance.
+
+### Variant
+
+Compare variant distribution only after the preceding dimensions are correct. A small sample does not have to equal the configured percentage exactly.
+
+## Explain skew with the evaluation order
+
+Vercel documents this evaluation order:
+
+1. select the environment configuration;
+2. return a matching direct target;
+3. evaluate rules from top to bottom;
+4. return the fallback outcome if nothing matches.
+
+Direct targeting bypasses rules. The first matching rule stops evaluation. A weighted split requires the selected base attribute, and missing or non-string values take the split's fallback.
+
+| Observed pattern | Plausible explanation | First evidence to inspect |
+| --- | --- | --- |
+| More direct-target outcomes than expected | Direct assignments precede the split | Target list and reason |
+| Fallback rises after a revision | Required context is missing or a condition changed | Reason, client, diff |
+| One project retains the old variant | Wrong environment key or stale consumer deployment | SDK key, reporting project |
+| Evaluation volume jumps | Duplicate calls or a new worker/client | Client and application traces |
+| Distribution changes without a revision | Traffic mix or context changed | Deployments, segments, request mix |
+
+This table narrows an investigation. It does not prove causation by itself.
+
+## Review the semantic diff as a release artifact
+
+Dashboard screenshots are difficult to compare reliably. Review the semantic diff for:
+
+- an unintended environment change;
+- removed or added direct targets;
+- reordered rules;
+- changed weights or served variants;
+- the entity, attribute, operator, and value in every condition;
+- a fallback change;
+- a revision message that links to the approved change.
+
+Store the before-history and revision diff beside the release record. Do not store SDK keys, evaluation context containing personal data, or dashboard exports with unnecessary identities.
+
+## Separate audit access from mutation access
+
+An audit bot does not need permission to change a flag.
+
+```text
+Read-only audit job
+├─ capture versions JSON
+├─ generate the revision diff
+├─ summarize evaluation dimensions
+└─ propose a decision
+
+Human or policy approval
+└─ confirm environment, revision, and thresholds
+
+Permissioned write job
+└─ apply only the approved rollout or rollback
+```
+
+Keep evaluation SDK keys separate from CLI management credentials. A key that reads an environment's configuration is still a secret, but it is not the same authorization as the account used to mutate Flags.
+
+## Treat rollback and diagnosis as separate work
+
+When a rollout crosses a stop threshold:
+
+1. Narrow the impact by environment, client, SDK key, reason, and variant.
+2. Compare the current revision with the previously accepted revision.
+3. Restore the known-good configuration or use the approved kill switch.
+4. Confirm the evaluation distribution and application metrics recover.
+5. Diagnose application code, context generation, and client deployment separately.
+
+Restoring configuration reduces exposure. It does not prove the configuration was the root cause, and a stale client or broken context may continue to fail after the restore.
+
+## Do not turn evaluation counts into business metrics
+
+Evaluations per minute is a count of flag evaluations. It is not automatically:
+
+- unique users;
+- page views;
+- conversions;
+- successful requests;
+- revenue by variant.
+
+One request can evaluate the same flag more than once, and a background worker can produce evaluations without a page view. Join the flag timeline to application telemetry using a privacy-reviewed variant marker or request correlation strategy.
+
+| Evidence | Question it answers |
+| --- | --- |
+| Version history | Who changed which environment and when? |
+| Semantic diff | Which rule, condition, variant, or percentage changed? |
+| Evaluation metrics | What did each client population receive, and why? |
+| Application logs and traces | What happened to requests after evaluation? |
+| Reliability and product metrics | Did the release remain inside its outcome thresholds? |
+
+## Run a staged rollout with evidence at every step
+
+### Preview
+
+- Confirm the Preview SDK key and reporting project.
+- Directly target an internal entity.
+- Verify the expected variant and reason.
+
+### Small production population
+
+- Capture the current production history.
+- Apply the approved direct target, weighted split, or progressive rollout.
+- Save the new revision diff.
+- Observe version marker, reason, client, variant, and application outcomes.
+
+### Expansion
+
+- Keep the bucketing attribute stable and high-cardinality, such as `user.id` or `team.id`.
+- Compare the same reliability and product windows at every stage.
+- Expand only when fallback, stale-client, and error thresholds pass.
+
+### Completion
+
+- Record the accepted final revision.
+- Archive an unused flag before destructive deletion so history remains available.
+- Remove dead flag branches from code in a separate reviewed change.
+
+## Recommendation
+
+Make the evidence bundle part of the rollout, not a post-incident chore. Capture history before the change, review the semantic diff, observe served variants by reason and client, and compare application outcomes against explicit stop conditions.
+
+The durable rule is simple: **configuration shows intent, evaluation metrics show exposure, and application metrics decide whether to continue.**
+
+## Primary sources
+
+- [Evaluation metrics for Vercel Flags](https://vercel.com/changelog/evaluation-metrics-for-vercel-flags)
+- [Inspect feature flag history with Vercel CLI](https://vercel.com/changelog/inspect-feature-flag-history-with-vercel-cli)
+- [Vercel Flags CLI](https://vercel.com/docs/cli/flags)
+- [How Vercel Flags are evaluated](https://vercel.com/kb/guide/how-vercel-flags-are-evaluated)
+- [How splits work in Vercel Flags](https://vercel.com/kb/guide/how-splits-work-in-vercel-flags)
+- [Vercel Flags observability](https://vercel.com/docs/flags/observability)
