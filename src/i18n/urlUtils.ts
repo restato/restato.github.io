@@ -12,6 +12,7 @@ export const localizedRouteFamilies = [
   '/tools',
   '/anonymous-chat',
   '/games',
+  '/blog',
   '/about',
   '/contact',
   '/privacy',
@@ -51,10 +52,20 @@ export function buildLanguageUrl(pathname: string, lang: Language): string {
   const basePath = getBasePathFromUrl(pathname);
   if (!supportsLanguageRouting(basePath)) return basePath;
   const { path } = splitPathSuffix(basePath);
+  if (path === '/blog' || path.startsWith('/blog/')) {
+    return lang === 'ko' ? `/ko${basePath}` : basePath;
+  }
   const routeLanguage = (path === '/games' || path.startsWith('/games/')) && !GAME_LANGUAGES.has(lang)
     ? 'en'
     : lang;
   return `/${routeLanguage}${basePath}`;
+}
+
+export function resolveLanguageDestination(
+  languageUrls: Partial<Record<Language, string>>,
+  lang: Language,
+): string {
+  return languageUrls[lang] || languageUrls.en || '';
 }
 
 function normalizeTrailingSlash(pathname: string): string {
@@ -72,6 +83,13 @@ export function getAlternateUrls(
   const { path } = splitPathSuffix(basePath);
   const origin = siteUrl.replace(/\/+$/, '');
   const normalizedPath = normalizeTrailingSlash(path || '/');
+
+  if (path === '/blog' || path.startsWith('/blog/')) {
+    return [
+      { lang: 'en', url: `${origin}${normalizedPath}` },
+      { lang: 'ko', url: `${origin}/ko${normalizedPath}` },
+    ];
+  }
 
   return supportedLanguages.map(lang => ({
     lang,

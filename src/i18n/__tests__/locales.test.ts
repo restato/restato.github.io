@@ -79,8 +79,8 @@ describe('localized URLs', () => {
   });
 
   it('keeps unrelated routes outside localized routing', () => {
-    expect(buildLanguageUrl('/blog/post/?lang=en#intro', 'fr'))
-      .toBe('/blog/post/?lang=en#intro');
+    expect(buildLanguageUrl('/articles/post/?lang=en#intro', 'fr'))
+      .toBe('/articles/post/?lang=en#intro');
   });
 
   it('routes unsupported game locales to the existing English game route', () => {

@@ -23,11 +23,23 @@ interface Props {
   lang?: Language;
   lockLanguage?: boolean;
   alternateUrls?: AlternateUrl[];
+  languageUrls?: Partial<Record<Language, string>>;
 }
 
-const { title, description, image, type, publishedTime, modifiedTime, author, robots, canonical, lang, lockLanguage = false, alternateUrls } = Astro.props;
+const { title, description, image, type, publishedTime, modifiedTime, author, robots, canonical, lang, lockLanguage = false, alternateUrls, languageUrls } = Astro.props;
 const resolvedLanguage = lang ?? 'ko';
 const skipLinkLabel = getSkipLinkLabel(resolvedLanguage);
+const derivedLanguageUrls = alternateUrls?.reduce<Partial<Record<Language, string>>>((urls, alternate) => {
+  if (alternate.lang !== 'x-default') {
+    urls[alternate.lang as Language] = alternate.url;
+  }
+  return urls;
+}, {});
+const resolvedLanguageUrls = languageUrls ?? (
+  derivedLanguageUrls && Object.keys(derivedLanguageUrls).length > 0
+    ? derivedLanguageUrls
+    : undefined
+);
 ---
 
 <BaseLayout title={title} description={description} image={image} type={type} publishedTime={publishedTime} modifiedTime={modifiedTime} author={author} robots={robots} canonical={canonical} lang={lang} lockLanguage={lockLanguage} alternateUrls={alternateUrls}>
@@ -42,7 +54,7 @@ const skipLinkLabel = getSkipLinkLabel(resolvedLanguage);
   >
     {skipLinkLabel}
   </a>
-  <Header lang={lang} lockLanguage={lockLanguage} />
+  <Header lang={lang} lockLanguage={lockLanguage} languageUrls={resolvedLanguageUrls} />
   <main id="main-content" class="flex-1" tabindex="-1">
     <slot />
   </main>
