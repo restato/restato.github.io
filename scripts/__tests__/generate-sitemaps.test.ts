@@ -8,6 +8,7 @@ import {
   getLastmod,
   getPriority,
   isNoindexHtml,
+  isRedirectUrl,
 } from '../generate-sitemaps.mjs';
 
 const fixtureDirectories: string[] = [];
@@ -32,6 +33,22 @@ async function createBlogContentFixture(files: Record<string, string>) {
 }
 
 describe('sitemap indexation filter', () => {
+  it.each([
+    '/blog/tag/astro/',
+    '/ko/blog/tag/astro/',
+  ])('excludes noindex blog tag archive %s', pathname => {
+    expect(isRedirectUrl(pathname)).toBe(true);
+  });
+
+  it.each([
+    '/blog/',
+    '/blog/article/',
+    '/ko/blog/',
+    '/ko/blog/article/',
+  ])('retains indexable blog route %s', pathname => {
+    expect(isRedirectUrl(pathname)).toBe(false);
+  });
+
   it('detects noindex regardless of robots attribute order', () => {
     expect(isNoindexHtml('<meta name="robots" content="noindex, nofollow">')).toBe(true);
     expect(isNoindexHtml('<meta content="follow, noindex" name="robots">')).toBe(true);

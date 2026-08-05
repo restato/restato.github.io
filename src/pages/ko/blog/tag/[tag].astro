@@ -49,6 +49,7 @@ const canonical = new URL(`/ko/blog/tag/${toBlogTagSlug(tag)}/`, siteUrl).toStri
   title={`${tag} | 블로그 | Restato`}
   description={tagContent.metaDescription}
   canonical={canonical}
+  robots="noindex, follow"
   lang="ko"
   lockLanguage={true}
 >
