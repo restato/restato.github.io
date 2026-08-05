@@ -47,7 +47,7 @@ const widePages = [
 
 const readingRegions: Array<[string, RegExp]> = [
   ['src/components/SitePolicyPage.astro', /<article[^>]*class="[^"]*\bfc-prose\b[^"]*"/],
-  ['src/pages/blog/[...slug].astro', /<(?:article|div)[^>]*class="[^"]*\bfc-prose\b[^"]*"/],
+  ['src/components/BlogArticle.astro', /<(?:article|div)[^>]*class="[^"]*\bfc-prose\b[^"]*"/],
   ['src/pages/projects/pastedock/privacy.astro', /<article[^>]*class="[^"]*\bfc-prose\b[^"]*"/],
   ['src/pages/projects/pastedock/refund.astro', /<article[^>]*class="[^"]*\bfc-prose\b[^"]*"/],
   ['src/pages/projects/pastedock/terms.astro', /<article[^>]*class="[^"]*\bfc-prose\b[^"]*"/],
@@ -201,8 +201,11 @@ describe('Modern Restato public page contract', () => {
 
   it('marks the article title as the current breadcrumb page', () => {
     const blogPost = read('src/pages/blog/[...slug].astro');
-    expect(blogPost).toMatch(/<li><a href="\/blog">Blog<\/a><\/li>/);
-    expect(blogPost).toMatch(/<li aria-current="page">\{post\.data\.title\}<\/li>/);
+    const blogArticle = read('src/components/BlogArticle.astro');
+    expect(blogPost).toContain('indexUrl="/blog"');
+    expect(blogPost).toContain("blog: 'Blog'");
+    expect(blogArticle).toMatch(/<li><a href=\{indexUrl\}>\{labels\.blog\}<\/a><\/li>/);
+    expect(blogArticle).toMatch(/<li aria-current="page">\{post\.data\.title\}<\/li>/);
     expect(blogPost).toContain('type="article"');
     expect(blogPost).toContain('publishedTime={post.data.date}');
   });

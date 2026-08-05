@@ -103,11 +103,12 @@ describe('blog tag URLs', () => {
   });
 
   it('uses canonical slugs for generated tag routes and every tag link', async () => {
-    const [tagRoute, blogIndex, blogTagNav, blogPost] = await Promise.all([
+    const [tagRoute, blogIndex, blogTagNav, blogPost, blogArticle] = await Promise.all([
       readFile(join(process.cwd(), 'src/pages/blog/tag/[tag].astro'), 'utf8'),
       readFile(join(process.cwd(), 'src/pages/blog/index.astro'), 'utf8'),
       readFile(join(process.cwd(), 'src/components/BlogTagNav.astro'), 'utf8'),
       readFile(join(process.cwd(), 'src/pages/blog/[...slug].astro'), 'utf8'),
+      readFile(join(process.cwd(), 'src/components/BlogArticle.astro'), 'utf8'),
     ]);
 
     expect(tagRoute).toContain('getBlogTagRouteEntries');
@@ -119,6 +120,7 @@ describe('blog tag URLs', () => {
     expect(tagRoute).toContain('toBlogTagSlug(postTag) === route.canonicalSlug');
     expect(blogIndex).toContain('BlogTagNav');
     expect(blogTagNav).toContain('href={`/blog/tag/${entry.slug}`}');
-    expect(blogPost).toContain('href={`/blog/tag/${toBlogTagSlug(tag)}`}');
+    expect(blogPost).toContain('`/blog/tag/${toBlogTagSlug(tag)}`');
+    expect(blogArticle).toContain('href={tagUrlBuilder(tag)}');
   });
 });

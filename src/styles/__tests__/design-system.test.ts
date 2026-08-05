@@ -4,7 +4,7 @@ import { describe, expect, it } from 'vitest';
 const css = readFileSync('src/styles/global.css', 'utf8');
 const config = readFileSync('tailwind.config.mjs', 'utf8');
 const layout = readFileSync('src/layouts/BaseLayout.astro', 'utf8');
-const blogArticle = readFileSync('src/pages/blog/[...slug].astro', 'utf8');
+const blogArticle = readFileSync('src/components/BlogArticle.astro', 'utf8');
 
 describe('Modern Restato design system', () => {
   it('uses the Apple system stack globally and scopes D2Coding to machine data', () => {

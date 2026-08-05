@@ -1,52 +1,53 @@
 ---
-import MainLayout from '../../layouts/MainLayout.astro';
-import BlogCard from '../../components/BlogCard.astro';
-import BlogTagNav from '../../components/BlogTagNav.astro';
-import PageShell from '../../components/ui/PageShell.astro';
 import { getCollection } from 'astro:content';
-import { getRankedBlogTagEntries } from '../../lib/blogTags';
-import { getBlogTagContent } from '../../data/blog-tag-content';
-import { projectEnglishRoutes } from '../../lib/blogRoutes';
+import BlogCard from '../../../components/BlogCard.astro';
+import BlogTagNav from '../../../components/BlogTagNav.astro';
+import PageShell from '../../../components/ui/PageShell.astro';
+import { getBlogTagContent } from '../../../data/blog-tag-content';
+import MainLayout from '../../../layouts/MainLayout.astro';
+import { getRankedBlogTagEntries } from '../../../lib/blogTags';
+import { projectKoreanRoutes } from '../../../lib/blogRoutes';
 
-const routes = projectEnglishRoutes(
+const routes = projectKoreanRoutes(
   await getCollection('blog', ({ data }) => !data.draft),
 ).sort((a, b) => b.post.data.date.valueOf() - a.post.data.date.valueOf());
 
 const rankedTags = getRankedBlogTagEntries(
   routes.map(route => route.post.data.tags),
 );
-const tagNavContent = getBlogTagContent('en', '', 0);
+const tagNavContent = getBlogTagContent('ko', '', 0);
 const siteUrl = Astro.site ?? Astro.url.origin;
-const canonical = new URL('/blog/', siteUrl).toString();
+const englishUrl = new URL('/blog/', siteUrl).toString();
+const canonical = new URL('/ko/blog/', siteUrl).toString();
 const alternateUrls = [
-  { lang: 'en', url: canonical },
-  { lang: 'ko', url: new URL('/ko/blog/', siteUrl).toString() },
-  { lang: 'x-default', url: canonical },
+  { lang: 'en', url: englishUrl },
+  { lang: 'ko', url: canonical },
+  { lang: 'x-default', url: englishUrl },
 ];
 ---
 
 <MainLayout
-  title="Blog | Restato"
-  description="Development logs, learnings, and thoughts."
+  title="블로그 | Restato"
+  description="개발 기록과 배운 점, 생각을 공유합니다."
   canonical={canonical}
   alternateUrls={alternateUrls}
-  lang="en"
+  lang="ko"
 >
   <PageShell size="content">
     <header class="fc-page-header max-w-2xl">
-      <p class="fc-eyebrow">Restato journal</p>
-      <h1>Blog</h1>
+      <p class="fc-eyebrow">Restato 저널</p>
+      <h1>블로그</h1>
       <p class="fc-page-description">
-        Development logs, learnings, thoughts, and coding adventures.
+        개발 기록과 배운 점, 생각, 코딩 여정을 공유합니다.
       </p>
     </header>
 
     {rankedTags.length > 0 && (
       <BlogTagNav
         entries={rankedTags}
-        label="Blog tags"
-        showMoreLabel="Show more"
-        showLessLabel="Show less"
+        label="블로그 태그"
+        showMoreLabel="더보기"
+        showLessLabel="접기"
         formatCountLabel={tagNavContent.formatTagCount}
       />
     )}
@@ -67,14 +68,14 @@ const alternateUrls = [
       </div>
     ) : (
       <div class="fc-empty-state">
-        <h2>No posts yet</h2>
-        <p>The first post will be up soon!</p>
+        <h2>아직 글이 없습니다</h2>
+        <p>첫 번째 글을 준비하고 있습니다!</p>
       </div>
     )}
 
     {routes.length > 0 && (
       <p class="mt-8 border-t border-[var(--border-subtle)] pt-5 text-sm text-[var(--text-muted)]">
-        {routes.length} posts
+        글 {routes.length}개
       </p>
     )}
   </PageShell>

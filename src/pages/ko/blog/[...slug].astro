@@ -1,50 +1,48 @@
 ---
 import type { CollectionEntry } from 'astro:content';
 import { getCollection } from 'astro:content';
-import BlogArticle from '../../components/BlogArticle.astro';
-import MainLayout from '../../layouts/MainLayout.astro';
-import { selectArticleLanguage } from '../../i18n/article-language';
-import { toBlogTagSlug } from '../../lib/blogTags';
+import BlogArticle from '../../../components/BlogArticle.astro';
+import MainLayout from '../../../layouts/MainLayout.astro';
+import { toBlogTagSlug } from '../../../lib/blogTags';
 import {
   getBlogAlternates,
   type BlogTranslationPair,
-} from '../../lib/blogTranslations';
-import { projectEnglishRoutes } from '../../lib/blogRoutes';
+} from '../../../lib/blogTranslations';
+import { projectKoreanRoutes } from '../../../lib/blogRoutes';
 
 type BlogPost = CollectionEntry<'blog'>;
 
 interface Props {
   post: BlogPost;
-  pair?: BlogTranslationPair<BlogPost>;
+  pair: BlogTranslationPair<BlogPost>;
   pathname: string;
 }
 
 export async function getStaticPaths() {
   const posts = await getCollection('blog', ({ data }) => !data.draft);
 
-  return projectEnglishRoutes(posts).map(route => ({
-    params: { slug: route.pathname.slice('/blog/'.length, -1) },
+  return projectKoreanRoutes(posts).map(route => ({
+    params: { slug: route.pathname.slice('/ko/blog/'.length, -1) },
     props: route,
   }));
 }
 
 const { post, pair, pathname } = Astro.props as Props;
 const siteUrl = Astro.site ?? Astro.url.origin;
-const legacyPair: BlogTranslationPair = {
+const fallbackPair: BlogTranslationPair = {
   translationKey: post.slug,
   slug: post.slug,
 };
-const alternateUrls = getBlogAlternates(post.data.translationKey && pair ? pair : legacyPair, siteUrl);
+const alternateUrls = getBlogAlternates(post.data.translationKey && pair ? pair : fallbackPair, siteUrl);
 const canonical = new URL(pathname, siteUrl).toString();
-const articleLanguage = pair ? 'en' : selectArticleLanguage(post.data);
 const tagUrlBuilder = (tag: string) => `/blog/tag/${toBlogTagSlug(tag)}`;
 const navigationLabels = {
-  home: 'Home',
-  blog: 'Blog',
-  backToList: 'Back to list',
-  share: 'Share',
-  copyLink: 'Copy link',
-  copied: 'Link copied!',
+  home: '홈',
+  blog: '블로그',
+  backToList: '목록으로 돌아가기',
+  share: '공유',
+  copyLink: '링크 복사',
+  copied: '링크가 복사되었습니다!',
 };
 ---
 
@@ -57,13 +55,13 @@ const navigationLabels = {
   modifiedTime={post.data.updated}
   canonical={canonical}
   alternateUrls={alternateUrls}
-  lang={articleLanguage}
+  lang="ko"
   lockLanguage={true}
   robots={post.data.draft ? 'noindex, nofollow' : 'index, follow'}
 >
   <BlogArticle
     post={post}
-    indexUrl="/blog"
+    indexUrl="/ko/blog"
     tagUrlBuilder={tagUrlBuilder}
     labels={navigationLabels}
   />

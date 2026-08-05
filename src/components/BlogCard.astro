@@ -4,11 +4,13 @@ interface Props {
   description: string;
   date: Date;
   slug: string;
+  href?: string;
   tags?: string[];
   image?: string;
 }
 
-const { title, description, date, slug, tags = [], image } = Astro.props;
+const { title, description, date, slug, href, tags = [], image } = Astro.props;
+const articleUrl = href ?? `/blog/${slug}`;
 
 const formattedDate = date.toLocaleDateString('en-US', {
   year: 'numeric',
@@ -19,7 +21,7 @@ const formattedDate = date.toLocaleDateString('en-US', {
 
 <article class="h-full">
   <a
-    href={`/blog/${slug}`}
+    href={articleUrl}
     class="fc-surface block h-full overflow-hidden transition-colors hover:border-[var(--brand)]"
   >
     {image && (
