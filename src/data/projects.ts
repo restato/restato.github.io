@@ -9,6 +9,14 @@ export interface ProjectCard {
 
 export const projects: ProjectCard[] = [
   {
+    slug: 'arc-note',
+    title: 'Arc Note',
+    description: 'A mobile-first tarot reflection experience with optional ad-unlocked AI detail.',
+    icon: '🔮',
+    color: 'from-stone-700 to-amber-700',
+    badge: 'NEW',
+  },
+  {
     slug: 'local-price-extractor',
     title: 'Local Price Extractor',
     description: "Extract product prices locally with Chrome's built-in AI—no shopping-page backend required.",

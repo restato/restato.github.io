@@ -1,0 +1,124 @@
+---
+import MainLayout from '../../layouts/MainLayout.astro';
+import PageShell from '../../components/ui/PageShell.astro';
+
+const pageTitle = 'Arc Note | A Mobile-First Tarot Reflection Experience';
+const pageDescription = 'Arc Note turns a three-card tarot ritual into a private reflection flow, with a useful free reading and optional ad-unlocked AI detail.';
+const appUrl = 'https://arc-note.vercel.app';
+const caseStudyUrl = '/blog/arc-note-ad-supported-ai-tarot-case-study/';
+
+const features = [
+  {
+    title: 'A tactile card ritual',
+    description: 'Face-down card selection, removal, sound, haptics, and staged reveals make choosing the cards part of the experience.',
+  },
+  {
+    title: 'Useful before monetization',
+    description: 'Every completed spread receives a concise basic interpretation assembled from bounded templates and stored card meanings.',
+  },
+  {
+    title: 'Optional AI depth',
+    description: 'A rewarded ad can unlock a deeper interpretation that connects the cards to the question, obstacles, cautions, and next actions.',
+  },
+  {
+    title: 'Private by default',
+    description: 'Reading, result, checkout, administration, and deletion routes are excluded from search indexing.',
+  },
+];
+
+const stack = [
+  { label: 'Application', value: 'Next.js, React, TypeScript' },
+  { label: 'AI', value: 'OpenAI-compatible structured generation' },
+  { label: 'Monetization', value: 'Google Publisher Tag rewarded ads' },
+  { label: 'Launch', value: 'Vercel, GA4, Google Search Console' },
+];
+
+const appSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'WebApplication',
+  name: 'Arc Note',
+  description: pageDescription,
+  applicationCategory: 'LifestyleApplication',
+  operatingSystem: 'Web Browser',
+  offers: { '@type': 'Offer', price: '0', priceCurrency: 'USD' },
+  url: appUrl,
+  creator: { '@type': 'Organization', name: 'Restato Labs' },
+};
+
+const breadcrumbSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'BreadcrumbList',
+  itemListElement: [
+    { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://restato.github.io/' },
+    { '@type': 'ListItem', position: 2, name: 'Projects', item: 'https://restato.github.io/projects/' },
+    { '@type': 'ListItem', position: 3, name: 'Arc Note', item: 'https://restato.github.io/projects/arc-note' },
+  ],
+};
+---
+
+<MainLayout title={pageTitle} description={pageDescription} lang="en" lockLanguage={true}>
+  <script type="application/ld+json" set:html={JSON.stringify(appSchema)} />
+  <script type="application/ld+json" set:html={JSON.stringify(breadcrumbSchema)} />
+
+  <PageShell size="content">
+    <nav aria-label="Breadcrumb" class="fc-tool-breadcrumb">
+      <a href="/">Home</a>
+      <span aria-hidden="true">/</span>
+      <a href="/projects">Projects</a>
+      <span aria-hidden="true">/</span>
+      <span aria-current="page">Arc Note</span>
+    </nav>
+
+    <header class="fc-page-header">
+      <p class="fc-eyebrow">Restato Labs · Web product</p>
+      <h1>Arc Note</h1>
+      <p class="fc-page-description">A quiet, mobile-first tarot reflection experience designed around deliberate card selection rather than instant prediction.</p>
+      <div class="mt-6 flex flex-wrap gap-3">
+        <a class="fc-button fc-button-primary" href={appUrl} target="_blank" rel="noopener noreferrer">Open Arc Note</a>
+        <a class="fc-button fc-button-secondary" href={caseStudyUrl}>Read the case study</a>
+      </div>
+    </header>
+
+    <section class="fc-surface fc-surface-padding-md" aria-labelledby="arc-note-product">
+      <div class="fc-prose">
+        <h2 id="arc-note-product">The product boundary</h2>
+        <p>
+          Arc Note treats tarot as a prompt for reflection, not a source of guaranteed outcomes. A user chooses a topic, writes a question, selects three face-down cards, and receives a concise reading. The free result remains useful on its own; deeper AI synthesis is an optional exchange after a completed rewarded ad.
+        </p>
+      </div>
+    </section>
+
+    <section aria-labelledby="arc-note-features">
+      <h2 id="arc-note-features" class="mb-5 text-2xl font-bold text-[var(--text-primary)]">What shipped</h2>
+      <div class="grid gap-4 md:grid-cols-2">
+        {features.map((feature) => (
+          <article class="fc-surface fc-surface-padding-md">
+            <h3 class="text-lg font-bold text-[var(--text-primary)]">{feature.title}</h3>
+            <p class="mt-2 leading-7 text-[var(--text-muted)]">{feature.description}</p>
+          </article>
+        ))}
+      </div>
+    </section>
+
+    <section class="fc-surface fc-surface-padding-md" aria-labelledby="arc-note-stack">
+      <h2 id="arc-note-stack" class="mb-5 text-2xl font-bold text-[var(--text-primary)]">Implementation</h2>
+      <dl class="grid gap-4 sm:grid-cols-2">
+        {stack.map((item) => (
+          <div>
+            <dt class="text-sm font-semibold uppercase tracking-wide text-[var(--text-muted)]">{item.label}</dt>
+            <dd class="mt-1 font-medium text-[var(--text-primary)]">{item.value}</dd>
+          </div>
+        ))}
+      </dl>
+    </section>
+
+    <section class="fc-surface fc-surface-padding-md" aria-labelledby="arc-note-status">
+      <div class="fc-prose">
+        <h2 id="arc-note-status">Launch status</h2>
+        <p>
+          The production app, analytics, search registration, publisher declaration, and rewarded-ad integration are deployed. Advertising remains dependent on Google inventory and account-level site approval; an unavailable ad never removes the free reading.
+        </p>
+      </div>
+    </section>
+  </PageShell>
+</MainLayout>
