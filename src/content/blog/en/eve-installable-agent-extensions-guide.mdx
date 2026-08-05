@@ -11,7 +11,7 @@ Reusable agent code usually starts as copied files: one tool, one `SKILL.md`, on
 
 An eve extension packages tools, connections, skills, instructions, and hooks as one installable dependency. The useful boundary is not “code we can reuse.” It is **a versioned capability and permission contract that the consuming agent can inspect, constrain, and remove**.
 
-Vercel [announced installable eve extensions on July 22, 2026](https://vercel.com/changelog/eve-extensions). The public eve changelog records their introduction in 0.22.5. At the August 5 research cutoff, npm reported eve 0.30.8, and mounted extensions remained supported.
+Vercel [announced installable eve extensions on July 22, 2026](https://vercel.com/changelog/eve-extensions). The public eve changelog records mounted extensions and their ownership and peer-range contract in 0.22.4, then adds the dedicated `eve extension init` and `eve extension build` commands in 0.22.5. At the August 5 research cutoff, npm reported eve 0.30.8, and mounted extensions remained supported.
 
 ## Package a capability boundary, not a copied folder
 
