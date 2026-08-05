@@ -4,7 +4,7 @@ import PageHeader from '../../components/ui/PageHeader.astro';
 import PageShell from '../../components/ui/PageShell.astro';
 import { projects } from '../../data/projects';
 
-const pageDescription = "A collection of personal projects, practical apps, and tools including 동네변화, 바른한끼, Arc Note, Local Price Extractor, RoomFit 3D, PasteDock, Quick Issue, and JobWorld Kids Planner.";
+const pageDescription = "A collection of personal projects, practical apps, and tools including Gyeol, 동네변화, 바른한끼, Arc Note, Local Price Extractor, RoomFit 3D, PasteDock, Quick Issue, and JobWorld Kids Planner.";
 ---
 
 <MainLayout title="Projects | Restato" description={pageDescription} lang="en" lockLanguage={true}>
@@ -30,9 +30,19 @@ const pageDescription = "A collection of personal projects, practical apps, and 
                   {project.badge}
                 </span>
               )}
-              <span class="w-12 shrink-0 text-center text-4xl" aria-hidden="true">
-                {project.icon}
-              </span>
+              {project.iconImage ? (
+                <img
+                  src={project.iconImage}
+                  alt=""
+                  width="48"
+                  height="48"
+                  class="h-12 w-12 shrink-0 rounded-xl"
+                />
+              ) : (
+                <span class="w-12 shrink-0 text-center text-4xl" aria-hidden="true">
+                  {project.icon}
+                </span>
+              )}
               <span class="min-w-0 flex-1">
                 <span class="block font-bold text-[var(--text-primary)] group-hover:text-[var(--brand)]">
                   {project.title}

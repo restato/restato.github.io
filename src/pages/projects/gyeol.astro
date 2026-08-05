@@ -1,0 +1,186 @@
+---
+import MainLayout from '../../layouts/MainLayout.astro';
+
+const pageTitle = 'Gyeol | A Private On-Device Daily Journal';
+const pageDescription = 'Write one quiet entry a day and reflect with optional on-device AI, without sending your journal to a server.';
+const facts = [
+  { label: 'Platform', value: 'iPhone · iOS 26 or later' },
+  { label: 'Languages', value: 'Korean and English' },
+  { label: 'Release', value: 'In App Review' },
+];
+const screenshots = [
+  { src: '/images/projects/gyeol/01-today.jpg', alt: 'Gyeol Today screen for writing a daily journal entry', label: 'Today' },
+  { src: '/images/projects/gyeol/02-past.jpg', alt: 'Gyeol Past screen showing private journal history', label: 'Past' },
+  { src: '/images/projects/gyeol/03-patterns.jpg', alt: 'Gyeol Patterns screen showing recent feeling patterns', label: 'Patterns' },
+];
+const features = [
+  { title: 'One Day, One Page', description: 'Keep one editable entry per local day with immediate local autosave.' },
+  { title: 'Private Reflection', description: 'Use optional on-device AI without uploading diary text to a server.' },
+  { title: 'Feelings Stay Yours', description: 'Choose any combination from zero to three suggested feelings, all initially unselected.' },
+  { title: 'Patterns at Your Pace', description: 'Review past entries and 7-day and 30-day patterns built only from feelings you confirmed.' },
+];
+const techStack = [
+  { label: 'Interface', value: 'SwiftUI' },
+  { label: 'Local Data', value: 'SwiftData' },
+  { label: 'On-Device Model', value: 'Gemma 4 · LiteRT-LM' },
+  { label: 'Privacy', value: 'No account · No cloud sync' },
+];
+
+const appSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'SoftwareApplication',
+  name: 'Gyeol',
+  alternateName: ['오늘의 결', '결'],
+  description: pageDescription,
+  applicationCategory: 'LifestyleApplication',
+  operatingSystem: 'iOS 26 or later',
+  inLanguage: ['ko', 'en'],
+  url: 'https://restato.github.io/projects/gyeol',
+};
+
+const breadcrumbSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'BreadcrumbList',
+  itemListElement: [
+    {
+      '@type': 'ListItem',
+      position: 1,
+      name: 'Home',
+      item: 'https://restato.github.io/',
+    },
+    {
+      '@type': 'ListItem',
+      position: 2,
+      name: 'Projects',
+      item: 'https://restato.github.io/projects/',
+    },
+    {
+      '@type': 'ListItem',
+      position: 3,
+      name: 'Gyeol',
+      item: 'https://restato.github.io/projects/gyeol',
+    },
+  ],
+};
+---
+
+<MainLayout title={pageTitle} description={pageDescription} lang="en" lockLanguage={true}>
+  <script type="application/ld+json" set:html={JSON.stringify(appSchema)} />
+  <script type="application/ld+json" set:html={JSON.stringify(breadcrumbSchema)} />
+
+  <div class="fc-page fc-content fc-section-flow">
+    <section class="fc-surface fc-surface-padding-md">
+      <nav aria-label="Breadcrumb" class="fc-tool-breadcrumb mb-8 flex items-center gap-2">
+        <a href="/">Home</a>
+        <span aria-hidden="true">/</span>
+        <a href="/projects">Projects</a>
+        <span aria-hidden="true">/</span>
+        <span aria-current="page">Gyeol</span>
+      </nav>
+
+      <div class="max-w-3xl">
+        <div class="mb-5 flex flex-wrap items-center gap-3">
+          <img
+            src="/images/projects/gyeol/app-icon.png"
+            alt=""
+            width="72"
+            height="72"
+            class="h-[4.5rem] w-[4.5rem] rounded-2xl"
+          />
+          <div>
+            <p class="fc-eyebrow mb-1">오늘의 결</p>
+            <div class="flex flex-wrap items-center gap-2">
+              <h1 class="text-4xl font-bold tracking-tight md:text-6xl">Gyeol</h1>
+              <span class="fc-chip">IN REVIEW</span>
+            </div>
+          </div>
+        </div>
+
+        <p class="mb-3 text-xl leading-relaxed text-[var(--color-text-muted)] md:text-2xl">
+          Write one quiet entry a day, then reflect privately at your own pace.
+        </p>
+        <p class="text-lg font-semibold text-[var(--text-primary)]">Your journal stays on this iPhone.</p>
+
+        <div class="mt-10 grid gap-3 sm:grid-cols-3">
+          {facts.map((fact) => (
+            <div class="fc-surface p-4">
+              <p class="mb-1 text-xs uppercase tracking-wide text-[var(--color-text-muted)]">{fact.label}</p>
+              <p class="font-semibold">{fact.value}</p>
+            </div>
+          ))}
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <div class="mx-auto max-w-5xl">
+        <div class="mb-10 max-w-2xl">
+          <p class="fc-eyebrow mb-3">A quiet record of the day</p>
+          <h2 class="mb-4 text-3xl font-bold md:text-4xl">A small place for what a day leaves behind</h2>
+          <p class="text-lg leading-relaxed text-[var(--color-text-muted)]">
+            결 means the grain or texture a day leaves in the mind. Gyeol keeps that reflection personal: write, revisit, and notice patterns without turning your journal into a feed.
+          </p>
+        </div>
+
+        <div class="grid gap-6 md:grid-cols-2">
+          {features.map((feature, index) => (
+            <article class="fc-surface p-6">
+              <div class="fc-chip mb-5 h-10 w-10 justify-center font-bold text-[var(--accent)]">
+                {index + 1}
+              </div>
+              <h3 class="mb-2 text-xl font-semibold">{feature.title}</h3>
+              <p class="leading-relaxed text-[var(--color-text-muted)]">{feature.description}</p>
+            </article>
+          ))}
+        </div>
+      </div>
+    </section>
+
+    <section class="fc-surface fc-surface-padding-md">
+      <div class="mx-auto max-w-5xl">
+        <div class="mb-8 max-w-2xl">
+          <p class="fc-eyebrow mb-3">Inside the app</p>
+          <h2 class="mb-3 text-3xl font-bold">One page for today, a private view of the past</h2>
+          <p class="text-lg text-[var(--color-text-muted)]">Gyeol’s English screens keep writing, history, and confirmed feeling patterns close at hand.</p>
+        </div>
+
+        <div class="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+          {screenshots.map((screenshot) => (
+            <figure class="fc-surface overflow-hidden">
+              <img
+                src={screenshot.src}
+                alt={screenshot.alt}
+                width="1320"
+                height="2868"
+                loading="lazy"
+                class="h-auto w-full"
+              />
+              <figcaption class="border-t border-[var(--border-subtle)] px-4 py-3 text-sm font-semibold text-[var(--text-muted)]">
+                {screenshot.label}
+              </figcaption>
+            </figure>
+          ))}
+        </div>
+      </div>
+    </section>
+
+    <section class="fc-surface fc-surface-padding-md">
+      <div class="mx-auto max-w-5xl">
+        <h2 class="mb-8 text-3xl font-bold">Built to stay on your phone</h2>
+        <div class="grid gap-4 sm:grid-cols-2">
+          {techStack.map((item) => (
+            <div class="fc-surface p-5">
+              <p class="mb-2 text-sm uppercase tracking-wide text-[var(--color-text-muted)]">{item.label}</p>
+              <p class="text-lg font-semibold">{item.value}</p>
+            </div>
+          ))}
+        </div>
+
+        <div class="fc-surface fc-surface-soft mt-10 p-6 md:p-8">
+          <h2 class="mb-2 text-2xl font-bold">Coming soon</h2>
+          <p class="text-[var(--text-muted)]">Gyeol is currently in App Review. The App Store link will appear here after release.</p>
+        </div>
+      </div>
+    </section>
+  </div>
+</MainLayout>

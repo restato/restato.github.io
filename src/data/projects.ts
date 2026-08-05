@@ -3,12 +3,22 @@ export interface ProjectCard {
   title: string;
   description: string;
   icon: string;
+  iconImage?: string;
   color: string;
   badge?: string;
   url?: string;
 }
 
 export const projects: ProjectCard[] = [
+  {
+    slug: 'gyeol',
+    title: 'Gyeol',
+    description: 'Write one quiet entry a day and reflect with optional on-device AI, without sending your journal to a server.',
+    icon: '〰️',
+    iconImage: '/images/projects/gyeol/app-icon.png',
+    color: 'from-stone-500 to-amber-700',
+    badge: 'IN REVIEW',
+  },
   {
     slug: 'neighborhood-change',
     title: '동네변화',
