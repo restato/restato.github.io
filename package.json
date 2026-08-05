@@ -20,9 +20,10 @@
     "test:e2e": "npm run build && playwright test",
     "check:bundles": "npm run build && node scripts/check-bundles.mjs dist",
     "lighthouse": "npm run build && lhci autorun",
+    "verify:translations": "node scripts/validate-blog-translations.mjs",
     "validate:site": "node scripts/validate-site.mjs dist",
     "audit:content": "node scripts/audit-content.mjs dist",
-    "verify": "npm test -- --run && npm run check && npm run build && npm run validate:site && npm run audit:content"
+    "verify": "npm run verify:translations && npm test -- --run && npm run check && npm run build && npm run validate:site && npm run audit:content"
   },
   "dependencies": {
     "@astrojs/mdx": "^4.0.0",
