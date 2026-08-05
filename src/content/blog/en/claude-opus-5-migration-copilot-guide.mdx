@@ -1,0 +1,211 @@
+---
+title: "Migrate to Claude Opus 5: Thinking, Effort, Prompts, and Copilot"
+description: "Move from Claude Opus 4.8 or earlier by re-budgeting thinking, sweeping effort, updating prompts and tool assumptions, evaluating regressions, and enabling Copilot policy."
+date: 2026-07-25
+lang: en
+translationKey: claude-opus-5-migration-copilot-guide
+tags: ["Claude Opus 5", "Anthropic API", "Claude Code", "GitHub Copilot", "Migration"]
+---
+
+Claude Opus 5 uses the same Messages API shape as Opus 4.8, but the same request can consume a different output budget. Thinking is on by default, and `max_tokens` limits thinking plus final response text. **Budget thinking before you change the model ID.**
+
+The safe migration order is behavioral: re-budget output, sweep effort, update prompts and unsupported-tool assumptions, run tool and refusal regressions, and then roll out the model. GitHub Copilot access is a separate hosted-product policy, not proof that an API migration is complete.
+
+The current facts below were rechecked on August 5, 2026 against Anthropic's model, migration, effort, prompting, pricing, and TypeScript API documentation and GitHub's Copilot release notice.
+
+## Start with the documented boundaries
+
+| Item | Claude Opus 5 boundary |
+| --- | --- |
+| API model ID | `claude-opus-5` |
+| Context | 1 million tokens, default and maximum |
+| Synchronous Messages maximum output | 128,000 tokens; Message Batches supports up to 300,000 with the `output-300k-2026-03-24` beta header |
+| Standard token price | $5 input / $25 output per million tokens |
+| Default thinking | Adaptive thinking on |
+| Effort levels | `low`, `medium`, `high`, `xhigh`, `max` |
+| Default effort | `high` on the Claude API and Claude Code |
+| Not available | Web fetch and Priority Tier |
+
+The list price is unchanged from Opus 4.8, but equal per-token rates do not guarantee equal request cost. Thinking volume, tool calls, retries, output length, and cache behavior determine what one accepted result costs.
+
+## Re-budget thinking and `max_tokens` first
+
+An Opus 4.8 request that omits `thinking` runs without thinking. The same omission on Opus 5 uses adaptive thinking. Anthropic documents `max_tokens` as the hard ceiling for total output, including thinking and the final answer.
+
+An explicit TypeScript request can make both choices reviewable:
+
+```ts
+import Anthropic from "@anthropic-ai/sdk";
+
+const anthropic = new Anthropic();
+
+const message = await anthropic.messages.create({
+  model: "claude-opus-5",
+  max_tokens: 12_000,
+  thinking: { type: "adaptive" },
+  output_config: {
+    effort: "high",
+  },
+  messages: [
+    {
+      role: "user",
+      content: "Analyze this repository's authentication flow and return a change plan only.",
+    },
+  ],
+});
+```
+
+This example was reviewed against Anthropic's current TypeScript API and adaptive-thinking documentation. It was not executed with a paid API credential.
+
+Before rollout, record `stop_reason`, total input tokens, total output tokens, and the documented thinking-token breakdown when your SDK exposes it. A rise in `max_tokens` stops truncation but also increases the amount a request may spend. Treat it as a measured limit, not a default to maximize.
+
+## Use effort before disabling thinking
+
+Opus 5 supports five effort levels and defaults to `high`. Anthropic recommends a fresh sweep rather than carrying an Opus 4.8 setting forward. Use `low` or `medium` where the acceptance set holds; test `xhigh` or `max` only where additional work produces a material gain.
+
+Thinking can be disabled for compatibility, but only at `high` effort or below:
+
+```ts
+const message = await anthropic.messages.create({
+  model: "claude-opus-5",
+  max_tokens: 8_000,
+  thinking: { type: "disabled" },
+  output_config: {
+    effort: "high",
+  },
+  messages,
+});
+```
+
+Combining disabled thinking with `xhigh` or `max` returns HTTP 400. More importantly, Anthropic documents that disabled-thinking requests can occasionally emit tool calls as ordinary text or expose internal XML tags in visible output. Prefer lower effort with adaptive thinking when your evaluation allows it. If compatibility requires disabled thinking, add regression checks for tool block shape, visible XML, and output parsing.
+
+## Replace prompts that amplify work
+
+Anthropic's Opus 5 prompting guide says the model self-verifies more readily and can delegate more aggressively than earlier versions. Generic instructions such as these can create extra work:
+
+```text
+Verify everything again after you finish.
+Repeat the review until you are completely certain.
+Use subagents whenever possible.
+```
+
+Replace them with scope, evidence, and stop conditions:
+
+```text
+Limit changes to src/auth and its tests.
+Do not change the public API.
+Completion requires:
+- the authentication unit tests to pass;
+- the type check to pass; and
+- a list of changed files and remaining risks.
+Stop when those conditions are met.
+```
+
+This does not remove verification. It makes verification finite and externally checkable.
+
+### Bound progress narration
+
+If the product displays agent progress, ask for a short update only when the stage or user-facing risk changes. Do not pay for a transcript of every correction when only the final decision affects the user.
+
+```text
+Report one sentence when the work changes stage.
+Report only corrections that change code, evidence, or the recommendation.
+```
+
+### Bound subagent delegation
+
+Parallel work helps only when tasks are independent. A useful harness rule is:
+
+```text
+Delegate only independent research or verification tasks.
+Make small changes within one file directly.
+Run no more than three subagents concurrently.
+```
+
+The exact cap is an engineering choice, not an Anthropic API limit. It prevents a prompt tuned for smaller models from turning every local edit into a coordination problem. For persistent project rules and tool permissions, see the [Claude Code harness engineering guide](/blog/harness-engineering-guide-claude-code/).
+
+## Audit cumulative compatibility changes
+
+If you are moving directly from Opus 4.7 or earlier, do not apply only the Opus 4.8-to-5 delta. Use the matching source-model section in Anthropic's migration guide and audit cumulative changes including:
+
+- non-default sampling parameters;
+- assistant prefills and manual thinking configuration;
+- tool argument parsing and thought-signature continuity;
+- refusal handling through `stop_reason` and structured details;
+- the missing web fetch tool;
+- Priority Tier assumptions;
+- any context-window beta header that is unnecessary on Opus 5.
+
+Do not turn this list into a blind edit. Some restrictions already applied to later Opus 4.x versions, while older source models have additional changes. The exact source model determines the required sequence.
+
+The two explicit Opus 5 compatibility exceptions are important: web fetch and Priority Tier are not available. Replace web fetch with another approved retrieval path, and do not assume `service_tier` can preserve a prior Priority Tier operating model.
+
+## Re-run an accepted-outcome evaluation
+
+Use 20–50 representative, permission-cleared tasks before changing production traffic. At minimum, measure:
+
+| Metric | What to check |
+| --- | --- |
+| Functional completion | All stated acceptance criteria pass |
+| Regression rate | Existing tests or behavior break |
+| Scope control | Files changed outside the authorized area |
+| Tool reliability | Valid tool blocks, tool errors, and retries |
+| Refusal behavior | `stop_reason` and fallback path are handled |
+| Output budget | Thinking, visible output, and truncation |
+| Latency | First useful output and full task completion |
+| Accepted-outcome cost | Tokens, cache, tools, retries, and human repair |
+
+Keep the task, prompt, tools, and grader fixed while sweeping model and effort:
+
+```ts
+const variants = [
+  { model: "claude-opus-4-8", effort: "high" },
+  { model: "claude-opus-5", effort: "medium" },
+  { model: "claude-opus-5", effort: "high" },
+  { model: "claude-opus-5", effort: "max" },
+] as const;
+```
+
+This is harness pseudocode, not a reported benchmark. The evaluator must apply the selected `effort`, store only permitted evidence, and score the actual application outcome.
+
+## Enable GitHub Copilot separately
+
+GitHub announced Claude Opus 5 for Copilot Pro+, Max, Business, and Enterprise on July 24. The listed clients include VS Code, Visual Studio, Copilot CLI, the cloud agent, the Copilot app, github.com, mobile, JetBrains, Xcode, and Eclipse. Rollout was gradual.
+
+For Business and Enterprise, an administrator must enable the Claude Opus 5 policy. A complete hosted-product check is:
+
+1. Confirm the user's plan is eligible.
+2. Confirm the organization or enterprise policy enables Opus 5.
+3. Confirm the model is visible in the actual client and account.
+4. Run the team's representative read, edit, and agent tasks.
+5. Record usage-based price, output acceptance, latency, and refusal behavior.
+
+Copilot availability does not update a direct Anthropic API model ID, prompt, tool contract, or fallback. Operate those as separate configurations.
+
+## Roll out with explicit stop conditions
+
+1. Inventory the current model, thinking, effort, `max_tokens`, tools, prompt, cache, and fallback.
+2. Update request compatibility and prove the smallest call.
+3. Run the effort sweep on a fixed acceptance set.
+4. Add regressions for tool blocks, XML exposure, refusals, truncation, and out-of-scope edits.
+5. Shadow read-only work before allowing repository or external writes.
+6. Roll out a small traffic percentage.
+7. Roll back when accepted-outcome cost, error rate, latency, refusal rate, or scope violations cross the recorded threshold.
+
+Equal list pricing makes Opus 4.8 and Opus 5 easy to compare, not automatically interchangeable. Preserve the older model until the new configuration has passed its own production-shaped evidence gate.
+
+## Recommendation
+
+For an Opus 4.8 migration, keep adaptive thinking on, start at `high`, and test `medium` on ordinary work plus `xhigh` or `max` only on the difficult tail. Re-budget `max_tokens`, remove prompts that create unbounded self-checking or delegation, and add regressions around the documented disabled-thinking failure modes.
+
+For older Opus versions, follow the cumulative migration path for that exact source model. Then enable GitHub Copilot policy as a separate step and verify the model in the real client. The migration is complete only when the request, prompt, tools, evaluator, policy, and rollback evidence agree.
+
+## Primary sources
+
+- [What's new in Claude Opus 5](https://platform.claude.com/docs/en/about-claude/models/whats-new-opus-5)
+- [Claude model migration guide](https://platform.claude.com/docs/en/about-claude/models/migration-guide)
+- [Claude effort documentation](https://platform.claude.com/docs/en/build-with-claude/effort)
+- [Prompting Claude Opus 5](https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/prompting-claude-opus-5)
+- [Claude TypeScript Messages API](https://platform.claude.com/docs/en/api/typescript/messages/create)
+- [Claude API pricing](https://platform.claude.com/docs/en/about-claude/pricing)
+- [Claude Opus 5 in GitHub Copilot](https://github.blog/changelog/2026-07-24-claude-opus-5-is-now-available-in-github-copilot/)
