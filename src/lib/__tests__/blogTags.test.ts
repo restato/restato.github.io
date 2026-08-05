@@ -129,6 +129,7 @@ describe('blog tag URLs', () => {
     expect(tagRoute).toContain('id="blog-tag-legacy-aliases"');
     expect(tagRoute).toContain('data-canonical-slug={toBlogTagSlug(tag)}');
     expect(tagRoute).toContain('toBlogTagSlug(postTag) === route.canonicalSlug');
+    expect(tagRoute).toContain('robots="noindex, follow"');
     expect(blogIndex).toContain('BlogTagNav');
     expect(blogTagNav).toContain("basePath = '/blog'");
     expect(blogTagNav).toContain('`${normalizedBasePath}/tag/${entry.slug}`');
@@ -185,5 +186,6 @@ describe('blog tag URLs', () => {
     expect(koreanTagRoute).toContain('basePath="/ko/blog"');
     expect(koreanTagRoute).toContain('canonical={canonical}');
     expect(koreanTagRoute).toContain('lang="ko"');
+    expect(koreanTagRoute).toContain('robots="noindex, follow"');
   });
 });

@@ -30,7 +30,7 @@ const REDIRECT_PATTERNS = [
   /^\/anonymous-chat\/?$/, // /anonymous-chat (without lang prefix)
   /^\/games\/?$/, // /games (without lang prefix)
   /^\/articles\/admin\/?$/, // admin page
-  /^\/blog\/tag\//, // thin tag archive pages
+  /^\/(?:ko\/)?blog\/tag\//, // thin localized tag archive pages
   /^\/dashboard\/?$/, // personal dashboard
   /^\/content-os\/?$/, // internal editorial dashboard
 ];
@@ -38,7 +38,7 @@ const REDIRECT_PATTERNS = [
 /**
  * Check if URL is a redirect page that should be excluded
  */
-function isRedirectUrl(pathname) {
+export function isRedirectUrl(pathname) {
   return REDIRECT_PATTERNS.some((pattern) => pattern.test(pathname));
 }
 
