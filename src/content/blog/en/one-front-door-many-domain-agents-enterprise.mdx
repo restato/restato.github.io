@@ -1,0 +1,275 @@
+---
+title: "One Front Door, Many Domain Agents: The Enterprise Agent Operating Model"
+description: "Decide what stays in one company assistant, what domain experts should publish as skills and tools, and when a capability deserves a separate governed agent."
+date: 2026-08-06
+lang: en
+translationKey: one-front-door-many-domain-agents-enterprise
+tags: ["Enterprise AI", "AI Agent", "Agent Platform", "Governance", "Multi-Agent"]
+---
+
+Companies usually frame the agent decision too early: should employees use one company assistant in Slack, or should every domain build its own agent?
+
+That question mixes two different choices. The first is a product decision about how people enter the system. The second is an engineering and ownership decision about how work is divided behind the interface. A company can present one assistant while routing work to many tools, playbooks, workflows, and specialist agents. It can also expose a catalog of agents that all run on the same control plane.
+
+**The durable enterprise model is one identity-aware front door, a federated library of domain-owned capabilities, and separate agents only where authority, context, state, evaluation, or operating ownership requires an isolation boundary.**
+
+This is neither a giant prompt nor a free-form agent swarm. It is an operating model that lets domain experts encode how work should be done while a shared platform enforces how that work may run.
+
+## One front door does not mean one agent implementation
+
+A Slack bot, web assistant, or IDE panel should optimize the employee experience. People should not have to understand an internal agent catalog before asking a question. The entry layer can establish user identity, collect task intent, expose progress, request approval, and return one coherent result.
+
+Behind that surface, the system can choose among several execution paths:
+
+```text
+employee in Slack, web, or IDE
+             │
+             ▼
+identity-aware company assistant
+             │
+       intent and risk router
+       ┌─────┼──────────┐
+       ▼     ▼          ▼
+   direct  domain     specialist
+   answer  capability agent
+           │           │
+           └─────┬─────┘
+                 ▼
+       policy, budget, traces,
+       evaluation, and approval
+```
+
+OpenAI's Agents SDK documents two useful versions of this distinction. In the manager pattern, one agent calls specialists as tools and retains responsibility for the final answer. In a handoff, a triage agent transfers the conversation to a specialist that becomes active. The documentation also notes that code-driven orchestration is more deterministic for speed, cost, and performance than leaving every routing decision to a model. These are interaction choices, not competing theories of intelligence.
+
+The default enterprise pattern should be manager-style orchestration behind one front door. Use a direct handoff only when the specialist needs a distinct conversation, user experience, or accountability boundary. A payroll case may need a clearly identified HR agent. A short metric lookup usually does not.
+
+## Use a capability ladder before creating another agent
+
+“Agent” is often applied to anything with a model call. That makes architecture reviews unproductive. A more useful ladder starts with the least autonomous unit that can perform the work.
+
+| Level | Use it when | Example | Primary owner |
+| --- | --- | --- | --- |
+| Context | The model needs stable facts or instructions | Metric definitions, repository conventions | Domain owner |
+| Tool | The system needs live evidence or a bounded action | Query catalog, fetch order, create ticket | Service owner |
+| Skill or playbook | A repeatable procedure combines knowledge and tools | Investigate an alert, clean up an experiment | Domain expert |
+| Deterministic workflow | Steps, branches, and approvals are known | Refund review, access request, release check | Product and platform teams |
+| Agent | The path is open-ended and the model must plan dynamically | Deep investigation across changing evidence | Agent product team |
+| Multi-agent run | Valuable work decomposes into independent specialist tasks | Broad research across markets and regulations | Orchestrator owner |
+
+[Anthropic's guide to building effective agents](https://www.anthropic.com/engineering/building-effective-agents) recommends starting with the simplest solution that meets the need. It distinguishes workflows, where code defines the path, from agents, where the model dynamically directs tool use. That distinction is operationally important: a deterministic workflow is easier to test, price, audit, and recover.
+
+Most domain contributions should stop at a tool, skill, or playbook. A finance expert who defines the approved sequence for investigating revenue variance has created valuable executable knowledge. That contribution does not automatically require a persistent “finance agent” with its own memory, identity, and runtime.
+
+## Make every specialist agent pass the split tests
+
+A new specialist should exist because it needs a boundary, not because an organization chart contains another department. Five tests expose the difference.
+
+### Authority
+
+Does the capability need a distinct service identity, tool allowlist, data classification, approval chain, or transaction limit? A procurement agent that can prepare purchase requests and a general knowledge assistant should not share one unrestricted authority envelope.
+
+### Context and data
+
+Does the work require a specialized retrieval strategy, ontology, prompt, or tool catalog that would pollute the general assistant's context? A separate agent can isolate detailed intermediate work and return only a compact artifact. If the requirement is only one additional document set, a scoped retrieval tool may be enough.
+
+### State and runtime
+
+Does the task run for hours, pause for people, recover after process failure, or maintain a domain-specific case state? Long-lived execution can justify a separate runtime identity. A five-second lookup usually cannot.
+
+### Evaluation
+
+Does success require a distinct acceptance set and error policy? Tax analysis, incident diagnosis, customer support, and code changes have different definitions of a correct outcome. If no team can state how the proposed agent will be evaluated, the split is probably premature.
+
+### Operating ownership
+
+Is there a team that will own the agent's on-call response, budget, permissions, regressions, and retirement? “The AI team” is not a durable answer for every business workflow. A specialist without an accountable owner becomes an abandoned production dependency.
+
+Parallelism is a sixth economic test. Anthropic reports that its multi-agent research system outperformed a single-agent baseline by 90.2% on an internal research evaluation, but also that multi-agent systems used about 15 times as many tokens as ordinary chats. The same report says the pattern works best for breadth-first tasks with independent directions, large information volume, and many tools; tightly coupled work is a poor fit. These are Anthropic's measurements of its research system, not a universal multi-agent multiplier.
+
+## Let domain experts publish capabilities, not arbitrary bots
+
+The organizational analogy to prompt engineering is partly right. Early prompt work often sat with a central data science or AI team. As applications matured, domain teams became better authors of examples, definitions, constraints, and acceptance criteria. Agent development will follow a similar path because central engineers cannot encode every business procedure.
+
+The safe unit of decentralization is not unrestricted production code. Domain experts should own:
+
+- task intent and completion criteria;
+- domain terminology, exclusions, and authoritative sources;
+- playbook steps and escalation rules;
+- representative examples and adversarial cases;
+- evaluation cases and expected evidence;
+- outcome review and maintenance responsibility.
+
+The shared platform should own:
+
+- identity propagation and service credentials;
+- runtime, sandboxing, and durable execution;
+- tool registration, scopes, and policy enforcement;
+- model routing, budgets, rate limits, and retries;
+- traces, evaluation pipelines, rollout, rollback, and retirement;
+- templates that compile domain assets into a deployable capability.
+
+Security, privacy, and risk teams set proportional controls and approve exceptions. They should not become a ticket queue for every wording change. Low-risk read-only playbooks can use automated checks and domain review. High-impact write capabilities need stronger approval, simulations, and release evidence.
+
+LinkedIn's Contextual Agent Playbooks & Tools, or CAPT, is a concrete example. LinkedIn says it chose to augment existing coding agents instead of building another assistant from scratch. CAPT supplies MCP tools and executable playbooks, with central playbooks for common work and repository-local playbooks for team-specific procedures. The company reports more than 1,000 engineers using more than 500 authored playbooks. It also reports roughly three-times-faster question-to-insight for common analysis workflows and about a 70% reduction in initial issue-triage time in many areas. Those are LinkedIn-reported outcomes, but the architectural lesson does not depend on the exact percentages: domain experts can distribute executable knowledge without owning a new agent runtime.
+
+## Build the platform as a capability compiler
+
+A useful self-service platform should make the safe path the short path. The domain author starts from a template, supplies business meaning and evaluation evidence, and receives a registered capability that the common runtime can discover.
+
+An illustrative manifest could look like this:
+
+```yaml
+id: revenue-variance-investigation
+kind: playbook
+owner: finance-analytics
+purpose: explain material weekly revenue variance
+riskTier: read-only
+inputs:
+  - metric
+  - dateRange
+tools:
+  - metrics.read
+  - warehouse.query-reviewed
+outputs:
+  schema: variance-report-v1
+evidence:
+  citationsRequired: true
+limits:
+  maxRuntimeMinutes: 10
+  maxCostUsd: 2
+evaluation:
+  suite: finance-variance-v3
+  minimumPassRate: 0.95
+escalation:
+  ownerChannel: finance-analytics-oncall
+```
+
+This YAML is a vendor-neutral design example, not an implementation of the A2A specification. The important property is that purpose, ownership, authority, output, budget, evaluation, and escalation are machine-readable before deployment.
+
+The platform can then apply a golden path:
+
+1. Validate the manifest and tool scopes.
+2. Run offline cases against a pinned runtime and model profile.
+3. Scan instructions and dependencies for unsafe behavior.
+4. Deploy to a sandbox or shadow lane.
+5. Compare outcome quality, cost, latency, and policy events.
+6. Promote with a versioned approval record.
+7. Monitor usage and automatically flag stale or ownerless capabilities.
+
+Templates should differ by risk and task shape. A read-only question-answering capability needs sources and citation evaluation. A write workflow also needs idempotency, preview, approval, compensating action, and transaction evidence. A long-running agent needs durable state, cancellation, checkpointing, and a human escalation path.
+
+## Own the business assets, not every runtime loop
+
+Hermes Agent, Deep Agents, Claude Agent SDK, OpenClaw, and other harnesses make a reasonable build-versus-adopt strategy possible. They provide different combinations of agent loops, filesystems, tools, memory, skills, subagents, messaging, and approval mechanisms.
+
+| Harness | Useful starting point | Enterprise boundary to add |
+| --- | --- | --- |
+| Claude Agent SDK | Programmable file, command, web, edit, and context loop based on Claude Code | Provider strategy, tenant isolation, enterprise policy, fleet registry |
+| Deep Agents | Model-neutral harness with filesystems, memory, skills, subagents, permissions, and human approval | Company identity, tool contracts, risk tiers, portfolio controls |
+| Hermes Agent | Self-hosted assistant with messaging gateways, tools, skills, memory, MCP, and scheduling | Central authorization, controlled skill supply chain, enterprise evidence |
+| OpenClaw | Workspace-oriented assistants with per-agent skill scopes and allowlists | Stronger deployment isolation, policy enforcement, audit, lifecycle gates |
+
+This is not a quality ranking. The official documentation establishes capabilities, not comparative enterprise outcomes. The framework decision should follow workload constraints, supported models, hosting requirements, isolation, observability, team language, and exit cost.
+
+Build the complete runtime internally only when the loop itself is a durable differentiator or a measured constraint cannot be met by available options. Otherwise, adopt or wrap a harness and keep direct ownership of the assets that describe how the company works:
+
+- domain tools and action contracts;
+- policy and permission rules;
+- playbooks and evaluation data;
+- business semantics and authoritative sources;
+- run evidence, incidents, and outcome history;
+- the portable capability manifest.
+
+That boundary lets the company change models or frameworks without discarding its operating knowledge.
+
+## Turn the future agent organization chart into a responsibility graph
+
+An agent organization chart is a useful idea if it describes contracts rather than personalities. Human titles such as manager and analyst are weak routing metadata. A machine-operable directory needs to answer:
+
+- What outcome is this capability allowed to produce?
+- Who owns it, and who receives an escalation?
+- Which identities may invoke it?
+- What tools, data classes, and write actions can it access?
+- What input and output schemas does it accept?
+- What are its cost, latency, and retry budgets?
+- Which evaluation version did the current release pass?
+- Which agents may delegate to it?
+- Which version is active, deprecated, or blocked?
+
+The [Agent2Agent protocol specification](https://a2a-protocol.org/latest/specification) defines Agent Cards for identity, capabilities, skills, endpoints, and authentication, along with messages, stateful tasks, and artifacts. Those are useful interoperability primitives. They do not decide internal authority, funding, ownership, or acceptable risk. A2A can carry a delegation across an edge; the company still needs to govern why that edge exists.
+
+Model the directory as a graph whose edges have explicit meanings: `uses`, `delegates-to`, `approves`, `produces`, `depends-on`, and `escalates-to`. Start with a central router and deterministic delegation rules. Allow model-selected delegation only inside an evaluated candidate set. Do not begin with agents dynamically hiring other agents or granting permissions to one another.
+
+## Current enterprise cases point to federation, not a swarm
+
+DoorDash describes an internal platform with a centralized portal for discovering specialized agents and integrations into web, Slack, and Cursor. Its architecture includes shared retrieval, schema-aware SQL support, validation, evaluation, and guardrails. DoorDash presents its evolution as a progression from deterministic workflows to agents, deep agents, and exploration of asynchronous swarms rather than a leap directly to peer autonomy.
+
+LinkedIn took a complementary route: keep existing agent clients and distribute organizational context, tools, and playbooks through a common layer. Together, the two cases show that a unified user experience and decentralized domain contribution are compatible.
+
+They do not prove that every company needs an agent marketplace. A smaller company can begin with one assistant, ten useful tools, five maintained playbooks, and an evaluation set. The marketplace becomes useful when discovery and ownership are actual bottlenecks. Before that point, it can turn a small capability library into a large governance problem.
+
+## Adopt the operating model in four stages
+
+### Stage 1: one read-only front door
+
+Connect one identity-aware assistant to a small set of authoritative read tools. Choose two workflows with real demand. Record citations, latency, cost, corrections, and accepted outcomes.
+
+**Exit when:** users can complete the selected tasks, access controls survive retrieval, and sampled runs can be reconstructed.
+
+### Stage 2: domain capability publishing
+
+Give two domain teams templates for tools, playbooks, owners, risk tiers, and evaluation cases. Add automated validation, versioning, and a review path. Keep one runtime and router.
+
+**Exit when:** a second team can publish and maintain a useful capability without rebuilding authentication, telemetry, evaluation, or deployment.
+
+### Stage 3: bounded specialist agents
+
+Promote only capabilities that pass the split tests. Put them behind the same front door. Add routing evaluations, handoff contracts, per-agent budgets, durable state where required, and explicit escalation.
+
+**Exit when:** specialists improve outcome quality or ownership without causing uncontrolled routing errors, cost, or unresolved responsibility.
+
+### Stage 4: governed collaboration
+
+Introduce an agent directory, dependency graph, signed or authenticated discovery, cross-agent run envelopes, artifact contracts, cancellation, and portfolio risk reporting. Use parallel multi-agent work only for tasks whose value and independence justify it.
+
+**Exit when:** delegated runs preserve identity, purpose, authority, evidence, budget, and accountability across every edge, including partial failure.
+
+## Measure outcomes, not the number of agents
+
+Agent count is an inventory metric, not a success metric. A fleet can grow while employee outcomes decline. Track:
+
+| Metric | Decision it informs |
+| --- | --- |
+| Accepted outcome rate | Whether the capability solves the business task |
+| Cost per accepted outcome | Whether extra reasoning and delegation are economical |
+| Routing precision | Whether the front door selects the right capability |
+| Unnecessary delegation rate | Whether multi-agent complexity is being added without value |
+| Handoff completion rate | Whether identity, context, and artifacts survive transfer |
+| Correction effort | How much human repair the output requires |
+| Policy violation and blocked-action rate | Whether authority design is working |
+| Capability reuse | Whether domain assets compound across teams |
+| Stale or ownerless capability rate | Whether the catalog is maintainable |
+| p95 latency and cancellation success | Whether long-running work remains operable |
+
+Compare every proposed specialist against the simpler baseline it replaces. Run the same evaluation with a single agent plus tools, with a playbook, and with the specialist. Keep the split only when the improvement survives total cost, latency, failure recovery, and operating effort.
+
+## The recommendation
+
+Give employees one obvious place to start. Do not make that interface a monolithic implementation. Build a shared control plane and capability registry, then let domain experts publish tools, skills, playbooks, examples, and evaluations through a governed template. Promote a capability to a separate agent only when it earns an isolation boundary through authority, context, state, evaluation, ownership, or economically valuable parallelism.
+
+The likely future is not one digital employee and not an unbounded population of bots. It is a federated capability organization: one access experience, many maintained domain assets, a small number of accountable specialist agents, and explicit contracts for collaboration.
+
+For the shared runtime, identity, registry, and lifecycle layers, continue with [Enterprise Agent Platforms](/blog/enterprise-agent-platform-architecture-guide/). For the knowledge supplied to these capabilities, see [Enterprise Knowledge for AI Agents](/blog/enterprise-knowledge-context-platform-ai-agents/). For authority and evidence controls, see [Agent Governance](/blog/agent-governance-control-plane/).
+
+## Primary sources
+
+- [Anthropic: Building effective agents](https://www.anthropic.com/engineering/building-effective-agents)
+- [Anthropic: How we built our multi-agent research system](https://www.anthropic.com/engineering/multi-agent-research-system)
+- [OpenAI Agents SDK: Agent orchestration](https://openai.github.io/openai-agents-python/multi_agent/)
+- [LinkedIn Engineering: Contextual Agent Playbooks & Tools](https://www.linkedin.com/blog/engineering/ai/contextual-agent-playbooks-and-tools-how-linkedin-gave-ai-coding-agents-organizational-context)
+- [DoorDash Engineering: Beyond Single Agents](https://careersatdoordash.com/blog/beyond-single-agents-doordash-building-collaborative-ai-ecosystem/)
+- [Claude Agent SDK overview](https://code.claude.com/docs/en/agent-sdk/overview)
+- [LangChain Deep Agents overview](https://docs.langchain.com/oss/python/deepagents/overview)
+- [Nous Research Hermes Agent](https://github.com/NousResearch/hermes-agent)
+- [OpenClaw skills documentation](https://docs.openclaw.ai/tools/skills)
+- [Agent2Agent protocol specification](https://a2a-protocol.org/latest/specification)
