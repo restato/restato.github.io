@@ -34,6 +34,7 @@
     "@imgly/background-removal": "^1.7.0",
     "astro": "^5.0.0",
     "firebase": "^12.7.0",
+    "korean-lunar-calendar": "^0.4.0",
     "onnxruntime-web": "^1.21.0",
     "pdf-lib": "^1.17.1",
     "pdfjs-dist": "^4.10.38",
