@@ -16,16 +16,16 @@ import { buildLocalizedWorkflow } from '../../data/tools/localizedWorkflows';
 import { getToolFallbackNotice } from '../landing';
 
 describe('localized tool completeness', () => {
-  it('resolves exactly 55 tools across exactly 12 supported languages', () => {
+  it('resolves exactly 56 tools across exactly 12 supported languages', () => {
     expect(supportedLanguages).toEqual([
       'ko', 'en', 'ja', 'zh-CN', 'zh-TW', 'es', 'pt', 'de', 'fr', 'it', 'id', 'hi',
     ]);
-    expect(toolsRegistry).toHaveLength(55);
+    expect(toolsRegistry).toHaveLength(56);
 
     for (const tool of toolsRegistry) {
       expect(Object.keys(tool.content).sort()).toEqual([...supportedLanguages].sort());
     }
-    expect(toolsRegistry.flatMap(tool => Object.keys(tool.content))).toHaveLength(55 * 12);
+    expect(toolsRegistry.flatMap(tool => Object.keys(tool.content))).toHaveLength(56 * 12);
   });
 
   it('publishes substantive, actionable and visible help content for every resolved record', () => {

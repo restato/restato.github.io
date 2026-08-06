@@ -17,6 +17,7 @@ const toolComponents: Record<string, ComponentType> = {
   'loan-calculator': lazy(() => import('./media-calc/LoanCalculatorTool')),
   'audio-trimmer': lazy(() => import('./media-calc/AudioTrimmerTool')),
   'ladder-game': lazy(() => import('./random/LadderGameTool')),
+  'lunar-solar': lazy(() => import('./dates/LunarSolarTool')),
 };
 
 export default function AdditionalToolIsland({ slug, lang }: { slug: string; lang: Language }) {

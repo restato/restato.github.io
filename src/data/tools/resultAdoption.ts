@@ -70,4 +70,5 @@ export const toolResultAdoption: readonly ToolResultAdoption[] = [
   { slug: 'images-to-pdf', component: 'ImagesToPdfTool', mode: 'self-announcing', rationale: directDownload },
   { slug: 'pdf-to-images', component: 'PdfToImagesTool', mode: 'self-announcing', rationale: directDownload },
   { slug: 'ladder-game', component: 'LadderGameTool', mode: 'self-announcing', rationale: 'Each traced player appends to an always-visible labeled outcomes list beside the highlighted ladder path.' },
+  { slug: 'lunar-solar', component: 'LunarSolarTool', mode: 'self-announcing', rationale: 'The converted date updates in an always-visible labeled result panel as the inputs change.' },
 ];
