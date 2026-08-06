@@ -13,6 +13,7 @@ const additionalSlugs = [
   'csv-json', 'text-cleaner', 'seo-generator',
   'modern-image-converter', 'exif-remover', 'favicon-generator', 'loan-calculator', 'audio-trimmer',
   'ladder-game',
+  'lunar-solar',
 ] as const;
 
 describe('additional browser tools', () => {

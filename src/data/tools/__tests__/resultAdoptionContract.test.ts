@@ -6,6 +6,7 @@ import { additionalTools as dataTextTools } from '../additions/data-text';
 import { additionalTools as mediaCalculatorTools } from '../additions/media-calc';
 import { additionalTools as pdfTools } from '../additions/pdf';
 import { additionalTools as randomTools } from '../additions/random';
+import { additionalTools as dateTools } from '../additions/dates';
 import { toolResultAdoption } from '../resultAdoption';
 
 const publicTools = [
@@ -15,6 +16,7 @@ const publicTools = [
   ...mediaCalculatorTools.map(({ slug, component }) => ({ slug, component })),
   ...pdfTools.map(({ slug, component }) => ({ slug, component })),
   ...randomTools.map(({ slug, component }) => ({ slug, component })),
+  ...dateTools.map(({ slug, component }) => ({ slug, component })),
 ].sort((left, right) => left.slug.localeCompare(right.slug));
 
 describe('public tool result-adoption contract', () => {

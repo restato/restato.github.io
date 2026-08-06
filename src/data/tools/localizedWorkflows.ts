@@ -69,6 +69,7 @@ const toolWorkflows = {
   'loan-calculator': ['configure', 'calculate', 'inspect'],
   'audio-trimmer': ['upload', 'configure', 'download'],
   'ladder-game': ['configure', 'randomize', 'inspect'],
+  'lunar-solar': ['configure', 'liveConvert', 'inspect'],
 } satisfies Record<string, ToolWorkflow>;
 
 export function getToolWorkflow(slug: string): ToolWorkflow {

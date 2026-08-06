@@ -6,6 +6,7 @@ import { additionalTools as pdfTools } from './additions/pdf';
 import { additionalTools as dataTextTools } from './additions/data-text';
 import { additionalTools as mediaCalcTools } from './additions/media-calc';
 import { additionalTools as randomTools } from './additions/random';
+import { additionalTools as dateTools } from './additions/dates';
 
 export interface ToolSEO {
   title: string;
@@ -1099,6 +1100,7 @@ const additionalToolDefinitions: ToolDefinition[] = [
   ...dataTextTools,
   ...mediaCalcTools,
   ...randomTools,
+  ...dateTools,
 ].map(tool => {
   const definition: ToolDefinition = {
     slug: tool.slug,
