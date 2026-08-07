@@ -5,18 +5,18 @@ interface Props { lang: Language; gaId: string }
 const { lang, gaId } = Astro.props;
 
 const copy: Record<Language, { message: string; accept: string; reject: string }> = {
-  ko: { message: '쿠키 없이 익명 방문량을 측정합니다. 더 정확한 사용 분석을 위한 분석 쿠키를 허용하시겠어요?', accept: '분석 쿠키 허용', reject: '쿠키 없이 계속' },
-  en: { message: 'We measure anonymous visits without cookies. Allow analytics cookies for more accurate usage insights?', accept: 'Allow analytics cookies', reject: 'Continue without cookies' },
-  ja: { message: 'Cookieを使わず匿名の訪問数を測定します。より正確な利用分析のため分析Cookieを許可しますか？', accept: '分析Cookieを許可', reject: 'Cookieなしで続行' },
-  'zh-CN': { message: '我们会在不使用 Cookie 的情况下统计匿名访问量。是否允许分析 Cookie 以获得更准确的使用数据？', accept: '允许分析 Cookie', reject: '无 Cookie 继续' },
-  'zh-TW': { message: '我們會在不使用 Cookie 的情況下統計匿名造訪量。是否允許分析 Cookie 以取得更準確的使用資料？', accept: '允許分析 Cookie', reject: '不使用 Cookie 繼續' },
-  es: { message: 'Medimos visitas anónimas sin cookies. ¿Permitir cookies analíticas para obtener datos de uso más precisos?', accept: 'Permitir cookies analíticas', reject: 'Continuar sin cookies' },
-  pt: { message: 'Medimos visitas anônimas sem cookies. Permitir cookies de análise para dados de uso mais precisos?', accept: 'Permitir cookies de análise', reject: 'Continuar sem cookies' },
-  de: { message: 'Wir messen anonyme Besuche ohne Cookies. Analyse-Cookies für genauere Nutzungsdaten zulassen?', accept: 'Analyse-Cookies zulassen', reject: 'Ohne Cookies fortfahren' },
-  fr: { message: 'Nous mesurons les visites anonymes sans cookies. Autoriser les cookies d’analyse pour des données plus précises ?', accept: 'Autoriser les cookies d’analyse', reject: 'Continuer sans cookies' },
-  it: { message: 'Misuriamo le visite anonime senza cookie. Consentire i cookie analitici per dati di utilizzo più precisi?', accept: 'Consenti cookie analitici', reject: 'Continua senza cookie' },
-  id: { message: 'Kami mengukur kunjungan anonim tanpa kuki. Izinkan kuki analitik untuk data penggunaan yang lebih akurat?', accept: 'Izinkan kuki analitik', reject: 'Lanjutkan tanpa kuki' },
-  hi: { message: 'हम बिना कुकी के गुमनाम विज़िट मापते हैं। अधिक सटीक उपयोग जानकारी के लिए एनालिटिक्स कुकी की अनुमति दें?', accept: 'एनालिटिक्स कुकी की अनुमति दें', reject: 'बिना कुकी जारी रखें' },
+  ko: { message: '익명 분석 쿠키로 방문 통계를 측정합니다. 광고 목적으로는 사용하지 않습니다.', accept: '확인', reject: '분석 거부' },
+  en: { message: 'We measure visits with anonymous analytics cookies. They are never used for advertising.', accept: 'Got it', reject: 'Opt out' },
+  ja: { message: '匿名の分析Cookieで訪問数を測定します。広告目的には使用しません。', accept: 'OK', reject: '分析を拒否' },
+  'zh-CN': { message: '我们使用匿名分析 Cookie 统计访问量，绝不用于广告目的。', accept: '知道了', reject: '拒绝分析' },
+  'zh-TW': { message: '我們使用匿名分析 Cookie 統計造訪量，絕不用於廣告目的。', accept: '知道了', reject: '拒絕分析' },
+  es: { message: 'Medimos las visitas con cookies analíticas anónimas. Nunca se usan con fines publicitarios.', accept: 'Entendido', reject: 'Rechazar análisis' },
+  pt: { message: 'Medimos as visitas com cookies de análise anônimos. Nunca são usados para publicidade.', accept: 'Entendi', reject: 'Recusar análise' },
+  de: { message: 'Wir messen Besuche mit anonymen Analyse-Cookies. Sie werden nie für Werbung genutzt.', accept: 'Verstanden', reject: 'Analyse ablehnen' },
+  fr: { message: 'Nous mesurons les visites avec des cookies d’analyse anonymes. Jamais à des fins publicitaires.', accept: 'J’ai compris', reject: 'Refuser l’analyse' },
+  it: { message: 'Misuriamo le visite con cookie analitici anonimi. Non vengono mai usati per la pubblicità.', accept: 'Ho capito', reject: 'Rifiuta analisi' },
+  id: { message: 'Kami mengukur kunjungan dengan kuki analitik anonim. Tidak pernah digunakan untuk iklan.', accept: 'Mengerti', reject: 'Tolak analitik' },
+  hi: { message: 'हम गुमनाम एनालिटिक्स कुकी से विज़िट मापते हैं। इनका उपयोग विज्ञापन के लिए कभी नहीं होता।', accept: 'समझ गया', reject: 'एनालिटिक्स अस्वीकारें' },
 };
 ---
 
