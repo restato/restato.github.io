@@ -38,7 +38,7 @@ function consentSettings(consent: AnalyticsConsent) {
     ad_storage: 'denied',
     ad_user_data: 'denied',
     ad_personalization: 'denied',
-    analytics_storage: consent === 'granted' ? 'granted' : 'denied',
+    analytics_storage: consent === 'denied' ? 'denied' : 'granted',
   } as const;
 }
 
@@ -90,7 +90,7 @@ export function trackToolEvent(event: ToolEvent): void {
   }
   if (!eventNames.has(event.name)) throw new Error(`Unsupported analytics event: ${event.name}`);
   if (!supportedLanguages.includes(event.locale)) throw new Error(`Unsupported analytics locale: ${event.locale}`);
-  if (getAnalyticsConsent() !== 'granted' || typeof window === 'undefined') return;
+  if (getAnalyticsConsent() === 'denied' || typeof window === 'undefined') return;
 
   const analyticsWindow = window as AnalyticsWindow;
   if (!analyticsWindow.gtag) return;

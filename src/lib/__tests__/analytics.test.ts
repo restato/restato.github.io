@@ -23,11 +23,22 @@ describe('privacy-safe analytics', () => {
     expect(getAnalyticsConsent()).toBe('denied');
   });
 
-  it('loads cookieless analytics with every consent signal denied before a choice', () => {
-    trackToolEvent({ name: 'tool_open', tool: 'json', locale: 'en' });
-    expect((window as typeof window & { dataLayer?: unknown[] }).dataLayer).toBeUndefined();
+  it('measures by default before a choice, with advertising still denied', () => {
     expect(loadGoogleAnalytics('G-TEST123')).toBe(true);
     expect(document.querySelector('script[src*="googletagmanager"]')).not.toBeNull();
+    expect(Array.from((window as typeof window & { dataLayer: IArguments[] }).dataLayer[0])).toEqual([
+      'consent', 'default', {
+        ad_storage: 'denied',
+        ad_user_data: 'denied',
+        ad_personalization: 'denied',
+        analytics_storage: 'granted',
+      },
+    ]);
+  });
+
+  it('stops measuring once the visitor opts out', () => {
+    setAnalyticsConsent('denied');
+    expect(loadGoogleAnalytics('G-TEST123')).toBe(true);
     expect(Array.from((window as typeof window & { dataLayer: IArguments[] }).dataLayer[0])).toEqual([
       'consent', 'default', {
         ad_storage: 'denied',
@@ -36,6 +47,19 @@ describe('privacy-safe analytics', () => {
         analytics_storage: 'denied',
       },
     ]);
+  });
+
+  it('tracks tool events before a choice and drops them after opting out', () => {
+    const gtag = vi.fn();
+    (window as typeof window & { gtag: typeof gtag }).gtag = gtag;
+
+    trackToolEvent({ name: 'tool_open', tool: 'json', locale: 'en' });
+    expect(gtag).toHaveBeenCalledTimes(1);
+
+    setAnalyticsConsent('denied');
+    trackToolEvent({ name: 'tool_open', tool: 'json', locale: 'en' });
+    expect(gtag).toHaveBeenCalledTimes(2); // only the consent update, no further events
+    expect(gtag).toHaveBeenLastCalledWith('consent', 'update', expect.anything());
   });
 
   it('loads Google Analytics only once', () => {
